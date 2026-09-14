@@ -375,7 +375,7 @@ const adminAuth = async (req, res, next) => {
 
 };
 
-console.log("Mongo URL:",process.env.MONGO_URL);
+//console.log("Mongo URL:",process.env.MONGO_URL);
 
 mongoose.connect(process.env.MONGO_URL)
 .then(() => {
