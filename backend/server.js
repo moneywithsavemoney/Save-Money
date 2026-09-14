@@ -7921,7 +7921,7 @@ app.post("/admin/onetime-reject-cash", async (req, res) => {
 // ==========================================
 // 1. UPDATE / MODIFY INVESTMENT PLAN
 // ==========================================
-app.post("/admin/onetime-update-investment", verifyAdminToken, async (req, res) => {
+app.post("/admin/onetime-update-investment", async (req, res) => {
   try {
     const { investmentId, amount, duration, dailyReturn, status } = req.body;
 
@@ -7959,7 +7959,7 @@ app.post("/admin/onetime-update-investment", verifyAdminToken, async (req, res) 
 // 2. CANCEL INVESTMENT PLAN
 // ==========================================
 // POST /admin/onetime-cancel-investment
-app.post("/admin/onetime-cancel-investment", verifyAdminToken, async (req, res) => {
+app.post("/admin/onetime-cancel-investment", async (req, res) => {
   try {
     const { investmentId, email } = req.body;
 
