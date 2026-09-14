@@ -245,7 +245,7 @@ export default function AdminOneTime() {
     }
   };
 
-  // NEW: Modify / Update Investment Handler
+  // Modify / Update Investment Handler
   const handleUpdateInvestment = async () => {
     if (!editingInvest) return;
 
@@ -267,7 +267,7 @@ export default function AdminOneTime() {
     }
   };
 
-  // NEW: Cancel Investment Handler
+  // Cancel Investment Handler
   const handleCancelInvestment = async (inv) => {
     const confirmCancel = window.confirm(
       `Are you sure you want to CANCEL this investment for ${inv.email || inv.userEmail || "user"}?`
@@ -434,7 +434,7 @@ export default function AdminOneTime() {
         </div>
       </div>
 
-      {/* 🚀 NEW SECTION: INVESTED USERS & INVESTMENT CONTROL CENTER */}
+      {/* 2. INVESTED USERS & INVESTMENT CONTROL CENTER */}
       <div style={styles.section}>
         <div style={styles.sectionHeaderRow}>
           <h2 style={styles.sectionTitle}>💼 Invested Users & Active Plans Directory</h2>
@@ -517,7 +517,7 @@ export default function AdminOneTime() {
         </div>
       </div>
 
-      {/* 🛠️ MODAL FOR MODIFYING INVESTMENT */}
+      {/* MODAL FOR MODIFYING INVESTMENT */}
       {editingInvest && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
@@ -588,7 +588,7 @@ export default function AdminOneTime() {
         </div>
       )}
 
-      {/* 2. ONETIME ADD FUND REQUESTS */}
+      {/* 3. ONETIME ADD FUND REQUESTS */}
       <div style={styles.section}>
         <div style={styles.sectionHeaderRow}>
           <h2 style={styles.sectionTitle}>📥 OneTime Add Fund Requests</h2>
@@ -681,7 +681,7 @@ export default function AdminOneTime() {
         )}
       </div>
 
-      {/* 3. ONETIME WITHDRAWAL REQUESTS */}
+      {/* 4. ONETIME WITHDRAWAL REQUESTS */}
       <div style={styles.section}>
         <div style={styles.sectionHeaderRow}>
           <h2 style={styles.sectionTitle}>💰 OneTime Withdrawal Requests</h2>
@@ -771,7 +771,7 @@ export default function AdminOneTime() {
         )}
       </div>
 
-      {/* 4. WALLET CONTROL BOX */}
+      {/* 5. WALLET CONTROL BOX */}
       <div id="wallet-control-box" style={styles.section}>
         <h2 style={styles.sectionTitle}>💳 OneTime Wallet Balance Control</h2>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "12px" }}>
@@ -812,7 +812,7 @@ export default function AdminOneTime() {
         </button>
       </div>
 
-      {/* 5. ASSIGN MANUAL PLAN BOX */}
+      {/* 6. ASSIGN MANUAL PLAN BOX */}
       <div id="assign-plan-box" style={styles.section}>
         <h2 style={styles.sectionTitle}>📊 Assign Manual OneTime Investment Plan</h2>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "12px" }}>
