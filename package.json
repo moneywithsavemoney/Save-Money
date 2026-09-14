@@ -1,0 +1,20 @@
+{
+  "name": "save-money",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "axios": "^1.15.2",
+    "html2canvas": "^1.4.1",
+    "react-router-dom": "^7.14.2",
+    "web-push": "^3.6.7"
+  }
+}

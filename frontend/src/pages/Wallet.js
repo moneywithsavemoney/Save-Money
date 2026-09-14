@@ -1,0 +1,2572 @@
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
+import html2canvas from "html2canvas";
+import { API } from "../config";
+
+const DUMMY_P2P_USERS = [
+  { "name": "Aarav Sharma", "walletId": "WAL682410", "mobile": "+91 9718 20381", "balance": 15000 },
+  { "name": "Aditi Rao", "walletId": "WAL295174", "mobile": "+91 8142 90518", "balance": 4500 },
+  { "name": "Aditya Patel", "walletId": "WAL830219", "mobile": "+91 7029 48192", "balance": 22000 },
+  { "name": "Akash Verma", "walletId": "WAL194825", "mobile": "+91 6381 05928", "balance": 5000 },
+  { "name": "Ananya Sen", "walletId": "WAL742018", "mobile": "+91 9472 10845", "balance": 12500 },
+  { "name": "Aniket Chatterjee", "walletId": "WAL381905", "mobile": "+91 8891 30482", "balance": 30000 },
+  { "name": "Anish Das", "walletId": "WAL918234", "mobile": "+91 7402 81935", "balance": 7800 },
+  { "name": "Anjan Roy", "walletId": "WAL472910", "mobile": "+91 9152 74829", "balance": 2500 },
+  { "name": "Ankita Mukherjee", "walletId": "WAL503819", "mobile": "+91 6291 04827", "balance": 45000 },
+  { "name": "Ananya Banerjee", "walletId": "WAL829104", "mobile": "+91 8301 94820", "balance": 18200 },
+  { "name": "Arijit Ghosh", "walletId": "WAL276533", "mobile": "+91 9831 40291", "balance": 25000 },
+  { "name": "Arjun Nair", "walletId": "WAL875356", "mobile": "+91 7980 12394", "balance": 10000 },
+  { "name": "Arnav Gupta", "walletId": "WAL104928", "mobile": "+91 6002 91840", "balance": 50000 },
+  { "name": "Avani Joshi", "walletId": "WAL639102", "mobile": "+91 8720 19384", "balance": 3200 },
+  { "name": "Ayush Choudhury", "walletId": "WAL482019", "mobile": "+91 9123 84729", "balance": 15000 },
+  { "name": "Bipasha Basu", "walletId": "WAL739104", "mobile": "+91 7044 92810", "balance": 22000 },
+  { "name": "Debashis Dutt", "walletId": "WAL920183", "mobile": "+91 8910 28471", "balance": 12500 },
+  { "name": "Deepak Kumar", "walletId": "WAL310492", "mobile": "+91 9433 01829", "balance": 4500 },
+  { "name": "Devraj Saha", "walletId": "WAL849201", "mobile": "+91 6289 10482", "balance": 30000 },
+  { "name": "Diya Mehta", "walletId": "WAL182940", "mobile": "+91 7890 29184", "balance": 7800 },
+  { "name": "Gaurav Malhotra", "walletId": "WAL592018", "mobile": "+91 8240 19284", "balance": 25000 },
+  { "name": "Isha Bhattacharya", "walletId": "WAL204918", "mobile": "+91 9007 28194", "balance": 18200 },
+  { "name": "Ishaan Kapoor", "walletId": "WAL681940", "mobile": "+91 8100 29481", "balance": 50000 },
+  { "name": "Kabir Singh", "walletId": "WAL392014", "mobile": "+91 7003 19284", "balance": 3200 },
+  { "name": "Kavya Reddy", "walletId": "WAL840192", "mobile": "+91 9830 19284", "balance": 15000 },
+  { "name": "Koyel Ghosh", "walletId": "WAL192048", "mobile": "+91 9432 01928", "balance": 45000 },
+  { "name": "Kunal Agarwal", "walletId": "WAL730194", "mobile": "+91 6290 19284", "balance": 10000 },
+  { "name": "Madhav Iyer", "walletId": "WAL402918", "mobile": "+91 8981 02948", "balance": 22000 },
+  { "name": "Manish Saxena", "walletId": "WAL910284", "mobile": "+91 7980 91824", "balance": 5000 },
+  { "name": "Manish Kumar", "walletId": "WAL284019", "mobile": "+91 9874 01928", "balance": 12500 },
+  { "name": "Megha Pillai", "walletId": "WAL601928", "mobile": "+91 8334 01928", "balance": 30000 },
+  { "name": "Mitali Das", "walletId": "WAL394018", "mobile": "+91 9163 01928", "balance": 7800 },
+  { "name": "Mohit Chauhan", "walletId": "WAL820194", "mobile": "+91 7044 01928", "balance": 2500 },
+  { "name": "Neha Deshmukh", "walletId": "WAL102948", "mobile": "+91 8910 01928", "balance": 45000 },
+  { "name": "Nikhil Sen", "walletId": "WAL740192", "mobile": "+91 9831 01928", "balance": 18200 },
+  { "name": "Nisha Jain", "walletId": "WAL491028", "mobile": "+91 6289 01928", "balance": 25000 },
+  { "name": "Nitin Bose", "walletId": "WAL930182", "mobile": "+91 7890 01928", "balance": 10000 },
+  { "name": "Payal Biswas", "walletId": "WAL281940", "mobile": "+91 8240 01928", "balance": 50000 },
+  { "name": "Pooja Hegde", "walletId": "WAL640192", "mobile": "+91 9007 01928", "balance": 3200 },
+  { "name": "Pradeep Sen", "walletId": "WAL381029", "mobile": "+91 8100 01928", "balance": 15000 },
+  { "name": "Pratima Roy", "walletId": "WAL801924", "mobile": "+91 7003 01928", "balance": 22000 },
+  { "name": "Pritam Ghosh", "walletId": "WAL190284", "mobile": "+91 9830 01928", "balance": 12500 },
+  { "name": "Priya Sharma", "walletId": "WAL720194", "mobile": "+91 9432 01928", "balance": 4500 },
+  { "name": "Rahul Mukherjee", "walletId": "WAL410298", "mobile": "+91 6290 01928", "balance": 30000 },
+  { "name": "Rajesh Mudi", "walletId": "WAL902814", "mobile": "+91 8981 01928", "balance": 7800 },
+  { "name": "Rajib Sen", "walletId": "WAL291048", "mobile": "+91 7980 01928", "balance": 25000 },
+  { "name": "Rakesh Sen", "walletId": "WAL602918", "mobile": "+91 9874 01928", "balance": 18200 },
+  { "name": "Riya Chakraborty", "walletId": "WAL310294", "mobile": "+91 8334 01928", "balance": 50000 },
+  { "name": "Rohan Sen", "walletId": "WAL840291", "mobile": "+91 9163 01928", "balance": 3200 },
+  { "name": "Roshni Roy", "walletId": "WAL102849", "mobile": "+91 7044 01928", "balance": 15000 },
+  { "name": "Rupam Sen", "walletId": "WAL790124", "mobile": "+91 8910 01928", "balance": 45000 },
+  { "name": "Sachin Sen", "walletId": "WAL480192", "mobile": "+91 9831 01928", "balance": 10000 },
+  { "name": "Sagarika Basu", "walletId": "WAL920148", "mobile": "+91 6289 01928", "balance": 22000 },
+  { "name": "Sahil Khan", "walletId": "WAL201948", "mobile": "+91 7890 01928", "balance": 5000 },
+  { "name": "Sai Kumar", "walletId": "WAL610294", "mobile": "+91 8240 01928", "balance": 12500 },
+  { "name": "Samir Sen", "walletId": "WAL340192", "mobile": "+91 9007 01928", "balance": 30000 },
+  { "name": "Sanjay Ghosh", "walletId": "WAL890124", "mobile": "+91 8100 01928", "balance": 7800 },
+  { "name": "Sanjoy Sen", "walletId": "WAL120948", "mobile": "+91 7003 01928", "balance": 2500 },
+  { "name": "Sayan Ghosh", "walletId": "WAL780192", "mobile": "+91 9830 01928", "balance": 45000 },
+  { "name": "Sayani Dutta", "walletId": "WAL430192", "mobile": "+91 9432 01928", "balance": 18200 },
+  { "name": "Shikha Roy", "walletId": "WAL901284", "mobile": "+91 6290 01928", "balance": 25000 },
+  { "name": "Shreya Ghoshal", "walletId": "WAL240198", "mobile": "+91 8981 01928", "balance": 10000 },
+  { "name": "Shubham Sen", "walletId": "WAL690124", "mobile": "+91 7980 01928", "balance": 50000 },
+  { "name": "Sneha Roy", "walletId": "WAL320194", "mobile": "+91 9874 01928", "balance": 3200 },
+  { "name": "Sourav Ganguly", "walletId": "WAL810294", "mobile": "+91 8334 01928", "balance": 15000 },
+  { "name": "Srabanti Chatterjee", "walletId": "WAL140298", "mobile": "+91 9163 01928", "balance": 22000 },
+  { "name": "Subhash Sen", "walletId": "WAL701294", "mobile": "+91 7044 01928", "balance": 12500 },
+  { "name": "Subhajit Pal", "walletId": "WAL490128", "mobile": "+91 8910 01928", "balance": 4500 },
+  { "name": "Sudipta Sen", "walletId": "WAL950124", "mobile": "+91 9831 01928", "balance": 30000 },
+  { "name": "Suman Sen", "walletId": "WAL210948", "mobile": "+91 6289 01928", "balance": 7800 },
+  { "name": "Sumit Roy", "walletId": "WAL630194", "mobile": "+91 7890 01928", "balance": 25000 },
+  { "name": "Sunil Sen", "walletId": "WAL370129", "mobile": "+91 8240 01928", "balance": 18200 },
+  { "name": "Surbhi Das", "walletId": "WAL801294", "mobile": "+91 9007 01928", "balance": 50000 },
+  { "name": "Swapan Sen", "walletId": "WAL160294", "mobile": "+91 8100 01928", "balance": 3200 },
+  { "name": "Swarup Sen", "walletId": "WAL720149", "mobile": "+91 7003 01928", "balance": 15000 },
+  { "name": "Tanmay Sen", "walletId": "WAL450129", "mobile": "+91 9830 01928", "balance": 45000 },
+  { "name": "Tanushree Dutta", "walletId": "WAL980124", "mobile": "+91 9432 01928", "balance": 10000 },
+  { "name": "Trisha Sen", "walletId": "WAL230194", "mobile": "+91 6290 01928", "balance": 22000 },
+  { "name": "Tuhin Sen", "walletId": "WAL670129", "mobile": "+91 8981 01928", "balance": 5000 },
+  { "name": "Uday Sen", "walletId": "WAL310924", "mobile": "+91 7980 01928", "balance": 12500 },
+  { "name": "Upasana Sen", "walletId": "WAL860129", "mobile": "+91 9874 01928", "balance": 30000 },
+  { "name": "Utpal Sen", "walletId": "WAL190428", "mobile": "+91 8334 01928", "balance": 7800 },
+  { "name": "Varun Dhawan", "walletId": "WAL740291", "mobile": "+91 9163 01928", "balance": 2500 },
+  { "name": "Vikram Rathore", "walletId": "WAL410928", "mobile": "+91 7044 01928", "balance": 45000 },
+  { "name": "Vikas Dubey", "walletId": "WAL960124", "mobile": "+91 8910 01928", "balance": 18200 },
+  { "name": "Vishal Sen", "walletId": "WAL280194", "mobile": "+91 9831 01928", "balance": 25000 },
+  { "name": "Vivek Oberoi", "walletId": "WAL620194", "mobile": "+91 6289 01928", "balance": 10000 },
+  { "name": "Yash Sen", "walletId": "WAL350129", "mobile": "+91 7890 01928", "balance": 50000 },
+  { "name": "Abhishek Sen", "walletId": "WAL890421", "mobile": "+91 8240 01928", "balance": 3200 },
+  { "name": "Amrita Sen", "walletId": "WAL130924", "mobile": "+91 9007 01928", "balance": 15000 },
+  { "name": "Bikash Sen", "walletId": "WAL710294", "mobile": "+91 8100 01928", "balance": 22000 },
+  { "name": "Chandan Sen", "walletId": "WAL460129", "mobile": "+91 7003 01928", "balance": 12500 },
+  { "name": "Dipankar Sen", "walletId": "WAL920418", "mobile": "+91 9830 01928", "balance": 4500 },
+  { "name": "Goutam Sen", "walletId": "WAL250194", "mobile": "+91 9432 01928", "balance": 30000 },
+  { "name": "Indranil Sen", "walletId": "WAL680129", "mobile": "+91 6290 01928", "balance": 7800 },
+  { "name": "Jitendra Sen", "walletId": "WAL390124", "mobile": "+91 8981 01928", "balance": 25000 },
+  { "name": "Kaushik Sen", "walletId": "WAL810924", "mobile": "+91 7980 01928", "balance": 18200 },
+  { "name": "Manoj Sen", "walletId": "WAL170294", "mobile": "+91 9874 01928", "balance": 50000 },
+  { "name": "Nabaneeta Sen", "walletId": "WAL730928", "mobile": "+91 8334 01928", "balance": 3200 },
+  { "name": "Partha Sen", "walletId": "WAL420194", "mobile": "+91 9163 01928", "balance": 15000 }
+];
+
+export default function Wallet() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const go = navigate;
+
+  const email = localStorage.getItem("email") || "";
+  const token = localStorage.getItem("token") || "";
+
+  const [loading, setLoading] = useState(true);
+  const [showBalance, setShowBalance] = useState(true);
+
+  const [wallet, setWallet] = useState({
+    walletId: "",
+    name: "",
+    avatar: "",
+    balance: 0,
+    todayBalance: 0,
+    referral: 0,
+    performance: 0,
+    team: 0,
+    royalty: 0
+  });
+  const [history, setHistory] = useState([]);
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [addAmount, setAddAmount] = useState("");
+
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+
+  // --- P2P স্টেট ---
+  const [p2pModalOpen, setP2pModalOpen] = useState(false);
+  const [p2pUserList, setP2pUserList] = useState([]);
+  
+  // একটিমাত্র কম্বাইন্ড রিভিউ মডাল স্টেট (ওপরে লেখার অপশন ও নিচে আগের রিভিউ)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedP2pUser, setSelectedP2pUser] = useState(null);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewsList, setReviewsList] = useState({});
+
+  const [receiverWalletId, setReceiverWalletId] = useState("");
+  const [transferAmount, setTransferAmount] = useState("");
+  const [receiverInfo, setReceiverInfo] = useState(null);
+  const [confirmTransferOpen, setConfirmTransferOpen] = useState(false);
+  const [depositTxnId, setDepositTxnId] = useState("");
+
+  const [shareOpen, setShareOpen] = useState(false);
+  const [withdrawStatus, setWithdrawStatus] = useState(null);
+
+  const [historyFilter, setHistoryFilter] = useState("all");
+  const [showAllHistory, setShowAllHistory] = useState(false);
+
+  // 👇 ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
+
+  const [selectedTxn, setSelectedTxn] = useState(null);
+  const receiptRef = useRef(null);
+
+  const [statusOverlay, setStatusOverlay] = useState({
+    show: false,
+    type: "info",
+    message: ""
+  });
+
+  useEffect(() => {
+    loadWallet();
+    loadWithdrawStatus();
+    loadP2pUsers();
+  }, []);
+
+  const triggerStatusOverlay = (type, message) => {
+    setStatusOverlay({ show: true, type, message });
+    setTimeout(() => {
+      setStatusOverlay({ show: false, type: "info", message: "" });
+    }, 2200);
+  };
+
+  const loadWallet = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API}/wallet-summary`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token || ""
+        },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setWallet({
+          walletId: data.walletId || data.user?.walletId || "N/A",
+          name: data.name || data.user?.name || "User",
+          avatar: data.avatar || data.user?.photo || data.user?.photoImage || "",
+          photo: data.user?.photo || "",
+          photoImage: data.user?.photoImage || "",
+          balance: Number(data.balance || 0),
+          todayBalance: Number(data.todayBalance || 0),
+          referral: Number(data.referral || 0),
+          performance: Number(data.performance || 0),
+          team: Number(data.team || 0),
+          royalty: Number(data.royalty || 0)
+        });
+        setHistory(Array.isArray(data.history) ? data.history : []);
+      }
+    } catch (err) {
+      console.log("WALLET LOAD ERROR:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 👇 PLAN PDF ডাউনলোডের জন্য হ্যান্ডলার
+  const handleDownloadPlan = () => {
+    if (isDownloadingPlan) return;
+    setIsDownloadingPlan(true);
+
+    setTimeout(() => {
+      const link = document.createElement("a");
+      link.href = "/SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      link.download = "SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setIsDownloadingPlan(false);
+    }, 1200);
+  };
+
+  const loadWithdrawStatus = async () => {
+    try {
+      const res = await fetch(`${API}/auto-withdraw-status`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token || ""
+        },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setWithdrawStatus(data);
+      }
+    } catch (err) {
+      console.log("WITHDRAW STATUS ERROR", err);
+    }
+  };
+
+  const loadP2pUsers = async () => {
+    try {
+      const res = await fetch(`${API}/p2p-users`, {
+        method: "GET",
+        headers: { authorization: token || "" }
+      });
+      const data = await res.json();
+      if (data.success && data.users && data.users.length > 0) {
+        setP2pUserList(data.users);
+        if (data.reviews) setReviewsList(data.reviews);
+      } else {
+        setP2pUserList(DUMMY_P2P_USERS);
+      }
+    } catch (err) {
+      console.log("P2P LOAD ERROR:", err);
+      setP2pUserList(DUMMY_P2P_USERS);
+    }
+  };
+
+  const handleIWantP2P = async () => {
+    if (Number(wallet.balance) <= 2000) {
+      return triggerStatusOverlay("warning", "Your wallet balance must be greater than ₹2,000 to register for P2P!");
+    }
+    try {
+      const res = await fetch(`${API}/register-p2p`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token || ""
+        },
+        body: JSON.stringify({ email, walletId: wallet.walletId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        triggerStatusOverlay("success", "Successfully registered for P2P! 🎉");
+        loadP2pUsers();
+      } else {
+        triggerStatusOverlay("error", data.msg || "P2P Registration failed");
+      }
+    } catch (err) {
+      console.log("P2P REGISTRATION ERROR:", err);
+      triggerStatusOverlay("error", "Server error during P2P registration");
+    }
+  };
+
+  const handleUndoP2P = async () => {
+    try {
+      const res = await fetch(`${API}/undo-p2p`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token || ""
+        },
+        body: JSON.stringify({ email, walletId: wallet.walletId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        triggerStatusOverlay("success", "Successfully removed from P2P senders.");
+        loadP2pUsers();
+      } else {
+        triggerStatusOverlay("error", data.msg || "Failed to undo P2P");
+      }
+    } catch (err) {
+      console.log("P2P UNDO ERROR:", err);
+      triggerStatusOverlay("error", "Server error during P2P undo");
+    }
+  };
+
+  const submitP2pReview = async () => {
+    if (!reviewText.trim()) {
+      return triggerStatusOverlay("warning", "Please write a review comment");
+    }
+    try {
+      const res = await fetch(`${API}/p2p-review`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token || ""
+        },
+        body: JSON.stringify({
+          senderWalletId: selectedP2pUser.walletId,
+          reviewerEmail: email,
+          review: reviewText.trim(),
+          rating: reviewRating
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        triggerStatusOverlay("success", "Review submitted successfully! ⭐");
+        setReviewText("");
+        setReviewRating(5);
+        loadP2pUsers();
+        const updatedReviews = await fetch(`${API}/p2p-users`).then(r => r.json());
+        if(updatedReviews.success && updatedReviews.reviews) {
+          setReviewsList(updatedReviews.reviews);
+        }
+      } else {
+        triggerStatusOverlay("error", data.msg || "Failed to submit review");
+      }
+    } catch (err) {
+      console.log("REVIEW ERROR:", err);
+      triggerStatusOverlay("error", "Server connection error");
+    }
+  };
+
+  const money = (n) => `₹ ${Number(n || 0).toLocaleString("en-IN")}.00`;
+  const visibleBalance = showBalance ? money(wallet.balance) : "₹ ••••••••";
+
+  const copyWalletId = async () => {
+    try {
+      await navigator.clipboard.writeText(wallet.walletId);
+      toast.success("Wallet ID copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
+  const openAddCash = () => {
+    setAddAmount("");
+    setAddOpen(true);
+  };
+
+  const payViaUPI = () => {
+    if (!addAmount || Number(addAmount) <= 0) {
+      return triggerStatusOverlay("warning", "Please enter a valid amount");
+    }
+    const MY_UPI_ID = "savemoney@razorpay";
+    const MERCHANT_NAME = "SaveMoney. Wallet";
+    const txnRef = "TXN" + Date.now();
+    const upiUrl = `upi://pay?pa=${MY_UPI_ID}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${addAmount}&cu=INR&tr=${txnRef}`;
+    window.location.href = upiUrl;
+    triggerStatusOverlay("success", "Opening UPI Apps... Please complete payment.");
+  };
+
+  const submitDepositRequest = async () => {
+    if (!addAmount || Number(addAmount) <= 0) {
+      return triggerStatusOverlay("warning", "Please enter a valid amount");
+    }
+    if (!depositTxnId || !depositTxnId.trim()) {
+      return triggerStatusOverlay("warning", "Please enter the 12-digit UPI Ref No");
+    }
+    try {
+      const res = await fetch(`${API}/deposit-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token || ""
+        },
+        body: JSON.stringify({
+          email: email,
+          amount: Number(addAmount),
+          txnId: depositTxnId.trim()
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return triggerStatusOverlay("error", data.msg || "Deposit request failed");
+      }
+      triggerStatusOverlay("success", data.msg || "Submitted successfully! Waiting for admin approval.");
+      setAddOpen(false);
+      setAddAmount("");
+      setDepositTxnId("");
+      loadWallet();
+    } catch (err) {
+      console.log("DEPOSIT ERROR:", err);
+      triggerStatusOverlay("error", "Server connectivity error");
+    }
+  };
+
+  const checkReceiver = async () => {
+    if (!receiverWalletId.trim()) {
+      return triggerStatusOverlay("warning", "Enter receiver wallet ID");
+    }
+    if (!transferAmount || Number(transferAmount) <= 0) {
+      return triggerStatusOverlay("warning", "Enter valid amount");
+    }
+    const currentBalance = Number(wallet.balance || 0);
+    if (currentBalance <= 2000) {
+      return triggerStatusOverlay("warning", "Insufficient Balance! Minimum ₹2,000 must remain in your wallet.");
+    }
+    const maxAllowed = currentBalance - 2000;
+    if (Number(transferAmount) > maxAllowed) {
+      return triggerStatusOverlay("warning", `Limit Exceeded! You can only transfer up to ₹${maxAllowed.toLocaleString("en-IN")}`);
+    }
+    try {
+      const res = await fetch(`${API}/wallet-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token || ""
+        },
+        body: JSON.stringify({ walletId: receiverWalletId.trim() })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        return triggerStatusOverlay("error", data.msg || "Receiver not found");
+      }
+      setReceiverInfo(data.user);
+      setConfirmTransferOpen(true);
+    } catch (err) {
+      console.log("RECEIVER CHECK ERROR:", err);
+      triggerStatusOverlay("error", "Receiver check failed");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      if (email) {
+        await fetch(`${API}/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email })
+        });
+      }
+    } catch (err) {
+      console.log("Logout backend error:", err);
+    } finally {
+      localStorage.clear();
+      navigate("/login");
+      window.location.reload();
+    }
+  };
+
+  const sendTransfer = async () => {
+    try {
+      const res = await fetch(`${API}/wallet-transfer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token || ""
+        },
+        body: JSON.stringify({
+          senderEmail: email,
+          receiverWalletId: receiverWalletId.trim(),
+          amount: Number(transferAmount)
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        triggerStatusOverlay("success", data.msg || "Transfer Completed Successfully! 🎉");
+        setReceiverWalletId("");
+        setTransferAmount("");
+        setReceiverInfo(null);
+        setConfirmTransferOpen(false);
+        loadWallet();
+      } else {
+        triggerStatusOverlay("error", data.msg || "Transfer failed");
+      }
+    } catch (err) {
+      console.log("TRANSFER ERROR:", err);
+      triggerStatusOverlay("error", "Transfer failed due to server error");
+    }
+  };
+
+  const inviteLink = useMemo(() => {
+    const ref = wallet.walletId || email;
+    return `${window.location.origin}/register?ref=${encodeURIComponent(ref)}`;
+  }, [wallet.walletId, email]);
+
+  const openInvite = async () => {
+    const text = `Join Save Money and start your saving journey.\n${inviteLink}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Save Money", text, url: inviteLink });
+      } catch {
+        setShareOpen(true);
+      }
+    } else {
+      setShareOpen(true);
+    }
+  };
+
+  const copyInviteLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      toast.success("Referral link copied");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
+
+  const handleShareReceipt = async () => {
+    if (!receiptRef.current) return;
+    try {
+      const canvas = await html2canvas(receiptRef.current, {
+        useCORS: true,
+        scale: 2,
+        backgroundColor: "#0b0f19"
+      });
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], `Receipt-${selectedTxn._id || "Txn"}.png`, { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: "Transaction Receipt", text: "Save Money Transaction Proof" });
+          } catch (e) {
+            downloadFallback(canvas);
+          }
+        } else {
+          downloadFallback(canvas);
+        }
+      }, "image/png");
+    } catch (err) {
+      console.error("Receipt Generation Error:", err);
+      toast.error("Failed to generate receipt image");
+    }
+  };
+
+  const downloadFallback = (canvas) => {
+    const link = document.createElement("a");
+    link.download = `Receipt-${selectedTxn?._id || "transaction"}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    toast.success("Receipt Image Saved!");
+  };
+
+  if (loading) {
+    return (
+      <div style={styles.loadingPage}>
+        <div style={styles.loadingCard}>
+          <div style={styles.loadingIcon}>👛</div>
+          <h2>Loading Wallet...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  const filteredHistory = history.filter((item) => {
+    if (historyFilter === "all") return true;
+    return String(item.type).toLowerCase() === historyFilter;
+  });
+
+  const visibleHistory = showAllHistory ? filteredHistory : filteredHistory.slice(0, 5);
+
+  return (
+    <div style={styles.page}>
+      <div style={styles.app}>
+
+        {/* 👇 SIDEBAR DRAWER */}
+        <div style={{
+          ...styles.drawerOverlay,
+          opacity: isDrawerOpen ? 1 : 0,
+          visibility: isDrawerOpen ? "visible" : "hidden"
+        }} onClick={() => setIsDrawerOpen(false)}>
+          <div style={{        
+            ...styles.drawerContainer,
+            transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
+          }} onClick={(e) => e.stopPropagation()}>
+            
+            {/* LOGO & BRANDING */}
+            <div style={styles.drawerHeader}>
+              <div style={styles.drawerBrand}>
+                <div style={styles.drawerLogoWrapper}>
+                  <img 
+                    src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
+                    alt="SM Logo" 
+                    style={styles.drawerLogoImg} 
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
+                  <span style={styles.drawerLogoSubtext}>Invest Small, Earn Big</span>
+                </div>
+              </div>
+            </div>
+
+            {/* SIDEBAR NAV BUTTONS - DIAMOND CUT & WATER TRANSPARENT */}
+            <div style={styles.drawerNavList}>
+              {/* 1. Dashboard */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDashboard,
+                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/home"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🏠</span>
+                <span style={styles.drawerNavText}>Dashboard</span>
+              </button>
+
+              {/* 2. My Investment */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavMyInvestment,
+                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📈</span>
+                <span style={styles.drawerNavText}>My Investment</span>
+              </button>
+
+              {/* 3. Save Money */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSaveMoney,
+                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>💰</span>
+                <span style={styles.drawerNavText}>Save Money</span>
+              </button>
+
+              {/* 4. One Time */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavOneTime,
+                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>⚡</span>
+                <span style={styles.drawerNavText}>One Time</span>
+              </button>
+
+              {/* 5. PLAN (PDF Download) */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavPlan
+                }} 
+                onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
+                disabled={isDownloadingPlan}
+              >
+                <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
+                <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
+              </button>
+
+              {/* Add Fund */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavAddFund,
+                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🌐</span>
+                <span style={styles.drawerNavText}>Add Fund</span>
+              </button>
+
+              {/* Refer (refer.js) */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavRefer,
+                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👥</span>
+                <span style={styles.drawerNavText}>Refer & Earn</span>
+              </button>
+
+              {/* Withdraw (withdraw.js) */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavWithdraw,
+                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>➔</span>
+                <span style={styles.drawerNavText}>Withdraw</span>
+              </button>
+
+              {/* Daily Reward (dailyreward.js) */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDailyReward,
+                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎁</span>
+                <span style={styles.drawerNavText}>Daily Reward</span>
+              </button>
+
+              {/* Investment Assistance */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavInvestmentAssistant,
+                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📊</span>
+                <span style={styles.drawerNavText}>Investment Assistance</span>
+              </button>
+
+              {/* Support */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSupport,
+                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/support"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎧</span>
+                <span style={styles.drawerNavText}>Support</span>
+              </button>
+
+              {/* Profile */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavProfile,
+                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👤</span>
+                <span style={styles.drawerNavText}>Profile</span>
+              </button>
+
+              {/* Logout */}
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavLogout
+                }} 
+                onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
+              >
+                <span style={styles.drawerNavIcon}>🚪</span>
+                <span style={styles.drawerNavText}>Logout</span>
+              </button>
+            </div>
+
+            {/* 👇 PLANT IMAGE CONTAINER AT THE BOTTOM */}
+            <div style={styles.treePlantOnlyWrapper}>
+              <img 
+                src="/tree plant.png" 
+                alt="Tree Plant" 
+                style={styles.treePlantOnlyImg}
+                onError={(e) => {
+                  if (e.target.src.includes('.png')) {
+                    e.target.src = '/tree plant.jpg';
+                  }
+                }}
+              />
+            </div>
+
+          </div>
+        </div>
+
+        {statusOverlay.show && (
+          <div style={styles.statusOverlayBg}>
+            <div style={{
+              ...styles.statusOverlayCard,
+              borderTop: statusOverlay.type === "success" ? "6px solid #10b981" : statusOverlay.type === "warning" ? "6px solid #f59e0b" : "6px solid #ef4444"
+            }}>
+              <div style={{
+                ...styles.statusOverlayIcon,
+                background: statusOverlay.type === "success" ? "#dcfce7" : statusOverlay.type === "warning" ? "#fef3c7" : "#fee2e2",
+                color: statusOverlay.type === "success" ? "#10b981" : statusOverlay.type === "warning" ? "#d97706" : "#ef4444"
+              }}>
+                {statusOverlay.type === "success" ? "✓" : statusOverlay.type === "warning" ? "⚠" : "✕"}
+              </div>
+              <h3 style={styles.statusOverlayText}>{statusOverlay.message}</h3>
+            </div>
+          </div>
+        )}
+
+        {/* TOP HEADER */}
+        <div style={styles.topHeader}>
+          <button 
+            style={styles.menuButton}
+            onClick={() => setIsDrawerOpen(true)}
+          >
+            ☰
+          </button>
+
+          <header style={styles.header}>
+            <div>
+              <h1 style={styles.pageTitle}>My Wallet</h1>
+              <div style={styles.titleWave}></div>
+              <p style={styles.pageSub}>Manage your balance, track transactions and grow more.</p>
+            </div>
+
+            <button style={styles.notifyBtn} onClick={() => window.location.href = "/notifications"}>
+              🔔
+              <span style={styles.notifyCount}></span>
+            </button>
+
+            <div style={styles.avatar}>
+              {wallet.avatar || wallet.photo || wallet.photoImage ? (
+                <img
+                  src={wallet.avatar || wallet.photo || `${API}/${wallet.photoImage}`}
+                  alt="user"
+                  style={styles.avatarImg}
+                />
+              ) : (
+                "👨‍💼"
+              )}
+            </div>
+          </header>
+
+          <section style={styles.walletHero}>
+            <div style={styles.walletLeft}>
+              <p style={styles.heroLabel}>WALLET ID</p>
+              <h2 style={styles.walletId}>
+                {wallet.walletId}
+                <button onClick={copyWalletId}>©☑️</button>
+              </h2>
+
+              <div style={styles.dashedLine}></div>
+
+              <p style={styles.heroLabel}>AVAILABLE BALANCE</p>
+              <h1 style={styles.balanceText}>{visibleBalance}</h1>
+
+              <div style={styles.heroActions}>
+                <button style={styles.addCashBtn} onClick={openAddCash}>
+                  <b>＋</b> Add Cash
+                </button>
+                <button style={styles.withdrawBtn} onClick={() => setWithdrawOpen(true)}>
+                  💳 Withdraw
+                </button>
+                <button style={styles.p2pMainBtn} onClick={() => setP2pModalOpen(true)}>
+                  🤝 P2P
+                </button>
+              </div>
+            </div>
+
+            <button style={styles.eyeBtn} onClick={() => setShowBalance(!showBalance)}>
+              {showBalance ? "👁" : "🙈"}
+            </button>
+
+            <WalletIllustration />
+          </section>
+
+          <section style={styles.incomePanel}>
+            <IncomeCard icon="👥" title="REFERRAL" amount={wallet.referral} color="#10b981" />
+            <IncomeCard icon="📈" title="PERFORMANCE" amount={wallet.performance} color="#f59e0b" />
+            <IncomeCard icon="👥" title="TEAM" amount={wallet.team} color="#2563eb" />
+            <IncomeCard icon="👑" title="ROYALTY" amount={wallet.royalty} color="#9333ea" />
+            <IncomeCard icon="👛" title="TODAY EARNING" amount={wallet.todayBalance} color="#14b8a6" />
+          </section>
+
+          <section style={styles.middleGrid}>
+            <div style={styles.transferCard}>
+              <div style={styles.transferIcon}>✈️</div>
+              <h2 style={styles.transferTitle}>Wallet Transfer</h2>
+              <p style={styles.transferSub}>Send money to another wallet instantly</p>
+
+              <label style={styles.label}>Receiver Wallet ID</label>
+              <div style={styles.inputWrap}>
+                <input
+                  style={styles.transferInput}
+                  value={receiverWalletId}
+                  onChange={(e) => setReceiverWalletId(e.target.value)}
+                  placeholder="Enter Receiver Wallet ID"
+                />
+                <span style={styles.inputIcon}>👤</span>
+              </div>
+
+              <label style={styles.label}>Amount</label>
+              <div style={styles.inputWrap}>
+                <input
+                  type="number"
+                  style={styles.transferInput}
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                  placeholder="Enter Amount"
+                />
+                <span style={styles.inputIcon}>💳</span>
+              </div>
+
+              <button style={styles.transferBtn} onClick={checkReceiver}>
+                ✈️ Transfer Now
+              </button>
+            </div>
+
+            <div style={styles.inviteCard}>
+              <div style={styles.inviteTop}>Grow More</div>
+              <h2 style={styles.inviteTitle}>Invite Your Friends</h2>
+              <h3 style={styles.inviteTitle2}>& Earn Unlimited Rewards</h3>
+              <div style={styles.giftBox}>🎁</div>
+              <button style={styles.inviteBtn} onClick={openInvite}>Invite Now</button>
+            </div>
+          </section>
+
+          <section style={styles.historyCard}>
+            <div style={styles.historyHeader}>
+              <div>
+                <h2 style={styles.historyTitle}>🛡 Wallet History</h2>
+                <p style={styles.historySub}>Your recent wallet transactions (Click to view receipt)</p>
+              </div>
+
+              <select
+                style={styles.filterSelect}
+                value={historyFilter}
+                onChange={(e) => {
+                  setHistoryFilter(e.target.value);
+                  setShowAllHistory(false);
+                }}
+              >
+                <option value="all">All Transactions</option>
+                <option value="credit">Credit</option>
+                <option value="debit">Debit</option>
+              </select>
+            </div>
+
+            <div style={styles.tableHead}>
+              <div>TYPE</div>
+              <div>DESCRIPTION</div>
+              <div>AMOUNT</div>
+              <div>STATUS</div>
+              <div>DATE & TIME</div>
+            </div>
+
+            {history.length === 0 && (
+              <div style={styles.emptyHistory}>No Wallet History Found</div>
+            )}
+
+            {visibleHistory.map((item, index) => {
+              const rawType = String(item.type || "").toLowerCase();
+              const isCredit =
+                rawType.includes("credit") ||
+                rawType.includes("add") ||
+                rawType.includes("deposit") ||
+                rawType.includes("bonus");
+
+              const desc =
+                item.description ||
+                item.note ||
+                item.message ||
+                item.remark ||
+                item.type ||
+                "Wallet Transaction";
+
+              return (
+                <div
+                  key={index}
+                  style={styles.clickableHistoryRow}
+                  onClick={() => setSelectedTxn({ ...item, isCredit, desc })}
+                >
+                  <div>
+                    <div
+                      style={{
+                        ...styles.typeCircle,
+                        background: isCredit ? "#dcfce7" : "#fee2e2",
+                        color: isCredit ? "#16a34a" : "#dc2626"
+                      }}
+                    >
+                      {isCredit ? "↓" : "↑"}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div style={styles.rowTitle}>{desc}</div>
+                    <div style={styles.rowSub}>{item.note || "Tap to details"}</div>
+                  </div>
+
+                  <div>
+                    <span style={{ color: isCredit ? "#16a34a" : "#dc2626", fontWeight: "700" }}>
+                      {isCredit ? "+" : "-"} ₹{Number(item.amount).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span style={styles.successBadge}>Success</span>
+                  </div>
+
+                  <div style={{ fontSize: "13px", color: "#64748b" }}>
+                    {item.createdAt || item.date
+                      ? new Date(item.createdAt || item.date).toLocaleString("en-IN")
+                      : "N/A"}
+                  </div>
+                </div>
+              );
+            })}
+
+            {filteredHistory.length > 5 && (
+              <button style={styles.viewMore} onClick={() => setShowAllHistory(!showAllHistory)}>
+                {showAllHistory ? "Show Less ▲" : "View More ▼"}
+              </button>
+            )}
+          </section>
+
+          <section style={styles.bottomFeatures}>
+            <div style={styles.featureItem}>
+              🛡
+              <div>
+                <b>Secure Transactions</b>
+                <p>Your money is 100% safe</p>
+              </div>
+            </div>
+
+            <div style={styles.featureItem}>
+              ⚡
+              <div>
+                <b>Instant Payments</b>
+                <p>Quick transfer in seconds</p>
+              </div>
+            </div>
+
+            <div style={styles.featureItem}>
+              🏆
+              <div>
+                <b>Trusted Platform</b>
+                <p>Used by thousands of users</p>
+              </div>
+            </div>
+          </section>
+
+          {/* --- P2P মডাল উইন্ডো --- */}
+          {p2pModalOpen && (
+            <div style={styles.modalOverlay}>
+              <div style={{ ...styles.modal, maxWidth: "600px", maxHeight: "85vh", overflowY: "auto" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                  <h2 style={{ margin: 0, fontSize: "24px" }}>🤝 P2P Marketplace</h2>
+                  <button style={styles.depositCloseX} onClick={() => setP2pModalOpen(false)}>×</button>
+                </div>
+                
+                <div style={{ background: "#f8fafc", padding: "15px", borderRadius: "16px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <h4 style={{ margin: "0 0 5px 0" }}>Want to become a P2P Sender?</h4>
+                    <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>Requires minimum ₹2,000 wallet balance.</p>
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button style={styles.iWantP2pBtn} onClick={handleIWantP2P}>I want P2P</button>
+                    <button style={styles.undoP2pBtn} onClick={handleUndoP2P}>Undo</button>
+                  </div>
+                </div>
+
+                <h3 style={{ fontSize: "18px", marginBottom: "10px" }}>Available P2P Senders</h3>
+                
+                {p2pUserList.length === 0 ? (
+                  <p style={{ textAlign: "center", color: "#64748b", padding: "20px" }}>No P2P registered users found.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {p2pUserList.map((user, idx) => {
+                      const uReviews = reviewsList[user.walletId] || [];
+                      const avgRating = uReviews.length > 0 ? (uReviews.reduce((acc, r) => acc + (r.rating || 5), 0) / uReviews.length).toFixed(1) : "5.0";
+                      
+                      return (
+                        <div key={idx} style={styles.p2pUserCard}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div>
+                              <h4 style={{ margin: "0 0 2px 0", fontSize: "16px" }}>{user.name}</h4>
+                              <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
+                                <span style={{ fontSize: "12px", fontWeight: "800", color: "#f59e0b" }}>★ {avgRating}</span>
+                                <span style={{ fontSize: "11px", color: "#64748b" }}>({uReviews.length} reviews)</span>
+                              </div>
+                              <p style={{ margin: "0 0 4px 0", fontSize: "13px", color: "#64748b" }}>📱 {user.mobile || "N/A"}</p>
+                              <p style={{ margin: 0, fontSize: "13px", fontWeight: "700", color: "#16a34a" }}>Balance: ₹{Number(user.balance).toLocaleString()}</p>
+                            </div>
+                            
+                            <div>
+                              <button 
+                                style={styles.reviewActionBtn}
+                                onClick={() => {
+                                  setSelectedP2pUser(user);
+                                  setReviewModalOpen(true);
+                                }}
+                              >
+                                Review
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <button style={styles.popupBottomCloseBtn} onClick={() => setP2pModalOpen(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* --- কম্বাইন্ড রিভিউ মডাল --- */}
+          {reviewModalOpen && selectedP2pUser && (
+            <div style={styles.modalOverlay}>
+              <div style={{ ...styles.modal, maxWidth: "480px", maxHeight: "85vh", overflowY: "auto" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                  <h2 style={{ margin: 0, fontSize: "20px" }}>Reviews for {selectedP2pUser.name}</h2>
+                  <button style={styles.depositCloseX} onClick={() => setReviewModalOpen(false)}>×</button>
+                </div>
+                <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 15px 0" }}>Wallet ID: {selectedP2pUser.walletId}</p>
+
+                <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "16px", marginBottom: "18px", border: "1px solid #e2e8f0" }}>
+                  <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#1e293b" }}>Write a Review</h4>
+                  
+                  <div style={{ display: "flex", gap: "8px", fontSize: "22px", marginBottom: "10px", cursor: "pointer" }}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span 
+                        key={star} 
+                        onClick={() => setReviewRating(star)}
+                        style={{ color: star <= reviewRating ? "#f59e0b" : "#cbd5e1" }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+
+                  <textarea
+                    style={{ ...styles.depositInput, height: "70px", padding: "8px", resize: "none", fontSize: "13px" }}
+                    placeholder="Write your review here..."
+                    value={reviewText}
+                    onChange={(e) => setReviewText(e.target.value)}
+                  />
+
+                  <button style={{ ...styles.sendMoneyBtn, height: "42px", marginTop: "10px", fontSize: "14px" }} onClick={submitP2pReview}>
+                    Submit Review
+                  </button>
+                </div>
+
+                <h4 style={{ margin: "0 0 10px 0", fontSize: "15px", color: "#1e293b" }}>User Reviews</h4>
+                <div style={{ maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "15px" }}>
+                  {(!reviewsList[selectedP2pUser.walletId] || reviewsList[selectedP2pUser.walletId].length === 0) ? (
+                    <p style={{ textAlign: "center", color: "#64748b", padding: "15px", fontSize: "13px" }}>No reviews available yet.</p>
+                  ) : (
+                    reviewsList[selectedP2pUser.walletId].map((rev, rIdx) => (
+                      <div key={rIdx} style={{ background: "#ffffff", padding: "10px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                          <span style={{ fontSize: "12px", fontWeight: "700", color: "#1e293b" }}>{rev.reviewer || "User"}</span>
+                          <span style={{ fontSize: "12px", color: "#f59e0b" }}>{"★".repeat(rev.rating || 5)}</span>
+                        </div>
+                        <p style={{ margin: 0, fontSize: "13px", color: "#475569" }}>{rev.comment}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <button style={styles.closeBtn} onClick={() => setReviewModalOpen(false)}>Close</button>
+              </div>
+            </div>
+          )}
+
+          {/* --- ট্রানজ্যাকশন রিসিপ্ট মডাল --- */}
+          {selectedTxn && (
+            <div style={styles.modalOverlay}>
+              <div style={styles.receiptContainer}>
+                <div ref={receiptRef} style={styles.receiptCard}>
+                  <div style={styles.receiptHeader}>
+                    <div style={styles.receiptPulseIconCircle}>
+                      <span style={styles.receiptCheckMark}>✓</span>
+                    </div>
+                    <h3 style={styles.receiptStatusText}>Verified Investment Transfer</h3>
+                    <h1 style={{...styles.receiptAmountDisplay, color: selectedTxn.isCredit ? "#34d399" : "#f87171"}}>
+                      ₹{Number(selectedTxn.amount).toLocaleString("en-IN")}.00
+                    </h1>
+                    <p style={styles.receiptTypeTag}>{selectedTxn.type === 'Debit' ? "WALLET TRANSFER SENT" : "WALLET TRANSFER RECEIVED"}</p>
+                  </div>
+                  
+                  <div style={styles.receiptDivider}>
+                    <div style={styles.receiptNotchLeft}></div>
+                    <div style={styles.receiptNotchRight}></div>
+                  </div>
+
+                  <div style={styles.receiptBody}>
+                    <div style={styles.receiptRowItem}>
+                      <span style={styles.receiptLabelText}>Receiver Name</span>
+                      <span style={styles.receiptValueText}>
+                        {selectedTxn.type === 'Debit' 
+                          ? (selectedTxn.receiverName || selectedTxn.desc?.match(/\(([^)]+)\)/)?.[1] || "N/A") 
+                          : (selectedTxn.receiverName || wallet.name)}
+                      </span>
+                    </div>
+                    <div style={styles.receiptRowItem}>
+                      <span style={styles.receiptLabelText}>Sender Name</span>
+                      <span style={styles.receiptValueText}>
+                        {selectedTxn.type === 'Debit' 
+                          ? (selectedTxn.senderName || wallet.name) 
+                          : (selectedTxn.senderName || selectedTxn.desc?.match(/\(([^)]+)\)/)?.[1] || "N/A")}
+                      </span>
+                    </div>
+                    <div style={styles.receiptRowItem}>
+                      <span style={styles.receiptLabelText}>Transaction ID</span>
+                      <span style={{...styles.receiptValueText, color: "#fbbf24"}}>{selectedTxn._id || selectedTxn.txnId || "N/A"}</span>
+                    </div>
+                    <div style={styles.receiptRowItem}>
+                      <span style={styles.receiptLabelText}>Date & Time</span>
+                      <span style={styles.receiptValueText}>
+                        {new Date(selectedTxn.createdAt || selectedTxn.date).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                    <div style={styles.receiptRowItem}>
+                      <span style={styles.receiptLabelText}>Remarks</span>
+                      <span style={styles.receiptValueText}>wallet transaction</span>
+                    </div>
+                    <div style={styles.receiptRowItem}>
+                      <span style={styles.receiptLabelText}>Status</span>
+                      <span style={styles.receiptStatusBadge}>SECURE & VERIFIED</span>
+                    </div>
+                  </div>
+
+                  <div style={styles.receiptFooter}>
+                    <p style={styles.receiptBrand}>💎 Premium SaveMoney Asset Management</p>
+                  </div>
+                </div>
+
+                <div style={styles.receiptActionContainer}>
+                  <button style={styles.receiptShareBtn} onClick={handleShareReceipt}>
+                    📸 Share / Save Receipt Image
+                  </button>
+                  <button style={styles.receiptCloseBtn} onClick={() => setSelectedTxn(null)}>
+                    Close Window
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Add Cash Modal */}
+          {addOpen && (
+            <div style={styles.depositOverlay}>
+              <div style={styles.depositModal}>
+                <button style={styles.depositCloseX} onClick={() => setAddOpen(false)}>×</button>
+
+                <div style={styles.depositIcon}>⚡</div>
+                <h2 style={styles.depositTitle}>Direct UPI Add Cash</h2>
+                <p style={styles.depositSub}>Enter amount, click Pay Now to use PhonePe/Paytm, and then submit the Transaction ID.</p>
+
+                <label style={styles.depositLabel}>Amount (₹)</label>
+                <input
+                  style={styles.depositInput}
+                  type="number"
+                  placeholder="Enter amount (e.g. 500)"
+                  value={addAmount}
+                  onChange={(e) => setAddAmount(e.target.value)}
+                />
+
+                <button
+                  style={{ ...styles.submitDepositBtn, background: "linear-gradient(135deg, #a855f7, #7c3aed)", marginBottom: "20px" }}
+                  onClick={payViaUPI}
+                >
+                  📱 Pay Via PhonePe / Paytm / GPay
+                </button>
+
+                <div style={{ borderTop: "1px dashed #334155", margin: "15px 0", paddingTop: "10px" }}>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", textAlign: "center" }}>💡 After paying, copy the 12-digit UTR/Txn ID from your UPI app and paste below.</p>
+                </div>
+
+                <label style={styles.depositLabel}>Transaction ID / UTR No</label>
+                <input
+                  style={styles.depositInput}
+                  type="text"
+                  placeholder="Enter 12-digit Transaction ID"
+                  value={depositTxnId}
+                  onChange={(e) => setDepositTxnId(e.target.value)}
+                />
+
+                <button style={styles.submitDepositBtn} onClick={submitDepositRequest}>
+                  Verify & Request Approval
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Withdraw Popup */}
+          {withdrawOpen && (
+            <div style={styles.modalOverlay}>
+              <div style={styles.modal}>
+                <h2>💳 Auto Withdrawal</h2>
+                {withdrawStatus && (
+                  <div style={{ marginTop: "15px", padding: "15px", borderRadius: "12px", background: "#f8fafc" }}>
+                    <p>Status : <b>{withdrawStatus.enabled ? " ✅ Active" : " ❌ Paused"}</b></p>
+                    {withdrawStatus.nextWithdrawal && (
+                      <p>Next Withdrawal : <b>{new Date(withdrawStatus.nextWithdrawal).toLocaleDateString("en-IN")}</b></p>
+                    )}
+                    {withdrawStatus.note?.length > 0 && (
+                      <>
+                        <h4 style={{ marginTop: "20px", marginBottom: "10px", color: "#0f172a" }}>NOTE :</h4>
+                        <ul style={{ paddingLeft: "18px", lineHeight: "28px", fontSize: "14px", color: "#475569" }}>
+                          {withdrawStatus.note.map((item, index) => (
+                            <li key={index}>{item}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </div>
+                )}
+                <button style={styles.closeBtn} onClick={() => setWithdrawOpen(false)}>
+                  Okay, I Understand
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Transfer Confirm Modal */}
+          {confirmTransferOpen && receiverInfo && (
+            <div style={styles.modalOverlay}>
+              <div style={styles.modal}>
+                <div style={styles.confirmTop}>
+                  <div style={styles.confirmAvatar}>👤</div>
+                  <h2>Confirm Transfer</h2>
+                  <p>Verify receiver details before sending money</p>
+                </div>
+
+                <div style={styles.receiverCard}>
+                  <div>
+                    <span>Receiver Name</span>
+                    <h3>{receiverInfo.name}</h3>
+                  </div>
+                  <div>
+                    <span>Wallet ID</span>
+                    <h4>{receiverWalletId}</h4>
+                  </div>
+                  <div>
+                    <span>Amount</span>
+                    <h2 style={{ color: "#16a34a" }}>₹{Number(transferAmount).toLocaleString()}</h2>
+                  </div>
+                </div>
+
+                <button style={styles.sendMoneyBtn} onClick={sendTransfer}>Send Money</button>
+                <button style={styles.cancelBtn} onClick={() => setConfirmTransferOpen(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
+
+          {/* Share Modal */}
+          {shareOpen && (
+            <div style={styles.modalOverlay}>
+              <div style={styles.modal}>
+                <h2>Invite Friends</h2>
+                <p>Share your referral link</p>
+                <div style={styles.shareGrid}>
+                  <a href={`https://wa.me/?text=${encodeURIComponent(inviteLink)}`} target="_blank" rel="noreferrer" style={styles.shareBtn}>WhatsApp</a>
+                  <a href={`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}`} target="_blank" rel="noreferrer" style={styles.shareBtn}>Telegram</a>
+                  <button style={styles.shareBtn} onClick={copyInviteLink}>Copy Link</button>
+                </div>
+                <button style={styles.closeBtn} onClick={() => setShareOpen(false)}>Close</button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WalletIllustration() {
+  return (
+    <div style={styles.walletArt}>
+      <div style={styles.moneyNote1}></div>
+      <div style={styles.moneyNote2}></div>
+      <div style={styles.walletBag}>₹</div>
+      <div style={styles.coin1}>₹</div>
+      <div style={styles.coin2}>₹</div>
+    </div>
+  );
+}
+
+function IncomeCard({ icon, title, amount, color }) {
+  return (
+    <div style={styles.incomeCard}>
+      <div style={{ ...styles.incomeIcon, background: color }}>{icon}</div>
+      <h4>{title}</h4>
+      <h2>₹{Number(amount).toLocaleString()}</h2>
+      <div style={{ ...styles.incomeWave, color }}>~~~</div>
+    </div>
+  );
+}
+
+const styles = {
+  drawerOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0, 0, 0, 0.75)",
+    backdropFilter: "blur(6px)",
+    zIndex: 100002,
+    display: "flex",
+    justifyContent: "flex-start",
+    transition: "opacity 0.3s ease, visibility 0.3s ease"
+  },
+  drawerContainer: {
+    position: "fixed",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    background: "#08101e",
+    width: "240px",
+    height: "100vh",
+    padding: "12px 10px",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
+    borderRight: "1px solid #1e293b",
+    transform: "translateX(-100%)",
+    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    overflow: "hidden",
+    zIndex: 100003
+  },
+  drawerHeader: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "8px",
+    paddingBottom: "8px",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+    flexShrink: 0
+  },
+  drawerBrand: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px"
+  },
+  drawerLogoWrapper: {
+    width: "44px",
+    height: "44px",
+    borderRadius: "50%",
+    background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
+    border: "2px solid #22c55e",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 0 12px rgba(34, 197, 94, 0.35)"
+  },
+  drawerLogoImg: {
+    width: "28px",
+    height: "28px",
+    objectFit: "contain"
+  },
+  drawerLogoText: {
+    margin: 0,
+    fontSize: "15px",
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: "0.8px",
+    textAlign: "center"
+  },
+  drawerLogoSubtext: {
+    fontSize: "10px",
+    color: "#a7f3d0",
+    fontWeight: "600",
+    marginTop: "1px",
+    textAlign: "center"
+  },
+  drawerNavList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    flexShrink: 0,
+    overflowY: "auto",
+    maxHeight: "calc(100vh - 200px)"
+  },
+  drawerNavItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "8px 14px",
+    background: "rgba(255, 255, 255, 0.12)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    border: "1px solid rgba(255, 255, 255, 0.25)",
+    clipPath: "polygon(12px 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0% 50%)",
+    color: "#ffffff",
+    fontSize: "13px",
+    fontWeight: "700",
+    cursor: "pointer",
+    textAlign: "left",
+    transition: "all 0.25s ease",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+  },
+  drawerNavItemActive: {
+    background: "rgba(255, 255, 255, 0.25)",
+    border: "1px solid #ffffff",
+    boxShadow: "0 0 16px rgba(255, 255, 255, 0.4)",
+    fontWeight: "800"
+  },
+  drawerNavIcon: {
+    fontSize: "18px",
+    width: "22px",
+    display: "inline-block",
+    textAlign: "center"
+  },
+  drawerNavText: {
+    flex: 1,
+    fontSize: "13px",
+    letterSpacing: "0.3px"
+  },
+  drawerNavDashboard: {
+    background: "rgba(59, 130, 246, 0.2)",
+    border: "1px solid rgba(59, 130, 246, 0.4)"
+  },
+  drawerNavMyInvestment: {
+    background: "rgba(16, 185, 129, 0.2)",
+    border: "1px solid rgba(16, 185, 129, 0.4)"
+  },
+  drawerNavSaveMoney: {
+    background: "rgba(245, 158, 11, 0.2)",
+    border: "1px solid rgba(245, 158, 11, 0.4)"
+  },
+  drawerNavOneTime: {
+    background: "rgba(168, 85, 247, 0.2)",
+    border: "1px solid rgba(168, 85, 247, 0.4)"
+  },
+  drawerNavPlan: {
+    background: "rgba(6, 182, 212, 0.2)",
+    border: "1px solid rgba(6, 182, 212, 0.4)"
+  },
+  drawerNavAddFund: {
+    background: "rgba(20, 184, 166, 0.2)",
+    border: "1px solid rgba(20, 184, 166, 0.4)"
+  },
+  drawerNavRefer: {
+    background: "rgba(236, 72, 153, 0.2)",
+    border: "1px solid rgba(236, 72, 153, 0.4)"
+  },
+  drawerNavWithdraw: {
+    background: "rgba(249, 115, 22, 0.2)",
+    border: "1px solid rgba(249, 115, 22, 0.4)"
+  },
+  drawerNavDailyReward: {
+    background: "rgba(244, 63, 94, 0.2)",
+    border: "1px solid rgba(244, 63, 94, 0.4)"
+  },
+  drawerNavInvestmentAssistant: {
+    background: "rgba(2, 132, 199, 0.2)",
+    border: "1px solid rgba(2, 132, 199, 0.4)"
+  },
+  drawerNavSupport: {
+    background: "rgba(99, 102, 241, 0.2)",
+    border: "1px solid rgba(99, 102, 241, 0.4)"
+  },
+  drawerNavProfile: {
+    background: "rgba(236, 72, 153, 0.2)",
+    border: "1px solid rgba(236, 72, 153, 0.4)"
+  },
+  drawerNavLogout: {
+    background: "rgba(239, 68, 68, 0.2)",
+    border: "1px solid rgba(239, 68, 68, 0.4)"
+  },
+  treePlantOnlyWrapper: {
+    flex: 1,
+    minHeight: 0,
+    marginTop: "10px",
+    marginBottom: "4px",
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
+    borderRadius: "16px",
+    boxShadow: "0 6px 18px rgba(0, 0, 0, 0.4)"
+  },
+  treePlantOnlyImg: {
+    width: "90%",
+    height: "65%",
+    objectFit: "95%",
+    borderRadius: "16px"
+  },
+  p2pMainBtn: {
+    minWidth: "120px",
+    height: "54px",
+    border: "none",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg,#06b6d4,#2563eb)",
+    color: "white",
+    fontWeight: "900",
+    fontSize: "16px",
+    boxShadow: "0 12px 25px rgba(6,182,212,.3)"
+  },
+  iWantP2pBtn: {
+    padding: "8px 12px",
+    border: "none",
+    borderRadius: "10px",
+    background: "linear-gradient(135deg,#10b981,#059669)",
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: "12px",
+    cursor: "pointer"
+  },
+  undoP2pBtn: {
+    padding: "8px 12px",
+    border: "none",
+    borderRadius: "10px",
+    background: "#ef4444",
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: "12px",
+    cursor: "pointer"
+  },
+  p2pUserCard: {
+    background: "#fff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "16px",
+    padding: "14px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.03)"
+  },
+  reviewActionBtn: {
+    padding: "8px 16px",
+    borderRadius: "12px",
+    border: "none",
+    background: "#ede9fe",
+    color: "#7c3aed",
+    fontWeight: "800",
+    fontSize: "13px",
+    cursor: "pointer"
+  },
+  popupBottomCloseBtn: {
+    width: "100%",
+    height: "46px",
+    marginTop: "16px",
+    borderRadius: "14px",
+    border: "none",
+    background: "#f1f5f9",
+    color: "#334155",
+    fontWeight: "800",
+    fontSize: "14px",
+    cursor: "pointer"
+  },
+  clickableHistoryRow: {
+    display: "grid",
+    gridTemplateColumns: "70px 1.6fr 1fr 1fr 1.2fr",
+    alignItems: "center",
+    padding: "16px 8px",
+    borderBottom: "1px solid #eef2ff",
+    cursor: "pointer",
+    transition: "all 0.2s ease",
+    borderRadius: "12px"
+  },
+  receiptContainer: {
+    width: "100%",
+    maxWidth: "380px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    padding: "10px"
+  },
+  receiptCard: {
+    background: "linear-gradient(145deg, #0f172a, #090d16)",
+    borderRadius: "24px",
+    boxShadow: "0 25px 60px rgba(0,0,0,0.5), 0 0 20px rgba(212, 175, 55, 0.15)",
+    overflow: "hidden",
+    fontFamily: "Arial, sans-serif",
+    border: "1px solid rgba(212, 175, 55, 0.25)",
+    color: "#f8fafc"
+  },
+  receiptHeader: {
+    padding: "30px 20px 20px 20px",
+    textAlign: "center",
+    background: "transparent"
+  },
+  receiptPulseIconCircle: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "50%",
+    background: "rgba(16, 185, 129, 0.15)",
+    border: "1px solid rgba(16, 185, 129, 0.4)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 12px auto",
+    animation: "pulseIcon 1.5s infinite ease-in-out"
+  },
+  receiptCheckMark: {
+    color: "#34d399",
+    fontSize: "30px",
+    fontWeight: "900"
+  },
+  receiptStatusText: {
+    fontSize: "14px",
+    color: "#94a3b8",
+    margin: "0 0 8px 0",
+    fontWeight: "600",
+    letterSpacing: "1px",
+    textTransform: "uppercase"
+  },
+  receiptAmountDisplay: {
+    fontSize: "34px",
+    fontWeight: "800",
+    margin: "0 0 6px 0"
+  },
+  receiptTypeTag: {
+    display: "inline-block",
+    background: "rgba(255,255,255,0.08)",
+    color: "#e2e8f0",
+    padding: "4px 12px",
+    borderRadius: "20px",
+    fontSize: "11px",
+    fontWeight: "700",
+    letterSpacing: "0.8px",
+    margin: 0,
+    border: "1px solid rgba(255,255,255,0.1)"
+  },
+  receiptDivider: {
+    position: "relative",
+    borderTop: "2px dashed rgba(255, 255, 255, 0.15)",
+    margin: "0 12px",
+    height: "0"
+  },
+  receiptNotchLeft: {
+    position: "absolute",
+    left: "-20px",
+    top: "-10px",
+    width: "20px",
+    height: "20px",
+    borderRadius: "50%",
+    background: "#090d16"
+  },
+  receiptNotchRight: {
+    position: "absolute",
+    right: "-20px",
+    top: "-10px",
+    width: "20px",
+    height: "20px",
+    borderRadius: "50%",
+    background: "#090d16"
+  },
+  receiptBody: {
+    padding: "24px 24px 16px 24px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    background: "transparent"
+  },
+  receiptRowItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  receiptLabelText: {
+    fontSize: "13px",
+    color: "#94a3b8",
+    fontWeight: "500"
+  },
+  receiptValueText: {
+    fontSize: "14px",
+    color: "#ffffff",
+    fontWeight: "700",
+    textAlign: "right"
+  },
+  receiptStatusBadge: {
+    background: "rgba(16, 185, 129, 0.2)",
+    color: "#34d399",
+    padding: "4px 10px",
+    borderRadius: "6px",
+    fontSize: "11px",
+    fontWeight: "800",
+    border: "1px solid rgba(16, 185, 129, 0.3)",
+    letterSpacing: "0.5px"
+  },
+  receiptFooter: {
+    background: "rgba(0, 0, 0, 0.3)",
+    padding: "16px",
+    textAlign: "center",
+    borderTop: "1px solid rgba(255, 255, 255, 0.08)"
+  },
+  receiptBrand: {
+    fontSize: "12px",
+    color: "#fbbf24",
+    margin: 0,
+    fontWeight: "700",
+    letterSpacing: "0.5px"
+  },
+  receiptActionContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  receiptShareBtn: {
+    width: "100%",
+    height: "52px",
+    border: "none",
+    borderRadius: "16px",
+    background: "linear-gradient(135deg,#d97706,#fbbf24)",
+    color: "#0f172a",
+    fontWeight: "900",
+    fontSize: "15px",
+    boxShadow: "0 8px 20px rgba(251,191,36,0.3)",
+    cursor: "pointer"
+  },
+  receiptCloseBtn: {
+    width: "100%",
+    height: "48px",
+    border: "none",
+    borderRadius: "16px",
+    background: "rgba(255, 255, 255, 0.08)",
+    color: "#ffffff",
+    fontWeight: "700",
+    fontSize: "14px",
+    cursor: "pointer",
+    border: "1px solid rgba(255, 255, 255, 0.15)"
+  },
+  statusOverlayBg: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(15, 23, 42, 0.4)",
+    backdropFilter: "blur(6px)",
+    zIndex: 100000,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  statusOverlayCard: {
+    background: "#ffffff",
+    padding: "30px 40px",
+    borderRadius: "24px",
+    textAlign: "center",
+    boxShadow: "0 30px 70px rgba(0,0,0,0.25)",
+    maxWidth: "400px",
+    width: "85%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "16px"
+  },
+  statusOverlayIcon: {
+    width: "64px",
+    height: "64px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "32px",
+    fontWeight: "bold"
+  },
+  statusOverlayText: {
+    fontSize: "20px",
+    color: "#0f172a",
+    margin: 0,
+    fontWeight: "800",
+    lineHeight: "1.4"
+  },
+  loadingPage: {
+    minHeight: "100vh",
+    background: "#f4f7ff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "Arial"
+  },
+  loadingCard: {
+    background: "white",
+    padding: "35px",
+    borderRadius: "30px",
+    textAlign: "center",
+    boxShadow: "0 18px 35px rgba(15,23,42,.12)"
+  },
+  loadingIcon: {
+    fontSize: "70px"
+  },
+  page: {
+    minHeight: "100vh",
+    background: "#f4f7ff",
+    padding: "26px",
+    fontFamily: "Arial, sans-serif",
+    color: "#071747"
+  },
+  app: {
+    maxWidth: "1040px",
+    margin: "0 auto"
+  },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    gap: "18px",
+    marginBottom: "22px"
+  },
+  pageTitle: {
+    margin: 0,
+    fontSize: "38px",
+    fontWeight: "900",
+    color: "#071747"
+  },
+  titleWave: {
+    width: "105px",
+    height: "6px",
+    borderRadius: "50px",
+    background: "linear-gradient(90deg,#ff8a00,#ec4899,#7c3aed)",
+    marginTop: "8px"
+  },
+  pageSub: {
+    color: "#64748b",
+    fontSize: "16px",
+    marginTop: "9px"
+  },
+  notifyBtn: {
+    marginLeft: "auto",
+    width: "54px",
+    height: "54px",
+    borderRadius: "50%",
+    border: "none",
+    background: "white",
+    boxShadow: "0 10px 25px rgba(15,23,42,.08)",
+    fontSize: "24px",
+    position: "relative"
+  },
+  avatar: {
+    width: "58px",
+    height: "58px",
+    borderRadius: "50%",
+    background: "#ede9fe",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "30px",
+    boxShadow: "0 10px 25px rgba(124,58,237,.15)",
+    overflow: "hidden"
+  },
+  walletHero: {
+    position: "relative",
+    minHeight: "330px",
+    borderRadius: "30px",
+    padding: "38px",
+    color: "white",
+    overflow: "hidden",
+    background:
+      "radial-gradient(circle at 82% 20%,rgba(255,255,255,.22),transparent 20%),linear-gradient(135deg,#1614a8,#7c2cff,#ff4b78)",
+    boxShadow: "0 22px 42px rgba(94,42,210,.30)",
+    marginBottom: "24px"
+  },
+  walletLeft: {
+    width: "52%",
+    position: "relative",
+    zIndex: 5
+  },
+  heroLabel: {
+    letterSpacing: "2px",
+    fontSize: "13px",
+    fontWeight: "900",
+    opacity: 0.75
+  },
+  walletId: {
+    fontSize: "30px",
+    margin: "8px 0 0",
+    fontWeight: "900",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px"
+  },
+  dashedLine: {
+    borderTop: "1px dashed rgba(255,255,255,.45)",
+    margin: "22px 0"
+  },
+  balanceText: {
+    fontSize: "46px",
+    margin: "8px 0",
+    fontWeight: "900"
+  },
+  heroActions: {
+    display: "flex",
+    gap: "16px",
+    marginTop: "22px",
+    flexWrap: "wrap"
+  },
+  addCashBtn: {
+    minWidth: "135px",
+    height: "54px",
+    border: "none",
+    borderRadius: "18px",
+    background: "white",
+    color: "#1e1b9b",
+    fontWeight: "900",
+    fontSize: "16px",
+    boxShadow: "0 12px 25px rgba(0,0,0,.18)"
+  },
+  withdrawBtn: {
+    minWidth: "135px",
+    height: "54px",
+    border: "none",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg,#ff4b63,#ff8a3d)",
+    color: "white",
+    fontWeight: "900",
+    fontSize: "16px",
+    boxShadow: "0 12px 25px rgba(255,80,90,.28)"
+  },
+  eyeBtn: {
+    position: "absolute",
+    top: "28px",
+    right: "28px",
+    width: "46px",
+    height: "46px",
+    borderRadius: "15px",
+    border: "1px solid rgba(255,255,255,.3)",
+    background: "rgba(255,255,255,.13)",
+    color: "white",
+    fontSize: "20px",
+    zIndex: 8
+  },
+  walletArt: {
+    position: "absolute",
+    right: "70px",
+    top: "70px",
+    width: "300px",
+    height: "230px",
+    zIndex: 2
+  },
+  moneyNote1: {
+    position: "absolute",
+    right: "78px",
+    top: "10px",
+    width: "100px",
+    height: "72px",
+    borderRadius: "15px",
+    background: "linear-gradient(135deg,#21d06b,#0ea55f)",
+    transform: "rotate(-16deg)",
+    boxShadow: "0 15px 22px rgba(0,0,0,.18)"
+  },
+  moneyNote2: {
+    position: "absolute",
+    right: "28px",
+    top: "28px",
+    width: "100px",
+    height: "72px",
+    borderRadius: "15px",
+    background: "linear-gradient(135deg,#41e6c3,#0ea5a0)",
+    transform: "rotate(18deg)",
+    boxShadow: "0 15px 22px rgba(0,0,0,.18)"
+  },
+  walletBag: {
+    position: "absolute",
+    right: "55px",
+    bottom: "30px",
+    width: "165px",
+    height: "132px",
+    borderRadius: "28px",
+    background: "linear-gradient(145deg,#7c2cff,#ba31ff)",
+    color: "#facc15",
+    fontSize: "52px",
+    fontWeight: "900",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "inset -14px -12px 0 rgba(0,0,0,.14),0 24px 32px rgba(0,0,0,.25)"
+  },
+  coin1: {
+    position: "absolute",
+    right: "18px",
+    bottom: "35px",
+    width: "58px",
+    height: "58px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg,#facc15,#f59e0b)",
+    color: "#92400e",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "900",
+    boxShadow: "0 12px 18px rgba(0,0,0,.18)"
+  },
+  coin2: {
+    position: "absolute",
+    right: "82px",
+    bottom: "0",
+    width: "62px",
+    height: "62px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg,#fde047,#f97316)",
+    color: "#92400e",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "900",
+    boxShadow: "0 12px 18px rgba(0,0,0,.18)"
+  },
+  incomePanel: {
+    background: "white",
+    borderRadius: "28px",
+    padding: "22px",
+    display: "grid",
+    gridTemplateColumns: "repeat(5,1fr)",
+    gap: "8px",
+    boxShadow: "0 15px 30px rgba(15,23,42,.08)",
+    marginBottom: "24px"
+  },
+  incomeCard: {
+    textAlign: "center",
+    padding: "12px 8px",
+    borderRight: "1px dashed #d9e1f2"
+  },
+  incomeIcon: {
+    width: "58px",
+    height: "58px",
+    margin: "0 auto 10px",
+    borderRadius: "50%",
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "26px",
+    boxShadow: "0 10px 20px rgba(15,23,42,.12)"
+  },
+  incomeWave: {
+    fontSize: "30px",
+    fontWeight: "900",
+    marginTop: "-6px"
+  },
+  middleGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "22px",
+    marginBottom: "24px"
+  },
+  transferCard: {
+    background: "#070a55",
+    color: "white",
+    borderRadius: "28px",
+    padding: "30px",
+    boxShadow: "0 18px 32px rgba(7,10,85,.22)"
+  },
+  transferIcon: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg,#2563eb,#06b6d4)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "28px",
+    marginBottom: "12px"
+  },
+  transferTitle: {
+    margin: 0,
+    fontSize: "28px"
+  },
+  transferSub: {
+    color: "#aab1d6",
+    marginBottom: "22px"
+  },
+  label: {
+    display: "block",
+    fontWeight: "900",
+    marginBottom: "8px"
+  },
+  inputWrap: {
+    height: "56px",
+    borderRadius: "16px",
+    background: "white",
+    display: "flex",
+    alignItems: "center",
+    padding: "0 15px",
+    marginBottom: "18px"
+  },
+  transferInput: {
+    flex: 1,
+    border: "none",
+    outline: "none",
+    fontSize: "16px",
+    color: "#000"
+  },
+  inputIcon: {
+    fontSize: "22px"
+  },
+  transferBtn: {
+    width: "100%",
+    height: "58px",
+    border: "none",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg,#ff7a35,#ec168e)",
+    color: "white",
+    fontSize: "18px",
+    fontWeight: "900",
+    boxShadow: "0 12px 24px rgba(236,22,142,.25)"
+  },
+  inviteCard: {
+    background: "linear-gradient(135deg,#fff4d9,#ffffff)",
+    borderRadius: "28px",
+    padding: "30px",
+    position: "relative",
+    overflow: "hidden",
+    boxShadow: "0 15px 30px rgba(15,23,42,.08)"
+  },
+  inviteTop: {
+    color: "#f59e0b",
+    fontWeight: "900",
+    fontSize: "18px"
+  },
+  inviteTitle: {
+    fontSize: "32px",
+    margin: "10px 0 0"
+  },
+  inviteTitle2: {
+    color: "#6d28d9",
+    fontSize: "24px",
+    margin: "6px 0"
+  },
+  giftBox: {
+    fontSize: "115px",
+    textAlign: "right",
+    filter: "drop-shadow(0 14px 18px rgba(245,158,11,.22))"
+  },
+  inviteBtn: {
+    position: "absolute",
+    left: "30px",
+    bottom: "30px",
+    height: "52px",
+    minWidth: "140px",
+    border: "none",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg,#6d28d9,#ec4899)",
+    color: "white",
+    fontWeight: "900",
+    fontSize: "16px"
+  },
+  historyCard: {
+    background: "white",
+    borderRadius: "28px",
+    padding: "24px",
+    boxShadow: "0 15px 30px rgba(15,23,42,.08)",
+    marginBottom: "20px"
+  },
+  historyHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "18px"
+  },
+  historyTitle: {
+    margin: 0,
+    fontSize: "28px"
+  },
+  historySub: {
+    color: "#64748b"
+  },
+  filterSelect: {
+    height: "44px",
+    borderRadius: "14px",
+    border: "1px solid #dbe3ef",
+    padding: "0 14px",
+    fontWeight: "900"
+  },
+  tableHead: {
+    display: "grid",
+    gridTemplateColumns: "70px 1.6fr 1fr 1fr 1.2fr",
+    color: "#94a3b8",
+    fontSize: "13px",
+    fontWeight: "900",
+    padding: "12px 0",
+    borderBottom: "1px solid #eef2ff"
+  },
+  typeCircle: {
+    width: "46px",
+    height: "46px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "22px"
+  },
+  rowTitle: {
+    fontWeight: "900",
+    color: "#071747"
+  },
+  rowSub: {
+    color: "#64748b",
+    fontSize: "13px"
+  },
+  successBadge: {
+    display: "inline-block",
+    background: "#dcfce7",
+    color: "#16a34a",
+    padding: "8px 14px",
+    borderRadius: "14px",
+    fontWeight: "900",
+    fontSize: "13px"
+  },
+  emptyHistory: {
+    textAlign: "center",
+    padding: "35px",
+    color: "#64748b",
+    fontWeight: "900"
+  },
+  viewMore: {
+    textAlign: "center",
+    color: "#6d28d9",
+    fontWeight: "900",
+    marginTop: "18px",
+    background: "none",
+    border: "none",
+    cursor: "pointer"
+  },
+  bottomFeatures: {
+    background: "white",
+    borderRadius: "22px",
+    padding: "18px",
+    display: "grid",
+    gridTemplateColumns: "repeat(3,1fr)",
+    gap: "15px",
+    boxShadow: "0 12px 25px rgba(15,23,42,.07)"
+  },
+  featureItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px"
+  },
+  modalOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,.45)",
+    zIndex: 9999,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  modal: {
+    width: "90%",
+    maxWidth: "430px",
+    background: "white",
+    borderRadius: "26px",
+    padding: "26px",
+    color: "#071747",
+    boxShadow: "0 25px 50px rgba(0,0,0,.25)"
+  },
+  closeBtn: {
+    width: "100%",
+    height: "50px",
+    marginTop: "14px",
+    border: "none",
+    borderRadius: "14px",
+    background: "#e5e7eb",
+    color: "#071747",
+    fontWeight: "900"
+  },
+  confirmTop: {
+    textAlign: "center"
+  },
+  confirmAvatar: {
+    width: "70px",
+    height: "70px",
+    borderRadius: "50%",
+    background: "#ede9fe",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto",
+    fontSize: "34px"
+  },
+  receiverCard: {
+    background: "#f8fafc",
+    borderRadius: "18px",
+    padding: "18px",
+    marginTop: "16px",
+    textAlign: "center"
+  },
+  sendMoneyBtn: {
+    width: "100%",
+    height: "52px",
+    border: "none",
+    borderRadius: "15px",
+    background: "#16a34a",
+    color: "white",
+    fontWeight: "900",
+    marginTop: "15px",
+    cursor: "pointer"
+  },
+  cancelBtn: {
+    width: "100%",
+    height: "48px",
+    border: "none",
+    borderRadius: "15px",
+    background: "#fee2e2",
+    color: "#dc2626",
+    fontWeight: "900",
+    marginTop: "10px"
+  },
+  shareGrid: {
+    display: "grid",
+    gap: "12px",
+    marginTop: "18px"
+  },
+  shareBtn: {
+    height: "50px",
+    borderRadius: "15px",
+    border: "none",
+    background: "linear-gradient(135deg,#22c55e,#16a34a)",
+    color: "white",
+    fontWeight: "900",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    textDecoration: "none"
+  },
+  notifyCount: {
+    position: "absolute",
+    top: "-5px",
+    right: "-5px",
+    background: "#ef4444",
+    color: "white",
+    width: "20px",
+    height: "20px",
+    borderRadius: "50%",
+    fontSize: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "900"
+  },
+  avatarImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: "50%"
+  },
+  depositOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(5, 10, 30, 0.65)",
+    backdropFilter: "blur(10px)",
+    zIndex: 9999,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 18
+  },
+  depositModal: {
+    width: "100%",
+    maxWidth: 390,
+    background: "linear-gradient(145deg, #ffffff, #f7f2ff)",
+    borderRadius: 28,
+    padding: 22,
+    boxShadow: "0 30px 80px rgba(70, 30, 180, 0.35)",
+    position: "relative",
+    border: "1px solid rgba(255,255,255,0.8)"
+  },
+  depositCloseX: {
+    position: "absolute",
+    top: 14,
+    right: 16,
+    width: 34,
+    height: 34,
+    borderRadius: "50%",
+    border: "none",
+    background: "#f1eaff",
+    color: "#6d28d9",
+    fontSize: 22,
+    fontWeight: 900,
+    cursor: "pointer"
+  },
+  depositIcon: {
+    width: 62,
+    height: 62,
+    borderRadius: 20,
+    background: "linear-gradient(135deg,#2563eb,#9333ea,#ec4899)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 30,
+    color: "#fff",
+    marginBottom: 12
+  },
+  depositTitle: {
+    margin: 0,
+    fontSize: 26,
+    fontWeight: 900,
+    color: "#101a44"
+  },
+  depositSub: {
+    margin: "6px 0 18px",
+    color: "#6b7280",
+    fontSize: 13,
+    lineHeight: 1.4
+  },
+  depositLabel: {
+    display: "block",
+    fontSize: 13,
+    fontWeight: 800,
+    color: "#18204a",
+    margin: "12px 0 7px"
+  },
+  depositInput: {
+    width: "100%",
+    height: 50,
+    borderRadius: 15,
+    border: "1px solid #e5e7eb",
+    outline: "none",
+    padding: "0 14px",
+    fontSize: "15px",
+    fontWeight: 700,
+    background: "#fff",
+    boxSizing: "border-box"
+  },
+  submitDepositBtn: {
+    width: "100%",
+    height: "54px",
+    border: "none",
+    borderRadius: "17px",
+    marginTop: "18px",
+    background: "linear-gradient(135deg,#2563eb,#7c3aed,#ec4899)",
+    color: "#fff",
+    fontSize: "16px",
+    fontWeight: "900",
+    boxShadow: "0 16px 35px rgba(124,58,237,.35)",
+    cursor: "pointer"
+  }
+};
+
+const styleSheet = document.createElement("style");
+styleSheet.type = "text/css";
+styleSheet.innerText = `
+  @keyframes pulseIcon {
+    0% { transform: scale(0.95); }
+    50% { transform: scale(1.12); }
+    100% { transform: scale(0.95); }
+  }
+`;
+document.head.appendChild(styleSheet);
