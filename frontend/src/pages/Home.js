@@ -32,7 +32,7 @@ export default function Home() {
   const triggerStatusOverlay = (type, message) => {
     setStatusOverlay({ show: true, type, message });
     setTimeout(() => {
-      setStatusOverlay({ show: false, type: "info", message: "" });
+      setStatusOverlay({ show: false, type: "info", message: "" }); 
     }, 2500);
   };
 
