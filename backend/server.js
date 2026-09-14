@@ -7523,15 +7523,19 @@ app.post("/admin/onetime-adjust-wallet", async (req, res) => {
 });
 
 
-// 10. Admin - Fetch All OneTime Investments
-app.get("/admin/onetime-investments", async (req, res) => {
+// GET /admin/onetime-investments
+app.get("/admin/onetime-investments", verifyAdminToken, async (req, res) => {
   try {
+    // Investment মডেল থেকে সব প্ল্যান পপুলেট/ফাইন্ড করুন
     const investments = await OneTimeInvestment.find().sort({ createdAt: -1 });
-    return res.json({ success: true, investments });
+    
+    // অথবা যদি response format object হয়, তবে সংগতি বজায় রাখতে direct array পাঠাতে পারেন:
+    return res.status(200).json(investments);
   } catch (err) {
-    return res.status(500).json({ success: false, msg: "Error loading investments" });
+    return res.status(500).json({ msg: "Error fetching investments", error: err.message });
   }
 });
+
 
 // 11. Create OneTime Investment
 app.post("/api/onetime/create-investment", async (req, res) => {
@@ -7917,74 +7921,82 @@ app.post("/admin/onetime-reject-cash", async (req, res) => {
 // ==========================================
 // 1. UPDATE / MODIFY INVESTMENT PLAN
 // ==========================================
-app.post("/admin/onetime-update-investment", async (req, res) => {
+app.post("/admin/onetime-update-investment", verifyAdminToken, async (req, res) => {
   try {
-    const { investmentId, email, amount, duration, dailyReturn, status } = req.body;
+    const { investmentId, amount, duration, dailyReturn, status } = req.body;
 
     if (!investmentId) {
-      return res.status(400).json({ success: false, msg: "Investment ID is required" });
+      return res.status(400).json({ success: false, msg: "Investment ID required" });
     }
 
-    // আপনার Mongoose Model (যেমন: Investment) দিয়ে আপডেট
-    const updatedInvest = await Investment.findByIdAndUpdate(
+    const updatedInvestment = await OneTimeInvestment.findByIdAndUpdate(
       investmentId,
       {
-        amount: Number(amount),
-        duration: duration,
-        dailyReturn: Number(dailyReturn),
-        dailyEarning: Number(dailyReturn), // মডেলে যে নামে ফিল্ড আছে
-        status: status
+        ...(amount && { amount: Number(amount) }),
+        ...(duration && { duration }),
+        ...(dailyReturn !== undefined && { dailyReturn: Number(dailyReturn) }),
+        ...(status && { status }),
       },
       { new: true }
     );
 
-    if (!updatedInvest) {
-      return res.status(404).json({ success: false, msg: "Investment not found" });
+    if (!updatedInvestment) {
+      return res.status(404).json({ success: false, msg: "Investment plan not found" });
     }
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       msg: "Investment plan updated successfully!",
-      data: updatedInvest
+      investment: updatedInvestment
     });
   } catch (err) {
-    console.error("Update Investment Error:", err);
-    return res.status(500).json({ success: false, msg: "Server error updating investment" });
+    return res.status(500).json({ success: false, msg: "Failed to update investment", error: err.message });
   }
 });
+
 
 // ==========================================
 // 2. CANCEL INVESTMENT PLAN
 // ==========================================
-app.post("/admin/onetime-cancel-investment", async (req, res) => {
+// POST /admin/onetime-cancel-investment
+app.post("/admin/onetime-cancel-investment", verifyAdminToken, async (req, res) => {
   try {
     const { investmentId, email } = req.body;
 
     if (!investmentId) {
-      return res.status(400).json({ success: false, msg: "Investment ID is required" });
+      return res.status(400).json({ success: false, msg: "Investment ID required" });
     }
 
-    // ইনভেস্টমেন্টের স্ট্যাটাস Cancelled করা
-    const cancelledInvest = await Investment.findByIdAndUpdate(
+    // 1. প্ল্যানের স্ট্যাটাস 'Cancelled' করা
+    const investment = await OneTimeInvestment.findByIdAndUpdate(
       investmentId,
       { status: "Cancelled" },
       { new: true }
     );
 
-    if (!cancelledInvest) {
-      return res.status(404).json({ success: false, msg: "Investment plan not found" });
+    if (!investment) {
+      return res.status(404).json({ success: false, msg: "Investment not found" });
     }
 
-    return res.json({
+    // 2. (Optional/Recommended) ইউজারের মূল ইনভেস্ট করা টাকা Refund করা
+    const userEmail = email || investment.email || investment.userEmail;
+    if (userEmail && investment.amount) {
+      await User.findOneAndUpdate(
+        { email: userEmail },
+        { $inc: { otbalance: Number(investment.amount) } } // otbalance বা otBalance রিফান্ড
+      );
+    }
+
+    return res.status(200).json({
       success: true,
-      msg: "Investment plan cancelled successfully!",
-      data: cancelledInvest
+      msg: "Investment plan cancelled & amount refunded successfully!",
+      investment
     });
   } catch (err) {
-    console.error("Cancel Investment Error:", err);
-    return res.status(500).json({ success: false, msg: "Server error cancelling investment" });
+    return res.status(500).json({ success: false, msg: "Failed to cancel investment", error: err.message });
   }
 });
+
 
 
 
