@@ -7524,7 +7524,7 @@ app.post("/admin/onetime-adjust-wallet", async (req, res) => {
 
 
 // GET /admin/onetime-investments
-app.get("/admin/onetime-investments", verifyAdminToken, async (req, res) => {
+app.get("/admin/onetime-investments", async (req, res) => {
   try {
     // Investment মডেল থেকে সব প্ল্যান পপুলেট/ফাইন্ড করুন
     const investments = await OneTimeInvestment.find().sort({ createdAt: -1 });
