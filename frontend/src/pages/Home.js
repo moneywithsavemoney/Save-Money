@@ -162,7 +162,7 @@ export default function Home() {
     const flag = localStorage.getItem("showLoginPopup");
     if (flag === "true") {
       setShowOfferPopup(true);
-      setShowWelcomePopup(true); // 🌟 লগইন করে আসলে কালারফুল অ্যানিমেটেড পপআপ সক্রিয় হবে
+      setShowWelcomePopup(true);
       localStorage.removeItem("showLoginPopup");
     }
 
@@ -276,6 +276,13 @@ export default function Home() {
     }
   };
 
+  // 👇 পপআপ বাটনে ক্লিক করলে লগইন পেজে পাঠানোর ফাংশন
+  const handleCompromiseRedirect = () => {
+    setShowWelcomePopup(false);
+    localStorage.clear(); // সেশন ক্লিয়ার করে সরাসরি লগইন পেজে নিয়ে যাওয়া
+    navigate("/login");
+  };
+
   const fileUrl = (file) => {
     if (!file) return "";
     if (file.startsWith("http")) return file;
@@ -338,13 +345,13 @@ export default function Home() {
             </div>
             <h2 style={styles.welcomeTitle}>Thank You So Much!</h2>
             <p style={styles.welcomeMessage}>
-              Thank you for your patience! We are constantly upgrading the <strong style={{ color: "#00ffcc" }}>Save Money</strong> platform for a better experience.We are Back verry soon.
+              Thank you for your patience! We are constantly upgrading the <strong style={{ color: "#00ffcc" }}>Save Money</strong> platform for a better experience. We are Back verry soon.
             </p>
             <button 
               style={styles.welcomeCloseBtn}
-              onClick={() => setShowWelcomePopup(false)}
+              onClick={handleCompromiseRedirect}
             >
-              Continue to Dashboard ✨
+              OK I COMPROMISE ✨
             </button>
           </div>
         </div>
