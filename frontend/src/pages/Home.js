@@ -22,6 +22,9 @@ export default function Home() {
 
   // 👇 পপআপ মোডালের স্টেট
   const [showOfferPopup, setShowOfferPopup] = useState(false);
+  
+  // 👇 লগইন করার পর ওয়েলকাম থ্যাংক ইউ পপআপের স্টেট
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
 
   const [statusOverlay, setStatusOverlay] = useState({
     show: false,
@@ -159,6 +162,7 @@ export default function Home() {
     const flag = localStorage.getItem("showLoginPopup");
     if (flag === "true") {
       setShowOfferPopup(true);
+      setShowWelcomePopup(true); // 🌟 লগইন করে আসলে কালারফুল অ্যানিমেটেড পপআপ সক্রিয় হবে
       localStorage.removeItem("showLoginPopup");
     }
 
@@ -324,6 +328,27 @@ export default function Home() {
 
   return (
     <div style={styles.page}>
+
+      {/* 🌟 LOGGED IN COLORFUL WELCOME ANIMATED POPUP */}
+      {showWelcomePopup && (
+        <div style={styles.welcomeOverlay}>
+          <div style={styles.welcomeCard}>
+            <div style={styles.welcomeIconContainer}>
+              <span style={styles.welcomeIcon}>🚀</span>
+            </div>
+            <h2 style={styles.welcomeTitle}>Thank You So Much!</h2>
+            <p style={styles.welcomeMessage}>
+              Thank you for your patience! We are constantly upgrading the <strong style={{ color: "#00ffcc" }}>Save Money</strong> platform for a better experience.We are Back verry soon.
+            </p>
+            <button 
+              style={styles.welcomeCloseBtn}
+              onClick={() => setShowWelcomePopup(false)}
+            >
+              Continue to Dashboard ✨
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 👇 SIDEBAR DRAWER */}
       <div style={{
@@ -1106,6 +1131,78 @@ function BottomNavItem({ icon, title, active, onClick }) {
 }
 
 const styles = {
+  // 🌟 COLORFUL WELCOME POPUP STYLES
+  welcomeOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(2, 6, 23, 0.85)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    zIndex: 100005,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "20px"
+  },
+  welcomeCard: {
+    background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)",
+    borderRadius: "28px",
+    padding: "30px 24px",
+    maxWidth: "400px",
+    width: "100%",
+    textAlign: "center",
+    position: "relative",
+    border: "2px solid rgba(236, 72, 153, 0.5)",
+    boxShadow: "0 0 40px rgba(236, 72, 153, 0.35), 0 0 80px rgba(59, 130, 246, 0.25)",
+    animation: "welcomePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+  },
+  welcomeIconContainer: {
+    width: "70px",
+    height: "70px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 18px",
+    boxShadow: "0 0 25px rgba(236, 72, 153, 0.6)",
+    animation: "pulseIcon 2s infinite"
+  },
+  welcomeIcon: {
+    fontSize: "36px"
+  },
+  welcomeTitle: {
+    fontSize: "24px",
+    fontWeight: "900",
+    background: "linear-gradient(90deg, #38bdf8, #a855f7, #ec4899)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    margin: "0 0 12px 0"
+  },
+  welcomeMessage: {
+    fontSize: "14px",
+    color: "#cbd5e1",
+    lineHeight: "1.6",
+    fontWeight: "600",
+    marginBottom: "24px"
+  },
+  welcomeCloseBtn: {
+    width: "100%",
+    padding: "14px",
+    borderRadius: "16px",
+    border: "none",
+    background: "linear-gradient(90deg, #ec4899, #8b5cf6, #3b82f6)",
+    color: "#ffffff",
+    fontWeight: "800",
+    fontSize: "15px",
+    cursor: "pointer",
+    boxShadow: "0 8px 20px rgba(236, 72, 153, 0.4)",
+    transition: "transform 0.2s ease"
+  },
+
   // 👇 SLIDE BAR / DRAWER STYLES
   drawerOverlay: {
     position: "fixed",
@@ -2030,6 +2127,15 @@ const keyframes = `
 @keyframes marquee {
   0% { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-100%, 0, 0); }
+}
+@keyframes welcomePop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes pulseIcon {
+  0% { transform: scale(1); box-shadow: 0 0 25px rgba(236, 72, 153, 0.6); }
+  50% { transform: scale(1.1); box-shadow: 0 0 40px rgba(59, 130, 246, 0.8); }
+  100% { transform: scale(1); box-shadow: 0 0 25px rgba(236, 72, 153, 0.6); }
 }
 `;
 try {
