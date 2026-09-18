@@ -757,12 +757,12 @@ export default function OneTime() {
           </div>
         )}
 
-        {/* TOP HIGHLIGHTED NOTICE BANNER */}
+        {/* TOP HIGHLIGHTED NOTICE BANNER (UPDATED FOR SCROLLING LEFT & BIGGER TEXT) */}
         <div style={styles.topNoticeBanner}>
-          <div style={styles.noticeBadge}>LIMITED OFFER 🔥</div>
-          <div style={styles.noticeText}>
-            Thank you for choosing <strong>Save Money</strong>! Refer your friend to invest today and get <span>up to 15% flat bonus!</span> 🎉
-          </div>
+          <marquee behavior="scroll" direction="left" scrollamount="6" style={styles.marqueeText}>
+            <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
+            Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 15% flat bonus!</span> 🎉
+          </marquee>
         </div>
 
         {/* HEADER */}
@@ -1550,32 +1550,40 @@ const styles = {
     fontSize: "15px"
   },
 
-  // TOP NOTICE BANNER STYLES
+  // TOP NOTICE BANNER STYLES (UPDATED)
   topNoticeBanner: {
     background: "linear-gradient(90deg, #052e16 0%, #064e3b 50%, #022c22 100%)",
     border: "1px solid #22c55e",
     borderRadius: "12px",
-    padding: "12px 18px",
+    padding: "10px 14px",
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.2)"
+  },
+  marqueeText: {
+    fontSize: "16px",
+    fontWeight: "700",
+    color: "#e2e8f0",
     display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.2)",
-    flexWrap: "wrap"
+    alignItems: "center"
   },
   noticeBadge: {
     background: "#f59e0b",
     color: "#000",
     fontWeight: "900",
-    fontSize: "11px",
-    padding: "4px 8px",
+    fontSize: "12px",
+    padding: "4px 10px",
     borderRadius: "6px",
-    letterSpacing: "0.5px"
+    letterSpacing: "0.5px",
+    marginRight: "12px",
+    display: "inline-block"
   },
-  noticeText: {
-    fontSize: "14px",
-    color: "#e2e8f0",
-    flex: 1,
-    lineHeight: "1.4"
+  bonusHighlight: {
+    color: "#facc15",
+    fontSize: "18px",
+    fontWeight: "900",
+    marginLeft: "4px",
+    marginRight: "4px"
   },
 
   // HEADER
