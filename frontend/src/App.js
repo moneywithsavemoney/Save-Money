@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import socket from "./socket";
 
 import { ToastContainer } from "react-toastify";
@@ -23,7 +23,6 @@ import AdminKYC from "./pages/AdminKYC";
 import AdminNotification from "./pages/AdminNotification";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAddon from "./pages/AdminAddon";
-
 
 import PerformanceBonus from "./pages/PerformanceBonus";
 import TeamBonus from "./pages/TeamBonus";
@@ -49,14 +48,54 @@ import AboutCompany from "./pages/AboutCompany";
 import InvestNow from "./pages/InvestNow";
 import OneTime from "./pages/OneTime";
 
-
 import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
 
-// 🛠️ এখানে 'export default' রিমুভ করে শুধুমাত্র 'function App()' রাখা হলো
 function App() {
   const [popup, setPopup] = useState(null);
+  const timerRef = useRef(null);
 
+  // 🚪 ১. অটো লগআউট হ্যান্ডলার
+  const handleLogout = useCallback(() => {
+    localStorage.clear(); // বা নির্দিষ্ট আইটেম মুছে ফেলুন: localStorage.removeItem("email");
+    alert("১ ঘণ্টা কোনো অ্যাক্টিভিটি না থাকায় আপনাকে স্বয়ংক্রিয়ভাবে লগআউট করা হয়েছে।");
+    window.location.href = "/login";
+  }, []);
+
+  // ⏳ ২. ১ ঘন্টার ইনঅ্যাক্টিভিটি টাইমার লিসেনার
+  useEffect(() => {
+    const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // ১ ঘণ্টা (milliseconds)
+
+    const resetTimer = () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        handleLogout();
+      }, AUTO_LOGOUT_TIME);
+    };
+
+    const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
+
+    const handleUserActivity = () => {
+      resetTimer();
+    };
+
+    const email = localStorage.getItem("email");
+    if (email) {
+      resetTimer();
+      events.forEach((event) => {
+        window.addEventListener(event, handleUserActivity);
+      });
+    }
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      events.forEach((event) => {
+        window.removeEventListener(event, handleUserActivity);
+      });
+    };
+  }, [handleLogout]);
+
+  // 🔔 ৩. আপনার সকেট লিসেনার (পূর্বের কোড)
   useEffect(() => {
     const email = localStorage.getItem("email");
 
@@ -184,7 +223,7 @@ function App() {
           }
         />
 
-          <Route
+        <Route
           path="/one-time"
           element={
             <ProtectedRoute>
@@ -310,10 +349,7 @@ function App() {
           }
         />
 
-
-          <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
-
-          
+        <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
 
         <Route
           path="/support"
@@ -323,7 +359,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
 
         {/* 🛠️ অ্যাডমিন রুটস */}
         <Route
@@ -362,7 +397,7 @@ function App() {
           }
         />
 
-          <Route
+        <Route
           path="/admin-one-time"
           element={
             <AdminRoute>
@@ -409,5 +444,4 @@ function App() {
   );
 }
 
-// 🎯 এটিই থাকবে একমাত্র অফিসিয়াল ডিফল্ট এক্সপোর্ট
 export default App;
