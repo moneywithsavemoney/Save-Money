@@ -120,11 +120,11 @@ export default function AdminOneTime() {
         : (wData?.requests || wData?.withdrawals || wData?.data || []);
       setWithdraws(withdrawList);
 
-      // Safe parse for Investments
+      // Safe parse for Investments (ontime investment সাপোর্ট সহ)
       const iData = await apiGet("/admin/onetime-investments");
       const investList = Array.isArray(iData)
         ? iData
-        : (iData?.investments || iData?.data || []);
+        : (iData?.investments || iData?.ontimeInvestments || iData?.oneTimeInvestments || iData?.data || []);
       setInvestments(investList);
 
       // Safe parse for Users
@@ -136,6 +136,21 @@ export default function AdminOneTime() {
       setError("Backend API connection failed.");
       setData({});
     }
+  };
+
+  // Helper function to format Date & Time
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "N/A";
+    return date.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    });
   };
 
   // Quick Action Click Handlers
@@ -229,7 +244,8 @@ export default function AdminOneTime() {
       email: investEmail,
       amount: Number(investAmount),
       duration: investDuration,
-      dailyReturn: Number(investDailyReturn || 0)
+      dailyReturn: Number(investDailyReturn || 0),
+      planName: "ontime investment"
     });
 
     if (!d) return;
@@ -313,7 +329,9 @@ export default function AdminOneTime() {
   const filteredInvestments = investments.filter((i) =>
     (i.email || i.userEmail || "").toLowerCase().includes(investSearch.toLowerCase()) ||
     (i.status || "").toLowerCase().includes(investSearch.toLowerCase()) ||
-    (i.duration || "").toLowerCase().includes(investSearch.toLowerCase())
+    (i.duration || "").toLowerCase().includes(investSearch.toLowerCase()) ||
+    (i.planName || "").toLowerCase().includes(investSearch.toLowerCase()) ||
+    (i.investmentType || "").toLowerCase().includes(investSearch.toLowerCase())
   );
 
   const pendingCashRequests = cash.filter(
@@ -408,7 +426,7 @@ export default function AdminOneTime() {
                       {money(u.otbalance ?? u.otBalance ?? 0)}
                     </td>
                     <td style={{ ...styles.td, color: "#22c55e", fontWeight: "bold" }}>
-                      {money(u.oneTimeTotalInvested || u.totalInvested || 0)}
+                      {money(u.oneTimeTotalInvested || u.totalInvested || u.ontimeTotalInvested || 0)}
                     </td>
                     <td style={{ ...styles.td, textAlign: "center" }}>
                       <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
@@ -451,6 +469,7 @@ export default function AdminOneTime() {
             <thead>
               <tr>
                 <th style={styles.th}>User Email</th>
+                <th style={styles.th}>Plan Name</th>
                 <th style={styles.th}>Amount</th>
                 <th style={styles.th}>Duration</th>
                 <th style={styles.th}>Daily Return</th>
@@ -460,7 +479,7 @@ export default function AdminOneTime() {
             </thead>
             <tbody>
               {filteredInvestments.length === 0 ? (
-                <tr><td colSpan="6" style={styles.emptyText}>No investments found</td></tr>
+                <tr><td colSpan="7" style={styles.emptyText}>No investments found</td></tr>
               ) : (
                 filteredInvestments.map((inv, idx) => {
                   const status = (inv.status || "Active").toLowerCase();
@@ -472,11 +491,14 @@ export default function AdminOneTime() {
                         <div style={{ fontWeight: "600", color: "#f8fafc" }}>{inv.email || inv.userEmail || "User"}</div>
                         <div style={{ fontSize: "11px", color: "#64748b" }}>ID: {inv._id || "N/A"}</div>
                       </td>
+                      <td style={styles.td}>
+                        <span style={styles.badgeBlue}>{inv.planName || inv.investmentType || "ontime investment"}</span>
+                      </td>
                       <td style={{ ...styles.td, color: "#22c55e", fontWeight: "bold" }}>
                         {money(inv.amount)}
                       </td>
                       <td style={styles.td}>
-                        <span style={styles.badgeBlue}>{inv.duration || "N/A"}</span>
+                        {inv.duration || "N/A"}
                       </td>
                       <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
                         {money(inv.dailyReturn || inv.dailyEarning || 0)}/day
@@ -609,18 +631,20 @@ export default function AdminOneTime() {
                   <th style={styles.th}>User Email</th>
                   <th style={styles.th}>Amount</th>
                   <th style={styles.th}>UTR / Txn ID</th>
+                  <th style={styles.th}>Date & Time</th>
                   <th style={styles.th}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {historyCashRequests.length === 0 ? (
-                  <tr><td colSpan="4" style={styles.emptyText}>No topup history found.</td></tr>
+                  <tr><td colSpan="5" style={styles.emptyText}>No topup history found.</td></tr>
                 ) : (
                   historyCashRequests.map((r) => (
                     <tr key={r._id} style={styles.tr}>
                       <td style={styles.td}>{r.email}</td>
                       <td style={{ ...styles.td, color: "#22c55e" }}>{money(r.amount)}</td>
                       <td style={styles.td}>{r.transactionId || r.txnId || "N/A"}</td>
+                      <td style={styles.td}>{formatDate(r.createdAt || r.date || r.timestamp)}</td>
                       <td style={styles.td}>
                         <span style={{
                           padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "12px",
@@ -647,6 +671,7 @@ export default function AdminOneTime() {
                     <th style={styles.th}>User Email</th>
                     <th style={styles.th}>Amount</th>
                     <th style={styles.th}>UTR / Txn ID</th>
+                    <th style={styles.th}>Requested Time</th>
                     <th style={styles.th}>Proof</th>
                     <th style={styles.th}>Action</th>
                   </tr>
@@ -657,6 +682,7 @@ export default function AdminOneTime() {
                       <td style={styles.td}>{r.email}</td>
                       <td style={{ ...styles.td, color: "#22c55e", fontWeight: "bold" }}>{money(r.amount)}</td>
                       <td style={styles.td}>{r.transactionId || r.txnId || "N/A"}</td>
+                      <td style={styles.td}>{formatDate(r.createdAt || r.date || r.timestamp)}</td>
                       <td style={styles.td}>
                         {r.screenshot ? (
                           <a href={r.screenshot} target="_blank" rel="noreferrer" style={{ color: "#38bdf8" }}>
@@ -701,17 +727,19 @@ export default function AdminOneTime() {
                 <tr>
                   <th style={styles.th}>User Email</th>
                   <th style={styles.th}>Amount</th>
+                  <th style={styles.th}>Requested Time</th>
                   <th style={styles.th}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {historyWithdraws.length === 0 ? (
-                  <tr><td colSpan="3" style={styles.emptyText}>No withdrawal history found.</td></tr>
+                  <tr><td colSpan="4" style={styles.emptyText}>No withdrawal history found.</td></tr>
                 ) : (
                   historyWithdraws.map((w) => (
                     <tr key={w._id} style={styles.tr}>
                       <td style={styles.td}>{w.email}</td>
                       <td style={{ ...styles.td, color: "#f87171" }}>{money(w.amount)}</td>
+                      <td style={styles.td}>{formatDate(w.createdAt || w.date || w.timestamp)}</td>
                       <td style={styles.td}>
                         <span style={{
                           padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "12px",
@@ -738,6 +766,10 @@ export default function AdminOneTime() {
                     <h4 style={{ margin: 0, color: "#fff" }}>{w.name || w.email || "User"}</h4>
                     <p style={{ margin: "4px 0 0 0", color: "#22c55e", fontSize: "18px", fontWeight: "bold" }}>
                       {money(w.amount)}
+                    </p>
+                    {/* কটার সময় উইথড্র বসিয়েছে তা দেখানো হচ্ছে */}
+                    <p style={{ margin: "4px 0 0 0", color: "#94a3b8", fontSize: "12px" }}>
+                      ⏰ <b>Requested At:</b> {formatDate(w.createdAt || w.date || w.timestamp)}
                     </p>
                   </div>
                   <button
