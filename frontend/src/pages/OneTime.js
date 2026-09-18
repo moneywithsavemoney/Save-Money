@@ -42,6 +42,9 @@ export default function OneTime() {
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
+  // ----------------- WELCOME OFFER POPUP STATE -----------------
+  const [showOfferPopup, setShowOfferPopup] = useState(true);
+
   // ----------------- SIDEBAR & PLAN STATES -----------------
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
@@ -313,14 +316,13 @@ export default function OneTime() {
     return (Number(amount) * Number(rate)) / 100;
   }, [amount, rate, activeInvestment]);
 
-  // היום উইথড্র করা হয়েছে কি না এবং সেটি Accepted/Pending কি না চেক করা
+  // আজকে উইথড্র করা হয়েছে কি না চেক করা
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
       const isWd = (item.type || "").toLowerCase().includes("withdrawal");
       const itemDate = parseSafeDate(item.createdAt || item.startDate).toDateString();
       const status = (item.status || "").toLowerCase();
-      // যদি আজকে তৈরি উইথড্রয়াল হয় এবং এটি Rejected না হয় (অর্থাৎ Pending বা Approved)
       return isWd && itemDate === todayStr && status !== "rejected" && status !== "cancelled" && status !== "failed";
     });
   }, [history]);
@@ -754,6 +756,14 @@ export default function OneTime() {
             {toast.msg}
           </div>
         )}
+
+        {/* TOP HIGHLIGHTED NOTICE BANNER */}
+        <div style={styles.topNoticeBanner}>
+          <div style={styles.noticeBadge}>LIMITED OFFER 🔥</div>
+          <div style={styles.noticeText}>
+            Thank you for choosing <strong>Save Money</strong>! Refer your friend to invest today and get <span>up to 15% flat bonus!</span> 🎉
+          </div>
+        </div>
 
         {/* HEADER */}
         <header style={styles.header}>
@@ -1239,6 +1249,47 @@ export default function OneTime() {
         </footer>
       </div>
 
+      {/* WELCOME OFFER POPUP MODAL */}
+      {showOfferPopup && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.offerPopupCard}>
+            <button style={styles.offerCloseBtn} onClick={() => setShowOfferPopup(false)}>✕</button>
+            
+            <div style={styles.offerHeaderBadge}>
+              🎁 EXCLUSIVE REFERRAL OFFER
+            </div>
+
+            <div style={styles.offerIconWrapper}>
+              🚀
+            </div>
+
+            <h2 style={styles.offerTitle}>
+              Thank you for choosing <span style={{ color: "#22c55e" }}>Save Money</span>!
+            </h2>
+
+            <p style={styles.offerDescription}>
+              Refer your friend to invest today and get <br />
+              <strong style={styles.offerHighlightText}>upto 15% flat bonus</strong> instantly!
+            </p>
+
+            <div style={styles.offerActionGroup}>
+              <button 
+                style={styles.offerReferBtn} 
+                onClick={() => {
+                  setShowOfferPopup(false);
+                  navigate("/refer");
+                }}
+              >
+                👥 Refer Friend Now
+              </button>
+              <button style={styles.offerSkipBtn} onClick={() => setShowOfferPopup(false)}>
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODALS */}
       {showAmountModal && (
         <div style={styles.modalOverlay}>
@@ -1497,6 +1548,34 @@ const styles = {
     zIndex: 99999,
     fontWeight: "bold",
     fontSize: "15px"
+  },
+
+  // TOP NOTICE BANNER STYLES
+  topNoticeBanner: {
+    background: "linear-gradient(90deg, #052e16 0%, #064e3b 50%, #022c22 100%)",
+    border: "1px solid #22c55e",
+    borderRadius: "12px",
+    padding: "12px 18px",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.2)",
+    flexWrap: "wrap"
+  },
+  noticeBadge: {
+    background: "#f59e0b",
+    color: "#000",
+    fontWeight: "900",
+    fontSize: "11px",
+    padding: "4px 8px",
+    borderRadius: "6px",
+    letterSpacing: "0.5px"
+  },
+  noticeText: {
+    fontSize: "14px",
+    color: "#e2e8f0",
+    flex: 1,
+    lineHeight: "1.4"
   },
 
   // HEADER
@@ -2280,6 +2359,97 @@ const styles = {
     cursor: "pointer",
     fontSize: "16px"
   },
+
+  // WELCOME OFFER POPUP STYLES
+  offerPopupCard: {
+    background: "linear-gradient(145deg, #091a2e 0%, #031120 100%)",
+    borderRadius: "24px",
+    padding: "32px 24px 24px 24px",
+    width: "100%",
+    maxWidth: "400px",
+    border: "2px solid #22c55e",
+    boxShadow: "0 0 35px rgba(34, 197, 94, 0.3)",
+    textAlign: "center",
+    position: "relative"
+  },
+  offerCloseBtn: {
+    position: "absolute",
+    top: "14px",
+    right: "14px",
+    border: "none",
+    background: "rgba(255,255,255,0.1)",
+    color: "#fff",
+    borderRadius: "50%",
+    width: "32px",
+    height: "32px",
+    cursor: "pointer",
+    fontSize: "14px"
+  },
+  offerHeaderBadge: {
+    display: "inline-block",
+    background: "rgba(34, 197, 94, 0.15)",
+    color: "#4ade80",
+    border: "1px solid rgba(34, 197, 94, 0.3)",
+    padding: "6px 14px",
+    borderRadius: "20px",
+    fontSize: "12px",
+    fontWeight: "bold",
+    letterSpacing: "0.5px",
+    marginBottom: "16px"
+  },
+  offerIconWrapper: {
+    fontSize: "48px",
+    marginBottom: "12px"
+  },
+  offerTitle: {
+    margin: "0 0 10px 0",
+    fontSize: "20px",
+    fontWeight: "800",
+    color: "#ffffff",
+    lineHeight: "1.3"
+  },
+  offerDescription: {
+    fontSize: "15px",
+    color: "#cbd5e1",
+    margin: "0 0 20px 0",
+    lineHeight: "1.5"
+  },
+  offerHighlightText: {
+    color: "#facc15",
+    fontSize: "18px",
+    fontWeight: "900",
+    display: "inline-block",
+    marginTop: "4px"
+  },
+  offerActionGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  offerReferBtn: {
+    width: "100%",
+    height: "48px",
+    borderRadius: "12px",
+    border: "none",
+    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+    color: "#ffffff",
+    fontSize: "16px",
+    fontWeight: "800",
+    cursor: "pointer",
+    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.4)"
+  },
+  offerSkipBtn: {
+    width: "100%",
+    height: "40px",
+    borderRadius: "10px",
+    border: "none",
+    background: "transparent",
+    color: "#94a3b8",
+    fontSize: "13px",
+    fontWeight: "600",
+    cursor: "pointer"
+  },
+
   presetGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
