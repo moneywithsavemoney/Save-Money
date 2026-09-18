@@ -2536,7 +2536,7 @@ const styles = {
     padding: "14px",
     borderRadius: "10px",
     display: "flex",
-    justify.content: "space-between",
+    justifycontent: "space-between",
     fontSize: "15px"
   },
   balanceAlertBoxDark: {
