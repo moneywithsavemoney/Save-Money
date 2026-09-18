@@ -667,7 +667,7 @@ export default function Home() {
           <div style={styles.marqueeText}>
             <span style={styles.limitedOfferBadge}>LIMITED OFFER 🔥</span>
             <span style={styles.announcementText}>
-              {latestUpdateText || "Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us."}
+              {latestUpdateText || "Our platform had been experiencing issues for few days, but the server is running now. Thank you everyone for staying with us."}
             </span>
           </div>
         </div>
@@ -1106,7 +1106,7 @@ const styles = {
     alignItems: "center",
     gap: "10px",
     paddingLeft: "100%",
-    animation: "marquee 22s linear infinite"
+    animation: "marquee 30s linear infinite"
   },
   limitedOfferBadge: {
     background: "#f59e0b",
