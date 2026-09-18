@@ -325,16 +325,6 @@ export default function Home() {
   return (
     <div style={styles.page}>
 
-      {/* 🟢 TOP SLIDING ANNOUNCEMENT BAR (2ND SCREENSHOT STYLE) */}
-      <div style={styles.topAnnouncementBar}>
-        <span style={styles.announcementTag}>LATEST MESSAGE</span>
-        <div style={styles.topMarqueeWrapper}>
-          <p style={styles.topMarqueeText}>
-            Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us.
-          </p>
-        </div>
-      </div>
-
       {/* 👇 SIDEBAR DRAWER */}
       <div style={{
         ...styles.drawerOverlay,
@@ -366,9 +356,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* SIDEBAR NAV BUTTONS - DIAMOND CUT & WATER TRANSPARENT */}
+          {/* SIDEBAR NAV BUTTONS */}
           <div style={styles.drawerNavList}>
-            {/* 1. Dashboard */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -381,7 +370,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>Dashboard</span>
             </button>
 
-            {/* 2. My Investment */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -394,7 +382,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>My Investment</span>
             </button>
 
-            {/* 3. Save Money */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -407,7 +394,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>Save Money</span>
             </button>
 
-            {/* 4. One Time */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -420,7 +406,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>One Time</span>
             </button>
 
-            {/* 5. PLAN (PDF Download) */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -433,7 +418,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
             </button>
 
-            {/* Add Fund */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -446,7 +430,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>Add Fund</span>
             </button>
 
-            {/* Refer (refer.js) */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -459,7 +442,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>Refer & Earn</span>
             </button>
 
-            {/* Withdraw (withdraw.js) */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -472,7 +454,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>Withdraw</span>
             </button>
 
-            {/* Daily Reward (dailyreward.js) */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -485,7 +466,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>Daily Reward</span>
             </button>
 
-            {/* Investment Assistance (Investment assistance.js) */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -498,7 +478,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>Investment Assistance</span>
             </button>
 
-            {/* Support */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -511,7 +490,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>Support</span>
             </button>
 
-            {/* Profile */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -524,7 +502,6 @@ export default function Home() {
               <span style={styles.drawerNavText}>Profile</span>
             </button>
 
-            {/* Logout */}
             <button 
               style={{
                 ...styles.drawerNavItem,
@@ -537,7 +514,6 @@ export default function Home() {
             </button>
           </div>
 
-          {/* 👇 PLANT IMAGE CONTAINER AT THE BOTTOM */}
           <div style={styles.treePlantOnlyWrapper}>
             <img 
               src="/tree plant.png" 
@@ -684,6 +660,19 @@ export default function Home() {
           </span>
         </div>
       </section>
+
+      {/* 🟡 LATEST UPDATE BOX (SCREENSHOT STYLE WITH WHITE TEXT) */}
+      <div style={styles.latestUpdateCard}>
+        <div style={styles.latestUpdateHeader}>
+          <span style={styles.latestUpdateIcon}>📢</span>
+          <span style={styles.latestUpdateTitle}>Latest Update</span>
+        </div>
+        <div style={styles.marqueeContainer}>
+          <p style={styles.marqueeText}>
+            Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us.
+          </p>
+        </div>
+      </div>
 
       {/* STATS CARDS */}
       <section style={styles.statsGrid}>
@@ -1097,45 +1086,47 @@ function BottomNavItem({ icon, title, active, onClick }) {
 }
 
 const styles = {
-  // 🟢 TOP ANNOUNCEMENT BAR STYLES (2nd Screenshot Style)
-  topAnnouncementBar: {
-    width: "100%",
-    background: "#03281e",
-    borderBottom: "1px solid #064e3b",
+  // 🟡 LATEST UPDATE CARD STYLES (SCREENSHOT CARD)
+  latestUpdateCard: {
+    marginTop: "16px",
+    background: "linear-gradient(135deg, #ff0055 0%, #ff5252 50%, #ff7a00 100%)",
+    borderRadius: "18px",
+    padding: "12px 16px",
+    boxShadow: "0 8px 20px rgba(255, 0, 85, 0.3)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px"
+  },
+  latestUpdateHeader: {
     display: "flex",
     alignItems: "center",
-    padding: "6px 12px",
-    gap: "10px",
-    margin: "0 -16px 10px -16px",
-    width: "calc(100% + 32px)",
-    boxSizing: "border-box"
+    gap: "6px"
   },
-  announcementTag: {
-    background: "#f59e0b",
-    color: "#000000",
-    fontSize: "10px",
-    fontWeight: "900",
-    padding: "3px 8px",
-    borderRadius: "4px",
-    whiteSpace: "nowrap",
+  latestUpdateIcon: {
+    fontSize: "14px"
+  },
+  latestUpdateTitle: {
+    fontSize: "13px",
+    fontWeight: "800",
+    color: "#ffffff",
     letterSpacing: "0.5px"
   },
-  topMarqueeWrapper: {
-    flex: 1,
+  marqueeContainer: {
     overflow: "hidden",
-    whiteSpace: "nowrap"
+    whiteSpace: "nowrap",
+    width: "100%"
   },
-  topMarqueeText: {
+  marqueeText: {
     display: "inline-block",
     paddingLeft: "100%",
-    animation: "marquee 25s linear infinite",
-    fontSize: "12px",
-    fontWeight: "600",
-    color: "#22c55e",
+    animation: "marquee 22s linear infinite",
+    fontSize: "13px",
+    fontWeight: "700",
+    color: "#ffffff", // ⚪ ফন্ট হোয়াইট করা হলো
     margin: 0
   },
 
-  // 👇 SLIDE BAR / DRAWER STYLES
+  // 👇 DRAWER STYLES
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -1223,7 +1214,6 @@ const styles = {
     maxHeight: "calc(100vh - 200px)"
   },
   
-  // 💎 DIAMOND CUT & WATER TRANSPARENT DRAWER BUTTONS
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
@@ -1261,7 +1251,6 @@ const styles = {
     letterSpacing: "0.3px"
   },
 
-  // WATER TRANSPARENT ACCENTS FOR DRAWER BUTTONS
   drawerNavDashboard: {
     background: "rgba(59, 130, 246, 0.2)",
     border: "1px solid rgba(59, 130, 246, 0.4)"
@@ -1315,7 +1304,6 @@ const styles = {
     border: "1px solid rgba(239, 68, 68, 0.4)"
   },
 
-  // 👇 PLANT IMAGE CONTAINER AT THE BOTTOM
   treePlantOnlyWrapper: {
     flex: 1,
     minHeight: 0,
@@ -1731,7 +1719,6 @@ const styles = {
     boxShadow: "inset 0 0 35px rgba(59,130,246,0.25)"
   },
 
-  // 💎 DIAMOND CUT & WATER TRANSPARENT MAIN ACTION BUTTONS
   actionButton: {
     position: "relative",
     border: "1px solid rgba(255, 255, 255, 0.25)",
@@ -1794,7 +1781,6 @@ const styles = {
     background: "rgba(255,255,255,0.15)"
   },
 
-  // WATER TRANSPARENT COLOR TINTS FOR ACTION BUTTONS
   actionInvest: {
     background: "rgba(0, 255, 117, 0.15)",
     border: "1px solid rgba(0, 255, 117, 0.35)"
