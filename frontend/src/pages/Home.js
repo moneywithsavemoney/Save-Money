@@ -12,8 +12,6 @@ export default function Home() {
 
   const [user, setUser] = useState({});
   const [notificationCount, setNotificationCount] = useState(0);
-  const [latestUpdate, setLatestUpdate] = useState("No new announcement");
-  const [latestUpdateText, setLatestUpdateText] = useState("");
   const [loading, setLoading] = useState(true);
 
   // 👇 ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
@@ -149,20 +147,13 @@ export default function Home() {
   useEffect(() => {
     loadHome();
     loadNotifications();
-    loadLatestUpdate();
     registerPushNotification();
-
-    const interval = setInterval(() => {
-      loadLatestUpdate();
-    }, 10000);
 
     const flag = localStorage.getItem("showLoginPopup");
     if (flag === "true") {
       setShowOfferPopup(true);
       localStorage.removeItem("showLoginPopup");
     }
-
-    return () => clearInterval(interval);
   }, []);
 
   const loadHome = async () => {
@@ -192,10 +183,6 @@ export default function Home() {
       }
 
       setUser(data || {});
-      
-      if (data?.latestUpdate || data?.announcement) {
-        setLatestUpdate(data.latestUpdate || data.announcement);
-      }
 
     } catch (err) {
       console.log("HOME LOAD ERROR:", err);
@@ -223,32 +210,6 @@ export default function Home() {
       }
     } catch (err) {
       console.log("Notification count error:", err);
-    }
-  };
-
-  const loadLatestUpdate = async () => {
-    try {
-      const res = await fetch(`${API}/latest-news`, {
-        method: "GET",
-        headers: {
-          "Cache-Control": "no-cache"
-        }
-      });
-
-      if (!res.ok) return;
-
-      const data = await res.json();
-      
-      if (data) {
-        const msg = data.message || data.latestUpdate || data.announcement || (typeof data === 'string' ? data : "");
-
-        if (msg && msg.trim() !== "") {
-          setLatestUpdateText(msg);
-          setLatestUpdate(msg);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to fetch latest news:", err);
     }
   };
 
@@ -687,7 +648,7 @@ export default function Home() {
             
             <div style={styles.marqueeWrapper}>
               <p style={styles.marqueeText}>
-                {latestUpdateText ? latestUpdateText : "No new announcement"}
+                আমাদের প্ল্যাটফর্ম দুইদিন থেকে প্রবলেমে ছিল,এখন сервер রুনিং হয়ে গিয়েছে। ধন্যবাদ সবাইকে আমাদের সঙ্গে থাকার জন্য।
               </p>
             </div>
           </div>
