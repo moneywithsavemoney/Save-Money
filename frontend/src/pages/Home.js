@@ -520,7 +520,8 @@ export default function Home() {
               <span style={{ fontSize: "36px", animation: "bounce 2s infinite" }}>🚀</span>
             </div>
 
-            <h3 style={styles.popupTitleText}>System Update</h3>
+            {/* ✏️ আপডেট করা হয়েছে: System Update -> Information */}
+            <h3 style={styles.popupTitleText}>Information</h3>
 
             <p style={styles.popupNoticeMessage}>
               "Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us."
