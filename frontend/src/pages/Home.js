@@ -667,7 +667,7 @@ export default function Home() {
           <div style={styles.marqueeText}>
             <span style={styles.limitedOfferBadge}>LIMITED OFFER 🔥</span>
             <span style={styles.announcementText}>
-              {latestUpdateText || "Thank you for choosing Save Money. Invest smart and secure your future!"}
+              {latestUpdateText || "Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us."}
             </span>
           </div>
         </div>
