@@ -7524,15 +7524,39 @@ app.post("/admin/onetime-adjust-wallet", async (req, res) => {
 
 
 // GET /admin/onetime-investments
-app.get("/admin/onetime-investments", async (req, res) => {
+// Backend Route: /admin/onetime-investments
+app.get("/admin/onetime-investments", verifyAdminToken, async (req, res) => {
   try {
-    // Investment মডেল থেকে সব প্ল্যান পপুলেট/ফাইন্ড করুন
-    const investments = await OneTimeInvestment.find().sort({ createdAt: -1 });
-    
-    // অথবা যদি response format object হয়, তবে সংগতি বজায় রাখতে direct array পাঠাতে পারেন:
-    return res.status(200).json(investments);
+    // ১. সব ইউজার ফেচ করুন
+    const users = await User.find({});
+
+    let allInvestments = [];
+
+    // ২. প্রতিটি ইউজারের onetimeHistory থেকে শুধুমাত্র "OneTimeInvestment" টাইপের ডাটা বের করুন
+    users.forEach((user) => {
+      if (Array.isArray(user.onetimeHistory)) {
+        user.onetimeHistory.forEach((item) => {
+          if (item.type === "OneTimeInvestment") {
+            allInvestments.push({
+              _id: item._id,
+              email: user.email, // ইউজারের ইমেইল যুক্ত করা হচ্ছে
+              name: user.name,
+              amount: item.amount,
+              dailyReturn: item.dailyReturn,
+              duration: item.duration,
+              status: item.status || "Active",
+              createdAt: item.createdAt
+            });
+          }
+        });
+      }
+    });
+
+    // ৩. সমস্ত ইনভেস্টমেন্ট রেসপন্স আকারে পাঠান
+    res.status(200).json(allInvestments);
   } catch (err) {
-    return res.status(500).json({ msg: "Error fetching investments", error: err.message });
+    console.error("Error fetching investments:", err);
+    res.status(500).json({ msg: "Server error", error: err.message });
   }
 });
 
