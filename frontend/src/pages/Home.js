@@ -1,39 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API } from "../config";
-
-// Safe Date Parser
-const parseSafeDate = (dateVal) => {
-  if (!dateVal) return new Date(0);
-  if (dateVal instanceof Date) return isNaN(dateVal) ? new Date(0) : dateVal;
-  
-  if (!isNaN(dateVal) && typeof dateVal !== "string") {
-    return new Date(Number(dateVal));
-  }
-
-  if (typeof dateVal === "string") {
-    const d = new Date(dateVal);
-    if (!isNaN(d.getTime())) return d;
-
-    const parts = dateVal.split(/[\/\-]/);
-    if (parts.length === 3) {
-      const month = parseInt(parts[0], 10) - 1;
-      const day = parseInt(parts[1], 10);
-      const year = parseInt(parts[2], 10);
-      const customDate = new Date(year, month, day);
-      if (!isNaN(customDate.getTime())) return customDate;
-    }
-  }
-
-  const fallback = new Date(dateVal);
-  return isNaN(fallback.getTime()) ? new Date(0) : fallback;
-};
-
-const formatDate = (dateVal) => {
-  const d = parseSafeDate(dateVal);
-  if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
-  return d.toLocaleDateString("en-GB");
-};
 
 export default function Home() {
   const navigate = useNavigate();
@@ -41,93 +8,104 @@ export default function Home() {
 
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
+  const localName = localStorage.getItem("name") || "User";
 
-  // ----------------- WELCOME OFFER POPUP STATE -----------------
-  const [showOfferPopup, setShowOfferPopup] = useState(true);
+  const [user, setUser] = useState({});
+  const [notificationCount, setNotificationCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // ----------------- SIDEBAR & PLAN STATES -----------------
+  // 👇 ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
-  const [showAllHistory, setShowAllHistory] = useState(false);
 
-  // ----------------- DASHBOARD STATES -----------------
-  const [user, setUser] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [history, setHistory] = useState([]);
+  // 👇 পপআপ মোডালের স্টেট (OneTime.js এর মতো অন রাখা হয়েছে)
+  const [showOfferPopup, setShowOfferPopup] = useState(true);
 
-  // Dashboard Stats
-  const [stats, setStats] = useState({
-    totalInvested: 0,
-    totalEarnings: 0,
-    totalWithdrawn: 0,
-    availableBalance: 0
+  const [statusOverlay, setStatusOverlay] = useState({
+    show: false,
+    type: "info",
+    message: ""
   });
 
-  const [activeInvestment, setActiveInvestment] = useState(null);
-
-  // Investment Form State
-  const [tenure, setTenure] = useState(15);
-  const [rate, setRate] = useState(0.6);
-  const [frequency, setFrequency] = useState("daily");
-  const [amount, setAmount] = useState(5000);
-  const [investing, setInvesting] = useState(false);
-
-  // Modals State
-  const [showAmountModal, setShowAmountModal] = useState(false);
-  const [showAddFundModal, setShowAddFundModal] = useState(false);
-  const [showBankModal, setShowBankModal] = useState(false);
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-
-  // Deposit Form State
-  const [txnId, setTxnId] = useState("");
-  const [screenshot, setScreenshot] = useState(null);
-  const [depositing, setDepositing] = useState(false);
-
-  // Bank Form State
-  const [bankForm, setBankForm] = useState({
-    accountNumber: "",
-    ifsc: "",
-    bankName: "",
-    holderName: ""
-  });
-
-  const [withdrawing, setWithdrawing] = useState(false);
-
-  // Toast State
-  const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
-
-  const triggerToast = (msg, type = "info") => {
-    setToast({ show: true, msg, type });
-    setTimeout(() => setToast({ show: false, msg: "", type: "info" }), 3500);
+  const triggerStatusOverlay = (type, message) => {
+    setStatusOverlay({ show: true, type, message });
+    setTimeout(() => {
+      setStatusOverlay({ show: false, type: "info", message: "" }); 
+    }, 2500);
   };
 
-  const COMPANY_WALLET_ADDRESS = "0x53D944eDA838748A92F2c361d2F71cD7EcFc8643";
+  // 👇 ব্রাউজার পুশ নোটিফিকেশন সাবস্ক্রাইব করার ফাংশন
+  const registerPushNotification = async () => {
+    if (!("serviceWorker" in navigator) && !("PushManager" in window)) {
+      console.log("Push notifications not supported by this browser.");
+      return;
+    }
+    
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      
+      const permissionResult = await Notification.requestPermission();
+      if (permissionResult !== "granted") {
+        console.log("Notification permission not granted.");
+        return;
+      }
 
-  const currentWalletBalance = Number(
-    stats.availableBalance || user?.balance || user?.availableBalance || 0
-  );
+      const keyRes = await fetch(`${API}/get-vapid-key`);
+      const keyData = await keyRes.json();
+      const publicVapidKey = keyData.publicKey;
 
-  const tenurePlans = [
-    { days: 15, rate: 0.6, label: "15 Days (0.6%)" },
-    { days: 30, rate: 0.8, label: "30 Days (0.8%)" },
-    { days: 40, rate: 1.0, label: "40 Days (1.0%)" },
-    { days: 60, rate: 1.5, label: "60 Days (1.5%)" },
-    { days: 100, rate: 2.0, label: "100 Days (2.0%)" }
-  ];
+      if (!publicVapidKey) {
+        console.log("VAPID public key not found from server.");
+        return;
+      }
 
-  const presetAmounts = [
-    { label: "5k", value: 5000, desc: "Starter", color: "linear-gradient(135deg, #22c55e, #16a34a)" },
-    { label: "7.5k", value: 7500, desc: "Basic", color: "linear-gradient(135deg, #0ea5e9, #0284c7)" },
-    { label: "10k", value: 10000, desc: "Popular", color: "linear-gradient(135deg, #8b5cf6, #7c3aed)" },
-    { label: "50k", value: 50000, desc: "Pro", color: "linear-gradient(135deg, #f59e0b, #d97706)" },
-    { label: "100k", value: 100000, desc: "VIP", color: "linear-gradient(135deg, #ec4899, #db2777)" },
-    { label: "500k", value: 500000, desc: "Master", color: "linear-gradient(135deg, #6366f1, #4f46e5)" }
-  ];
+      const convertedVapidKey = urlBase64ToUint8Array(publicVapidKey);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey
+        });
+      }
 
+      const currentEmail = localStorage.getItem("email");
+      if (!currentEmail) return;
+
+      const subscriptionData = JSON.parse(JSON.stringify(subscription));
+
+      const subRes = await fetch(`${API}/save-push-subscription`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({ email: currentEmail, subscription: subscriptionData })
+      });
+
+      const subData = await subRes.json();
+      if (subRes.ok) {
+        console.log("Push Notification Subscribed Successfully!", subData);
+      } else {
+        console.error("Failed to save push subscription on server:", subData);
+      }
+    } catch (error) {
+      console.error("Push subscription error:", error);
+    }
+  };
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  // 👇 PLAN PDF ডাউনলোডের জন্য হ্যান্ডলার
   const handleDownloadPlan = () => {
     if (isDownloadingPlan) return;
     setIsDownloadingPlan(true);
@@ -144,12 +122,87 @@ export default function Home() {
     }, 1200);
   };
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, []);
+
+  useEffect(() => {
+    loadHome();
+    loadNotifications();
+    registerPushNotification();
+
+    const flag = localStorage.getItem("showLoginPopup");
+    if (flag === "true") {
+      setShowOfferPopup(true);
+      localStorage.removeItem("showLoginPopup");
+    }
+  }, []);
+
+  const loadHome = async () => {
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${API}/dashboard`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (data?.msg === "Token expired or invalid") {
+        triggerStatusOverlay("error", "You are logout please login again");
+
+        setTimeout(() => {
+          localStorage.clear();
+          navigate("/login");
+          window.location.reload();
+        }, 2500);
+        return;
+      }
+
+      setUser(data || {});
+
+    } catch (err) {
+      console.log("HOME LOAD ERROR:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadNotifications = async () => {
+    try {
+      const res = await fetch(`${API}/get-notifications`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (Array.isArray(data)) {
+        const unread = data.filter((n) => !n.read).length;
+        setNotificationCount(unread);
+      }
+    } catch (err) {
+      console.log("Notification count error:", err);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       if (email) {
         await fetch(`${API}/logout`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ email: email })
         });
       }
@@ -162,411 +215,61 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    if (activeInvestment) {
-      if (activeInvestment.amount) {
-        setAmount(Number(activeInvestment.amount));
-      }
-
-      let days = 15;
-      if (typeof activeInvestment.duration === "number") {
-        days = activeInvestment.duration;
-      } else if (typeof activeInvestment.duration === "string") {
-        const match = activeInvestment.duration.match(/\d+/);
-        if (match) days = parseInt(match[0], 10);
-      } else if (activeInvestment.durationDays) {
-        days = Number(activeInvestment.durationDays);
-      }
-
-      const matchedPlan = tenurePlans.find((p) => p.days === days);
-      if (matchedPlan) {
-        setTenure(matchedPlan.days);
-        setRate(matchedPlan.rate);
-      } else {
-        setTenure(days);
-        if (activeInvestment.dailyReturn && activeInvestment.amount) {
-          const calcRate = (Number(activeInvestment.dailyReturn) / Number(activeInvestment.amount)) * 100;
-          setRate(calcRate);
-        }
-      }
-
-      if (activeInvestment.frequency) {
-        setFrequency(activeInvestment.frequency.toLowerCase());
-      }
-    } else {
-      setTenure(15);
-      setRate(0.6);
-      setFrequency("daily");
-      setAmount(5000);
-    }
-  }, [activeInvestment]);
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API}/api/user/dashboard`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token
-        },
-        body: JSON.stringify({ email })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setUser(data.user || {});
-
-        const rawHistory = Array.isArray(data.history) ? data.history : [];
-        const rawDeposits = Array.isArray(data.deposits)
-          ? data.deposits.map((d) => ({ ...d, type: "Add Fund" }))
-          : [];
-        const rawWithdrawals = Array.isArray(data.withdrawals)
-          ? data.withdrawals.map((w) => ({ ...w, type: "Withdrawal" }))
-          : [];
-        const rawInvestments = Array.isArray(data.investments)
-          ? data.investments.map((i) => ({ ...i, type: "Investment" }))
-          : [];
-
-        const combined = [...rawHistory, ...rawDeposits, ...rawWithdrawals, ...rawInvestments];
-
-        const uniqueMap = new Map();
-        combined.forEach((item) => {
-          const key = item._id || `${item.type}-${item.createdAt || item.startDate}`;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, item);
-          }
-        });
-
-        const sortedHistory = Array.from(uniqueMap.values()).sort((a, b) => {
-          const dateA = parseSafeDate(a.createdAt || a.startDate);
-          const dateB = parseSafeDate(b.createdAt || b.startDate);
-          return dateB - dateA;
-        });
-
-        setHistory(sortedHistory);
-
-        const exactEarnings = Number(
-          data.stats?.totalEarnings ?? data.user?.totalEarnings ?? 0
-        );
-
-        let calculatedInv = 0;
-        let calculatedWd = 0;
-
-        sortedHistory.forEach((item) => {
-          const t = (item.type || "").toLowerCase();
-          const status = (item.status || "").toLowerCase();
-          
-          const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
-          const isInvestment = t.includes("investment");
-          const isValidStatus = status === "active" || status === "completed";
-
-          if (!isAddFund && isInvestment && isValidStatus) {
-            calculatedInv += Number(item.amount || 0);
-          }
-
-          if (t === "withdrawal" && (status === "approved" || status === "accepted" || status === "success")) {
-            calculatedWd += Number(item.amount || 0);
-          }
-        });
-
-        setStats({
-          totalInvested: calculatedInv,
-          totalEarnings: exactEarnings,
-          totalWithdrawn: calculatedWd,
-          availableBalance: Number(data.user?.balance || 0)
-        });
-
-        const active = data.activeInvestment || sortedHistory.find(
-          (item) => {
-            const t = (item.type || "").toLowerCase();
-            const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
-            return !isAddFund && t.includes("investment") && (item.status || "").toLowerCase() === "active";
-          }
-        );
-        setActiveInvestment(active || null);
-
-        if (data.user?.bankDetails) {
-          setBankForm(data.user.bankDetails);
-        }
-      } else {
-        triggerToast(data.message || "Failed to load dashboard", "error");
-      }
-    } catch (err) {
-      triggerToast("Network error. Please try again.", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const dailyReturn = useMemo(() => {
-    if (activeInvestment && activeInvestment.dailyReturn) {
-      return Number(activeInvestment.dailyReturn);
-    }
-    return (Number(amount) * Number(rate)) / 100;
-  }, [amount, rate, activeInvestment]);
-
-  const hasWithdrawnToday = useMemo(() => {
-    const todayStr = new Date().toDateString();
-    return history.some((item) => {
-      const isWd = (item.type || "").toLowerCase().includes("withdrawal");
-      const itemDate = parseSafeDate(item.createdAt || item.startDate).toDateString();
-      const status = (item.status || "").toLowerCase();
-      return isWd && itemDate === todayStr && status !== "rejected" && status !== "cancelled" && status !== "failed";
-    });
-  }, [history]);
-
-  const weeklyReturn = useMemo(() => dailyReturn * 7, [dailyReturn]);
-  const totalReturn = useMemo(() => dailyReturn * tenure, [dailyReturn, tenure]);
-  const totalPayout = useMemo(() => Number(amount) + totalReturn, [amount, totalReturn]);
-
-  const handleTenureChange = (e) => {
-    if (activeInvestment) return;
-    const selectedDays = Number(e.target.value);
-    const plan = tenurePlans.find((p) => p.days === selectedDays);
-    if (plan) {
-      setTenure(plan.days);
-      setRate(plan.rate);
-    }
-  };
-
-  const handleStartInvestment = async () => {
-    if (activeInvestment) {
-      triggerToast("Your investment is currently ongoing. No new investments can be made until it is finished.", "error");
-      return;
-    }
-
-    if (currentWalletBalance < amount) {
-      triggerToast(`Insufficient balance! Your wallet balance is ₹${currentWalletBalance}. Please Add Fund first.`, "error");
-      return;
-    }
-
-    try {
-      setInvesting(true);
-      const res = await fetch(`${API}/api/user/create-investment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token
-        },
-        body: JSON.stringify({
-          email,
-          amount: Number(amount),
-          duration: `${tenure} Days`,
-          frequency,
-          dailyReturn,
-          status: "Active"
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok || data.success) {
-        triggerToast("🚀 Investment Started Successfully!", "success");
-        await loadDashboardData();
-      } else {
-        triggerToast(data.message || data.msg || "Failed to create investment", "error");
-      }
-    } catch (err) {
-      triggerToast("Network error creating investment", "error");
-    } finally {
-      setInvesting(false);
-    }
-  };
-
-  const handleDepositSubmit = async (e) => {
-    e.preventDefault();
-    if (!txnId) {
-      triggerToast("Please enter Transaction ID / UTR No.", "error");
-      return;
-    }
-    if (!screenshot) {
-      triggerToast("Please select payment screenshot", "error");
-      return;
-    }
-
-    try {
-      setDepositing(true);
-      const formData = new FormData();
-      formData.append("email", email);
-      formData.append("amount", amount);
-      formData.append("transactionId", txnId);
-      formData.append("screenshot", screenshot);
-
-      const res = await fetch(`${API}/api/user/deposit-request`, {
-        method: "POST",
-        headers: { authorization: token },
-        body: formData
-      });
-
-      const data = await res.json();
-      if (res.ok || data.success) {
-        triggerToast("Deposit request submitted! Status: Pending", "success");
-        setShowAddFundModal(false);
-
-        const newPendingDeposit = {
-          _id: data.deposit?._id || Date.now().toString(),
-          type: "Add Fund",
-          amount: Number(amount),
-          transactionId: txnId,
-          status: "Pending",
-          createdAt: new Date().toISOString()
-        };
-
-        setHistory((prev) => [newPendingDeposit, ...prev]);
-        setTxnId("");
-        setScreenshot(null);
-        await loadDashboardData();
-      } else {
-        triggerToast(data.message || "Failed to submit deposit", "error");
-      }
-    } catch (err) {
-      triggerToast("Error uploading deposit screenshot", "error");
-    } finally {
-      setDepositing(false);
-    }
-  };
-
-  const handleSaveBankDetails = async (e) => {
-    e.preventDefault();
-    if (!bankForm.accountNumber || !bankForm.ifsc || !bankForm.bankName || !bankForm.holderName) {
-      triggerToast("Please fill all bank details", "error");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API}/api/user/add-bank-details`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token
-        },
-        body: JSON.stringify({ email, bankDetails: bankForm })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setUser((prev) => ({ ...prev, bankDetails: bankForm }));
-        setShowBankModal(false);
-        triggerToast("Bank Details Saved!", "success");
-        setShowWithdrawModal(true);
-      } else {
-        triggerToast(data.message || "Failed to save bank details", "error");
-      }
-    } catch (err) {
-      triggerToast("Failed to save bank details", "error");
-    }
-  };
-
-  const handleWithdrawClick = () => {
-    if (!user.bankDetails || !user.bankDetails.accountNumber) {
-      setShowBankModal(true);
-    } else {
-      setShowWithdrawModal(true);
-    }
-  };
-
-  const handleWithdrawSubmit = async () => {
-    if (hasWithdrawnToday) {
-      triggerToast("You have already placed a withdrawal request today!", "error");
-      return;
-    }
-
-    if (currentWalletBalance < dailyReturn) {
-      triggerToast(`Insufficient Wallet Balance! Your balance is ₹${currentWalletBalance}`, "error");
-      return;
-    }
-
-    try {
-      setWithdrawing(true);
-      const res = await fetch(`${API}/api/user/withdraw`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token
-        },
-        body: JSON.stringify({ 
-          email, 
-          amount: dailyReturn,
-          bankDetails: user.bankDetails 
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok || data.success) {
-        triggerToast("Withdrawal Request Submitted!", "success");
-        setShowWithdrawModal(false);
-        await loadDashboardData();
-      } else {
-        triggerToast(data.message || "Withdrawal Failed", "error");
-      }
-    } catch (err) {
-      triggerToast("Network error during withdrawal", "error");
-    } finally {
-      setWithdrawing(false);
-    }
-  };
-
-  const handleCopyWallet = () => {
-    navigator.clipboard.writeText(COMPANY_WALLET_ADDRESS);
-    triggerToast("Wallet Address Copied!", "success");
-  };
-
   const fileUrl = (file) => {
     if (!file) return "";
-    return file.startsWith("http") ? file : `${API}/uploads/${file}`;
+    if (file.startsWith("http")) return file;
+    return `${API}/uploads/${file}`;
   };
 
-  const profilePhoto = fileUrl(user?.photo || user?.profilePhoto || user?.avatar || "");
+  const name = user?.name || localName || "User";
+
+  const profilePhoto = useMemo(() => {
+    return fileUrl(
+      user?.photo ||
+      user?.profilePhoto ||
+      user?.selfiePhoto ||
+      ""
+    );
+  }, [user]);
+
+  const go = (path) => {
+    navigate(path);
+  };
 
   if (loading) {
     return (
       <div style={styles.loadingPage}>
-        <div style={{ textAlign: "center" }}>
-          <div style={styles.spinner}></div>
-          <h3 style={{ color: "#22c55e", marginTop: "12px", fontSize: "18px" }}>Loading Dashboard...</h3>
+        <div style={styles.loadingCard}>
+          <img 
+            src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
+            alt="Logo" 
+            style={styles.loadingLogoImg} 
+            onError={(e) => {
+              e.target.style.display = 'none';
+            }}
+          />
+          <h2 style={{ marginTop: "15px", fontSize: "20px", fontWeight: "800" }}>Save Money</h2>
+          <p style={{ color: "#94a3b8", fontSize: "14px" }}>Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
-  const displayedHistory = showAllHistory ? history : history.slice(0, 5);
-
   return (
     <div style={styles.page}>
-      {/* CSS Animation for Scrolling Text Banner */}
-      <style>{`
-        @keyframes marqueeAnimation {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-        .marquee-track {
-          display: inline-flex;
-          align-items: center;
-          white-space: nowrap;
-          will-change: transform;
-          animation: marqueeAnimation 18s linear infinite;
-        }
-        .marquee-container:hover .marquee-track {
-          animation-play-state: paused;
-        }
-      `}</style>
 
-      {/* SIDEBAR DRAWER */}
-      <div 
-        style={{
-          ...styles.drawerOverlay,
-          opacity: isDrawerOpen ? 1 : 0,
-          visibility: isDrawerOpen ? "visible" : "hidden"
-        }} 
-        onClick={() => setIsDrawerOpen(false)}
-      >
-        <div 
-          style={{
-            ...styles.drawerContainer,
-            transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
-          }} 
-          onClick={(e) => e.stopPropagation()}
-        >
+      {/* 👇 SIDEBAR DRAWER */}
+      <div style={{
+        ...styles.drawerOverlay,
+        opacity: isDrawerOpen ? 1 : 0,
+        visibility: isDrawerOpen ? "visible" : "hidden"
+      }} onClick={() => setIsDrawerOpen(false)}>
+        <div style={{
+          ...styles.drawerContainer,
+          transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
+        }} onClick={(e) => e.stopPropagation()}>
+          
+          {/* LOGO & BRANDING */}
           <div style={styles.drawerHeader}>
             <div style={styles.drawerBrand}>
               <div style={styles.drawerLogoWrapper}>
@@ -574,7 +277,9 @@ export default function Home() {
                   src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
                   alt="SM Logo" 
                   style={styles.drawerLogoImg} 
-                  onError={(e) => { e.target.style.display = 'none'; }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -584,6 +289,7 @@ export default function Home() {
             </div>
           </div>
 
+          {/* SIDEBAR NAV BUTTONS */}
           <div style={styles.drawerNavList}>
             <button 
               style={{
@@ -591,7 +297,7 @@ export default function Home() {
                 ...styles.drawerNavDashboard,
                 ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/home"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/home"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>🏠</span>
               <span style={styles.drawerNavText}>Dashboard</span>
@@ -603,7 +309,7 @@ export default function Home() {
                 ...styles.drawerNavMyInvestment,
                 ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/my-investment"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>📈</span>
               <span style={styles.drawerNavText}>My Investment</span>
@@ -615,7 +321,7 @@ export default function Home() {
                 ...styles.drawerNavSaveMoney,
                 ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/save-money"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>💰</span>
               <span style={styles.drawerNavText}>Save Money</span>
@@ -627,7 +333,7 @@ export default function Home() {
                 ...styles.drawerNavOneTime,
                 ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/one-time"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>⚡</span>
               <span style={styles.drawerNavText}>One Time</span>
@@ -651,7 +357,7 @@ export default function Home() {
                 ...styles.drawerNavAddFund,
                 ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/wallet"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>🌐</span>
               <span style={styles.drawerNavText}>Add Fund</span>
@@ -663,7 +369,7 @@ export default function Home() {
                 ...styles.drawerNavRefer,
                 ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/refer"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>👥</span>
               <span style={styles.drawerNavText}>Refer & Earn</span>
@@ -675,7 +381,7 @@ export default function Home() {
                 ...styles.drawerNavWithdraw,
                 ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/withdraw"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>➔</span>
               <span style={styles.drawerNavText}>Withdraw</span>
@@ -687,7 +393,7 @@ export default function Home() {
                 ...styles.drawerNavDailyReward,
                 ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/daily-reward"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>🎁</span>
               <span style={styles.drawerNavText}>Daily Reward</span>
@@ -699,7 +405,7 @@ export default function Home() {
                 ...styles.drawerNavInvestmentAssistant,
                 ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/investment-assistant"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>📊</span>
               <span style={styles.drawerNavText}>Investment Assistance</span>
@@ -711,7 +417,7 @@ export default function Home() {
                 ...styles.drawerNavSupport,
                 ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/support"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/support"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>🎧</span>
               <span style={styles.drawerNavText}>Support</span>
@@ -723,7 +429,7 @@ export default function Home() {
                 ...styles.drawerNavProfile,
                 ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
               }} 
-              onClick={() => { navigate("/kyc"); setIsDrawerOpen(false); }}
+              onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
             >
               <span style={styles.drawerNavIcon}>👤</span>
               <span style={styles.drawerNavText}>Profile</span>
@@ -757,21 +463,22 @@ export default function Home() {
       </div>
 
       <div style={styles.container}>
-        {/* Toast Alert */}
-        {toast.show && (
-          <div style={{ ...styles.toast, background: toast.type === "error" ? "#ef4444" : "#16a34a" }}>
-            {toast.msg}
+        {/* Status Overlay */}
+        {statusOverlay.show && (
+          <div style={{
+            ...styles.toast,
+            background: statusOverlay.type === "error" ? "#ef4444" : "#16a34a"
+          }}>
+            {statusOverlay.message}
           </div>
         )}
 
-        {/* TOP HIGHLIGHTED NOTICE BANNER (SLIDING MESSAGE FIXED) */}
-        <div style={styles.topNoticeBanner} className="marquee-container">
-          <div className="marquee-track">
-            <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
-            <span style={styles.marqueeText}>
-              Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 15% flat bonus!</span> 🎉
-            </span>
-          </div>
+        {/* 📢 TOP HIGHLIGHTED NOTICE BANNER (OneTime পেজের মতো স্লাইডিং মেসেজ) */}
+        <div style={styles.topNoticeBanner}>
+          <marquee behavior="scroll" direction="left" scrollamount="6" style={styles.marqueeText}>
+            <span style={styles.noticeBadge}>NOTICE 📢</span>
+            Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us.
+          </marquee>
         </div>
 
         {/* HEADER */}
@@ -785,22 +492,31 @@ export default function Home() {
             </button>
             <div>
               <h1 style={styles.welcomeTitle}>
-                Welcome Back! 👏
+                Welcome Back, {name}! 👏
               </h1>
               <p style={styles.welcomeSub}>Invest smartly & secure your future</p>
             </div>
           </div>
 
-          <div style={styles.profileCircle} onClick={() => navigate("/kyc")}>
-            {profilePhoto ? (
-              <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
-            ) : (
-              <div style={styles.profileAvatarPlaceholder}>
-                <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
-                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                </span>
-              </div>
-            )}
+          <div style={styles.headerRight}>
+            <div style={styles.notifBtn} onClick={() => go("/notifications")}>
+              🔔
+              {notificationCount > 0 && (
+                <span style={styles.notifBadge}>{notificationCount}</span>
+              )}
+            </div>
+
+            <div style={styles.profileCircle} onClick={() => go("/kyc")}>
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
+              ) : (
+                <div style={styles.profileAvatarPlaceholder}>
+                  <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
+                    {name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -835,14 +551,11 @@ export default function Home() {
               <div style={{ ...styles.iconBox, background: "rgba(34, 197, 94, 0.15)" }}>
                 <span style={{ color: "#22c55e", fontSize: "18px" }}>💼</span>
               </div>
-              <span style={styles.statCardTitle}>Total Invested</span>
+              <span style={styles.statCardTitle}>Total Investment</span>
             </div>
             <strong style={styles.statCardValue}>
-              ₹ {Number(stats.totalInvested || 0).toLocaleString("en-IN")}
+              ₹ {Number(user?.totalInvestment || 0).toLocaleString("en-IN")}
             </strong>
-            <svg style={styles.sparkline} viewBox="0 0 100 25">
-              <path d="M0,20 Q25,5 50,15 T100,5" fill="none" stroke="#22c55e" strokeWidth="2" />
-            </svg>
           </div>
 
           <div style={styles.darkStatCard}>
@@ -853,11 +566,8 @@ export default function Home() {
               <span style={styles.statCardTitle}>Total Earnings</span>
             </div>
             <strong style={styles.statCardValue}>
-              ₹ {Number(stats.totalEarnings || 0).toLocaleString("en-IN")}
+              ₹ {Number(user?.totalReturn || 0).toLocaleString("en-IN")}
             </strong>
-            <svg style={styles.sparkline} viewBox="0 0 100 25">
-              <path d="M0,18 Q30,22 60,8 T100,12" fill="none" stroke="#38bdf8" strokeWidth="2" />
-            </svg>
           </div>
 
           <div style={styles.darkStatCard}>
@@ -868,11 +578,8 @@ export default function Home() {
               <span style={styles.statCardTitle}>Total Withdraw</span>
             </div>
             <strong style={styles.statCardValue}>
-              ₹ {Number(stats.totalWithdrawn || 0).toLocaleString("en-IN")}
+              ₹ {Number(user?.totalWithdraw || 0).toLocaleString("en-IN")}
             </strong>
-            <svg style={styles.sparkline} viewBox="0 0 100 25">
-              <path d="M0,10 Q20,20 50,12 T100,18" fill="none" stroke="#a855f7" strokeWidth="2" />
-            </svg>
           </div>
 
           <div style={styles.darkStatCard}>
@@ -883,262 +590,22 @@ export default function Home() {
               <span style={styles.statCardTitle}>Available Balance</span>
             </div>
             <strong style={styles.statCardValue}>
-              ₹ {currentWalletBalance.toLocaleString("en-IN")}
+              ₹ {Number(user?.wallet || 0).toLocaleString("en-IN")}
             </strong>
-            <svg style={styles.sparkline} viewBox="0 0 100 25">
-              <path d="M0,22 Q35,8 65,18 T100,2" fill="none" stroke="#eab308" strokeWidth="2" />
-            </svg>
           </div>
         </section>
 
-        {/* MAKE NEW INVESTMENT PANEL */}
-        <section style={styles.darkMainCard}>
-          <h2 style={styles.darkCardTitle}>Make a New Investment</h2>
-
-          {activeInvestment && (
-            <div style={styles.activeInvestCardDark}>
-              <div style={styles.activeHeader}>
-                <div style={styles.activeBadgeGroup}>
-                  <span style={styles.activePulse}></span>
-                  <strong style={styles.activeTitle}>ACTIVE INVESTMENT RUNNING</strong>
-                </div>
-                <span style={styles.activeStatusTagDark}>🟢 Live Earning</span>
-              </div>
-
-              <div style={styles.activeStatsGrid}>
-                <div style={styles.activeStatItem}>
-                  <span style={styles.activeLabel}>Invested Amount</span>
-                  <strong style={styles.activeValue}>₹{Number(activeInvestment.amount || 0).toLocaleString("en-IN")}</strong>
-                </div>
-                <div style={styles.activeStatItem}>
-                  <span style={styles.activeLabel}>Plan Duration</span>
-                  <strong style={styles.activeValue}>{activeInvestment.duration || `${activeInvestment.durationDays || tenure} Days`}</strong>
-                </div>
-                <div style={styles.activeStatItem}>
-                  <span style={styles.activeLabel}>Daily Earnings</span>
-                  <strong style={{ ...styles.activeValue, color: "#22c55e" }}>₹{Number(dailyReturn).toFixed(2)} / day</strong>
-                </div>
-                <div style={styles.activeStatItem}>
-                  <span style={styles.activeLabel}>Maturity Date</span>
-                  <strong style={{ ...styles.activeValue, color: "#38bdf8" }}>
-                    {activeInvestment.maturityDate ? formatDate(activeInvestment.maturityDate) : "In Progress"}
-                  </strong>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div style={styles.formGrid}>
-            <div style={styles.fieldGroup}>
-              <label style={styles.labelDark}>
-                📌 Select Duration {activeInvestment && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
-              </label>
-              <select
-                style={{
-                  ...styles.selectDark,
-                  ...(activeInvestment ? styles.lockedInputDark : {})
-                }}
-                value={tenure}
-                onChange={handleTenureChange}
-                disabled={!!activeInvestment}
-              >
-                {tenurePlans.map((p) => (
-                  <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.labelDark}>
-                🔄 Return Frequency {activeInvestment && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
-              </label>
-              <div style={styles.frequencyToggleDark}>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.freqBtnDark,
-                    ...(frequency === "daily" ? styles.freqBtnActiveDark : {})
-                  }}
-                  onClick={() => !activeInvestment && setFrequency("daily")}
-                  disabled={!!activeInvestment}
-                >
-                  Daily
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.freqBtnDark,
-                    ...(frequency === "weekly" ? styles.freqBtnActiveDark : {})
-                  }}
-                  onClick={() => !activeInvestment && setFrequency("weekly")}
-                  disabled={!!activeInvestment}
-                >
-                  Weekly
-                </button>
-              </div>
-            </div>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.labelDark}>
-                💵 Select / Enter Amount {activeInvestment && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
-              </label>
-              <div 
-                style={styles.amountInputWrapDark} 
-                onClick={() => !activeInvestment && setShowAmountModal(true)}
-              >
-                <span style={{ fontSize: "18px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
-                <input style={styles.amountInputDark} type="text" readOnly value={amount.toLocaleString("en-IN")} />
-                <span style={activeInvestment ? styles.lockedBadgeDark : styles.changeBadgeDark}>
-                  {activeInvestment ? "🔒 Locked" : "Change ⚙️"}
-                </span>
-              </div>
-              <small style={styles.helpTextDark}>
-                {activeInvestment ? "Investment running - fields locked until maturity" : "Click to choose quick amount presets"}
-              </small>
-            </div>
-          </div>
-
-          <div style={styles.returnContainerDark}>
-            <div style={styles.returnCardContent}>
-              <span style={styles.returnBoxBagIcon}>🪙</span>
-              <div>
-                <div style={styles.returnCardTitleDark}>
-                  You Will Get {frequency === "daily" ? "Daily" : "Weekly"} Return
-                </div>
-                <strong style={styles.returnCardValueDark}>
-                  ₹ {frequency === "daily" ? dailyReturn.toFixed(2) : weeklyReturn.toFixed(2)}
-                </strong>
-                <span style={styles.returnCardNoteDark}>
-                  (Approx. Return Per {frequency === "daily" ? "Day" : "Week"})
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div style={styles.breakdownGridDark}>
-            <div style={styles.breakBoxDark}>
-              <span style={styles.breakLabelDark}>Investment Amount</span>
-              <strong style={styles.breakValueDark}>₹ {Number(amount).toLocaleString("en-IN")}</strong>
-            </div>
-            <div style={styles.breakBoxDark}>
-              <span style={styles.breakLabelDark}>Duration</span>
-              <strong style={styles.breakValueDark}>{tenure} Days ({rate}%)</strong>
-            </div>
-            <div style={styles.breakBoxDark}>
-              <span style={styles.breakLabelDark}>Total Return</span>
-              <strong style={{ ...styles.breakValueDark, color: "#22c55e" }}>₹ {totalReturn.toLocaleString("en-IN")}</strong>
-            </div>
-            <div style={{ ...styles.breakBoxDark, borderRight: "none" }}>
-              <span style={styles.breakLabelDark}>Total Payout</span>
-              <strong style={{ ...styles.breakValueDark, color: "#38bdf8" }}>₹ {totalPayout.toLocaleString("en-IN")}</strong>
-            </div>
-          </div>
-
-          <div style={styles.actionGridTriple}>
-            <button 
-              style={{
-                ...styles.startInvestBtnDark,
-                ...(activeInvestment ? styles.disabledBtnDark : {})
-              }} 
-              onClick={handleStartInvestment} 
-              disabled={investing || !!activeInvestment}
-            >
-              {investing ? "Processing..." : activeInvestment ? "🚀 Active Running" : "🚀 Start Investment"}
-            </button>
-
-            <button style={styles.addInvestBtnDark} onClick={() => setShowAddFundModal(true)}>
-              + Add Fund
-            </button>
-
-            <button style={styles.withdrawBtnDark} onClick={handleWithdrawClick}>
-              ➔ Withdraw
-            </button>
-          </div>
-        </section>
-
-        {/* HISTORY TABLE */}
-        <section style={styles.darkHistoryCard}>
-          <div style={styles.historyHeader}>
-            <h2 style={{ margin: 0, fontSize: "19px", color: "#f8fafc", fontWeight: "700" }}>Investment & Transaction History</h2>
-            <span style={styles.refreshBtnDark} onClick={loadDashboardData}>🔄 Refresh</span>
-          </div>
-
-          <div style={styles.tableWrapper}>
-            <table style={styles.tableDark}>
-              <thead>
-                <tr>
-                  <th style={styles.thDark}>Date</th>
-                  <th style={styles.thDark}>Type / Description</th>
-                  <th style={styles.thDark}>Amount</th>
-                  <th style={styles.thDark}>Frequency / Txn</th>
-                  <th style={styles.thDark}>Status</th>
-                  <th style={styles.thDark}>Maturity</th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayedHistory.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" style={styles.emptyTdDark}>No history found</td>
-                  </tr>
-                ) : (
-                  displayedHistory.map((item, idx) => {
-                    const itemType = (item.type || "").toLowerCase();
-                    const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId;
-                    const isWithdraw = itemType.includes("withdraw");
-
-                    const rawStatus = item.status || "Pending";
-                    const isSuccess = ["approved", "accepted", "success", "active", "completed"].includes(rawStatus.toLowerCase());
-                    const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
-                    const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
-
-                    return (
-                      <tr key={item._id || idx} style={styles.trDark}>
-                        <td style={styles.tdDark}>
-                          {formatDate(item.createdAt || item.startDate)}
-                        </td>
-                        <td style={styles.tdDark}>
-                          {isDeposit ? "💳 Add Fund" : isWithdraw ? "💸 Withdrawal" : `🚀 ${item.duration || `${item.durationDays || tenure} Days`}`}
-                        </td>
-                        <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
-                        <td style={styles.tdDark}>
-                          {isDeposit ? (
-                            <span style={{ fontSize: "13px", color: "#94a3b8" }}>UTR: {item.transactionId || "N/A"}</span>
-                          ) : isWithdraw ? (
-                            <span style={{ fontSize: "13px", color: "#94a3b8" }}>Bank Request</span>
-                          ) : (
-                            <span style={styles.badgeDailyDark}>
-                              {item.frequency || "Daily"}
-                            </span>
-                          )}
-                        </td>
-                        <td style={styles.tdDark}>
-                          <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
-                            {displayStatus}
-                          </span>
-                          {isRejected && (item.rejectReason || item.reason) && (
-                            <div style={{ fontSize: "12px", color: "#f87171", marginTop: "4px" }}>
-                              Reason: {item.rejectReason || item.reason}
-                            </div>
-                          )}
-                        </td>
-                        <td style={styles.tdDark}>
-                          {formatDate(item.maturityDate)}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div style={styles.viewAllFooter}>
-            <span style={styles.viewAllLink} onClick={() => setShowAllHistory(!showAllHistory)}>
-              {showAllHistory ? "Show Less 🔼" : "View All Transactions ➔"}
-            </span>
-          </div>
+        {/* QUICK ACTION BUTTONS */}
+        <section style={styles.actionGridTriple}>
+          <button style={styles.addInvestBtnDark} onClick={() => go("/wallet")}>
+            + Add Fund
+          </button>
+          <button style={styles.startInvestBtnDark} onClick={() => go("/save-money")}>
+            💰 Save Money
+          </button>
+          <button style={styles.withdrawBtnDark} onClick={() => go("/withdraw")}>
+            ➔ Withdraw
+          </button>
         </section>
 
         {/* WHY WE RAISE FUNDS */}
@@ -1258,14 +725,14 @@ export default function Home() {
         </footer>
       </div>
 
-      {/* WELCOME OFFER POPUP MODAL */}
+      {/* 🎁 WELCOME POPUP MODAL (OneTime.js এর মতো পপআপ স্ট্রাকচার ও আপডেট করা নোটিশ) */}
       {showOfferPopup && (
         <div style={styles.modalOverlay}>
           <div style={styles.offerPopupCard}>
             <button style={styles.offerCloseBtn} onClick={() => setShowOfferPopup(false)}>✕</button>
             
             <div style={styles.offerHeaderBadge}>
-              🎁 EXCLUSIVE REFERRAL OFFER
+              📢 SERVER NOTICE
             </div>
 
             <div style={styles.offerIconWrapper}>
@@ -1273,243 +740,28 @@ export default function Home() {
             </div>
 
             <h2 style={styles.offerTitle}>
-              Thank you for choosing <span style={{ color: "#22c55e" }}>Save Money</span>!
+              Server Restored & <span style={{ color: "#22c55e" }}>Live Now!</span>
             </h2>
 
             <p style={styles.offerDescription}>
-              Refer your friend to invest today and get <br />
-              <strong style={styles.offerHighlightText}>upto 15% flat bonus</strong> instantly!
+              Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us.
             </p>
 
             <div style={styles.offerActionGroup}>
               <button 
                 style={styles.offerReferBtn} 
-                onClick={() => {
-                  setShowOfferPopup(false);
-                  navigate("/refer");
-                }}
+                onClick={() => setShowOfferPopup(false)}
               >
-                👥 Refer Friend Now
-              </button>
-              <button style={styles.offerSkipBtn} onClick={() => setShowOfferPopup(false)}>
-                Maybe Later
+                Continue to Dashboard
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODALS */}
-      {showAmountModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalCardDark}>
-            <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Select Investment Amount</h3>
-              <button style={styles.closeBtnDark} onClick={() => setShowAmountModal(false)}>✕</button>
-            </div>
-            <p style={{ fontSize: "14px", color: "#94a3b8", marginTop: 0, marginBottom: "16px" }}>
-              Choose one of the plan presets below:
-            </p>
-
-            <div style={styles.presetGrid}>
-              {presetAmounts.map((p) => (
-                <div
-                  key={p.value}
-                  style={{
-                    ...styles.presetCard,
-                    background: p.color,
-                    border: amount === p.value ? "3px solid #ffffff" : "none"
-                  }}
-                  onClick={() => {
-                    setAmount(p.value);
-                    setShowAmountModal(false);
-                  }}
-                >
-                  <span style={styles.presetBadge}>{p.desc}</span>
-                  <div style={styles.presetVal}>₹{p.value.toLocaleString("en-IN")}</div>
-                  <span style={styles.presetLabel}>({p.label})</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showAddFundModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalCardDark}>
-            <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Investment Fund</h3>
-              <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
-            </div>
-
-            <p style={{ fontSize: "15px", color: "#cbd5e1", margin: "0 0 12px 0" }}>
-              Send <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong> to company wallet & upload payment proof:
-            </p>
-
-            <div style={styles.walletBoxDark}>
-              <small style={{ color: "#94a3b8", fontWeight: "bold", fontSize: "13px" }}>Company Wallet Address:</small>
-              <div style={styles.walletAddrRow}>
-                <span style={styles.walletText}>{COMPANY_WALLET_ADDRESS}</span>
-                <button style={styles.copyBtn} onClick={handleCopyWallet}>Copy</button>
-              </div>
-            </div>
-
-            <form onSubmit={handleDepositSubmit} style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
-              <div>
-                <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
-                <input
-                  style={styles.inputModalDark}
-                  placeholder="Enter 12-digit UTR or Txn Hash"
-                  value={txnId}
-                  onChange={(e) => setTxnId(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div>
-                <label style={styles.labelDark}>Payment Screenshot Proof*</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={styles.fileInputDark}
-                  onChange={(e) => setScreenshot(e.target.files[0])}
-                  required
-                />
-              </div>
-
-              <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
-                {depositing ? "Uploading Proof..." : "Submit Deposit Proof"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showBankModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalCardDark}>
-            <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Bank Details</h3>
-              <button style={styles.closeBtnDark} onClick={() => setShowBankModal(false)}>✕</button>
-            </div>
-
-            <form onSubmit={handleSaveBankDetails} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <input
-                style={styles.inputModalDark}
-                placeholder="Account Holder Name"
-                value={bankForm.holderName}
-                onChange={(e) => setBankForm({ ...bankForm, holderName: e.target.value })}
-                required
-              />
-              <input
-                style={styles.inputModalDark}
-                placeholder="Bank Name"
-                value={bankForm.bankName}
-                onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })}
-                required
-              />
-              <input
-                style={styles.inputModalDark}
-                placeholder="Account Number"
-                value={bankForm.accountNumber}
-                onChange={(e) => setBankForm({ ...bankForm, accountNumber: e.target.value })}
-                required
-              />
-              <input
-                style={styles.inputModalDark}
-                placeholder="IFSC Code"
-                value={bankForm.ifsc}
-                onChange={(e) => setBankForm({ ...bankForm, ifsc: e.target.value })}
-                required
-              />
-              <button type="submit" style={styles.submitBtnDark}>
-                Save Bank Account
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* WITHDRAW MODAL */}
-      {showWithdrawModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalCardDark}>
-            <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Withdraw Funds</h3>
-              <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
-            </div>
-
-            <div
-              style={{
-                ...styles.withdrawBalanceInfoDark,
-                background: currentWalletBalance < dailyReturn ? "rgba(239, 68, 68, 0.15)" : "rgba(34, 197, 94, 0.15)",
-                color: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80",
-                border: currentWalletBalance < dailyReturn ? "1px solid #991b1b" : "1px solid #166534"
-              }}
-            >
-              <span>Available Wallet Balance:</span>
-              <strong>₹ {currentWalletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</strong>
-            </div>
-
-            {/* Daily Return Amount Box */}
-            <div style={{
-              marginTop: "16px",
-              padding: "16px",
-              background: "#040d1a",
-              borderRadius: "12px",
-              border: "1px solid #1e293b",
-              textAlign: "center"
-            }}>
-              <span style={{ fontSize: "14px", color: "#94a3b8", display: "block" }}>Today's Daily Return Amount</span>
-              <strong style={{ fontSize: "28px", color: "#38bdf8", fontWeight: "900", display: "block", marginTop: "4px" }}>
-                ₹ {dailyReturn.toFixed(2)}
-              </strong>
-            </div>
-
-            {/* Alerts */}
-            {hasWithdrawnToday ? (
-              <div style={styles.balanceAlertBoxDark}>
-                ⏳ You have already submitted a withdrawal request for today. Please wait until tomorrow!
-              </div>
-            ) : currentWalletBalance < dailyReturn ? (
-              <div style={styles.balanceAlertBoxDark}>
-                ⚠️ You don't have enough balance to withdraw ₹{dailyReturn.toFixed(2)}.
-              </div>
-            ) : null}
-
-            <button
-              style={{
-                ...styles.submitBtnDark,
-                marginTop: "18px",
-                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#475569" : "#16a34a",
-                cursor: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "not-allowed" : "pointer"
-              }}
-              onClick={handleWithdrawSubmit}
-              disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
-            >
-              {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested Today" : "Confirm Withdrawal"}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
-
-const getStatusStyleDark = (status) => {
-  const s = (status || "").toLowerCase();
-  if (s === "success" || s === "active" || s === "approved" || s === "accepted") {
-    return { background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", border: "1px solid rgba(34, 197, 94, 0.4)" };
-  }
-  if (s === "pending") {
-    return { background: "rgba(234, 179, 8, 0.2)", color: "#facc15", border: "1px solid rgba(234, 179, 8, 0.4)" };
-  }
-  if (s === "rejected" || s === "cancelled" || s === "failed") {
-    return { background: "rgba(239, 68, 68, 0.2)", color: "#f87171", border: "1px solid rgba(239, 68, 68, 0.4)" };
-  }
-  return { background: "rgba(148, 163, 184, 0.2)", color: "#cbd5e1", border: "1px solid rgba(148, 163, 184, 0.4)" };
-};
 
 // ----------------- STYLES -----------------
 const styles = {
@@ -1538,13 +790,14 @@ const styles = {
     alignItems: "center",
     justifyContent: "center"
   },
-  spinner: {
-    width: "44px",
-    height: "44px",
-    border: "4px solid rgba(34, 197, 94, 0.2)",
-    borderTop: "4px solid #22c55e",
-    borderRadius: "50%",
-    animation: "spin 1s linear infinite"
+  loadingCard: {
+    textAlign: "center",
+    color: "#fff"
+  },
+  loadingLogoImg: {
+    width: "60px",
+    height: "60px",
+    objectFit: "contain"
   },
   toast: {
     position: "fixed",
@@ -1559,21 +812,22 @@ const styles = {
     fontSize: "15px"
   },
 
-  // TOP NOTICE BANNER STYLES (FIXED FOR MARQUEE ANIMATION)
+  // TOP NOTICE BANNER STYLES
   topNoticeBanner: {
     background: "linear-gradient(90deg, #052e16 0%, #064e3b 50%, #022c22 100%)",
     border: "1px solid #22c55e",
     borderRadius: "12px",
     padding: "10px 14px",
     overflow: "hidden",
-    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.2)",
-    width: "100%",
-    boxSizing: "border-box"
+    whiteSpace: "nowrap",
+    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.2)"
   },
   marqueeText: {
     fontSize: "16px",
     fontWeight: "700",
-    color: "#e2e8f0"
+    color: "#e2e8f0",
+    display: "flex",
+    alignItems: "center"
   },
   noticeBadge: {
     background: "#f59e0b",
@@ -1585,13 +839,6 @@ const styles = {
     letterSpacing: "0.5px",
     marginRight: "12px",
     display: "inline-block"
-  },
-  bonusHighlight: {
-    color: "#facc15",
-    fontSize: "18px",
-    fontWeight: "900",
-    marginLeft: "4px",
-    marginRight: "4px"
   },
 
   // HEADER
@@ -1624,6 +871,34 @@ const styles = {
     margin: "4px 0 0 0",
     fontSize: "14px",
     color: "#94a3b8"
+  },
+  headerRight: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px"
+  },
+  notifBtn: {
+    fontSize: "22px",
+    cursor: "pointer",
+    position: "relative",
+    background: "#0c1f38",
+    padding: "8px",
+    borderRadius: "50%",
+    border: "1px solid rgba(255,255,255,0.1)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  notifBadge: {
+    position: "absolute",
+    top: "-2px",
+    right: "-2px",
+    background: "#ef4444",
+    color: "#fff",
+    fontSize: "10px",
+    fontWeight: "bold",
+    borderRadius: "50%",
+    padding: "2px 6px"
   },
   profileCircle: {
     width: "48px",
@@ -1696,7 +971,7 @@ const styles = {
     objectFit: "contain"
   },
 
-  // 4 STAT CARDS GRID
+  // STAT CARDS
   statsGridContainer: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
@@ -1712,7 +987,7 @@ const styles = {
     justifyContent: "space-between",
     position: "relative",
     overflow: "hidden",
-    minHeight: "105px"
+    minHeight: "95px"
   },
   statCardHeader: {
     display: "flex",
@@ -1736,234 +1011,7 @@ const styles = {
     fontSize: "24px",
     fontWeight: "900",
     color: "#ffffff",
-    marginTop: "10px",
-    zIndex: 2
-  },
-  sparkline: {
-    width: "100%",
-    height: "28px",
-    marginTop: "6px"
-  },
-
-  // MAIN CARD
-  darkMainCard: {
-    background: "#081628",
-    borderRadius: "16px",
-    padding: "24px",
-    border: "1px solid rgba(255, 255, 255, 0.1)"
-  },
-  darkCardTitle: {
-    margin: "0 0 20px 0",
-    fontSize: "20px",
-    fontWeight: "800",
-    color: "#ffffff"
-  },
-
-  // ACTIVE CARD
-  activeInvestCardDark: {
-    background: "#040d1a",
-    borderRadius: "14px",
-    padding: "18px",
-    marginBottom: "20px",
-    border: "1.5px solid #16a34a"
-  },
-  activeHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-    paddingBottom: "12px"
-  },
-  activeBadgeGroup: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px"
-  },
-  activePulse: {
-    width: "12px",
-    height: "12px",
-    borderRadius: "50%",
-    background: "#22c55e",
-    boxShadow: "0 0 12px #22c55e"
-  },
-  activeTitle: {
-    fontSize: "15px",
-    letterSpacing: "0.5px",
-    color: "#22c55e"
-  },
-  activeStatusTagDark: {
-    fontSize: "13px",
-    background: "rgba(34, 197, 94, 0.2)",
-    color: "#4ade80",
-    padding: "5px 12px",
-    borderRadius: "12px",
-    fontWeight: "bold"
-  },
-  activeStatsGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-    gap: "14px"
-  },
-  activeStatItem: {
-    display: "flex",
-    flexDirection: "column"
-  },
-  activeLabel: {
-    fontSize: "13px",
-    color: "#94a3b8"
-  },
-  activeValue: {
-    fontSize: "17px",
-    fontWeight: "bold",
-    color: "#f8fafc",
-    marginTop: "4px"
-  },
-
-  // FORM FIELDS
-  formGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "16px",
-    marginBottom: "18px"
-  },
-  fieldGroup: {
-    display: "flex",
-    flexDirection: "column"
-  },
-  labelDark: {
-    fontSize: "15px",
-    fontWeight: "700",
-    marginBottom: "8px",
-    color: "#e2e8f0"
-  },
-  selectDark: {
-    height: "50px",
-    borderRadius: "10px",
-    border: "1px solid #334155",
-    background: "#0f2138",
-    color: "#ffffff",
-    padding: "0 14px",
-    fontSize: "15px",
-    fontWeight: "600"
-  },
-  lockedInputDark: {
-    opacity: 0.6,
-    cursor: "not-allowed"
-  },
-  frequencyToggleDark: {
-    display: "flex",
-    gap: "10px",
-    height: "50px"
-  },
-  freqBtnDark: {
-    flex: 1,
-    borderRadius: "10px",
-    border: "1px solid #334155",
-    background: "#0f2138",
-    color: "#cbd5e1",
-    fontSize: "15px",
-    fontWeight: "bold",
-    cursor: "pointer"
-  },
-  freqBtnActiveDark: {
-    background: "#16a34a",
-    color: "#ffffff",
-    borderColor: "#16a34a"
-  },
-  amountInputWrapDark: {
-    height: "50px",
-    borderRadius: "10px",
-    border: "1px solid #334155",
-    background: "#0f2138",
-    padding: "0 14px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    cursor: "pointer"
-  },
-  amountInputDark: {
-    border: "none",
-    background: "transparent",
-    fontSize: "18px",
-    fontWeight: "bold",
-    color: "#ffffff",
-    outline: "none",
-    width: "60%"
-  },
-  changeBadgeDark: {
-    fontSize: "13px",
-    color: "#38bdf8",
-    fontWeight: "bold"
-  },
-  lockedBadgeDark: {
-    fontSize: "13px",
-    color: "#ef4444",
-    fontWeight: "bold"
-  },
-  helpTextDark: {
-    color: "#94a3b8",
-    fontSize: "12px",
-    marginTop: "6px"
-  },
-
-  // RETURN BOX
-  returnContainerDark: {
-    background: "#dcfce7",
-    borderRadius: "14px",
-    padding: "20px",
-    textAlign: "center",
-    margin: "18px 0",
-    color: "#166534"
-  },
-  returnCardContent: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "16px"
-  },
-  returnBoxBagIcon: {
-    fontSize: "36px"
-  },
-  returnCardTitleDark: {
-    fontSize: "16px",
-    fontWeight: "700"
-  },
-  returnCardValueDark: {
-    fontSize: "32px",
-    fontWeight: "900",
-    display: "block"
-  },
-  returnCardNoteDark: {
-    fontSize: "13px",
-    opacity: 0.95
-  },
-
-  // BREAKDOWN GRID
-  breakdownGridDark: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-    background: "#040d1a",
-    borderRadius: "12px",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    margin: "18px 0",
-    overflow: "hidden"
-  },
-  breakBoxDark: {
-    padding: "14px",
-    textAlign: "center",
-    borderRight: "1px solid rgba(255, 255, 255, 0.08)"
-  },
-  breakLabelDark: {
-    display: "block",
-    fontSize: "13px",
-    color: "#94a3b8",
-    marginBottom: "6px"
-  },
-  breakValueDark: {
-    fontSize: "17px",
-    fontWeight: "bold",
-    color: "#ffffff"
+    marginTop: "10px"
   },
 
   // ACTION BUTTONS
@@ -1981,12 +1029,6 @@ const styles = {
     fontSize: "16px",
     fontWeight: "bold",
     cursor: "pointer"
-  },
-  disabledBtnDark: {
-    background: "#dcfce7",
-    color: "#166534",
-    opacity: 0.8,
-    cursor: "not-allowed"
   },
   addInvestBtnDark: {
     height: "52px",
@@ -2009,81 +1051,19 @@ const styles = {
     cursor: "pointer"
   },
 
-  // HISTORY SECTION
-  darkHistoryCard: {
+  // MAIN CARD
+  darkMainCard: {
     background: "#081628",
     borderRadius: "16px",
-    padding: "20px",
+    padding: "24px",
     border: "1px solid rgba(255, 255, 255, 0.1)"
   },
-  historyHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px"
+  darkCardTitle: {
+    margin: "0 0 20px 0",
+    fontSize: "20px",
+    fontWeight: "800",
+    color: "#ffffff"
   },
-  refreshBtnDark: {
-    color: "#22c55e",
-    fontSize: "14px",
-    fontWeight: "bold",
-    cursor: "pointer"
-  },
-  tableWrapper: {
-    overflowX: "auto"
-  },
-  tableDark: {
-    width: "100%",
-    borderCollapse: "collapse",
-    fontSize: "15px"
-  },
-  thDark: {
-    background: "#040d1a",
-    padding: "14px 16px",
-    color: "#cbd5e1",
-    textAlign: "left",
-    fontWeight: "700"
-  },
-  trDark: {
-    borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
-  },
-  tdDark: {
-    padding: "14px 16px",
-    color: "#f8fafc"
-  },
-  emptyTdDark: {
-    textAlign: "center",
-    padding: "28px",
-    color: "#94a3b8",
-    fontSize: "15px"
-  },
-  badgeDailyDark: {
-    background: "rgba(34, 197, 94, 0.15)",
-    color: "#4ade80",
-    padding: "4px 10px",
-    borderRadius: "6px",
-    fontSize: "13px",
-    fontWeight: "bold"
-  },
-  statusBadgeDark: {
-    padding: "5px 12px",
-    borderRadius: "10px",
-    fontSize: "13px",
-    fontWeight: "bold",
-    display: "inline-block"
-  },
-  viewAllFooter: {
-    textAlign: "center",
-    marginTop: "16px",
-    paddingTop: "12px",
-    borderTop: "1px solid rgba(255,255,255,0.08)"
-  },
-  viewAllLink: {
-    color: "#22c55e",
-    fontSize: "15px",
-    fontWeight: "bold",
-    cursor: "pointer"
-  },
-
   whyInvestGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -2338,7 +1318,7 @@ const styles = {
     borderRadius: "16px"
   },
 
-  // MODAL STYLES
+  // MODAL OVERLAY STYLES
   modalOverlay: {
     position: "fixed",
     inset: 0,
@@ -2350,33 +1330,8 @@ const styles = {
     zIndex: 99999,
     padding: "16px"
   },
-  modalCardDark: {
-    background: "#081628",
-    borderRadius: "18px",
-    padding: "24px",
-    width: "100%",
-    maxWidth: "450px",
-    border: "1px solid rgba(255, 255, 255, 0.12)",
-    boxShadow: "0 25px 50px rgba(0,0,0,0.6)"
-  },
-  modalHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "16px"
-  },
-  closeBtnDark: {
-    border: "none",
-    background: "#0f2138",
-    color: "#fff",
-    borderRadius: "50%",
-    width: "36px",
-    height: "36px",
-    cursor: "pointer",
-    fontSize: "16px"
-  },
 
-  // WELCOME OFFER POPUP STYLES
+  // WELCOME OFFER POPUP STYLES (OneTime.js এর স্টাইল অনুসরণ করা হয়েছে)
   offerPopupCard: {
     background: "linear-gradient(145deg, #091a2e 0%, #031120 100%)",
     borderRadius: "24px",
@@ -2430,13 +1385,6 @@ const styles = {
     margin: "0 0 20px 0",
     lineHeight: "1.5"
   },
-  offerHighlightText: {
-    color: "#facc15",
-    fontSize: "18px",
-    fontWeight: "900",
-    display: "inline-block",
-    marginTop: "4px"
-  },
   offerActionGroup: {
     display: "flex",
     flexDirection: "column",
@@ -2453,98 +1401,5 @@ const styles = {
     fontWeight: "800",
     cursor: "pointer",
     boxShadow: "0 4px 15px rgba(34, 197, 94, 0.4)"
-  },
-  offerSkipBtn: {
-    width: "100%",
-    height: "40px",
-    borderRadius: "10px",
-    border: "none",
-    background: "transparent",
-    color: "#94a3b8",
-    fontSize: "13px",
-    fontWeight: "600",
-    cursor: "pointer"
-  },
-
-  presetGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "14px"
-  },
-  presetCard: {
-    borderRadius: "12px",
-    padding: "16px",
-    color: "white",
-    cursor: "pointer",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  presetBadge: { fontSize: "12px", textTransform: "uppercase", fontWeight: "bold" },
-  presetVal: { fontSize: "20px", fontWeight: "900", margin: "6px 0" },
-  presetLabel: { fontSize: "13px", opacity: 0.85 },
-
-  walletBoxDark: {
-    background: "#040d1a",
-    padding: "16px",
-    borderRadius: "10px",
-    border: "1px solid #1e293b"
-  },
-  walletAddrRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "10px",
-    marginTop: "8px"
-  },
-  walletText: { fontSize: "13px", wordBreak: "break-all", color: "#fff" },
-  copyBtn: {
-    background: "#16a34a",
-    color: "white",
-    border: "none",
-    padding: "8px 12px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: "bold"
-  },
-  inputModalDark: {
-    width: "100%",
-    height: "50px",
-    borderRadius: "10px",
-    border: "1px solid #334155",
-    background: "#0f2138",
-    color: "#fff",
-    padding: "0 14px",
-    fontSize: "15px",
-    boxSizing: "border-box"
-  },
-  fileInputDark: { width: "100%", fontSize: "14px", color: "#cbd5e1" },
-  submitBtnDark: {
-    height: "50px",
-    borderRadius: "10px",
-    border: "none",
-    background: "#16a34a",
-    color: "white",
-    fontWeight: "bold",
-    fontSize: "16px",
-    cursor: "pointer",
-    width: "100%"
-  },
-  withdrawBalanceInfoDark: {
-    padding: "14px",
-    borderRadius: "10px",
-    display: "flex",
-    justifycontent: "space-between",
-    fontSize: "15px"
-  },
-  balanceAlertBoxDark: {
-    background: "rgba(239, 68, 68, 0.15)",
-    color: "#f87171",
-    fontSize: "13px",
-    padding: "12px",
-    borderRadius: "8px",
-    marginTop: "10px"
   }
 };
