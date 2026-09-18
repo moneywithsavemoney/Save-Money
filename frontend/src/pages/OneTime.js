@@ -12,14 +12,11 @@ const parseSafeDate = (dateVal) => {
   }
 
   if (typeof dateVal === "string") {
-    // Try standard parsing first
     const d = new Date(dateVal);
     if (!isNaN(d.getTime())) return d;
 
-    // Handle MM/DD/YYYY format explicitly
     const parts = dateVal.split(/[\/\-]/);
     if (parts.length === 3) {
-      // Assuming MM/DD/YYYY format
       const month = parseInt(parts[0], 10) - 1;
       const day = parseInt(parts[1], 10);
       const year = parseInt(parts[2], 10);
@@ -93,8 +90,6 @@ export default function OneTime() {
     holderName: ""
   });
 
-  // Selected Withdraw Amount
-  const [selectedWithdrawAmount, setSelectedWithdrawAmount] = useState(100);
   const [withdrawing, setWithdrawing] = useState(false);
 
   // Toast State
@@ -127,8 +122,6 @@ export default function OneTime() {
     { label: "100k", value: 100000, desc: "VIP", color: "linear-gradient(135deg, #ec4899, #db2777)" },
     { label: "500k", value: 500000, desc: "Master", color: "linear-gradient(135deg, #6366f1, #4f46e5)" }
   ];
-
-  const withdrawPresets = [100, 300, 500, 1000, 10000];
 
   useEffect(() => {
     loadDashboardData();
@@ -320,6 +313,18 @@ export default function OneTime() {
     return (Number(amount) * Number(rate)) / 100;
   }, [amount, rate, activeInvestment]);
 
+  // היום উইথড্র করা হয়েছে কি না এবং সেটি Accepted/Pending কি না চেক করা
+  const hasWithdrawnToday = useMemo(() => {
+    const todayStr = new Date().toDateString();
+    return history.some((item) => {
+      const isWd = (item.type || "").toLowerCase().includes("withdrawal");
+      const itemDate = parseSafeDate(item.createdAt || item.startDate).toDateString();
+      const status = (item.status || "").toLowerCase();
+      // যদি আজকে তৈরি উইথড্রয়াল হয় এবং এটি Rejected না হয় (অর্থাৎ Pending বা Approved)
+      return isWd && itemDate === todayStr && status !== "rejected" && status !== "cancelled" && status !== "failed";
+    });
+  }, [history]);
+
   const weeklyReturn = useMemo(() => dailyReturn * 7, [dailyReturn]);
   const totalReturn = useMemo(() => dailyReturn * tenure, [dailyReturn, tenure]);
   const totalPayout = useMemo(() => Number(amount) + totalReturn, [amount, totalReturn]);
@@ -470,7 +475,12 @@ export default function OneTime() {
   };
 
   const handleWithdrawSubmit = async () => {
-    if (currentWalletBalance < selectedWithdrawAmount) {
+    if (hasWithdrawnToday) {
+      triggerToast("You have already placed a withdrawal request today!", "error");
+      return;
+    }
+
+    if (currentWalletBalance < dailyReturn) {
       triggerToast(`Insufficient Wallet Balance! Your balance is ₹${currentWalletBalance}`, "error");
       return;
     }
@@ -485,7 +495,7 @@ export default function OneTime() {
         },
         body: JSON.stringify({ 
           email, 
-          amount: selectedWithdrawAmount,
+          amount: dailyReturn,
           bankDetails: user.bankDetails 
         })
       });
@@ -1361,6 +1371,7 @@ export default function OneTime() {
         </div>
       )}
 
+      {/* UPDATED WITHDRAW MODAL */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
@@ -1372,52 +1383,52 @@ export default function OneTime() {
             <div
               style={{
                 ...styles.withdrawBalanceInfoDark,
-                background: currentWalletBalance < selectedWithdrawAmount ? "rgba(239, 68, 68, 0.15)" : "rgba(34, 197, 94, 0.15)",
-                color: currentWalletBalance < selectedWithdrawAmount ? "#f87171" : "#4ade80",
-                border: currentWalletBalance < selectedWithdrawAmount ? "1px solid #991b1b" : "1px solid #166534"
+                background: currentWalletBalance < dailyReturn ? "rgba(239, 68, 68, 0.15)" : "rgba(34, 197, 94, 0.15)",
+                color: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80",
+                border: currentWalletBalance < dailyReturn ? "1px solid #991b1b" : "1px solid #166534"
               }}
             >
               <span>Available Wallet Balance:</span>
               <strong>₹ {currentWalletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</strong>
             </div>
 
-            {currentWalletBalance < selectedWithdrawAmount && (
-              <div style={styles.balanceAlertBoxDark}>
-                ⚠️ You don't have enough balance to withdraw ₹{selectedWithdrawAmount.toLocaleString("en-IN")}.
-              </div>
-            )}
-
-            <p style={{ fontSize: "15px", color: "#94a3b8", margin: "12px 0 6px" }}>
-              Select Pre-filled Withdrawal Amount:
-            </p>
-
-            <div style={styles.withdrawPresetGrid}>
-              {withdrawPresets.map((amt) => (
-                <button
-                  key={amt}
-                  type="button"
-                  style={{
-                    ...styles.withdrawPresetBtnDark,
-                    ...(selectedWithdrawAmount === amt ? styles.withdrawPresetActiveDark : {})
-                  }}
-                  onChange={() => setSelectedWithdrawAmount(amt)}
-                  onClick={() => setSelectedWithdrawAmount(amt)}
-                >
-                  ₹{amt.toLocaleString("en-IN")}
-                </button>
-              ))}
+            {/* Daily Return Amount Box */}
+            <div style={{
+              marginTop: "16px",
+              padding: "16px",
+              background: "#040d1a",
+              borderRadius: "12px",
+              border: "1px solid #1e293b",
+              textAlign: "center"
+            }}>
+              <span style={{ fontSize: "14px", color: "#94a3b8", display: "block" }}>Today's Daily Return Amount</span>
+              <strong style={{ fontSize: "28px", color: "#38bdf8", fontWeight: "900", display: "block", marginTop: "4px" }}>
+                ₹ {dailyReturn.toFixed(2)}
+              </strong>
             </div>
+
+            {/* Alerts */}
+            {hasWithdrawnToday ? (
+              <div style={styles.balanceAlertBoxDark}>
+                ⏳ You have already submitted a withdrawal request for today. Please wait until tomorrow!
+              </div>
+            ) : currentWalletBalance < dailyReturn ? (
+              <div style={styles.balanceAlertBoxDark}>
+                ⚠️ You don't have enough balance to withdraw ₹{dailyReturn.toFixed(2)}.
+              </div>
+            ) : null}
 
             <button
               style={{
                 ...styles.submitBtnDark,
                 marginTop: "18px",
-                background: currentWalletBalance < selectedWithdrawAmount ? "#475569" : "#16a34a"
+                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#475569" : "#16a34a",
+                cursor: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "not-allowed" : "pointer"
               }}
               onClick={handleWithdrawSubmit}
-              disabled={withdrawing || currentWalletBalance < selectedWithdrawAmount}
+              disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
             >
-              {withdrawing ? "Processing..." : "Confirm Withdrawal"}
+              {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested Today" : "Confirm Withdrawal"}
             </button>
           </div>
         </div>
@@ -2349,24 +2360,5 @@ const styles = {
     padding: "12px",
     borderRadius: "8px",
     marginTop: "10px"
-  },
-  withdrawPresetGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "12px"
-  },
-  withdrawPresetBtnDark: {
-    padding: "12px",
-    borderRadius: "10px",
-    border: "1px solid #334155",
-    background: "#0f2138",
-    color: "#fff",
-    fontWeight: "bold",
-    cursor: "pointer",
-    fontSize: "14px"
-  },
-  withdrawPresetActiveDark: {
-    background: "#2563eb",
-    borderColor: "#2563eb"
   }
 };
