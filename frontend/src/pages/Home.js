@@ -1609,7 +1609,7 @@ const styles = {
     display: "inline-block",
     paddingLeft: "100%",
     animation: "marquee 15s linear infinite",
-    fontSize: "13px",
+    fontSize: "17px",
     fontWeight: "700",
     color: "#fff"
   },
