@@ -7525,7 +7525,7 @@ app.post("/admin/onetime-adjust-wallet", async (req, res) => {
 
 // GET /admin/onetime-investments
 // Backend Route: /admin/onetime-investments
-app.get("/admin/onetime-investments", verifyAdminToken, async (req, res) => {
+app.get("/admin/onetime-investments", async (req, res) => {
   try {
     // ১. সব ইউজার ফেচ করুন
     const users = await User.find({});
