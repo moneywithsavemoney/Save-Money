@@ -1146,7 +1146,7 @@ export default function Home() {
           <h2 style={{ ...styles.darkCardTitle, color: "#22c55e", display: "flex", alignItems: "center", gap: "8px" }}>
             <span>💡</span> Why We Accept Investments & How Your Funds Work
           </h2>
-          <p style={{ fontSize: "15px", color: "#cbd5e1", lineHeight: "1.6", marginTop="-6px", marginBottom: "18px" }}>
+          <p style={{ fontSize: "15px", color: "#cbd5e1", lineHeight: "1.6", marginTop: "-6px", marginBottom: "18px" }}>
             To generate stable, high-yield returns for our investors, we deploy capital into diversified, risk-managed financial channels:
           </p>
           <div style={styles.whyInvestGrid}>
