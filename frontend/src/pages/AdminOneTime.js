@@ -120,11 +120,15 @@ export default function AdminOneTime() {
         : (wData?.requests || wData?.withdrawals || wData?.data || []);
       setWithdraws(withdrawList);
 
-      // Safe parse for Investments (ontime investment সাপোর্ট সহ)
+      // Fix: Safe parse for Investments (ontime investment সাপোর্ট সহ সব সম্ভাব্য Key চেক)
       const iData = await apiGet("/admin/onetime-investments");
       const investList = Array.isArray(iData)
         ? iData
-        : (iData?.investments || iData?.ontimeInvestments || iData?.oneTimeInvestments || iData?.data || []);
+        : (iData?.investments || 
+           iData?.ontimeInvestments || 
+           iData?.oneTimeInvestments || 
+           iData?.activeInvestments || 
+           iData?.data || []);
       setInvestments(investList);
 
       // Safe parse for Users
@@ -138,7 +142,7 @@ export default function AdminOneTime() {
     }
   };
 
-  // Helper function to format Date & Time
+  // Helper function: Format Date & Time for Withdraws
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -153,21 +157,15 @@ export default function AdminOneTime() {
     });
   };
 
-  // Quick Action Click Handlers
+  // Quick Action Handlers
   const handleQuickAdjust = (email) => {
     setAdjustEmail(email);
-    const element = document.getElementById("wallet-control-box");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+    document.getElementById("wallet-control-box")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleQuickAssign = (email) => {
     setInvestEmail(email);
-    const element = document.getElementById("assign-plan-box");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+    document.getElementById("assign-plan-box")?.scrollIntoView({ behavior: "smooth" });
   };
 
   // Actions
@@ -261,7 +259,6 @@ export default function AdminOneTime() {
     }
   };
 
-  // Modify / Update Investment Handler
   const handleUpdateInvestment = async () => {
     if (!editingInvest) return;
 
@@ -283,7 +280,6 @@ export default function AdminOneTime() {
     }
   };
 
-  // Cancel Investment Handler
   const handleCancelInvestment = async (inv) => {
     const confirmCancel = window.confirm(
       `Are you sure you want to CANCEL this investment for ${inv.email || inv.userEmail || "user"}?`
@@ -326,13 +322,14 @@ export default function AdminOneTime() {
     (u.name || "").toLowerCase().includes(userSearch.toLowerCase())
   );
 
-  const filteredInvestments = investments.filter((i) =>
-    (i.email || i.userEmail || "").toLowerCase().includes(investSearch.toLowerCase()) ||
-    (i.status || "").toLowerCase().includes(investSearch.toLowerCase()) ||
-    (i.duration || "").toLowerCase().includes(investSearch.toLowerCase()) ||
-    (i.planName || "").toLowerCase().includes(investSearch.toLowerCase()) ||
-    (i.investmentType || "").toLowerCase().includes(investSearch.toLowerCase())
-  );
+  const filteredInvestments = investments.filter((i) => {
+    const q = investSearch.toLowerCase();
+    const email = (i.email || i.userEmail || "").toLowerCase();
+    const status = (i.status || "").toLowerCase();
+    const duration = (i.duration || "").toLowerCase();
+    const plan = (i.planName || i.name || i.investmentType || "").toLowerCase();
+    return email.includes(q) || status.includes(q) || duration.includes(q) || plan.includes(q);
+  });
 
   const pendingCashRequests = cash.filter(
     (c) => (c.status || "").toLowerCase() === "pending" || !c.status
@@ -349,7 +346,10 @@ export default function AdminOneTime() {
   );
 
   const totalInvestedAmt = investments
-    .filter((i) => (i.status || "").toLowerCase() === "active" || (i.status || "").toLowerCase() === "approved" || !i.status)
+    .filter((i) => {
+      const st = (i.status || "active").toLowerCase();
+      return st === "active" || st === "approved" || st === "running";
+    })
     .reduce((sum, i) => sum + Number(i.amount || 0), 0);
 
   const totalDisbursedAmt = withdraws
@@ -430,16 +430,10 @@ export default function AdminOneTime() {
                     </td>
                     <td style={{ ...styles.td, textAlign: "center" }}>
                       <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
-                        <button
-                          style={styles.adjustBtn}
-                          onClick={() => handleQuickAdjust(u.email)}
-                        >
+                        <button style={styles.adjustBtn} onClick={() => handleQuickAdjust(u.email)}>
                           Adjust Wallet
                         </button>
-                        <button
-                          style={styles.assignBtn}
-                          onClick={() => handleQuickAssign(u.email)}
-                        >
+                        <button style={styles.assignBtn} onClick={() => handleQuickAssign(u.email)}>
                           Assign Plan
                         </button>
                       </div>
@@ -452,7 +446,7 @@ export default function AdminOneTime() {
         </div>
       </div>
 
-      {/* 2. INVESTED USERS & INVESTMENT CONTROL CENTER */}
+      {/* 2. INVESTED USERS & ACTIVE PLANS DIRECTORY */}
       <div style={styles.section}>
         <div style={styles.sectionHeaderRow}>
           <h2 style={styles.sectionTitle}>💼 Invested Users & Active Plans Directory</h2>
@@ -482,8 +476,9 @@ export default function AdminOneTime() {
                 <tr><td colSpan="7" style={styles.emptyText}>No investments found</td></tr>
               ) : (
                 filteredInvestments.map((inv, idx) => {
-                  const status = (inv.status || "Active").toLowerCase();
-                  const isActive = status === "active" || status === "approved";
+                  const rawStatus = inv.status || "Active";
+                  const statusLower = rawStatus.toLowerCase();
+                  const isActive = statusLower === "active" || statusLower === "approved" || statusLower === "running";
 
                   return (
                     <tr key={inv._id || idx} style={styles.tr}>
@@ -492,7 +487,9 @@ export default function AdminOneTime() {
                         <div style={{ fontSize: "11px", color: "#64748b" }}>ID: {inv._id || "N/A"}</div>
                       </td>
                       <td style={styles.td}>
-                        <span style={styles.badgeBlue}>{inv.planName || inv.investmentType || "ontime investment"}</span>
+                        <span style={styles.badgeBlue}>
+                          {inv.planName || inv.name || inv.investmentType || "ontime investment"}
+                        </span>
                       </td>
                       <td style={{ ...styles.td, color: "#22c55e", fontWeight: "bold" }}>
                         {money(inv.amount)}
@@ -506,25 +503,19 @@ export default function AdminOneTime() {
                       <td style={styles.td}>
                         <span style={{
                           padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "11px",
-                          background: isActive ? "rgba(34,197,94,0.2)" : status === "cancelled" ? "rgba(239,68,68,0.2)" : "rgba(234,179,8,0.2)",
-                          color: isActive ? "#22c55e" : status === "cancelled" ? "#f87171" : "#eab308"
+                          background: isActive ? "rgba(34,197,94,0.2)" : statusLower === "cancelled" ? "rgba(239,68,68,0.2)" : "rgba(234,179,8,0.2)",
+                          color: isActive ? "#22c55e" : statusLower === "cancelled" ? "#f87171" : "#eab308"
                         }}>
-                          {inv.status || "Active"}
+                          {rawStatus}
                         </span>
                       </td>
                       <td style={{ ...styles.td, textAlign: "center" }}>
                         <div style={{ display: "flex", gap: "6px", justifyContent: "center" }}>
-                          <button
-                            style={styles.editBtn}
-                            onClick={() => setEditingInvest({ ...inv })}
-                          >
+                          <button style={styles.editBtn} onClick={() => setEditingInvest({ ...inv })}>
                             ✏️ Modify
                           </button>
                           {isActive && (
-                            <button
-                              style={styles.cancelBtn}
-                              onClick={() => handleCancelInvestment(inv)}
-                            >
+                            <button style={styles.cancelBtn} onClick={() => handleCancelInvestment(inv)}>
                               ❌ Cancel Plan
                             </button>
                           )}
@@ -614,10 +605,7 @@ export default function AdminOneTime() {
       <div style={styles.section}>
         <div style={styles.sectionHeaderRow}>
           <h2 style={styles.sectionTitle}>📥 OneTime Add Fund Requests</h2>
-          <button
-            style={styles.historyToggleBtn}
-            onClick={() => setShowDepositHistory(!showDepositHistory)}
-          >
+          <button style={styles.historyToggleBtn} onClick={() => setShowDepositHistory(!showDepositHistory)}>
             {showDepositHistory ? "📋 Show Pending Requests" : "📜 View History"}
           </button>
         </div>
@@ -631,7 +619,7 @@ export default function AdminOneTime() {
                   <th style={styles.th}>User Email</th>
                   <th style={styles.th}>Amount</th>
                   <th style={styles.th}>UTR / Txn ID</th>
-                  <th style={styles.th}>Date & Time</th>
+                  <th style={styles.th}>Requested Time</th>
                   <th style={styles.th}>Status</th>
                 </tr>
               </thead>
@@ -711,10 +699,7 @@ export default function AdminOneTime() {
       <div style={styles.section}>
         <div style={styles.sectionHeaderRow}>
           <h2 style={styles.sectionTitle}>💰 OneTime Withdrawal Requests</h2>
-          <button
-            style={styles.historyToggleBtn}
-            onClick={() => setShowWithdrawHistory(!showWithdrawHistory)}
-          >
+          <button style={styles.historyToggleBtn} onClick={() => setShowWithdrawHistory(!showWithdrawHistory)}>
             {showWithdrawHistory ? "📋 Show Pending Requests" : "📜 View History"}
           </button>
         </div>
@@ -739,7 +724,7 @@ export default function AdminOneTime() {
                     <tr key={w._id} style={styles.tr}>
                       <td style={styles.td}>{w.email}</td>
                       <td style={{ ...styles.td, color: "#f87171" }}>{money(w.amount)}</td>
-                      <td style={styles.td}>{formatDate(w.createdAt || w.date || w.timestamp)}</td>
+                      <td style={styles.td}>{formatDate(w.createdAt || w.date || w.timestamp || w.time)}</td>
                       <td style={styles.td}>
                         <span style={{
                           padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "12px",
@@ -767,9 +752,9 @@ export default function AdminOneTime() {
                     <p style={{ margin: "4px 0 0 0", color: "#22c55e", fontSize: "18px", fontWeight: "bold" }}>
                       {money(w.amount)}
                     </p>
-                    {/* কটার সময় উইথড্র বসিয়েছে তা দেখানো হচ্ছে */}
+                    {/* কটার সময় উইথড্র দেওয়া হয়েছে তা নিচে শো করছে */}
                     <p style={{ margin: "4px 0 0 0", color: "#94a3b8", fontSize: "12px" }}>
-                      ⏰ <b>Requested At:</b> {formatDate(w.createdAt || w.date || w.timestamp)}
+                      ⏰ <b>Requested At:</b> {formatDate(w.createdAt || w.date || w.timestamp || w.time)}
                     </p>
                   </div>
                   <button
