@@ -12,6 +12,8 @@ export default function Home() {
 
   const [user, setUser] = useState({});
   const [notificationCount, setNotificationCount] = useState(0);
+  const [latestUpdate, setLatestUpdate] = useState("No new announcement");
+  const [latestUpdateText, setLatestUpdateText] = useState("");
   const [loading, setLoading] = useState(true);
 
   // 👇 ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
@@ -147,13 +149,20 @@ export default function Home() {
   useEffect(() => {
     loadHome();
     loadNotifications();
+    loadLatestUpdate();
     registerPushNotification();
+
+    const interval = setInterval(() => {
+      loadLatestUpdate();
+    }, 10000);
 
     const flag = localStorage.getItem("showLoginPopup");
     if (flag === "true") {
       setShowOfferPopup(true);
       localStorage.removeItem("showLoginPopup");
     }
+
+    return () => clearInterval(interval);
   }, []);
 
   const loadHome = async () => {
@@ -183,6 +192,10 @@ export default function Home() {
       }
 
       setUser(data || {});
+      
+      if (data?.latestUpdate || data?.announcement) {
+        setLatestUpdate(data.latestUpdate || data.announcement);
+      }
 
     } catch (err) {
       console.log("HOME LOAD ERROR:", err);
@@ -210,6 +223,32 @@ export default function Home() {
       }
     } catch (err) {
       console.log("Notification count error:", err);
+    }
+  };
+
+  const loadLatestUpdate = async () => {
+    try {
+      const res = await fetch(`${API}/latest-news`, {
+        method: "GET",
+        headers: {
+          "Cache-Control": "no-cache"
+        }
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      
+      if (data) {
+        const msg = data.message || data.latestUpdate || data.announcement || (typeof data === 'string' ? data : "");
+
+        if (msg && msg.trim() !== "") {
+          setLatestUpdateText(msg);
+          setLatestUpdate(msg);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch latest news:", err);
     }
   };
 
@@ -285,6 +324,16 @@ export default function Home() {
 
   return (
     <div style={styles.page}>
+
+      {/* 🟢 TOP SLIDING ANNOUNCEMENT BAR (2ND SCREENSHOT STYLE) */}
+      <div style={styles.topAnnouncementBar}>
+        <span style={styles.announcementTag}>LATEST MESSAGE</span>
+        <div style={styles.topMarqueeWrapper}>
+          <p style={styles.topMarqueeText}>
+            Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us.
+          </p>
+        </div>
+      </div>
 
       {/* 👇 SIDEBAR DRAWER */}
       <div style={{
@@ -633,25 +682,6 @@ export default function Home() {
           <span>
             👛
           </span>
-        </div>
-      </section>
-
-      {/* LATEST UPDATE */}
-      <section style={styles.latestCard}>
-        <div style={styles.latestLeft}>
-          <div style={styles.latestIcon}>
-            📢
-          </div>
-
-          <div style={styles.latestTextBox}>
-            <h3 style={{ margin: 0, fontSize: "15px", fontWeight: "900", color: "#fff" }}>Latest Update</h3>
-            
-            <div style={styles.marqueeWrapper}>
-              <p style={styles.marqueeText}>
-                "Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us."
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -1067,6 +1097,44 @@ function BottomNavItem({ icon, title, active, onClick }) {
 }
 
 const styles = {
+  // 🟢 TOP ANNOUNCEMENT BAR STYLES (2nd Screenshot Style)
+  topAnnouncementBar: {
+    width: "100%",
+    background: "#03281e",
+    borderBottom: "1px solid #064e3b",
+    display: "flex",
+    alignItems: "center",
+    padding: "6px 12px",
+    gap: "10px",
+    margin: "0 -16px 10px -16px",
+    width: "calc(100% + 32px)",
+    boxSizing: "border-box"
+  },
+  announcementTag: {
+    background: "#f59e0b",
+    color: "#000000",
+    fontSize: "10px",
+    fontWeight: "900",
+    padding: "3px 8px",
+    borderRadius: "4px",
+    whiteSpace: "nowrap",
+    letterSpacing: "0.5px"
+  },
+  topMarqueeWrapper: {
+    flex: 1,
+    overflow: "hidden",
+    whiteSpace: "nowrap"
+  },
+  topMarqueeText: {
+    display: "inline-block",
+    paddingLeft: "100%",
+    animation: "marquee 25s linear infinite",
+    fontSize: "12px",
+    fontWeight: "600",
+    color: "#22c55e",
+    margin: 0
+  },
+
   // 👇 SLIDE BAR / DRAWER STYLES
   drawerOverlay: {
     position: "fixed",
@@ -1565,53 +1633,6 @@ const styles = {
     background: "linear-gradient(135deg,#16ff75,#00b96b)",
     boxShadow: "0 12px 25px rgba(0,0,0,0.35)",
     zIndex: 2
-  },
-
-  latestCard: {
-    marginTop: "14px",
-    borderRadius: "20px",
-    padding: "16px",
-    background: "linear-gradient(135deg,#ffb703,#fb8500,#ff006e)",
-    border: "2px solid #ffd166",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    boxShadow: "0 0 25px rgba(255,183,3,0.45)"
-  },
-
-  latestLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    flex: 1,
-    minWidth: 0
-  },
-
-  latestIcon: {
-    fontSize: "30px",
-    flexShrink: 0
-  },
-
-  latestTextBox: {
-    flex: 1,
-    minWidth: 0,
-    overflow: "hidden"
-  },
-
-  marqueeWrapper: {
-    width: "100%",
-    overflow: "hidden",
-    whiteSpace: "nowrap",
-    boxSizing: "border-box"
-  },
-
-  marqueeText: {
-    display: "inline-block",
-    paddingLeft: "100%",
-    animation: "marquee 15s linear infinite",
-    fontSize: "17px",
-    fontWeight: "700",
-    color: "#fff"
   },
 
   statsGrid: {
