@@ -505,10 +505,10 @@ export default function Home() {
         </div>
       </div>
 
-      {/* PHOTO POPUP MODAL */}
+      {/* COLORFUL ANIMATED POPUP MODAL */}
       {showOfferPopup && (
         <div style={styles.popupOverlay}>
-          <div style={styles.popupCard}>
+          <div style={styles.popupAnimatedCard}>
             <button
               style={styles.popupCloseBtn}
               onClick={() => setShowOfferPopup(false)}
@@ -516,17 +516,21 @@ export default function Home() {
               ✕
             </button>
 
-            <img
-              src="/INDEPENDENCE OFFER.png"
-              alt="INDEPENDENCE OFFER"
-              style={styles.popupImage}
-            />
+            <div style={styles.popupHeaderIconWrap}>
+              <span style={{ fontSize: "36px", animation: "bounce 2s infinite" }}>🚀</span>
+            </div>
+
+            <h3 style={styles.popupTitleText}>System Update</h3>
+
+            <p style={styles.popupNoticeMessage}>
+              "Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us."
+            </p>
 
             <button
-              style={styles.popupDownloadBtn}
-              onClick={() => handleDownloadImage("/INDEPENDENCE OFFER.png")}
+              style={styles.popupActionBtn}
+              onClick={() => setShowOfferPopup(false)}
             >
-              📥 Download Offer Image
+              Awesome!
             </button>
           </div>
         </div>
@@ -1274,36 +1278,79 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: "rgba(2, 6, 23, 0.75)",
-    backdropFilter: "blur(6px)",
+    background: "rgba(2, 6, 23, 0.8)",
+    backdropFilter: "blur(8px)",
     zIndex: 100001,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     padding: "16px"
   },
-  popupCard: {
-    background: "#0f172a",
-    borderRadius: "24px",
-    padding: "20px",
-    maxWidth: "420px",
+  popupAnimatedCard: {
+    background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)",
+    borderRadius: "28px",
+    padding: "26px 20px 22px",
+    maxWidth: "380px",
     width: "100%",
     position: "relative",
-    boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
-    border: "1px solid #1e293b",
-    textAlign: "center"
+    boxShadow: "0 20px 50px rgba(99, 102, 241, 0.35)",
+    border: "2px solid #6366f1",
+    textAlign: "center",
+    animation: "popupZoom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
+  },
+  popupHeaderIconWrap: {
+    width: "68px",
+    height: "68px",
+    margin: "0 auto 12px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #6366f1, #a855f7)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 0 20px rgba(168, 85, 247, 0.5)"
+  },
+  popupTitleText: {
+    margin: "0 0 10px 0",
+    fontSize: "20px",
+    fontWeight: "900",
+    color: "#38bdf8",
+    letterSpacing: "0.5px"
+  },
+  popupNoticeMessage: {
+    fontSize: "14px",
+    color: "#e2e8f0",
+    lineHeight: "1.6",
+    fontWeight: "600",
+    margin: "0 0 20px 0",
+    background: "rgba(255, 255, 255, 0.05)",
+    padding: "14px",
+    borderRadius: "16px",
+    border: "1px solid rgba(255, 255, 255, 0.1)"
+  },
+  popupActionBtn: {
+    width: "100%",
+    padding: "12px",
+    border: "none",
+    background: "linear-gradient(90deg, #22c55e 0%, #10b981 100%)",
+    borderRadius: "16px",
+    color: "#ffffff",
+    fontWeight: "800",
+    fontSize: "15px",
+    cursor: "pointer",
+    boxShadow: "0 6px 20px rgba(34, 197, 94, 0.4)",
+    transition: "transform 0.2s ease"
   },
   popupCloseBtn: {
     position: "absolute",
-    top: "12px",
-    right: "12px",
-    width: "34px",
-    height: "34px",
+    top: "14px",
+    right: "14px",
+    width: "32px",
+    height: "32px",
     background: "rgba(255, 255, 255, 0.15)",
     backdropFilter: "blur(8px)",
     WebkitBackdropFilter: "blur(8px)",
     border: "1px solid rgba(255, 255, 255, 0.3)",
-    clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+    borderRadius: "50%",
     color: "#ffffff",
     fontSize: "14px",
     fontWeight: "bold",
@@ -1312,31 +1359,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     zIndex: 2
-  },
-  popupImage: {
-    width: "100%",
-    maxHeight: "260px",
-    objectFit: "cover",
-    borderRadius: "16px",
-    marginBottom: "14px"
-  },
-  popupDownloadBtn: {
-    width: "100%",
-    padding: "12px",
-    border: "1px solid rgba(34, 197, 94, 0.4)",
-    background: "rgba(34, 197, 94, 0.2)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    clipPath: "polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%)",
-    color: "#ffffff",
-    fontWeight: "800",
-    fontSize: "15px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    boxShadow: "0 4px 14px rgba(0, 0, 0, 0.3)"
   },
 
   statusOverlayBg: {
@@ -1991,6 +2013,14 @@ const keyframes = `
 @keyframes marquee {
   0% { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-100%, 0, 0); }
+}
+@keyframes popupZoom {
+  0% { opacity: 0; transform: scale(0.6); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 `;
 try {
