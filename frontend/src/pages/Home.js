@@ -648,7 +648,7 @@ export default function Home() {
             
             <div style={styles.marqueeWrapper}>
               <p style={styles.marqueeText}>
-                আমাদের প্ল্যাটফর্ম দুইদিন থেকে প্রবলেমে ছিল,এখন сервер রুনিং হয়ে গিয়েছে। ধন্যবাদ সবাইকে আমাদের সঙ্গে থাকার জন্য।
+                "Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us."
               </p>
             </div>
           </div>
