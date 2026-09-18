@@ -661,16 +661,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 🟡 LATEST UPDATE BOX (SCREENSHOT STYLE WITH WHITE TEXT) */}
-      <div style={styles.latestUpdateCard}>
-        <div style={styles.latestUpdateHeader}>
-          <span style={styles.latestUpdateIcon}>📢</span>
-          <span style={styles.latestUpdateTitle}>Latest Update</span>
-        </div>
+      {/* 🟢 LIMITED OFFER ANNOUNCEMENT BAR (2ND SCREENSHOT STYLE) */}
+      <div style={styles.limitedOfferBar}>
         <div style={styles.marqueeContainer}>
-          <p style={styles.marqueeText}>
-            Our platform had been experiencing issues for two days, but the server is running now. Thank you everyone for staying with us.
-          </p>
+          <div style={styles.marqueeText}>
+            <span style={styles.limitedOfferBadge}>LIMITED OFFER 🔥</span>
+            <span style={styles.announcementText}>
+              {latestUpdateText || "Thank you for choosing Save Money. Invest smart and secure your future!"}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -1086,30 +1085,16 @@ function BottomNavItem({ icon, title, active, onClick }) {
 }
 
 const styles = {
-  // 🟡 LATEST UPDATE CARD STYLES (SCREENSHOT CARD)
-  latestUpdateCard: {
+  // 🟢 2ND SCREENSHOT LIMITED OFFER BAR STYLES
+  limitedOfferBar: {
     marginTop: "16px",
-    background: "linear-gradient(135deg, #ff0055 0%, #ff5252 50%, #ff7a00 100%)",
-    borderRadius: "18px",
-    padding: "12px 16px",
-    boxShadow: "0 8px 20px rgba(255, 0, 85, 0.3)",
+    background: "linear-gradient(180deg, #022013 0%, #043820 100%)",
+    borderRadius: "16px",
+    padding: "10px 14px",
+    border: "1px solid #10b981",
+    boxShadow: "0 0 15px rgba(16, 185, 129, 0.2)",
     display: "flex",
-    flexDirection: "column",
-    gap: "6px"
-  },
-  latestUpdateHeader: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px"
-  },
-  latestUpdateIcon: {
-    fontSize: "14px"
-  },
-  latestUpdateTitle: {
-    fontSize: "13px",
-    fontWeight: "800",
-    color: "#ffffff",
-    letterSpacing: "0.5px"
+    alignItems: "center"
   },
   marqueeContainer: {
     overflow: "hidden",
@@ -1117,13 +1102,27 @@ const styles = {
     width: "100%"
   },
   marqueeText: {
-    display: "inline-block",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "10px",
     paddingLeft: "100%",
-    animation: "marquee 22s linear infinite",
+    animation: "marquee 22s linear infinite"
+  },
+  limitedOfferBadge: {
+    background: "#f59e0b",
+    color: "#000000",
+    fontWeight: "900",
+    fontSize: "11px",
+    padding: "4px 10px",
+    borderRadius: "8px",
+    letterSpacing: "0.5px",
+    display: "inline-block",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
+  },
+  announcementText: {
     fontSize: "13px",
     fontWeight: "700",
-    color: "#ffffff", // ⚪ ফন্ট হোয়াইট করা হলো
-    margin: 0
+    color: "#ffffff"
   },
 
   // 👇 DRAWER STYLES
