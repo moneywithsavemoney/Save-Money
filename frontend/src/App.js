@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import socket from "./socket";
 
 import { ToastContainer } from "react-toastify";
@@ -51,51 +51,20 @@ import OneTime from "./pages/OneTime";
 import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
 
+// 🔹 পাবলিক রুট প্রটেকশন (লগইন করা থাকলে আবার লগইন/রেজিস্টার পেজে যেতে দেবে না)
+function PublicRoute({ children }) {
+  const token = localStorage.getItem("token");
+  const role = localStorage.getItem("role");
+
+  if (token) {
+    return <Navigate to={role === "admin" ? "/admin" : "/home"} replace />;
+  }
+  return children;
+}
+
 function App() {
   const [popup, setPopup] = useState(null);
-  const timerRef = useRef(null);
 
-  // 🚪 ১. অটো লগআউট হ্যান্ডলার
-  const handleLogout = useCallback(() => {
-    localStorage.clear(); // বা নির্দিষ্ট আইটেম মুছে ফেলুন: localStorage.removeItem("email");
-    alert("১ ঘণ্টা কোনো অ্যাক্টিভিটি না থাকায় আপনাকে স্বয়ংক্রিয়ভাবে লগআউট করা হয়েছে।");
-    window.location.href = "/login";
-  }, []);
-
-  // ⏳ ২. ১ ঘন্টার ইনঅ্যাক্টিভিটি টাইমার লিসেনার
-  useEffect(() => {
-    const AUTO_LOGOUT_TIME = 60 * 60 * 1000; // ১ ঘণ্টা (milliseconds)
-
-    const resetTimer = () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        handleLogout();
-      }, AUTO_LOGOUT_TIME);
-    };
-
-    const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
-
-    const handleUserActivity = () => {
-      resetTimer();
-    };
-
-    const email = localStorage.getItem("email");
-    if (email) {
-      resetTimer();
-      events.forEach((event) => {
-        window.addEventListener(event, handleUserActivity);
-      });
-    }
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      events.forEach((event) => {
-        window.removeEventListener(event, handleUserActivity);
-      });
-    };
-  }, [handleLogout]);
-
-  // 🔔 ৩. আপনার সকেট লিসেনার (পূর্বের কোড)
   useEffect(() => {
     const email = localStorage.getItem("email");
 
@@ -118,7 +87,6 @@ function App() {
 
   return (
     <BrowserRouter>
-
       {popup && (
         <div style={{
           position: "fixed",
@@ -136,310 +104,53 @@ function App() {
       )}
 
       <Routes>
-        {/* 🔓 পাবলিক রুটস */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Public Routes */}
+        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* 🔒 প্রটেক্টেড রুটস (ইউজারদের জন্য) */}
-        <Route
-          path="/leaderboard"
-          element={
-            <ProtectedRoute>
-              <Leaderboard />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route 
-          path="/about" 
-          element={
-            <ProtectedRoute>
-              <AboutCompany />
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/invest-now"
-          element={
-            <ProtectedRoute>
-              <InvestNow />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route 
-          path="/bank-details" 
-          element={
-            <ProtectedRoute>
-              <BankDetails />
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/withdraw"
-          element={   
-            <ProtectedRoute>
-              <Withdraw />   
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/wallet"
-          element={
-            <ProtectedRoute>
-              <Wallet />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/refer"
-          element={
-            <ProtectedRoute>
-              <Refer />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/save-money"
-          element={
-            <ProtectedRoute>
-              <SaveMoney />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/one-time"
-          element={
-            <ProtectedRoute>
-              <OneTime />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/my-investment"
-          element={
-            <ProtectedRoute>
-              <MyInvestment />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/invest-history"
-          element={
-            <ProtectedRoute>
-              <InvestHistory />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/bonus-history"
-          element={
-            <ProtectedRoute>
-              <BonusHistory />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/kyc"
-          element={
-            <ProtectedRoute>
-              <KYC />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/notifications"
-          element={
-            <ProtectedRoute>
-              <Notifications />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/legal/:type"
-          element={
-            <ProtectedRoute>
-              <LegalPages />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/performance-bonus"
-          element={
-            <ProtectedRoute>
-              <PerformanceBonus />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/team-bonus"
-          element={
-            <ProtectedRoute>
-              <TeamBonus />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/royalty-bonus"
-          element={
-            <ProtectedRoute>
-              <RoyaltyBonus />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/referral-tree"
-          element={
-            <ProtectedRoute>
-              <ReferralTree />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/analytics"
-          element={
-            <ProtectedRoute>
-              <UserAnalytics />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/daily-reward"
-          element={
-            <ProtectedRoute>
-              <DailyReward />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/investment-assistant"
-          element={
-            <ProtectedRoute>
-              <InvestmentAssistant />
-            </ProtectedRoute>
-          }
-        />
-
+        {/* Protected User Routes */}
+        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+        <Route path="/about" element={<ProtectedRoute><AboutCompany /></ProtectedRoute>} />
+        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/invest-now" element={<ProtectedRoute><InvestNow /></ProtectedRoute>} />
+        <Route path="/bank-details" element={<ProtectedRoute><BankDetails /></ProtectedRoute>} />
+        <Route path="/withdraw" element={<ProtectedRoute><Withdraw /></ProtectedRoute>} />
+        <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+        <Route path="/refer" element={<ProtectedRoute><Refer /></ProtectedRoute>} />
+        <Route path="/save-money" element={<ProtectedRoute><SaveMoney /></ProtectedRoute>} />
+        <Route path="/one-time" element={<ProtectedRoute><OneTime /></ProtectedRoute>} />
+        <Route path="/my-investment" element={<ProtectedRoute><MyInvestment /></ProtectedRoute>} />
+        <Route path="/invest-history" element={<ProtectedRoute><InvestHistory /></ProtectedRoute>} />
+        <Route path="/bonus-history" element={<ProtectedRoute><BonusHistory /></ProtectedRoute>} />
+        <Route path="/kyc" element={<ProtectedRoute><KYC /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+        <Route path="/legal/:type" element={<ProtectedRoute><LegalPages /></ProtectedRoute>} />
+        <Route path="/performance-bonus" element={<ProtectedRoute><PerformanceBonus /></ProtectedRoute>} />
+        <Route path="/team-bonus" element={<ProtectedRoute><TeamBonus /></ProtectedRoute>} />
+        <Route path="/royalty-bonus" element={<ProtectedRoute><RoyaltyBonus /></ProtectedRoute>} />
+        <Route path="/referral-tree" element={<ProtectedRoute><ReferralTree /></ProtectedRoute>} />
+        <Route path="/analytics" element={<ProtectedRoute><UserAnalytics /></ProtectedRoute>} />
+        <Route path="/daily-reward" element={<ProtectedRoute><DailyReward /></ProtectedRoute>} />
+        <Route path="/investment-assistant" element={<ProtectedRoute><InvestmentAssistant /></ProtectedRoute>} />
         <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
+        <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
 
-        <Route
-          path="/support"
-          element={
-            <ProtectedRoute>
-              <Support />
-            </ProtectedRoute>
-          }
-        />
+        {/* Protected Admin Routes */}
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+        <Route path="/admin-kyc" element={<AdminRoute><AdminKYC /></AdminRoute>} />
+        <Route path="/admin-analytics" element={<AdminRoute><AdvancedAdminAnalytics /></AdminRoute>} />
+        <Route path="/admin-user-control" element={<AdminRoute><AdminUserControl /></AdminRoute>} />
+        <Route path="/admin-one-time" element={<AdminRoute><AdminOneTime /></AdminRoute>} />
+        <Route path="/admin-support" element={<AdminRoute><AdminSupport /></AdminRoute>} />
+        <Route path="/admin-notify" element={<AdminRoute><AdminNotification /></AdminRoute>} />
 
-        {/* 🛠️ অ্যাডমিন রুটস */}
-        <Route
-          path="/admin"
-          element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-kyc"
-          element={
-            <AdminRoute>
-              <AdminKYC />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-analytics"
-          element={
-            <AdminRoute>
-              <AdvancedAdminAnalytics />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-user-control"
-          element={
-            <AdminRoute>
-              <AdminUserControl />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-one-time"
-          element={
-            <AdminRoute>
-              <AdminOneTime />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-support"
-          element={
-            <AdminRoute>
-              <AdminSupport />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-notify"
-          element={
-            <AdminRoute>
-              <AdminNotification />
-            </AdminRoute>
-          }
-        />
-
-        {/* 🔄 ফলব্যাক রুট */}
-        <Route path="*" element={<Login />} />
-
+        {/* Fallback Route */}
+        <Route path="*" element={<Navigate to={localStorage.getItem("token") ? (localStorage.getItem("role") === "admin" ? "/admin" : "/home") : "/login"} replace />} />
       </Routes>
 
-      <ToastContainer
-        position="top-center"
-        autoClose={2500}
-        theme="dark"
-      />
-
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-      />
-
+      <ToastContainer position="top-center" autoClose={2500} theme="dark" />
+      <Toaster position="top-center" reverseOrder={false} />
     </BrowserRouter>
   );
 }
