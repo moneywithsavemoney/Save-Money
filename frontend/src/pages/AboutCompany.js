@@ -11,8 +11,8 @@ export default function AboutCompany() {
           <h1 style={styles.title}>SAVE MONEY</h1>
           <p style={styles.slogan}>Smart Investing • Exponential Growth • Financial Freedom</p>
           <p style={styles.heroDesc}>
-            Save Money হলো একটি প্রাতিষ্ঠানিক মানের অ্যালগরিদমিক সেভিংস এবং ডাইভারসিফাইড ইনভেস্টমেন্ট প্ল্যাটফর্ম। 
-            আমরা আধুনিক ডিজিটাল প্রযুক্তির মাধ্যমে আপনার সঞ্চয়কে নিরাপদ রেখে সর্বোচ্চ সম্পদ বৃদ্ধিতে সাহায্য করি।
+            Save Money is an institutional-grade algorithmic savings and diversified investment platform. 
+            We help you maximize wealth growth while keeping your savings secure through modern digital technology.
           </p>
         </div>
 
@@ -20,58 +20,58 @@ export default function AboutCompany() {
         <div style={styles.statsGrid}>
           <div style={styles.statCard}>
             <h3 style={styles.statNumber}>$50M+</h3>
-            <p style={styles.statLabel}>ম্যানেজড ডিজিটাল অ্যাসেট</p>
+            <p style={styles.statLabel}>Managed Digital Assets</p>
           </div>
           <div style={styles.statCard}>
             <h3 style={styles.statNumber}>100K+</h3>
-            <p style={styles.statLabel}>সক্রিয় বিনিয়োগকারী</p>
+            <p style={styles.statLabel}>Active Investors</p>
           </div>
           <div style={styles.statCard}>
             <h3 style={styles.statNumber}>99.9%</h3>
-            <p style={styles.statLabel}>প্ল্যাটফর্ম সিকিউরিটি স্কোর</p>
+            <p style={styles.statLabel}>Platform Security Score</p>
           </div>
           <div style={styles.statCard}>
             <h3 style={styles.statNumber}>24/7</h3>
-            <p style={styles.statLabel}>ইনস্ট্যান্ট লিকুইডিটি পে-আউট</p>
+            <p style={styles.statLabel}>Instant Liquidity Payout</p>
           </div>
         </div>
 
         {/* Why Choose Us / Key Features */}
         <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>কেন Save Money নির্বাচন করবেন?</h2>
-          <p style={styles.sectionSub}>আমাদের প্রিমিয়াম ইনভেস্টমেন্ট ফিচারসমূহ</p>
+          <h2 style={styles.sectionTitle}>Why Choose Save Money?</h2>
+          <p style={styles.sectionSub}>Our Premium Investment Features</p>
         </div>
 
         <div style={styles.featuresGrid}>
           <div style={styles.featureCard}>
             <div style={styles.featureIcon}>🛡️</div>
-            <h3 style={styles.featureTitle}>ব্যাংক-গ্রেড সিকিউরিটি</h3>
+            <h3 style={styles.featureTitle}>Bank-Grade Security</h3>
             <p style={styles.featureDesc}>
-              ২৫৬-বিট এসএসএল এনক্রিপশন এবং মাল্টি-ফ্যাক্টর প্রোটোকল দিয়ে আপনার প্রতিটি ট্রানজেকশন সুরক্ষিত রাখা হয়।
+              Every transaction is protected with 256-bit SSL encryption and multi-factor security protocols.
             </p>
           </div>
 
           <div style={styles.featureCard}>
             <div style={styles.featureIcon}>📈</div>
-            <h3 style={styles.featureTitle}>অটো-ব্যালান্সিং পোর্টফোলিও</h3>
+            <h3 style={styles.featureTitle}>Auto-Balancing Portfolio</h3>
             <p style={styles.featureDesc}>
-              আমাদের স্মার্ট অ্যালগরিদম সর্বনিম্ন ঝুঁকি নিশ্চিত করে মার্কেটের সেরা রিটার্ন জেনারেট করতে কাজ করে।
+              Our smart algorithms work continuously to secure the best market returns with minimal risk.
             </p>
           </div>
 
           <div style={styles.featureCard}>
             <div style={styles.featureIcon}>⚡</div>
-            <h3 style={styles.featureTitle}>ইনস্ট্যান্ট ক্যাশআউট</h3>
+            <h3 style={styles.featureTitle}>Instant Cashout</h3>
             <p style={styles.featureDesc}>
-              কোনো প্রকার দীর্ঘসূত্রতা ছাড়াই আপনার প্রফিট ও মূলধন যেকোনো সময় তুলে নেওয়ার পূর্ণ স্বাধীনতা।
+              Complete freedom to withdraw your profit and principal at any time without delays.
             </p>
           </div>
 
           <div style={styles.featureCard}>
             <div style={styles.featureIcon}>🔍</div>
-            <h3 style={styles.featureTitle}>১০০% স্বচ্ছ ট্র্যাকিং</h3>
+            <h3 style={styles.featureTitle}>100% Transparent Tracking</h3>
             <p style={styles.featureDesc}>
-              আপনার বিনিয়োগ কোথায় এবং কীভাবে বৃদ্ধি পাচ্ছে তা রিয়েল-টাইম এনালিটিক্স ড্যাশবোর্ডে সহজেই পর্যবেক্ষণ করুন।
+              Easily monitor where and how your investment is growing with our real-time analytics dashboard.
             </p>
           </div>
         </div>
@@ -81,20 +81,20 @@ export default function AboutCompany() {
           <div style={styles.infoCard}>
             <div style={styles.cardHeader}>
               <span style={styles.cardIcon}>🎯</span>
-              <h2 style={styles.cardTitle}>আমাদের মিশন</h2>
+              <h2 style={styles.cardTitle}>Our Mission</h2>
             </div>
             <p style={styles.cardDesc}>
-              প্রতিটি মানুষের মাঝে সুশৃঙ্খল সঞ্চয়ের অভ্যাস তৈরি করা এবং ডিজিটাল ফিনান্সিয়াল প্রোডাক্টের মাধ্যমে নির্ভরযোগ্য প্রফিট জেনারেট করার স্থায়ী পথ তৈরি করে দেওয়া।
+              To cultivate disciplined saving habits in everyone and provide a sustainable path to reliable profits through digital financial products.
             </p>
           </div>
 
           <div style={styles.infoCard}>
             <div style={styles.cardHeader}>
               <span style={styles.cardIcon}>👁️</span>
-              <h2 style={styles.cardTitle}>আমাদের ভিশন</h2>
+              <h2 style={styles.cardTitle}>Our Vision</h2>
             </div>
             <p style={styles.cardDesc}>
-              ভবিষ্যতের গ্লোবাল ফিনটেক ইন্ডাস্ট্রিতে সবচেয়ে বিশ্বাসযোগ্য ও নিরাপদ ইনভেস্টমেন্ট ইকোসিস্টেম হিসেবে নেতৃত্ব প্রদান করা।
+              To lead the future global fintech industry as the most trusted and secure investment ecosystem.
             </p>
           </div>
         </div>
@@ -103,18 +103,18 @@ export default function AboutCompany() {
         <div style={styles.noticeBox}>
           <div style={styles.noticeHeader}>
             <span style={styles.noticeIcon}>⚠️</span>
-            <h3 style={styles.noticeTitle}>গুরুত্বপূর্ণ ঝুঁকি ও সিকিউরিটি ডিক্লেয়ারেশন</h3>
+            <h3 style={styles.noticeTitle}>Important Risk & Security Declaration</h3>
           </div>
           <p style={styles.noticeText}>
-            Save Money একটি প্রাইভেট ইনিশিয়েটিভ ফিনটেক প্ল্যাটফর্ম। সকল প্রকার ডিজিটাল বিনিয়োগ বাজারগত পরিবর্তনের ওপর নির্ভরশীল। যেকোনো স্কিমে অংশগ্রহণ করার পূর্বে অনুগ্রহ করে আমাদের শর্তাবলী (Terms & Conditions) এবং ঝুঁকি নীতি ভালো করে পড়ে সিদ্ধান্ত নিন।
+            Save Money is a private initiative fintech platform. All digital investments are subject to market fluctuations. Please carefully read and review our Terms & Conditions and Risk Policy before participating in any scheme.
           </p>
         </div>
 
         {/* Call To Action Card */}
         <div style={styles.ctaCard}>
-          <h2 style={styles.ctaTitle}>আপনার আর্থিক স্বাধীনতা অর্জন করুন আজই</h2>
-          <p style={styles.ctaDesc}>স্মার্ট ইনভেস্টরদের সাথে যুক্ত হয়ে আপনার সেভিংসকে রূপান্তরিত করুন উচ্চ-উৎপাদনশীল সম্পদে।</p>
-          <button style={styles.ctaButton}>বিনিয়োগ শুরু করুন</button>
+          <h2 style={styles.ctaTitle}>Achieve Your Financial Freedom Today</h2>
+          <p style={styles.ctaDesc}>Join smart investors and transform your savings into high-yield assets.</p>
+          <button style={styles.ctaButton}>Start Investing</button>
         </div>
 
       </div>
