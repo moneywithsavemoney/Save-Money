@@ -1458,6 +1458,24 @@ export default function OneTime() {
               </strong>
             </div>
 
+            {/* Note for Withdrawal Timing */}
+            <div style={{
+              marginTop: "12px",
+              padding: "10px 14px",
+              background: "rgba(56, 189, 248, 0.1)",
+              border: "1px solid rgba(56, 189, 248, 0.3)",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontSize: "13px",
+              color: "#38bdf8",
+              fontWeight: "600"
+            }}>
+              <span style={{ fontSize: "16px" }}>ℹ️</span>
+              <span>Note: Withdrawal request will be processed successfully only between 10:00 AM and 6:00 PM.</span>
+            </div>
+
             {/* Alerts */}
             {hasWithdrawnToday ? (
               <div style={styles.balanceAlertBoxDark}>
@@ -2168,7 +2186,7 @@ const styles = {
   },
   footerCopyRow: {
     display: "flex",
-    justifyContent: "space-between",
+    justify.content: "space-between",
     fontSize: "13px",
     color: "#64748b"
   },
