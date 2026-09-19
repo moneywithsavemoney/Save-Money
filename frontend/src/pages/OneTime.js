@@ -2186,7 +2186,7 @@ const styles = {
   },
   footerCopyRow: {
     display: "flex",
-    justify.content: "space-between",
+    justifycontent: "space-between",
     fontSize: "13px",
     color: "#64748b"
   },
