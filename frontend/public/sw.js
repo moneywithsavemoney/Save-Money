@@ -1,5 +1,5 @@
 const CACHE_NAME = "save-money-cache-v1";
-const urlsToCache = ["/", "/index.html"];
+const urlsToCache = ["/", "/index.html", "/manifest.json", "/logo192.png", "/logo512.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -11,7 +11,18 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
@@ -22,7 +33,7 @@ self.addEventListener("fetch", (event) => {
   );
 });
 
-// 👇 নতুন যোগ করা হলো: পুশ নোটিফিকেশন রিসিভ ও কন্ট্রোল বারে দেখানোর জন্য
+// পুশ নোটিফিকেশন রিসিভ ও হ্যান্ডলিং
 self.addEventListener("push", function (event) {
   let data = { title: "Save Money", body: "You have a new notification" };
   
@@ -36,7 +47,7 @@ self.addEventListener("push", function (event) {
 
   const options = {
     body: data.body,
-    icon: "/logo512.png", // আপনার অ্যাপের লোগো পাথ
+    icon: "/logo512.png",
     badge: "/logo512.png",
     vibrate: [100, 50, 100],
     data: {
@@ -49,7 +60,7 @@ self.addEventListener("push", function (event) {
   );
 });
 
-// 👇 নোটিফিকেশনে ক্লিক করলে অ্যাপের নির্দিষ্ট পেজে রিডাইরেক্ট করার জন্য
+// নোটিফিকেশনে ক্লিক হ্যান্ডলিং
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
   event.waitUntil(
