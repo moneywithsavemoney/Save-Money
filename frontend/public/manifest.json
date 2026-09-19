@@ -1,4 +1,5 @@
 {
+  "id": "https://save-moneyy-indol.vercel.app/",
   "short_name": "Save Money",
   "name": "Save Money - Save & Earn",
   "description": "Save Money investment and earning platform",
@@ -27,6 +28,21 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["finance", "productivity"],
-  "screenshots": []
+  "screenshots": [
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Save Money App Preview"
+    },
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Save Money Desktop Preview"
+    }
+  ],
+  "categories": ["finance", "productivity"]
 }
