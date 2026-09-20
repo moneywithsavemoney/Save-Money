@@ -17,6 +17,8 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies, Build React & Sync
+        env:
+          CI: false
         run: |
           cd frontend
           npm install --legacy-peer-deps
