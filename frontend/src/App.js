@@ -66,7 +66,6 @@ function PublicRoute({ children }) {
 
 function App() {
   const [popup, setPopup] = useState(null);
-  const [isNotificationAllowed, setIsNotificationAllowed] = useState(true);
 
   const setupPushNotifications = async () => {
     try {
@@ -77,7 +76,6 @@ function App() {
       }
 
       if (permStatus.receive === "granted") {
-        setIsNotificationAllowed(true);
         await PushNotifications.register();
 
         PushNotifications.addListener("registration", (token) => {
@@ -93,8 +91,6 @@ function App() {
             setPopup(null);
           }, 5000);
         });
-      } else {
-        setIsNotificationAllowed(false);
       }
     } catch (error) {
       console.error("Push Notification Setup Error:", error);
@@ -123,42 +119,6 @@ function App() {
     };
   }, []);
 
-  if (!isNotificationAllowed && Capacitor.isNativePlatform()) {
-    return (
-      <div style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        textAlign: "center",
-        padding: "20px",
-        backgroundColor: "#111827",
-        color: "#ffffff"
-      }}>
-        <h2>নোটিফিকেশন পারমিশন প্রয়োজন</h2>
-        <p style={{ marginTop: "10px", marginBottom: "20px", color: "#9ca3af" }}>
-          অ্যাপটি ব্যবহার করতে অবশ্যই নোটিফিকেশন পারমিশন এলাউ করতে হবে।
-        </p>
-        <button
-          onClick={setupPushNotifications}
-          style={{
-            padding: "12px 24px",
-            backgroundColor: "#22c55e",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            fontSize: "16px",
-            fontWeight: "bold",
-            cursor: "pointer"
-          }}
-        >
-          Allow Permission
-        </button>
-      </div>
-    );
-  }
-
   return (
     <Router>
       {popup && (
@@ -179,6 +139,7 @@ function App() {
 
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
