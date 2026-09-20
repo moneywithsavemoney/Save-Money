@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API } from "../config";
 
@@ -19,10 +19,12 @@ export default function Home() {
   // 👇 ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
-  const [isDownloadingApp, setIsDownloadingApp] = useState(false);
 
   // 👇 পপআপ মোডালের স্টেট
   const [showOfferPopup, setShowOfferPopup] = useState(false);
+
+  // 👇 স্বাইপ হ্যান্ডলার স্টেট (বাঁদিক থেকে ডানদিকে টানলে সাইডবার খোলার জন্য)
+  const [touchStartX, setTouchStartX] = useState(0);
 
   const [statusOverlay, setStatusOverlay] = useState({
     show: false,
@@ -30,33 +32,24 @@ export default function Home() {
     message: ""
   });
 
-  // 👇 সোয়াইপ ধরে রাখার জন্য রেফারেন্স (Swipe from Left to Right)
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchMove = (e) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    // বাঁদিকের প্রান্ত (50px এর মধ্যে) থেকে ডানদিকে ৫০ পিক্সেলের বেশি সোয়াইপ করলে ড্রয়ার খুলবে
-    if (touchStartX.current < 50 && touchEndX.current - touchStartX.current > 50) {
-      setIsDrawerOpen(true);
-    }
-    //Reset coordinates
-    touchStartX.current = 0;
-    touchEndX.current = 0;
-  };
-
   const triggerStatusOverlay = (type, message) => {
     setStatusOverlay({ show: true, type, message });
     setTimeout(() => {
       setStatusOverlay({ show: false, type: "info", message: "" }); 
     }, 2500);
+  };
+
+  // 👇 স্বাইপ জেশ্চার ফাংশনালিটি
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    // স্ক্রিনের বাম প্রান্ত থেকে (৫০ পিক্সেলের মধ্যে) যদি ডানদিকে ৫০ পিক্সেলের বেশি টান দেওয়া হয়
+    if (touchStartX < 50 && touchEndX - touchStartX > 50) {
+      setIsDrawerOpen(true);
+    }
   };
 
   // 👇 ব্রাউজার পুশ নোটিফিকেশন সাবস্ক্রাইব করার ফাংশন
@@ -147,21 +140,14 @@ export default function Home() {
     }, 1200);
   };
 
-  // 👇 SAVE MONEY APK ডাউনলোডের জন্য হ্যান্ডলার
+  // 👇 Save Money APK ডাউনলোডের জন্য হ্যান্ডলার
   const handleDownloadApp = () => {
-    if (isDownloadingApp) return;
-    setIsDownloadingApp(true);
-
-    setTimeout(() => {
-      const link = document.createElement("a");
-      link.href = "/Save Money.apk";
-      link.download = "Save Money.apk";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      setIsDownloadingApp(false);
-    }, 1000);
+    const link = document.createElement("a");
+    link.href = "/Save Money.apk";
+    link.download = "Save Money.apk";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleDownloadImage = async (imageUrl) => {
@@ -366,7 +352,6 @@ export default function Home() {
     <div 
       style={styles.page}
       onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
 
@@ -401,7 +386,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* SIDEBAR NAV BUTTONS (Zoomed / Bigger Size) */}
+          {/* SIDEBAR NAV BUTTONS (Zoomed & Enlarged) */}
           <div style={styles.drawerNavList}>
             <button 
               style={{
@@ -927,34 +912,41 @@ export default function Home() {
         HELP OTHER FOR EARN MORE 💸
       </h1>
 
-      {/* 👇 📲 ANIMATED APP DOWNLOAD SECTION */}
-      <section style={styles.appDownloadContainer}>
-        <div style={styles.appDownloadGlow}></div>
-        <div style={styles.appDownloadContent}>
-          <div style={styles.appIconWrapper}>
-            <span style={styles.appIconAnimated}>📱</span>
+      {/* 📱 APP DOWNLOAD SECTION */}
+      <div style={styles.appDownloadCard}>
+        <div style={styles.appDownloadHeader}>
+          <img 
+            src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
+            alt="Save Money Logo" 
+            style={styles.appLogoImg} 
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+          <div>
+            <h3 style={styles.appDownloadTitle}>download our save Money application</h3>
+            <p style={styles.appDownloadSub}>Fast, Secure & Easy to Use</p>
           </div>
-          <h2 style={styles.appDownloadTitle}>
-            Download Our Save Money Application
-          </h2>
-          <p style={styles.appDownloadSubtitle}>
-            Get the best experience with our official Android App!
-          </p>
-
-          <button
-            style={styles.appDownloadBtn}
-            onClick={handleDownloadApp}
-            disabled={isDownloadingApp}
-          >
-            <span style={styles.appDownloadIcon}>
-              {isDownloadingApp ? "⏳" : "⬇️"}
-            </span>
-            <span>
-              {isDownloadingApp ? "Downloading..." : "Download Save Money APK"}
-            </span>
-          </button>
         </div>
-      </section>
+
+        <button 
+          style={styles.appDownloadBtn}
+          onClick={handleDownloadApp}
+        >
+          {/* Play Store Logo SVG */}
+          <svg style={{ width: "22px", height: "22px" }} viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M3.6,1.82C3.24,2.02 3,2.41 3,2.87V21.13C3,21.59 3.24,21.98 3.6,22.18L13.1,12.68L3.6,1.82Z" />
+            <path fill="#34A853" d="M16.63,9.15L13.1,12.68L16.63,16.21L20.84,13.82C21.61,13.38 21.61,12.62 20.84,12.18L16.63,9.15Z" />
+            <path fill="#EA4335" d="M3.6,1.82L13.1,11.32L16.63,7.79L5.34,1.38C4.78,1.06 4.1,1.22 3.6,1.82Z" />
+            <path fill="#FBBC05" d="M3.6,22.18L13.1,12.68L16.63,16.21L5.34,22.62C4.78,22.94 4.1,22.78 3.6,22.18Z" />
+          </svg>
+          
+          <span>Download App</span>
+
+          {/* Download Icon SVG */}
+          <svg style={{ width: "20px", height: "20px", marginLeft: "auto" }} fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+          </svg>
+        </button>
+      </div>
 
       {/* FOOTER */}
       <footer style={styles.footer}>
@@ -1237,7 +1229,7 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     marginBottom: "12px",
-    paddingBottom: "12px",
+    paddingBottom: "10px",
     borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
     flexShrink: 0
   },
@@ -1248,8 +1240,8 @@ const styles = {
     gap: "6px"
   },
   drawerLogoWrapper: {
-    width: "52px",
-    height: "52px",
+    width: "50px",
+    height: "50px",
     borderRadius: "50%",
     background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
     border: "2px solid #22c55e",
@@ -1275,7 +1267,7 @@ const styles = {
     fontSize: "11px",
     color: "#a7f3d0",
     fontWeight: "600",
-    marginTop: "1px",
+    marginTop: "2px",
     textAlign: "center"
   },
   drawerNavList: {
@@ -1284,24 +1276,23 @@ const styles = {
     gap: "8px",
     flexShrink: 0,
     overflowY: "auto",
-    maxHeight: "calc(100vh - 220px)",
-    paddingRight: "2px"
+    maxHeight: "calc(100vh - 210px)"
   },
   
-  // 🟢 ZOOMED / LARGER SIDEBAR BUTTONS
+  // 🔍 BIGGER / ZOOMED BUTTONS FOR SIDEBAR
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
     gap: "12px",
-    padding: "12px 18px", // Enlarged padding
+    padding: "12px 16px",
     background: "rgba(255, 255, 255, 0.12)",
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
     border: "1px solid rgba(255, 255, 255, 0.25)",
     clipPath: "polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%)",
     color: "#ffffff",
-    fontSize: "15px", // Enlarged font size
-    fontWeight: "700",
+    fontSize: "15px",
+    fontWeight: "800",
     cursor: "pointer",
     textAlign: "left",
     transition: "all 0.25s ease",
@@ -1309,20 +1300,20 @@ const styles = {
     textShadow: "0 1px 2px rgba(0,0,0,0.5)"
   },
   drawerNavItemActive: {
-    background: "rgba(255, 255, 255, 0.28)",
+    background: "rgba(255, 255, 255, 0.3)",
     border: "1px solid #ffffff",
     boxShadow: "0 0 18px rgba(255, 255, 255, 0.5)",
-    fontWeight: "800"
+    fontWeight: "900"
   },
   drawerNavIcon: {
-    fontSize: "22px", // Enlarged icon size
+    fontSize: "22px",
     width: "26px",
     display: "inline-block",
     textAlign: "center"
   },
   drawerNavText: {
     flex: 1,
-    fontSize: "15px",
+    fontSize: "14px",
     letterSpacing: "0.4px"
   },
 
@@ -1397,6 +1388,58 @@ const styles = {
     height: "65%",
     objectFit: "95%",
     borderRadius: "16px"
+  },
+
+  // 📱 APP DOWNLOAD CARD STYLES
+  appDownloadCard: {
+    marginTop: "24px",
+    background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+    borderRadius: "20px",
+    padding: "18px",
+    border: "1px solid rgba(34, 197, 94, 0.4)",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "14px"
+  },
+  appDownloadHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px"
+  },
+  appLogoImg: {
+    width: "44px",
+    height: "44px",
+    borderRadius: "12px",
+    border: "1px solid #22c55e",
+    objectFit: "contain"
+  },
+  appDownloadTitle: {
+    margin: 0,
+    fontSize: "15px",
+    fontWeight: "800",
+    color: "#ffffff",
+    textTransform: "capitalize"
+  },
+  appDownloadSub: {
+    margin: "2px 0 0 0",
+    fontSize: "12px",
+    color: "#94a3b8"
+  },
+  appDownloadBtn: {
+    width: "100%",
+    padding: "12px 16px",
+    borderRadius: "14px",
+    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+    border: "none",
+    color: "#ffffff",
+    fontWeight: "900",
+    fontSize: "15px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.4)"
   },
 
   popupOverlay: {
@@ -1998,88 +2041,6 @@ const styles = {
     marginTop: "22px"
   },
 
-  // 🟢 📲 APP DOWNLOAD BANNER STYLES (ANIMATED)
-  appDownloadContainer: {
-    position: "relative",
-    marginTop: "24px",
-    borderRadius: "24px",
-    padding: "22px 18px",
-    background: "linear-gradient(135deg, #022013 0%, #064e3b 50%, #0f172a 100%)",
-    border: "2px solid #10b981",
-    boxShadow: "0 0 25px rgba(16, 185, 129, 0.35)",
-    overflow: "hidden",
-    textAlign: "center"
-  },
-  appDownloadGlow: {
-    position: "absolute",
-    top: "-50px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    width: "150px",
-    height: "150px",
-    background: "rgba(34, 197, 94, 0.25)",
-    filter: "blur(40px)",
-    borderRadius: "50%",
-    pointerEvents: "none"
-  },
-  appDownloadContent: {
-    position: "relative",
-    zIndex: 2,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "8px"
-  },
-  appIconWrapper: {
-    width: "60px",
-    height: "60px",
-    borderRadius: "50%",
-    background: "rgba(16, 185, 129, 0.2)",
-    border: "1px solid #34d399",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 0 15px rgba(52, 211, 153, 0.4)"
-  },
-  appIconAnimated: {
-    fontSize: "30px",
-    animation: "bounce 2s infinite"
-  },
-  appDownloadTitle: {
-    margin: "4px 0 0 0",
-    fontSize: "17px",
-    fontWeight: "900",
-    color: "#ffffff",
-    letterSpacing: "0.5px"
-  },
-  appDownloadSubtitle: {
-    margin: "0 0 12px 0",
-    fontSize: "12px",
-    color: "#a7f3d0",
-    fontWeight: "600"
-  },
-  appDownloadBtn: {
-    width: "100%",
-    maxWidth: "280px",
-    padding: "12px 20px",
-    border: "1px solid rgba(52, 211, 153, 0.8)",
-    background: "linear-gradient(90deg, #10b981 0%, #059669 100%)",
-    clipPath: "polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%)",
-    color: "#ffffff",
-    fontWeight: "900",
-    fontSize: "15px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "10px",
-    boxShadow: "0 0 18px rgba(16, 185, 129, 0.5)",
-    transition: "transform 0.2s ease, box-shadow 0.2s ease"
-  },
-  appDownloadIcon: {
-    fontSize: "18px"
-  },
-
   footer: {
     textAlign: "center",
     padding: "24px 4px",
@@ -2155,10 +2116,6 @@ const keyframes = `
 @keyframes marquee {
   0% { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-100%, 0, 0); }
-}
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
 }
 `;
 try {
