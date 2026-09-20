@@ -23,8 +23,9 @@ export default function Home() {
   // 👇 পপআপ মোডালের স্টেট
   const [showOfferPopup, setShowOfferPopup] = useState(false);
 
-  // 👇 স্বাইপ হ্যান্ডলার স্টেট (বাঁদিক থেকে ডানদিকে টানলে সাইডবার খোলার জন্য)
+  // 👇 স্বাইপ হ্যান্ডলার স্টেট (বাম দিক থেকে ডান দিকে সোয়াইপ করার জন্য)
   const [touchStartX, setTouchStartX] = useState(0);
+  const [touchStartY, setTouchStartY] = useState(0);
 
   const [statusOverlay, setStatusOverlay] = useState({
     show: false,
@@ -39,15 +40,21 @@ export default function Home() {
     }, 2500);
   };
 
-  // 👇 স্বাইপ জেশ্চার ফাংশনালিটি
+  // 👇 নিখুঁত স্বাইপ জেশ্চার হ্যান্ডলার (স্ক্রিনের বাম ৮০ পিক্সেলের ভেতর থেকে ডানে টান দিলে)
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
   };
 
   const handleTouchEnd = (e) => {
     const touchEndX = e.changedTouches[0].clientX;
-    // স্ক্রিনের বাম প্রান্ত থেকে (৫০ পিক্সেলের মধ্যে) যদি ডানদিকে ৫০ পিক্সেলের বেশি টান দেওয়া হয়
-    if (touchStartX < 50 && touchEndX - touchStartX > 50) {
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+
+    // স্ক্যানিং শর্ত: শুধুমাত্র বাম পাশ থেকে শুরু হবে, ডানে মিনিমাম ৬০px যেতে হবে এবং স্ক্রোল বাধাগ্রস্ত করবে না
+    if (touchStartX < 80 && diffX > 60 && Math.abs(diffX) > Math.abs(diffY)) {
       setIsDrawerOpen(true);
     }
   };
@@ -123,7 +130,7 @@ export default function Home() {
     return outputArray;
   }
 
-  // 👇 PLAN PDF ডাউনলোডের জন্য হ্যান্ডলার
+  // 👇 PLAN PDF ডাউনলোডের হ্যান্ডলার
   const handleDownloadPlan = () => {
     if (isDownloadingPlan) return;
     setIsDownloadingPlan(true);
@@ -140,7 +147,7 @@ export default function Home() {
     }, 1200);
   };
 
-  // 👇 Save Money APK ডাউনলোডের জন্য হ্যান্ডলার
+  // 👇 Save Money APK ডাউনলোডের হ্যান্ডলার
   const handleDownloadApp = () => {
     const link = document.createElement("a");
     link.href = "/Save Money.apk";
@@ -386,7 +393,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* SIDEBAR NAV BUTTONS (Zoomed & Enlarged) */}
+          {/* SIDEBAR NAV BUTTONS */}
           <div style={styles.drawerNavList}>
             <button 
               style={{
@@ -691,7 +698,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 🟢 LIMITED OFFER ANNOUNCEMENT BAR */}
+      {/* LIMITED OFFER ANNOUNCEMENT BAR */}
       <div style={styles.limitedOfferBar}>
         <div style={styles.marqueeContainer}>
           <div style={styles.marqueeText}>
@@ -912,40 +919,59 @@ export default function Home() {
         HELP OTHER FOR EARN MORE 💸
       </h1>
 
-      {/* 📱 APP DOWNLOAD SECTION */}
-      <div style={styles.appDownloadCard}>
+      {/* 📱 ULTRA PREMIUM APP DOWNLOAD CARD */}
+      <div className="premium-download-card" style={styles.appDownloadCard}>
+        <div style={styles.appGlowBackground}></div>
+        
+        {/* Top Header Badge */}
+        <div style={styles.appTopBadge}>
+          <span style={styles.appBadgePulse}></span>
+          <span>OFFICIAL MOBILE APP</span>
+        </div>
+
+        {/* Branding Info */}
         <div style={styles.appDownloadHeader}>
-          <img 
-            src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
-            alt="Save Money Logo" 
-            style={styles.appLogoImg} 
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
+          <div style={styles.appLogoContainer}>
+            <img 
+              src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
+              alt="Save Money Logo" 
+              style={styles.appLogoImg} 
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+            <div style={styles.appOnlineDot}></div>
+          </div>
           <div>
-            <h3 style={styles.appDownloadTitle}>download our save Money application</h3>
-            <p style={styles.appDownloadSub}>Fast, Secure & Easy to Use</p>
+            <h3 style={styles.appDownloadTitle}>Save Money App</h3>
+            <p style={styles.appDownloadSub}>Fast, Ultra-Secure & Easy to Earn</p>
+            <div style={styles.appRatingWrap}>
+              <span style={{ color: "#facc15" }}>★ ★ ★ ★ ★</span>
+              <span style={styles.appRatingText}>4.9 (10K+ Downloads)</span>
+            </div>
           </div>
         </div>
 
-        <button 
-          style={styles.appDownloadBtn}
-          onClick={handleDownloadApp}
-        >
-          {/* Play Store Logo SVG */}
-          <svg style={{ width: "22px", height: "22px" }} viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M3.6,1.82C3.24,2.02 3,2.41 3,2.87V21.13C3,21.59 3.24,21.98 3.6,22.18L13.1,12.68L3.6,1.82Z" />
-            <path fill="#34A853" d="M16.63,9.15L13.1,12.68L16.63,16.21L20.84,13.82C21.61,13.38 21.61,12.62 20.84,12.18L16.63,9.15Z" />
-            <path fill="#EA4335" d="M3.6,1.82L13.1,11.32L16.63,7.79L5.34,1.38C4.78,1.06 4.1,1.22 3.6,1.82Z" />
-            <path fill="#FBBC05" d="M3.6,22.18L13.1,12.68L16.63,16.21L5.34,22.62C4.78,22.94 4.1,22.78 3.6,22.18Z" />
-          </svg>
-          
-          <span>Download App</span>
-
-          {/* Download Icon SVG */}
-          <svg style={{ width: "20px", height: "20px", marginLeft: "auto" }} fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-          </svg>
-        </button>
+        {/* Action Buttons */}
+        <div style={styles.appBtnGroup}>
+          <button 
+            className="premium-app-btn"
+            style={styles.appDownloadBtn}
+            onClick={handleDownloadApp}
+          >
+            <svg style={styles.appStoreSvg} viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M3.6,1.82C3.24,2.02 3,2.41 3,2.87V21.13C3,21.59 3.24,21.98 3.6,22.18L13.1,12.68L3.6,1.82Z" />
+              <path fill="#34A853" d="M16.63,9.15L13.1,12.68L16.63,16.21L20.84,13.82C21.61,13.38 21.61,12.62 20.84,12.18L16.63,9.15Z" />
+              <path fill="#EA4335" d="M3.6,1.82L13.1,11.32L16.63,7.79L5.34,1.38C4.78,1.06 4.1,1.22 3.6,1.82Z" />
+              <path fill="#FBBC05" d="M3.6,22.18L13.1,12.68L16.63,16.21L5.34,22.62C4.78,22.94 4.1,22.78 3.6,22.18Z" />
+            </svg>
+            <div style={styles.btnTextWrapper}>
+              <span style={styles.btnMiniLabel}>DIRECT APK</span>
+              <span style={styles.btnMainLabel}>Download Android App</span>
+            </div>
+            <svg style={styles.downloadIconSvg} fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* FOOTER */}
@@ -1151,7 +1177,7 @@ function BottomNavItem({ icon, title, active, onClick }) {
 }
 
 const styles = {
-  // 🟢 2ND SCREENSHOT LIMITED OFFER BAR STYLES
+  // LIMITED OFFER BAR STYLES
   limitedOfferBar: {
     marginTop: "16px",
     background: "linear-gradient(180deg, #022013 0%, #043820 100%)",
@@ -1191,7 +1217,7 @@ const styles = {
     color: "#ffffff"
   },
 
-  // 👇 DRAWER STYLES
+  // DRAWER STYLES
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -1278,8 +1304,6 @@ const styles = {
     overflowY: "auto",
     maxHeight: "calc(100vh - 210px)"
   },
-  
-  // 🔍 BIGGER / ZOOMED BUTTONS FOR SIDEBAR
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
@@ -1390,56 +1414,147 @@ const styles = {
     borderRadius: "16px"
   },
 
-  // 📱 APP DOWNLOAD CARD STYLES
+  // 📱 ULTRA PREMIUM APP DOWNLOAD CARD STYLES
   appDownloadCard: {
-    marginTop: "24px",
-    background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-    borderRadius: "20px",
-    padding: "18px",
-    border: "1px solid rgba(34, 197, 94, 0.4)",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+    position: "relative",
+    marginTop: "28px",
+    background: "linear-gradient(135deg, #061826 0%, #0b2f38 50%, #03141e 100%)",
+    borderRadius: "24px",
+    padding: "22px 18px",
+    border: "1px solid rgba(34, 197, 94, 0.5)",
+    boxShadow: "0 15px 35px rgba(0,0,0,0.6), inset 0 0 15px rgba(34, 197, 94, 0.15)",
     display: "flex",
     flexDirection: "column",
-    gap: "14px"
+    gap: "16px",
+    overflow: "hidden"
+  },
+  appGlowBackground: {
+    position: "absolute",
+    top: "-30px",
+    right: "-30px",
+    width: "120px",
+    height: "120px",
+    background: "radial-gradient(circle, rgba(34,197,94,0.3) 0%, transparent 70%)",
+    pointerEvents: "none"
+  },
+  appTopBadge: {
+    alignSelf: "flex-start",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    background: "rgba(34, 197, 94, 0.15)",
+    border: "1px solid rgba(34, 197, 94, 0.4)",
+    padding: "4px 10px",
+    borderRadius: "20px",
+    color: "#4ade80",
+    fontSize: "10px",
+    fontWeight: "800",
+    letterSpacing: "0.6px"
+  },
+  appBadgePulse: {
+    width: "6px",
+    height: "6px",
+    borderRadius: "50%",
+    background: "#22c55e",
+    boxShadow: "0 0 8px #22c55e",
+    animation: "appPulse 1.5s infinite"
   },
   appDownloadHeader: {
     display: "flex",
     alignItems: "center",
-    gap: "12px"
+    gap: "14px"
+  },
+  appLogoContainer: {
+    position: "relative"
   },
   appLogoImg: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "12px",
-    border: "1px solid #22c55e",
-    objectFit: "contain"
+    width: "56px",
+    height: "56px",
+    borderRadius: "16px",
+    border: "2px solid #22c55e",
+    objectFit: "contain",
+    boxShadow: "0 6px 18px rgba(34, 197, 94, 0.3)"
+  },
+  appOnlineDot: {
+    position: "absolute",
+    bottom: "-2px",
+    right: "-2px",
+    width: "14px",
+    height: "14px",
+    borderRadius: "50%",
+    background: "#22c55e",
+    border: "2px solid #061826"
   },
   appDownloadTitle: {
     margin: 0,
-    fontSize: "15px",
-    fontWeight: "800",
+    fontSize: "17px",
+    fontWeight: "900",
     color: "#ffffff",
-    textTransform: "capitalize"
+    letterSpacing: "0.3px"
   },
   appDownloadSub: {
-    margin: "2px 0 0 0",
+    margin: "3px 0 0 0",
     fontSize: "12px",
-    color: "#94a3b8"
+    color: "#94a3b8",
+    fontWeight: "600"
+  },
+  appRatingWrap: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    marginTop: "4px",
+    fontSize: "11px"
+  },
+  appRatingText: {
+    color: "#e2e8f0",
+    fontWeight: "700"
+  },
+  appBtnGroup: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
   },
   appDownloadBtn: {
     width: "100%",
-    padding: "12px 16px",
-    borderRadius: "14px",
-    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-    border: "none",
+    padding: "12px 18px",
+    borderRadius: "16px",
+    background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
+    border: "1px solid #4ade80",
     color: "#ffffff",
-    fontWeight: "900",
-    fontSize: "15px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.4)"
+    gap: "12px",
+    boxShadow: "0 6px 20px rgba(22, 163, 74, 0.4)",
+    transition: "transform 0.2s ease"
+  },
+  appStoreSvg: {
+    width: "24px",
+    height: "24px",
+    flexShrink: 0
+  },
+  btnTextWrapper: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    textAlign: "left"
+  },
+  btnMiniLabel: {
+    fontSize: "9px",
+    fontWeight: "800",
+    color: "#86efac",
+    letterSpacing: "0.5px"
+  },
+  btnMainLabel: {
+    fontSize: "14px",
+    fontWeight: "900",
+    color: "#ffffff"
+  },
+  downloadIconSvg: {
+    width: "20px",
+    height: "20px",
+    marginLeft: "auto",
+    flexShrink: 0
   },
 
   popupOverlay: {
@@ -2111,13 +2226,41 @@ const styles = {
   }
 };
 
-const styleSheet = document.styleSheets[0];
-const keyframes = `
-@keyframes marquee {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-100%, 0, 0); }
-}
+// -------------------------------------------------------------
+// 🟢 ISOLATED CUSTOM ANIMATION CODES (অন্য স্টাইলের সাথে অ্যাড করা হয়নি)
+// -------------------------------------------------------------
+const animationStyleSheet = document.createElement("style");
+animationStyleSheet.type = "text/css";
+animationStyleSheet.innerText = `
+  @keyframes marquee {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-100%, 0, 0); }
+  }
+
+  @keyframes appPulse {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    }
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+  }
+
+  .premium-app-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6) !important;
+  }
+
+  .premium-download-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
 `;
-try {
-  styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
-} catch (e) {}
+if (typeof document !== "undefined") {
+  document.head.appendChild(animationStyleSheet);
+}
