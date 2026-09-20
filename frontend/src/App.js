@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import socket from "./socket";
+import { PushNotifications } from "@capacitor/push-notifications";
+import { Capacitor } from "@capacitor/core";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -51,7 +53,7 @@ import OneTime from "./pages/OneTime";
 import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
 
-// 🔹 পাবলিক রুট প্রটেকশন (লগইন করা থাকলে আবার লগইন/রেজিস্টার পেজে যেতে দেবে না)
+// 🔹 পাবলিক রুট প্রটেকশন
 function PublicRoute({ children }) {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
@@ -64,17 +66,59 @@ function PublicRoute({ children }) {
 
 function App() {
   const [popup, setPopup] = useState(null);
+  const [isNotificationAllowed, setIsNotificationAllowed] = useState(true);
+
+  const setupPushNotifications = async () => {
+    try {
+      let permStatus = await PushNotifications.checkPermissions();
+
+      if (permStatus.receive === "prompt") {
+        permStatus = await PushNotifications.requestPermissions();
+      }
+
+      if (permStatus.receive === "granted") {
+        setIsNotificationAllowed(true);
+        await PushNotifications.register();
+
+        // Push Registration Token পাওয়া
+        PushNotifications.addListener("registration", (token) => {
+          console.log("Push Token: ", token.value);
+          // Backend-এ token পাঠাতে চাইলে এখানে API call করতে পারেন
+        });
+
+        // App Open থাকা অবস্থায় Push Notification পাওয়া
+        PushNotifications.addListener("pushNotificationReceived", (notification) => {
+          setPopup({
+            title: notification.title,
+            message: notification.body,
+          });
+          setTimeout(() => {
+            setPopup(null);
+          }, 5000);
+        });
+      } else {
+        // পারমিশন Deny করলে অ্যাপ এক্সেস ব্লক করা হবে
+        setIsNotificationAllowed(false);
+      }
+    } catch (error) {
+      console.error("Push Notification Setup Error:", error);
+    }
+  };
 
   useEffect(() => {
-    const email = localStorage.getItem("email");
+    // নেটিভ অ্যাপ হলে (Android/iOS) Push Notification সেটআপ রান করবে
+    if (Capacitor.isNativePlatform()) {
+      setupPushNotifications();
+    }
 
+    // Socket Setup
+    const email = localStorage.getItem("email");
     if (email) {
       socket.emit("join", email);
     }
 
     socket.on("new_notification", (data) => {
       setPopup(data);
-
       setTimeout(() => {
         setPopup(null);
       }, 5000);
@@ -84,6 +128,43 @@ function App() {
       socket.off("new_notification");
     };
   }, []);
+
+  // পারমিশন এলাউ না করা থাকলে অ্যাপ আটকে রাখার স্ক্রিন
+  if (!isNotificationAllowed && Capacitor.isNativePlatform()) {
+    return (
+      <div style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        textAlign: "center",
+        padding: "20px",
+        backgroundColor: "#111827",
+        color: "#ffffff"
+      }}>
+        <h2>নোটিফিকেশন পারমিশন প্রয়োজন</h2>
+        <p style={{ marginTop: "10px", marginBottom: "20px", color: "#9ca3af" }}>
+          অ্যাপটি ব্যবহার করতে অবশ্যই নোটিফিকেশন পারমিশন এলাউ করতে হবে।
+        </p>
+        <button
+          onClick={setupPushNotifications}
+          style={{
+            padding: "12px 24px",
+            backgroundColor: "#22c55e",
+            color: "white",
+            border: "none",
+            borderRadius: "8px",
+            fontSize: "16px",
+            fontWeight: "bold",
+            cursor: "pointer"
+          }}
+        >
+          Allow Permission
+        </button>
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
