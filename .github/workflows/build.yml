@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies, Build React & Sync
+      - name: Install dependencies & Build React App
         env:
           CI: false
           DISABLE_ESLINT_PLUGIN: 'true'
@@ -25,6 +25,10 @@ jobs:
           cd frontend
           npm install --legacy-peer-deps
           npm run build
+
+      - name: Sync Web Assets to Capacitor Native Android
+        run: |
+          cd frontend
           npx cap copy android
           npx cap sync android
 
