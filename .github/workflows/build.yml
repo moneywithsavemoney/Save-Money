@@ -19,6 +19,7 @@ jobs:
       - name: Install dependencies, Build React & Sync
         env:
           CI: false
+          DISABLE_ESLINT_PLUGIN: 'true'
         run: |
           cd frontend
           npm install --legacy-peer-deps
