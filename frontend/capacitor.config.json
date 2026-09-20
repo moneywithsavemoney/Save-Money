@@ -1,8 +1,10 @@
 {
-    "appId": "com.savemoney.app",
-      "appName": "Save Money",
-        "webDir": "build",
-          "bundledWebRuntime": false
-          }
-
-
+  "appId": "com.savemoney.app",
+  "appName": "Save Money",
+  "webDir": "build",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  }
+}
