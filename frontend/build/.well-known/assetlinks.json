@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.vercel.save_moneyy_indol.twa",
+    "sha256_cert_fingerprints": ["1A:24:B7:5E:23:7A:2F:0E:6E:21:88:D5:09:34:57:FF:2B:96:44:42:65:98:CC:28:B6:32:67:A4:A2:73:22:C1"]
+  }
+}]

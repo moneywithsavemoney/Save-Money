@@ -1,0 +1,48 @@
+{
+  "id": "https://save-moneyy-indol.vercel.app/",
+  "short_name": "Save Money",
+  "name": "Save Money - Save & Earn",
+  "description": "Save Money investment and earning platform",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#020617",
+  "background_color": "#020617",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logoo 192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Save Money App Preview"
+    },
+    {
+      "src": "/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Save Money Desktop Preview"
+    }
+  ],
+  "categories": ["finance", "productivity"]
+}
