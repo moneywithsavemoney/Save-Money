@@ -53,7 +53,6 @@ export default function Home() {
     const diffX = touchEndX - touchStartX;
     const diffY = touchEndY - touchStartY;
 
-    // স্ক্যানিং শর্ত: শুধুমাত্র বাম পাশ থেকে শুরু হবে, ডানে মিনিমাম ৬০px যেতে হবে এবং স্ক্রোল বাধাগ্রস্ত করবে না
     if (touchStartX < 80 && diffX > 60 && Math.abs(diffX) > Math.abs(diffY)) {
       setIsDrawerOpen(true);
     }
@@ -919,7 +918,7 @@ export default function Home() {
         HELP OTHER FOR EARN MORE 💸
       </h1>
 
-      {/* 📱 ULTRA PREMIUM APP DOWNLOAD CARD */}
+      {/* 📱 PERFECTLY CENTER-ALIGNED ULTRA PREMIUM APP DOWNLOAD CARD */}
       <div className="premium-download-card" style={styles.appDownloadCard}>
         <div style={styles.appGlowBackground}></div>
         
@@ -929,7 +928,7 @@ export default function Home() {
           <span>OFFICIAL MOBILE APP</span>
         </div>
 
-        {/* Branding Info */}
+        {/* Branding Info (Center-Aligned) */}
         <div style={styles.appDownloadHeader}>
           <div style={styles.appLogoContainer}>
             <img 
@@ -940,7 +939,7 @@ export default function Home() {
             />
             <div style={styles.appOnlineDot}></div>
           </div>
-          <div>
+          <div style={styles.appInfoTextCenter}>
             <h3 style={styles.appDownloadTitle}>Save Money App</h3>
             <p style={styles.appDownloadSub}>Fast, Ultra-Secure & Easy to Earn</p>
             <div style={styles.appRatingWrap}>
@@ -950,7 +949,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons (Center-Aligned) */}
         <div style={styles.appBtnGroup}>
           <button 
             className="premium-app-btn"
@@ -1177,7 +1176,6 @@ function BottomNavItem({ icon, title, active, onClick }) {
 }
 
 const styles = {
-  // LIMITED OFFER BAR STYLES
   limitedOfferBar: {
     marginTop: "16px",
     background: "linear-gradient(180deg, #022013 0%, #043820 100%)",
@@ -1217,7 +1215,6 @@ const styles = {
     color: "#ffffff"
   },
 
-  // DRAWER STYLES
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -1414,18 +1411,19 @@ const styles = {
     borderRadius: "16px"
   },
 
-  // 📱 ULTRA PREMIUM APP DOWNLOAD CARD STYLES
+  // 📱 CENTER-ALIGNED ULTRA PREMIUM APP DOWNLOAD CARD STYLES
   appDownloadCard: {
     position: "relative",
     marginTop: "28px",
     background: "linear-gradient(135deg, #061826 0%, #0b2f38 50%, #03141e 100%)",
     borderRadius: "24px",
-    padding: "22px 18px",
+    padding: "24px 18px",
     border: "1px solid rgba(34, 197, 94, 0.5)",
     boxShadow: "0 15px 35px rgba(0,0,0,0.6), inset 0 0 15px rgba(34, 197, 94, 0.15)",
     display: "flex",
     flexDirection: "column",
-    gap: "16px",
+    alignItems: "center",
+    gap: "18px",
     overflow: "hidden"
   },
   appGlowBackground: {
@@ -1438,13 +1436,12 @@ const styles = {
     pointerEvents: "none"
   },
   appTopBadge: {
-    alignSelf: "flex-start",
     display: "inline-flex",
     alignItems: "center",
     gap: "6px",
     background: "rgba(34, 197, 94, 0.15)",
     border: "1px solid rgba(34, 197, 94, 0.4)",
-    padding: "4px 10px",
+    padding: "5px 14px",
     borderRadius: "20px",
     color: "#4ade80",
     fontSize: "10px",
@@ -1461,16 +1458,20 @@ const styles = {
   },
   appDownloadHeader: {
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    gap: "14px"
+    justifyContent: "center",
+    textAlign: "center",
+    gap: "10px",
+    width: "100%"
   },
   appLogoContainer: {
     position: "relative"
   },
   appLogoImg: {
-    width: "56px",
-    height: "56px",
-    borderRadius: "16px",
+    width: "62px",
+    height: "62px",
+    borderRadius: "18px",
     border: "2px solid #22c55e",
     objectFit: "contain",
     boxShadow: "0 6px 18px rgba(34, 197, 94, 0.3)"
@@ -1485,15 +1486,21 @@ const styles = {
     background: "#22c55e",
     border: "2px solid #061826"
   },
+  appInfoTextCenter: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center"
+  },
   appDownloadTitle: {
     margin: 0,
-    fontSize: "17px",
+    fontSize: "18px",
     fontWeight: "900",
     color: "#ffffff",
     letterSpacing: "0.3px"
   },
   appDownloadSub: {
-    margin: "3px 0 0 0",
+    margin: "4px 0 0 0",
     fontSize: "12px",
     color: "#94a3b8",
     fontWeight: "600"
@@ -1501,8 +1508,9 @@ const styles = {
   appRatingWrap: {
     display: "flex",
     alignItems: "center",
+    justifyContent: "center",
     gap: "6px",
-    marginTop: "4px",
+    marginTop: "6px",
     fontSize: "11px"
   },
   appRatingText: {
@@ -1512,7 +1520,8 @@ const styles = {
   appBtnGroup: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px"
+    alignItems: "center",
+    width: "100%"
   },
   appDownloadBtn: {
     width: "100%",
@@ -1524,7 +1533,8 @@ const styles = {
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    justifyContent: "center",
+    gap: "10px",
     boxShadow: "0 6px 20px rgba(22, 163, 74, 0.4)",
     transition: "transform 0.2s ease"
   },
@@ -1536,8 +1546,8 @@ const styles = {
   btnTextWrapper: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "flex-start",
-    textAlign: "left"
+    alignItems: "center",
+    textAlign: "center"
   },
   btnMiniLabel: {
     fontSize: "9px",
@@ -1553,7 +1563,6 @@ const styles = {
   downloadIconSvg: {
     width: "20px",
     height: "20px",
-    marginLeft: "auto",
     flexShrink: 0
   },
 
@@ -2227,7 +2236,7 @@ const styles = {
 };
 
 // -------------------------------------------------------------
-// 🟢 ISOLATED CUSTOM ANIMATION CODES (অন্য স্টাইলের সাথে অ্যাড করা হয়নি)
+// 🟢 ISOLATED CUSTOM ANIMATION CODES
 // -------------------------------------------------------------
 const animationStyleSheet = document.createElement("style");
 animationStyleSheet.type = "text/css";
