@@ -12,8 +12,7 @@ root.render(
   </React.StrictMode>
 );
 
-serviceWorkerRegistration.register();
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+// Capacitor Android/iOS অ্যাপে ক্র্যাশ এড়াতে সার্ভিস ওয়ার্কার Unregister করতে হবে
+serviceWorkerRegistration.unregister();
+
 reportWebVitals();
