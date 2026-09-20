@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import socket from "./socket";
 import { PushNotifications } from "@capacitor/push-notifications";
@@ -80,13 +80,10 @@ function App() {
         setIsNotificationAllowed(true);
         await PushNotifications.register();
 
-        // Push Registration Token পাওয়া
         PushNotifications.addListener("registration", (token) => {
           console.log("Push Token: ", token.value);
-          // Backend-এ token পাঠাতে চাইলে এখানে API call করতে পারেন
         });
 
-        // App Open থাকা অবস্থায় Push Notification পাওয়া
         PushNotifications.addListener("pushNotificationReceived", (notification) => {
           setPopup({
             title: notification.title,
@@ -97,7 +94,6 @@ function App() {
           }, 5000);
         });
       } else {
-        // পারমিশন Deny করলে অ্যাপ এক্সেস ব্লক করা হবে
         setIsNotificationAllowed(false);
       }
     } catch (error) {
@@ -106,12 +102,10 @@ function App() {
   };
 
   useEffect(() => {
-    // নেটিভ অ্যাপ হলে (Android/iOS) Push Notification সেটআপ রান করবে
     if (Capacitor.isNativePlatform()) {
       setupPushNotifications();
     }
 
-    // Socket Setup
     const email = localStorage.getItem("email");
     if (email) {
       socket.emit("join", email);
@@ -129,7 +123,6 @@ function App() {
     };
   }, []);
 
-  // পারমিশন এলাউ না করা থাকলে অ্যাপ আটকে রাখার স্ক্রিন
   if (!isNotificationAllowed && Capacitor.isNativePlatform()) {
     return (
       <div style={{
@@ -167,7 +160,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <Router>
       {popup && (
         <div style={{
           position: "fixed",
@@ -232,7 +225,7 @@ function App() {
 
       <ToastContainer position="top-center" autoClose={2500} theme="dark" />
       <Toaster position="top-center" reverseOrder={false} />
-    </BrowserRouter>
+    </Router>
   );
 }
 
