@@ -477,45 +477,47 @@ export default function OneTime() {
   };
 
   const handleWithdrawSubmit = async () => {
-    if (hasWithdrawnToday) {
-      triggerToast("You have already placed a withdrawal request today!", "error");
-      return;
-    }
+  if (hasWithdrawnToday) {
+    triggerToast("You have already placed a withdrawal request today!", "error");
+    return;
+  }
 
-    if (currentWalletBalance < dailyReturn) {
-      triggerToast(`Insufficient Wallet Balance! Your balance is ₹${currentWalletBalance}`, "error");
-      return;
-    }
+  if (currentWalletBalance < dailyReturn) {
+    triggerToast(`Insufficient Wallet Balance! Your balance is ₹${currentWalletBalance}`, "error");
+    return;
+  }
 
-    try {
-      setWithdrawing(true);
-      const res = await fetch(`${API}/api/onetime/withdraw`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token
-        },
-        body: JSON.stringify({ 
-          email, 
-          amount: dailyReturn,
-          bankDetails: user.bankDetails 
-        })
-      });
+  try {
+    setWithdrawing(true);
+    const res = await fetch(`${API}/api/onetime/withdraw`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: token ? token : ""
+      },
+      body: JSON.stringify({ 
+        email: email.trim().toLowerCase(), 
+        amount: Number(dailyReturn),
+        bankDetails: user.bankDetails || bankForm
+      })
+    });
 
-      const data = await res.json();
-      if (res.ok || data.success) {
-        triggerToast("Withdrawal Request Submitted!", "success");
-        setShowWithdrawModal(false);
-        await loadDashboardData();
-      } else {
-        triggerToast(data.message || "Withdrawal Failed", "error");
-      }
-    } catch (err) {
-      triggerToast("Network error during withdrawal", "error");
-    } finally {
-      setWithdrawing(false);
+    const data = await res.json();
+    if (res.ok && data.success) {
+      triggerToast(data.message || "Withdrawal Request Submitted!", "success");
+      setShowWithdrawModal(false);
+      await loadDashboardData();
+    } else {
+      triggerToast(data.message || "Withdrawal Failed", "error");
     }
-  };
+  } catch (err) {
+    console.error("Withdrawal error:", err);
+    triggerToast("Network error during withdrawal. Please check console.", "error");
+  } finally {
+    setWithdrawing(false);
+  }
+};
+
 
   const handleCopyWallet = () => {
     navigator.clipboard.writeText(COMPANY_WALLET_ADDRESS);
