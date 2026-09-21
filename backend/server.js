@@ -7320,45 +7320,42 @@ if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" ||
 
 
 
-app.post("/api/onetime-withdraw", async (req, res) => {
+app.post("/api/onetime/withdraw", async (req, res) => {
   try {
     const { email, amount, bankDetails } = req.body;
+    if (!email || !amount) {
+      return res.status(400).json({ success: false, message: "Email and amount are required" });
+    }
+
     const cleanEmail = email.trim().toLowerCase();
     const withdrawAmount = Number(amount);
 
-    const user = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, "i") } });
+    const user = await User.findOne({ email: new RegExp("^" + cleanEmail + "$", "i") });
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const onetimeHistory = user.onetimeHistory || [];
+    // history array নিশ্চিত করা
+    const historyList = user.onetimeHistory || user.oneTimeHistory || [];
 
-    // ----------------------------------------------------
-    // ১. কন্ডিশন: কোনো পেন্ডিং উইথড্র আছে কিনা চেক করা
-    // ----------------------------------------------------
-    const hasPendingWithdraw = onetimeHistory.some(
-      (item) => item.type === "Withdrawal" && item.status === "Pending"
+    // ১. পেন্ডিং উইথড্রয়াল চেক
+    const hasPendingWithdraw = historyList.some(
+      (item) => item && (item.type || "").toLowerCase() === "withdrawal" && item.status === "Pending"
     );
 
     if (hasPendingWithdraw) {
       return res.status(400).json({
         success: false,
-        message: "আপনার একটি উইথড্র রিকোয়েস্ট পেন্ডিং আছে। সেটি সাকসেস বা রিজেক্ট না হওয়া পর্যন্ত নতুন উইথড্র করতে পারবেন না।"
+        message: "আপনার একটি উইথড্র রিকোয়েস্ট পেন্ডিং আছে। সেটি একসেপ্ট বা রিজেক্ট না হওয়া পর্যন্ত নতুন উইথড্র করতে পারবেন না।"
       });
     }
 
-    // ----------------------------------------------------
-    // ২. কন্ডিশন: আজকে অলরেডি উইথড্র করা হয়েছে কিনা চেক করা (Pending/Success যাই হোক)
-    // ----------------------------------------------------
-    const todayStr = new Date().toDateString(); // আজকের তারিখ (যেমন: "Mon Sep 21 2026")
-
-    const hasWithdrawToday = onetimeHistory.some((item) => {
-      if (item.type === "Withdrawal" && item.createdAt) {
-        const itemDateStr = new Date(item.createdAt).toDateString();
-        // স্ট্যাটাস যদি Rejected না হয় (অর্থাৎ Pending বা Success বা অন্য কিছু হয়) এবং তারিখ আজকের হয়
-        return itemDateStr === todayStr && item.status !== "Rejected";
-      }
-      return false;
+    // ২. আজকের দিনে উইথড্র হয়েছে কিনা চেক
+    const todayStr = new Date().toDateString();
+    const hasWithdrawToday = historyList.some((item) => {
+      if (!item || (item.type || "").toLowerCase() !== "withdrawal") return false;
+      const itemDate = new Date(item.createdAt || item.startDate || Date.now()).toDateString();
+      return itemDate === todayStr && item.status !== "Rejected" && item.status !== "Cancelled";
     });
 
     if (hasWithdrawToday) {
@@ -7368,15 +7365,13 @@ app.post("/api/onetime-withdraw", async (req, res) => {
       });
     }
 
-    // ----------------------------------------------------
     // ৩. ব্যালেন্স চেক
-    // ----------------------------------------------------
-    const currentBalance = Number(user.otbalance || 0);
+    const currentBalance = Number(user.otbalance || user.otBalance || 0);
     if (currentBalance < withdrawAmount) {
       return res.status(400).json({ success: false, message: "Insufficient otbalance" });
     }
 
-    // ১. otbalance থেকে ব্যালেন্স ডিডাক্ট করা
+    // ৪. ব্যালেন্স কাটা
     user.otbalance = currentBalance - withdrawAmount;
 
     const withdrawId = new mongoose.Types.ObjectId();
@@ -7389,14 +7384,13 @@ app.post("/api/onetime-withdraw", async (req, res) => {
       createdAt: new Date()
     };
 
-    // onetimeHistory-তে ডাটা পুশ করা
     if (!user.onetimeHistory) user.onetimeHistory = [];
     user.onetimeHistory.unshift(withdrawData);
 
     user.markModified("onetimeHistory");
     await user.save();
 
-    // ২. আলাদা Withdrawal কালেকশনে ব্যাকআপ রাখা (যদি থাকে)
+    // ৫. সেপারেট কলেকশনে ডাটা সেভ (যদি কলেকশন থেকে থাকে)
     try {
       if (typeof Withdrawal !== "undefined") {
         await Withdrawal.create({
@@ -7410,18 +7404,19 @@ app.post("/api/onetime-withdraw", async (req, res) => {
         });
       }
     } catch (e) {
-      console.log("Standalone Withdrawal collection skipped:", e.message);
+      console.log("Standalone withdrawal collection skipped:", e.message);
     }
 
     return res.status(200).json({
       success: true,
       message: "Withdrawal request submitted successfully!",
-      withdrawal: withdrawData,
+      withdrawData,
       updatedBalance: user.otbalance
     });
+
   } catch (error) {
     console.error("Withdraw Error:", error);
-    return res.status(500).json({ success: false, message: "Server error processing withdrawal" });
+    return res.status(500).json({ success: false, message: "Server error processing withdrawal: " + error.message });
   }
 });
 
