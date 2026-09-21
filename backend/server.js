@@ -7346,7 +7346,7 @@ app.post("/api/onetime/withdraw", async (req, res) => {
     if (hasPendingWithdraw) {
       return res.status(400).json({
         success: false,
-        message: "আপনার একটি উইথড্র রিকোয়েস্ট পেন্ডিং আছে। সেটি একসেপ্ট বা রিজেক্ট না হওয়া পর্যন্ত নতুন উইথড্র করতে পারবেন না।"
+        message: "You already have a successful or pending withdrawal request today. You can only make one withdrawal per day."
       });
     }
 
@@ -7361,7 +7361,7 @@ app.post("/api/onetime/withdraw", async (req, res) => {
     if (hasWithdrawToday) {
       return res.status(400).json({
         success: false,
-        message: "আপনি আজকে ইতোমধ্যে একটি উইথড্র রিকোয়েস্ট করেছেন। প্রতিদিন কেবল ১টি উইথড্র করতে পারবেন।"
+        message: "You already have a successful or pending withdrawal request today. You can only make one withdrawal per day."
       });
     }
 
