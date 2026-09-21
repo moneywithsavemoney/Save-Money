@@ -477,47 +477,46 @@ export default function OneTime() {
   };
 
   const handleWithdrawSubmit = async () => {
-  if (hasWithdrawnToday) {
-    triggerToast("You have already placed a withdrawal request today!", "error");
-    return;
-  }
-
-  if (currentWalletBalance < dailyReturn) {
-    triggerToast(`Insufficient Wallet Balance! Your balance is ₹${currentWalletBalance}`, "error");
-    return;
-  }
-
-  try {
-    setWithdrawing(true);
-    const res = await fetch(`${API}/api/onetime/withdraw`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: token ? token : ""
-      },
-      body: JSON.stringify({ 
-        email: email.trim().toLowerCase(), 
-        amount: Number(dailyReturn),
-        bankDetails: user.bankDetails || bankForm
-      })
-    });
-
-    const data = await res.json();
-    if (res.ok && data.success) {
-      triggerToast(data.message || "Withdrawal Request Submitted!", "success");
-      setShowWithdrawModal(false);
-      await loadDashboardData();
-    } else {
-      triggerToast(data.message || "Withdrawal Failed", "error");
+    if (hasWithdrawnToday) {
+      triggerToast("You have already placed a withdrawal request today!", "error");
+      return;
     }
-  } catch (err) {
-    console.error("Withdrawal error:", err);
-    triggerToast("Network error during withdrawal. Please check console.", "error");
-  } finally {
-    setWithdrawing(false);
-  }
-};
 
+    if (currentWalletBalance < dailyReturn) {
+      triggerToast(`Insufficient Wallet Balance! Your balance is ₹${currentWalletBalance}`, "error");
+      return;
+    }
+
+    try {
+      setWithdrawing(true);
+      const res = await fetch(`${API}/api/onetime/withdraw`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ? token : ""
+        },
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(), 
+          amount: Number(dailyReturn),
+          bankDetails: user.bankDetails || bankForm
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        triggerToast(data.message || "Withdrawal Request Submitted!", "success");
+        setShowWithdrawModal(false);
+        await loadDashboardData();
+      } else {
+        triggerToast(data.message || "Withdrawal Failed", "error");
+      }
+    } catch (err) {
+      console.error("Withdrawal error:", err);
+      triggerToast("Network error during withdrawal. Please check console.", "error");
+    } finally {
+      setWithdrawing(false);
+    }
+  };
 
   const handleCopyWallet = () => {
     navigator.clipboard.writeText(COMPANY_WALLET_ADDRESS);
@@ -536,7 +535,7 @@ export default function OneTime() {
       <div style={styles.loadingPage}>
         <div style={{ textAlign: "center" }}>
           <div style={styles.spinner}></div>
-          <h3 style={{ color: "#22c55e", marginTop: "12px", fontSize: "18px" }}>Loading Dashboard...</h3>
+          <h3 style={{ color: "#22c55e", marginTop: "14px", fontSize: "20px", fontWeight: "700" }}>Loading Dashboard...</h3>
         </div>
       </div>
     );
@@ -752,14 +751,15 @@ export default function OneTime() {
       </div>
 
       <div style={styles.container}>
-        {/* Toast Alert */}
+        {/* TOP-CENTER PREMIUM TOAST ALERT */}
         {toast.show && (
-          <div style={{ ...styles.toast, background: toast.type === "error" ? "#ef4444" : "#16a34a" }}>
-            {toast.msg}
+          <div style={{ ...styles.toast, background: toast.type === "error" ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" : "linear-gradient(135deg, #16a34a 0%, #15803d 100%)" }}>
+            <span style={{ fontSize: "18px" }}>{toast.type === "error" ? "⚠️" : "✅"}</span>
+            <span>{toast.msg}</span>
           </div>
         )}
 
-        {/* TOP HIGHLIGHTED NOTICE BANNER (UPDATED FOR SCROLLING LEFT & BIGGER TEXT) */}
+        {/* TOP HIGHLIGHTED NOTICE BANNER */}
         <div style={styles.topNoticeBanner}>
           <marquee behavior="scroll" direction="left" scrollamount="6" style={styles.marqueeText}>
             <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
@@ -789,7 +789,7 @@ export default function OneTime() {
               <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
             ) : (
               <div style={styles.profileAvatarPlaceholder}>
-                <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
+                <span style={{ fontSize: "18px", color: "#fff", fontWeight: "bold" }}>
                   {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </span>
               </div>
@@ -803,7 +803,7 @@ export default function OneTime() {
             <h2 style={styles.heroTitle}>
               Chhote nivesh se <br />
               <span style={{ color: "#facc15" }}>badi kamai ka safar,</span> <br />
-              <span style={{ fontSize: "17px", fontWeight: "700", color: "#f1f5f9" }}>har mahine ka plan, hamesha</span>
+              <span style={{ fontSize: "19px", fontWeight: "800", color: "#f1f5f9" }}>har mahine ka plan, hamesha</span>
             </h2>
             <p style={styles.heroDesc}>
               Invest small amounts monthly to get big returns together
@@ -826,7 +826,7 @@ export default function OneTime() {
           <div style={styles.darkStatCard}>
             <div style={styles.statCardHeader}>
               <div style={{ ...styles.iconBox, background: "rgba(34, 197, 94, 0.15)" }}>
-                <span style={{ color: "#22c55e", fontSize: "18px" }}>💼</span>
+                <span style={{ color: "#22c55e", fontSize: "20px" }}>💼</span>
               </div>
               <span style={styles.statCardTitle}>Total Invested</span>
             </div>
@@ -841,7 +841,7 @@ export default function OneTime() {
           <div style={styles.darkStatCard}>
             <div style={styles.statCardHeader}>
               <div style={{ ...styles.iconBox, background: "rgba(56, 189, 248, 0.15)" }}>
-                <span style={{ color: "#38bdf8", fontSize: "18px" }}>💵</span>
+                <span style={{ color: "#38bdf8", fontSize: "20px" }}>💵</span>
               </div>
               <span style={styles.statCardTitle}>Total Earnings</span>
             </div>
@@ -856,7 +856,7 @@ export default function OneTime() {
           <div style={styles.darkStatCard}>
             <div style={styles.statCardHeader}>
               <div style={{ ...styles.iconBox, background: "rgba(168, 85, 247, 0.15)" }}>
-                <span style={{ color: "#a855f7", fontSize: "18px" }}>💸</span>
+                <span style={{ color: "#a855f7", fontSize: "20px" }}>💸</span>
               </div>
               <span style={styles.statCardTitle}>Total Withdraw</span>
             </div>
@@ -871,7 +871,7 @@ export default function OneTime() {
           <div style={styles.darkStatCard}>
             <div style={styles.statCardHeader}>
               <div style={{ ...styles.iconBox, background: "rgba(234, 179, 8, 0.15)" }}>
-                <span style={{ color: "#eab308", fontSize: "18px" }}>🪙</span>
+                <span style={{ color: "#eab308", fontSize: "20px" }}>🪙</span>
               </div>
               <span style={styles.statCardTitle}>Available Balance</span>
             </div>
@@ -981,7 +981,7 @@ export default function OneTime() {
                 style={styles.amountInputWrapDark} 
                 onClick={() => !activeInvestment && setShowAmountModal(true)}
               >
-                <span style={{ fontSize: "18px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
+                <span style={{ fontSize: "20px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
                 <input style={styles.amountInputDark} type="text" readOnly value={amount.toLocaleString("en-IN")} />
                 <span style={activeInvestment ? styles.lockedBadgeDark : styles.changeBadgeDark}>
                   {activeInvestment ? "🔒 Locked" : "Change ⚙️"}
@@ -1054,7 +1054,7 @@ export default function OneTime() {
         {/* HISTORY TABLE */}
         <section style={styles.darkHistoryCard}>
           <div style={styles.historyHeader}>
-            <h2 style={{ margin: 0, fontSize: "19px", color: "#f8fafc", fontWeight: "700" }}>Investment & Transaction History</h2>
+            <h2 style={{ margin: 0, fontSize: "20px", color: "#f8fafc", fontWeight: "800" }}>Investment & Transaction History</h2>
             <span style={styles.refreshBtnDark} onClick={loadDashboardData}>🔄 Refresh</span>
           </div>
 
@@ -1097,9 +1097,9 @@ export default function OneTime() {
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
                           {isDeposit ? (
-                            <span style={{ fontSize: "13px", color: "#94a3b8" }}>UTR: {item.transactionId || "N/A"}</span>
+                            <span style={{ fontSize: "14px", color: "#94a3b8" }}>UTR: {item.transactionId || "N/A"}</span>
                           ) : isWithdraw ? (
-                            <span style={{ fontSize: "13px", color: "#94a3b8" }}>Bank Request</span>
+                            <span style={{ fontSize: "14px", color: "#94a3b8" }}>Bank Request</span>
                           ) : (
                             <span style={styles.badgeDailyDark}>
                               {item.frequency || "Daily"}
@@ -1111,7 +1111,7 @@ export default function OneTime() {
                             {displayStatus}
                           </span>
                           {isRejected && (item.rejectReason || item.reason) && (
-                            <div style={{ fontSize: "12px", color: "#f87171", marginTop: "4px" }}>
+                            <div style={{ fontSize: "13px", color: "#f87171", marginTop: "4px" }}>
                               Reason: {item.rejectReason || item.reason}
                             </div>
                           )}
@@ -1139,26 +1139,26 @@ export default function OneTime() {
           <h2 style={{ ...styles.darkCardTitle, color: "#22c55e", display: "flex", alignItems: "center", gap: "8px" }}>
             <span>💡</span> Why We Accept Investments & How Your Funds Work
           </h2>
-          <p style={{ fontSize: "15px", color: "#cbd5e1", lineHeight: "1.6", marginTop: "-6px", marginBottom: "18px" }}>
+          <p style={{ fontSize: "16px", color: "#cbd5e1", lineHeight: "1.6", marginTop: "-6px", marginBottom: "18px" }}>
             To generate stable, high-yield returns for our investors, we deploy capital into diversified, risk-managed financial channels:
           </p>
           <div style={styles.whyInvestGrid}>
             <div style={styles.whyInvestCard}>
-              <div style={{ fontSize: "30px", marginBottom: "8px" }}>🏦</div>
-              <strong style={{ color: "#ffffff", fontSize: "16px", display: "block", marginBottom: "6px" }}>
+              <div style={{ fontSize: "32px", marginBottom: "8px" }}>🏦</div>
+              <strong style={{ color: "#ffffff", fontSize: "17px", display: "block", marginBottom: "6px" }}>
                 Loan & Credit Services
               </strong>
-              <p style={{ color: "#94a3b8", fontSize: "13px", margin: 0, lineHeight: "1.5" }}>
+              <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0, lineHeight: "1.5" }}>
                 We raise funds to provide secured & quick loan solutions including <strong>Personal Loans</strong>, <strong>Salary Advance Loans</strong>, and <strong>Home Loans</strong>.
               </p>
             </div>
 
             <div style={styles.whyInvestCard}>
-              <div style={{ fontSize: "30px", marginBottom: "8px" }}>📊</div>
-              <strong style={{ color: "#ffffff", fontSize: "16px", display: "block", marginBottom: "6px" }}>
+              <div style={{ fontSize: "32px", marginBottom: "8px" }}>📊</div>
+              <strong style={{ color: "#ffffff", fontSize: "17px", display: "block", marginBottom: "6px" }}>
                 Strategic Market Investments
               </strong>
-              <p style={{ color: "#94a3b8", fontSize: "13px", margin: 0, lineHeight: "1.5" }}>
+              <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0, lineHeight: "1.5" }}>
                 We re-invest capital into high-growth financial instruments such as <strong>Stocks</strong>, <strong>Systematic Investment Plans (SIPs)</strong>, and top-performing <strong>Mutual Funds</strong>.
               </p>
             </div>
@@ -1168,11 +1168,11 @@ export default function OneTime() {
         {/* TRUST BANNER */}
         <section style={styles.trustBannerDark}>
           <div style={styles.trustLeftContent}>
-            <h3 style={{ margin: "0 0 8px 0", fontSize: "20px", color: "#ffffff", fontWeight: "800" }}>
+            <h3 style={{ margin: "0 0 8px 0", fontSize: "22px", color: "#ffffff", fontWeight: "800" }}>
               Invest Small, <br />
               <span style={{ color: "#4ade80" }}>Earn Big Returns Together</span>
             </h3>
-            <p style={{ margin: "0 0 14px 0", opacity: 0.9, fontSize: "14px", color: "#cbd5e1" }}>
+            <p style={{ margin: "0 0 14px 0", opacity: 0.9, fontSize: "15px", color: "#cbd5e1" }}>
               Start investing today and secure your future.
             </p>
             <div style={styles.trustIllustrations}>
@@ -1215,26 +1215,26 @@ export default function OneTime() {
         {/* FOOTER FEATURES GRID */}
         <div style={styles.footerFeaturesGrid}>
           <div style={styles.featureBoxDark}>
-            <span style={{ fontSize: "26px" }}>📈</span>
+            <span style={{ fontSize: "28px" }}>📈</span>
             <div>
-              <strong style={{ fontSize: "15px", color: "#fff", display: "block" }}>High Returns</strong>
-              <span style={{ fontSize: "13px", color: "#94a3b8" }}>Better returns on your investments</span>
+              <strong style={{ fontSize: "16px", color: "#fff", display: "block" }}>High Returns</strong>
+              <span style={{ fontSize: "14px", color: "#94a3b8" }}>Better returns on your investments</span>
             </div>
           </div>
 
           <div style={styles.featureBoxDark}>
-            <span style={{ fontSize: "26px" }}>🎧</span>
+            <span style={{ fontSize: "28px" }}>🎧</span>
             <div>
-              <strong style={{ fontSize: "15px", color: "#fff", display: "block" }}>24/7 Support</strong>
-              <span style={{ fontSize: "13px", color: "#94a3b8" }}>We are here to help you</span>
+              <strong style={{ fontSize: "16px", color: "#fff", display: "block" }}>24/7 Support</strong>
+              <span style={{ fontSize: "14px", color: "#94a3b8" }}>We are here to help you</span>
             </div>
           </div>
 
           <div style={styles.featureBoxDark}>
-            <span style={{ fontSize: "26px" }}>👥</span>
+            <span style={{ fontSize: "28px" }}>👥</span>
             <div>
-              <strong style={{ fontSize: "15px", color: "#fff", display: "block" }}>Trusted Platform</strong>
-              <span style={{ fontSize: "13px", color: "#94a3b8" }}>Thousands of users trust us</span>
+              <strong style={{ fontSize: "16px", color: "#fff", display: "block" }}>Trusted Platform</strong>
+              <span style={{ fontSize: "14px", color: "#94a3b8" }}>Thousands of users trust us</span>
             </div>
           </div>
         </div>
@@ -1300,7 +1300,7 @@ export default function OneTime() {
               <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Select Investment Amount</h3>
               <button style={styles.closeBtnDark} onClick={() => setShowAmountModal(false)}>✕</button>
             </div>
-            <p style={{ fontSize: "14px", color: "#94a3b8", marginTop: 0, marginBottom: "16px" }}>
+            <p style={{ fontSize: "15px", color: "#94a3b8", marginTop: 0, marginBottom: "16px" }}>
               Choose one of the plan presets below:
             </p>
 
@@ -1336,19 +1336,19 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
 
-            <p style={{ fontSize: "15px", color: "#cbd5e1", margin: "0 0 12px 0" }}>
+            <p style={{ fontSize: "16px", color: "#cbd5e1", margin: "0 0 14px 0" }}>
               Send <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong> to company wallet & upload payment proof:
             </p>
 
             <div style={styles.walletBoxDark}>
-              <small style={{ color: "#94a3b8", fontWeight: "bold", fontSize: "13px" }}>Company Wallet Address:</small>
+              <small style={{ color: "#94a3b8", fontWeight: "bold", fontSize: "14px" }}>Company Wallet Address:</small>
               <div style={styles.walletAddrRow}>
                 <span style={styles.walletText}>{COMPANY_WALLET_ADDRESS}</span>
                 <button style={styles.copyBtn} onClick={handleCopyWallet}>Copy</button>
               </div>
             </div>
 
-            <form onSubmit={handleDepositSubmit} style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+            <form onSubmit={handleDepositSubmit} style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
               <div>
                 <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
                 <input
@@ -1387,7 +1387,7 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowBankModal(false)}>✕</button>
             </div>
 
-            <form onSubmit={handleSaveBankDetails} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <form onSubmit={handleSaveBankDetails} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               <input
                 style={styles.inputModalDark}
                 placeholder="Account Holder Name"
@@ -1424,64 +1424,54 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* UPDATED WITHDRAW MODAL */}
+      {/* UPDATED WITHDRAW MODAL (ALL INFO INSIDE POPUP WITH PREMIUM LOOK) */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
-          <div style={styles.modalCardDark}>
+          <div style={styles.withdrawModalCardDark}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Withdraw Funds</h3>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "24px" }}>💸</span>
+                <h3 style={{ margin: 0, fontSize: "22px", color: "#fff", fontWeight: "800" }}>Withdraw Funds</h3>
+              </div>
               <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
             </div>
 
+            {/* Wallet Balance Card */}
             <div
               style={{
-                ...styles.withdrawBalanceInfoDark,
-                background: currentWalletBalance < dailyReturn ? "rgba(239, 68, 68, 0.15)" : "rgba(34, 197, 94, 0.15)",
-                color: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80",
-                border: currentWalletBalance < dailyReturn ? "1px solid #991b1b" : "1px solid #166534"
+                ...styles.withdrawBalanceCard,
+                borderColor: currentWalletBalance < dailyReturn ? "rgba(239, 68, 68, 0.5)" : "rgba(34, 197, 94, 0.5)",
+                background: currentWalletBalance < dailyReturn ? "radial-gradient(circle, #2a0909 0%, #081628 100%)" : "radial-gradient(circle, #052317 0%, #081628 100%)"
               }}
             >
-              <span>Available Wallet Balance:</span>
-              <strong>₹ {currentWalletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</strong>
+              <span style={{ fontSize: "14px", color: "#94a3b8", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                Available Wallet Balance
+              </span>
+              <strong style={{ fontSize: "28px", color: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80", fontWeight: "900", display: "block", marginTop: "4px" }}>
+                ₹ {currentWalletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+              </strong>
             </div>
 
             {/* Daily Return Amount Box */}
-            <div style={{
-              marginTop: "16px",
-              padding: "16px",
-              background: "#040d1a",
-              borderRadius: "12px",
-              border: "1px solid #1e293b",
-              textAlign: "center"
-            }}>
-              <span style={{ fontSize: "14px", color: "#94a3b8", display: "block" }}>Today's Daily Return Amount</span>
-              <strong style={{ fontSize: "28px", color: "#38bdf8", fontWeight: "900", display: "block", marginTop: "4px" }}>
+            <div style={styles.dailyReturnBox}>
+              <span style={{ fontSize: "14px", color: "#cbd5e1", fontWeight: "600" }}>Today's Daily Return Amount</span>
+              <strong style={{ fontSize: "26px", color: "#38bdf8", fontWeight: "900", display: "block", marginTop: "4px" }}>
                 ₹ {dailyReturn.toFixed(2)}
               </strong>
             </div>
 
             {/* Note for Withdrawal Timing */}
-            <div style={{
-              marginTop: "12px",
-              padding: "10px 14px",
-              background: "rgba(56, 189, 248, 0.1)",
-              border: "1px solid rgba(56, 189, 248, 0.3)",
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "13px",
-              color: "#38bdf8",
-              fontWeight: "600"
-            }}>
-              <span style={{ fontSize: "16px" }}>ℹ️</span>
-              <span>Note: Withdrawal request will be processed successfully only between 10:00 AM and 6:00 PM.</span>
+            <div style={styles.withdrawTimingNote}>
+              <span style={{ fontSize: "18px" }}>ℹ️</span>
+              <span style={{ fontSize: "14px", color: "#e2e8f0", lineHeight: "1.4" }}>
+                <strong>Note:</strong> Withdrawal request will be processed successfully only between <strong>10:00 AM and 6:00 PM</strong>.
+              </span>
             </div>
 
-            {/* Alerts */}
+            {/* Alerts inside Popup */}
             {hasWithdrawnToday ? (
               <div style={styles.balanceAlertBoxDark}>
-                ⏳ You have already submitted a withdrawal request for today. Please wait until tomorrow!
+                ⏳ You have already submitted a withdrawal request today. Please wait until tomorrow!
               </div>
             ) : currentWalletBalance < dailyReturn ? (
               <div style={styles.balanceAlertBoxDark}>
@@ -1489,11 +1479,13 @@ export default function OneTime() {
               </div>
             ) : null}
 
+            {/* Submit Button */}
             <button
               style={{
                 ...styles.submitBtnDark,
-                marginTop: "18px",
-                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#475569" : "#16a34a",
+                marginTop: "20px",
+                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                boxShadow: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "none" : "0 6px 20px rgba(34, 197, 94, 0.4)",
                 cursor: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "not-allowed" : "pointer"
               }}
               onClick={handleWithdrawSubmit}
@@ -1540,7 +1532,7 @@ const styles = {
     maxWidth: "1000px",
     display: "flex",
     flexDirection: "column",
-    gap: "22px"
+    gap: "24px"
   },
   loadingPage: {
     minHeight: "100vh",
@@ -1550,38 +1542,47 @@ const styles = {
     justifyContent: "center"
   },
   spinner: {
-    width: "44px",
-    height: "44px",
+    width: "48px",
+    height: "48px",
     border: "4px solid rgba(34, 197, 94, 0.2)",
     borderTop: "4px solid #22c55e",
     borderRadius: "50%",
     animation: "spin 1s linear infinite"
   },
+
+  // TOP-CENTER PREMIUM TOAST STYLES
   toast: {
     position: "fixed",
-    top: "20px",
-    right: "20px",
+    top: "24px",
+    left: "50%",
+    transform: "translateX(-50%)",
     color: "white",
-    padding: "14px 22px",
-    borderRadius: "10px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.6)",
-    zIndex: 99999,
-    fontWeight: "bold",
-    fontSize: "15px"
+    padding: "14px 28px",
+    borderRadius: "30px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(34, 197, 94, 0.3)",
+    zIndex: 999999,
+    fontWeight: "800",
+    fontSize: "16px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    backdropFilter: "blur(8px)",
+    border: "1px solid rgba(255,255,255,0.2)",
+    textAlign: "center"
   },
 
-  // TOP NOTICE BANNER STYLES (UPDATED)
+  // TOP NOTICE BANNER STYLES
   topNoticeBanner: {
     background: "linear-gradient(90deg, #052e16 0%, #064e3b 50%, #022c22 100%)",
     border: "1px solid #22c55e",
     borderRadius: "12px",
-    padding: "10px 14px",
+    padding: "12px 16px",
     overflow: "hidden",
     whiteSpace: "nowrap",
     boxShadow: "0 4px 15px rgba(34, 197, 94, 0.2)"
   },
   marqueeText: {
-    fontSize: "16px",
+    fontSize: "17px",
     fontWeight: "700",
     color: "#e2e8f0",
     display: "flex",
@@ -1591,8 +1592,8 @@ const styles = {
     background: "#f59e0b",
     color: "#000",
     fontWeight: "900",
-    fontSize: "12px",
-    padding: "4px 10px",
+    fontSize: "13px",
+    padding: "4px 12px",
     borderRadius: "6px",
     letterSpacing: "0.5px",
     marginRight: "12px",
@@ -1600,10 +1601,10 @@ const styles = {
   },
   bonusHighlight: {
     color: "#facc15",
-    fontSize: "18px",
+    fontSize: "19px",
     fontWeight: "900",
-    marginLeft: "4px",
-    marginRight: "4px"
+    marginLeft: "6px",
+    marginRight: "6px"
   },
 
   // HEADER
@@ -1616,30 +1617,30 @@ const styles = {
   headerLeft: {
     display: "flex",
     alignItems: "center",
-    gap: "14px"
+    gap: "16px"
   },
   menuButton: {
     background: "transparent",
     border: "none",
     color: "white",
-    fontSize: "30px",
+    fontSize: "32px",
     cursor: "pointer",
     padding: "0"
   },
   welcomeTitle: {
     margin: 0,
-    fontSize: "22px",
+    fontSize: "24px",
     fontWeight: "800",
     color: "#ffffff"
   },
   welcomeSub: {
     margin: "4px 0 0 0",
-    fontSize: "14px",
+    fontSize: "15px",
     color: "#94a3b8"
   },
   profileCircle: {
-    width: "48px",
-    height: "48px",
+    width: "52px",
+    height: "52px",
     borderRadius: "50%",
     background: "#0c1f38",
     display: "flex",
@@ -1667,15 +1668,15 @@ const styles = {
   // HERO BANNER
   topHeroBanner: {
     background: "linear-gradient(135deg, #062319 0%, #06182e 100%)",
-    borderRadius: "16px",
-    padding: "24px 28px",
+    borderRadius: "18px",
+    padding: "26px 30px",
     border: "1px solid rgba(34, 197, 94, 0.3)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     position: "relative",
     overflow: "hidden",
-    minHeight: "150px",
+    minHeight: "160px",
     gap: "20px"
   },
   heroTextContent: {
@@ -1684,19 +1685,19 @@ const styles = {
   },
   heroTitle: {
     margin: 0,
-    fontSize: "24px",
+    fontSize: "26px",
     fontWeight: "800",
     color: "#ffffff",
     lineHeight: "1.4"
   },
   heroDesc: {
     margin: "12px 0 0 0",
-    fontSize: "15px",
+    fontSize: "16px",
     color: "#cbd5e1"
   },
   heroImgWrapper: {
-    width: "200px",
-    height: "130px",
+    width: "220px",
+    height: "140px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1711,62 +1712,62 @@ const styles = {
   // 4 STAT CARDS GRID
   statsGridContainer: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "14px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+    gap: "16px"
   },
   darkStatCard: {
     background: "#081628",
-    borderRadius: "14px",
-    padding: "16px 18px",
+    borderRadius: "16px",
+    padding: "18px 20px",
     border: "1px solid rgba(255, 255, 255, 0.12)",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
     position: "relative",
     overflow: "hidden",
-    minHeight: "105px"
+    minHeight: "115px"
   },
   statCardHeader: {
     display: "flex",
     alignItems: "center",
-    gap: "10px"
+    gap: "12px"
   },
   iconBox: {
-    width: "32px",
-    height: "32px",
-    borderRadius: "8px",
+    width: "36px",
+    height: "36px",
+    borderRadius: "10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   statCardTitle: {
-    fontSize: "15px",
+    fontSize: "16px",
     color: "#cbd5e1",
     fontWeight: "600"
   },
   statCardValue: {
-    fontSize: "24px",
+    fontSize: "26px",
     fontWeight: "900",
     color: "#ffffff",
-    marginTop: "10px",
+    marginTop: "12px",
     zIndex: 2
   },
   sparkline: {
     width: "100%",
-    height: "28px",
+    height: "30px",
     marginTop: "6px"
   },
 
   // MAIN CARD
   darkMainCard: {
     background: "#081628",
-    borderRadius: "16px",
-    padding: "24px",
+    borderRadius: "18px",
+    padding: "26px",
     border: "1px solid rgba(255, 255, 255, 0.1)"
   },
   darkCardTitle: {
-    margin: "0 0 20px 0",
-    fontSize: "20px",
+    margin: "0 0 22px 0",
+    fontSize: "22px",
     fontWeight: "800",
     color: "#ffffff"
   },
@@ -1774,9 +1775,9 @@ const styles = {
   // ACTIVE CARD
   activeInvestCardDark: {
     background: "#040d1a",
-    borderRadius: "14px",
-    padding: "18px",
-    marginBottom: "20px",
+    borderRadius: "16px",
+    padding: "20px",
+    marginBottom: "22px",
     border: "1.5px solid #16a34a"
   },
   activeHeader: {
@@ -1793,40 +1794,40 @@ const styles = {
     gap: "10px"
   },
   activePulse: {
-    width: "12px",
-    height: "12px",
+    width: "14px",
+    height: "14px",
     borderRadius: "50%",
     background: "#22c55e",
     boxShadow: "0 0 12px #22c55e"
   },
   activeTitle: {
-    fontSize: "15px",
+    fontSize: "16px",
     letterSpacing: "0.5px",
     color: "#22c55e"
   },
   activeStatusTagDark: {
-    fontSize: "13px",
+    fontSize: "14px",
     background: "rgba(34, 197, 94, 0.2)",
     color: "#4ade80",
-    padding: "5px 12px",
-    borderRadius: "12px",
+    padding: "6px 14px",
+    borderRadius: "14px",
     fontWeight: "bold"
   },
   activeStatsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-    gap: "14px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: "16px"
   },
   activeStatItem: {
     display: "flex",
     flexDirection: "column"
   },
   activeLabel: {
-    fontSize: "13px",
+    fontSize: "14px",
     color: "#94a3b8"
   },
   activeValue: {
-    fontSize: "17px",
+    fontSize: "18px",
     fontWeight: "bold",
     color: "#f8fafc",
     marginTop: "4px"
@@ -1835,28 +1836,28 @@ const styles = {
   // FORM FIELDS
   formGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "16px",
-    marginBottom: "18px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+    gap: "18px",
+    marginBottom: "20px"
   },
   fieldGroup: {
     display: "flex",
     flexDirection: "column"
   },
   labelDark: {
-    fontSize: "15px",
+    fontSize: "16px",
     fontWeight: "700",
     marginBottom: "8px",
     color: "#e2e8f0"
   },
   selectDark: {
-    height: "50px",
-    borderRadius: "10px",
+    height: "52px",
+    borderRadius: "12px",
     border: "1px solid #334155",
     background: "#0f2138",
     color: "#ffffff",
-    padding: "0 14px",
-    fontSize: "15px",
+    padding: "0 16px",
+    fontSize: "16px",
     fontWeight: "600"
   },
   lockedInputDark: {
@@ -1866,15 +1867,15 @@ const styles = {
   frequencyToggleDark: {
     display: "flex",
     gap: "10px",
-    height: "50px"
+    height: "52px"
   },
   freqBtnDark: {
     flex: 1,
-    borderRadius: "10px",
+    borderRadius: "12px",
     border: "1px solid #334155",
     background: "#0f2138",
     color: "#cbd5e1",
-    fontSize: "15px",
+    fontSize: "16px",
     fontWeight: "bold",
     cursor: "pointer"
   },
@@ -1884,11 +1885,11 @@ const styles = {
     borderColor: "#16a34a"
   },
   amountInputWrapDark: {
-    height: "50px",
-    borderRadius: "10px",
+    height: "52px",
+    borderRadius: "12px",
     border: "1px solid #334155",
     background: "#0f2138",
-    padding: "0 14px",
+    padding: "0 16px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
@@ -1897,83 +1898,83 @@ const styles = {
   amountInputDark: {
     border: "none",
     background: "transparent",
-    fontSize: "18px",
+    fontSize: "20px",
     fontWeight: "bold",
     color: "#ffffff",
     outline: "none",
     width: "60%"
   },
   changeBadgeDark: {
-    fontSize: "13px",
+    fontSize: "14px",
     color: "#38bdf8",
     fontWeight: "bold"
   },
   lockedBadgeDark: {
-    fontSize: "13px",
+    fontSize: "14px",
     color: "#ef4444",
     fontWeight: "bold"
   },
   helpTextDark: {
     color: "#94a3b8",
-    fontSize: "12px",
+    fontSize: "13px",
     marginTop: "6px"
   },
 
   // RETURN BOX
   returnContainerDark: {
     background: "#dcfce7",
-    borderRadius: "14px",
-    padding: "20px",
+    borderRadius: "16px",
+    padding: "22px",
     textAlign: "center",
-    margin: "18px 0",
+    margin: "20px 0",
     color: "#166534"
   },
   returnCardContent: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "16px"
+    gap: "18px"
   },
   returnBoxBagIcon: {
-    fontSize: "36px"
+    fontSize: "40px"
   },
   returnCardTitleDark: {
-    fontSize: "16px",
+    fontSize: "18px",
     fontWeight: "700"
   },
   returnCardValueDark: {
-    fontSize: "32px",
+    fontSize: "36px",
     fontWeight: "900",
     display: "block"
   },
   returnCardNoteDark: {
-    fontSize: "13px",
+    fontSize: "14px",
     opacity: 0.95
   },
 
   // BREAKDOWN GRID
   breakdownGridDark: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
     background: "#040d1a",
-    borderRadius: "12px",
+    borderRadius: "14px",
     border: "1px solid rgba(255, 255, 255, 0.1)",
-    margin: "18px 0",
+    margin: "20px 0",
     overflow: "hidden"
   },
   breakBoxDark: {
-    padding: "14px",
+    padding: "16px",
     textAlign: "center",
     borderRight: "1px solid rgba(255, 255, 255, 0.08)"
   },
   breakLabelDark: {
     display: "block",
-    fontSize: "13px",
+    fontSize: "14px",
     color: "#94a3b8",
     marginBottom: "6px"
   },
   breakValueDark: {
-    fontSize: "17px",
+    fontSize: "18px",
     fontWeight: "bold",
     color: "#ffffff"
   },
@@ -1981,16 +1982,16 @@ const styles = {
   // ACTION BUTTONS
   actionGridTriple: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-    gap: "14px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: "16px"
   },
   startInvestBtnDark: {
-    height: "52px",
-    borderRadius: "10px",
+    height: "54px",
+    borderRadius: "12px",
     border: "none",
     background: "#86efac",
     color: "#052e16",
-    fontSize: "16px",
+    fontSize: "17px",
     fontWeight: "bold",
     cursor: "pointer"
   },
@@ -2001,22 +2002,22 @@ const styles = {
     cursor: "not-allowed"
   },
   addInvestBtnDark: {
-    height: "52px",
-    borderRadius: "10px",
+    height: "54px",
+    borderRadius: "12px",
     border: "none",
     background: "#2563eb",
     color: "white",
-    fontSize: "16px",
+    fontSize: "17px",
     fontWeight: "bold",
     cursor: "pointer"
   },
   withdrawBtnDark: {
-    height: "52px",
-    borderRadius: "10px",
+    height: "54px",
+    borderRadius: "12px",
     background: "#0f172a",
     border: "1.5px solid #334155",
     color: "white",
-    fontSize: "16px",
+    fontSize: "17px",
     fontWeight: "bold",
     cursor: "pointer"
   },
@@ -2024,19 +2025,19 @@ const styles = {
   // HISTORY SECTION
   darkHistoryCard: {
     background: "#081628",
-    borderRadius: "16px",
-    padding: "20px",
+    borderRadius: "18px",
+    padding: "22px",
     border: "1px solid rgba(255, 255, 255, 0.1)"
   },
   historyHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "16px"
+    marginBottom: "18px"
   },
   refreshBtnDark: {
     color: "#22c55e",
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: "bold",
     cursor: "pointer"
   },
@@ -2046,11 +2047,11 @@ const styles = {
   tableDark: {
     width: "100%",
     borderCollapse: "collapse",
-    fontSize: "15px"
+    fontSize: "16px"
   },
   thDark: {
     background: "#040d1a",
-    padding: "14px 16px",
+    padding: "16px 18px",
     color: "#cbd5e1",
     textAlign: "left",
     fontWeight: "700"
@@ -2059,64 +2060,64 @@ const styles = {
     borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
   },
   tdDark: {
-    padding: "14px 16px",
+    padding: "16px 18px",
     color: "#f8fafc"
   },
   emptyTdDark: {
     textAlign: "center",
-    padding: "28px",
+    padding: "32px",
     color: "#94a3b8",
-    fontSize: "15px"
+    fontSize: "16px"
   },
   badgeDailyDark: {
     background: "rgba(34, 197, 94, 0.15)",
     color: "#4ade80",
-    padding: "4px 10px",
+    padding: "5px 12px",
     borderRadius: "6px",
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: "bold"
   },
   statusBadgeDark: {
-    padding: "5px 12px",
+    padding: "6px 14px",
     borderRadius: "10px",
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: "bold",
     display: "inline-block"
   },
   viewAllFooter: {
     textAlign: "center",
-    marginTop: "16px",
-    paddingTop: "12px",
+    marginTop: "18px",
+    paddingTop: "14px",
     borderTop: "1px solid rgba(255,255,255,0.08)"
   },
   viewAllLink: {
     color: "#22c55e",
-    fontSize: "15px",
+    fontSize: "16px",
     fontWeight: "bold",
     cursor: "pointer"
   },
 
   whyInvestGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-    gap: "16px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gap: "18px"
   },
   whyInvestCard: {
     background: "#040d1a",
-    borderRadius: "12px",
-    padding: "18px",
+    borderRadius: "14px",
+    padding: "20px",
     border: "1px solid rgba(255, 255, 255, 0.1)"
   },
 
   // TRUST BANNER
   trustBannerDark: {
     background: "linear-gradient(135deg, #051a13 0%, #081728 100%)",
-    borderRadius: "16px",
-    padding: "24px 28px",
+    borderRadius: "18px",
+    padding: "26px 30px",
     border: "1px solid rgba(34, 197, 94, 0.3)",
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: "22px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+    gap: "24px",
     alignItems: "center"
   },
   trustLeftContent: {
@@ -2125,7 +2126,7 @@ const styles = {
   },
   trustIllustrations: {
     width: "100%",
-    height: "130px",
+    height: "140px",
     marginTop: "10px"
   },
   trustImg: {
@@ -2136,60 +2137,60 @@ const styles = {
   trustRightList: {
     display: "flex",
     flexDirection: "column",
-    gap: "16px"
+    gap: "18px"
   },
   trustItem: {
     display: "flex",
     alignItems: "center",
-    gap: "14px"
+    gap: "16px"
   },
   trustIcon: {
-    fontSize: "24px",
+    fontSize: "26px",
     color: "#22c55e"
   },
   trustTitle: {
-    fontSize: "15px",
+    fontSize: "16px",
     color: "#ffffff",
     display: "block",
     fontWeight: "700"
   },
   trustSub: {
-    fontSize: "13px",
+    fontSize: "14px",
     color: "#94a3b8"
   },
 
   // FOOTER FEATURES GRID
   footerFeaturesGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-    gap: "14px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "16px"
   },
   featureBoxDark: {
     background: "#081628",
-    borderRadius: "12px",
-    padding: "16px",
+    borderRadius: "14px",
+    padding: "18px",
     border: "1px solid rgba(255, 255, 255, 0.1)",
     display: "flex",
     alignItems: "center",
-    gap: "14px"
+    gap: "16px"
   },
 
   // FOOTER BAR
   footerBar: {
     textAlign: "center",
-    padding: "20px 0",
+    padding: "22px 0",
     borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-    marginTop: "12px"
+    marginTop: "14px"
   },
   footerTagline: {
-    fontSize: "15px",
+    fontSize: "16px",
     color: "#cbd5e1",
-    margin: "0 0 10px 0"
+    margin: "0 0 12px 0"
   },
   footerCopyRow: {
     display: "flex",
-    justifycontent: "space-between",
-    fontSize: "13px",
+    justifyContent: "space-between",
+    fontSize: "14px",
     color: "#64748b"
   },
 
@@ -2213,9 +2214,9 @@ const styles = {
     bottom: 0,
     left: 0,
     background: "#08101e",
-    width: "260px",
+    width: "270px",
     height: "100vh",
-    padding: "16px 14px",
+    padding: "18px 16px",
     display: "flex",
     flexDirection: "column",
     boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
@@ -2230,8 +2231,8 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: "12px",
-    paddingBottom: "12px",
+    marginBottom: "14px",
+    paddingBottom: "14px",
     borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
     flexShrink: 0
   },
@@ -2242,8 +2243,8 @@ const styles = {
     gap: "8px"
   },
   drawerLogoWrapper: {
-    width: "52px",
-    height: "52px",
+    width: "56px",
+    height: "56px",
     borderRadius: "50%",
     background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
     border: "2px solid #22c55e",
@@ -2253,20 +2254,20 @@ const styles = {
     boxShadow: "0 0 12px rgba(34, 197, 94, 0.35)"
   },
   drawerLogoImg: {
-    width: "32px",
-    height: "32px",
+    width: "36px",
+    height: "36px",
     objectFit: "contain"
   },
   drawerLogoText: {
     margin: 0,
-    fontSize: "18px",
+    fontSize: "20px",
     fontWeight: "900",
     color: "#ffffff",
     letterSpacing: "0.8px",
     textAlign: "center"
   },
   drawerLogoSubtext: {
-    fontSize: "12px",
+    fontSize: "13px",
     color: "#a7f3d0",
     fontWeight: "600",
     marginTop: "2px",
@@ -2284,14 +2285,14 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "14px",
-    padding: "12px 18px",
+    padding: "13px 20px",
     background: "rgba(255, 255, 255, 0.12)",
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
     border: "1px solid rgba(255, 255, 255, 0.25)",
     clipPath: "polygon(12px 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0% 50%)",
     color: "#ffffff",
-    fontSize: "15px",
+    fontSize: "16px",
     fontWeight: "700",
     cursor: "pointer",
     textAlign: "left",
@@ -2313,7 +2314,7 @@ const styles = {
   },
   drawerNavText: {
     flex: 1,
-    fontSize: "15px",
+    fontSize: "16px",
     letterSpacing: "0.3px"
   },
   drawerNavDashboard: { background: "rgba(59, 130, 246, 0.2)", border: "1px solid rgba(59, 130, 246, 0.4)" },
@@ -2354,8 +2355,8 @@ const styles = {
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0, 0, 0, 0.8)",
-    backdropFilter: "blur(6px)",
+    background: "rgba(0, 0, 0, 0.85)",
+    backdropFilter: "blur(8px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -2364,13 +2365,52 @@ const styles = {
   },
   modalCardDark: {
     background: "#081628",
-    borderRadius: "18px",
-    padding: "24px",
+    borderRadius: "20px",
+    padding: "26px",
     width: "100%",
-    maxWidth: "450px",
+    maxWidth: "460px",
     border: "1px solid rgba(255, 255, 255, 0.12)",
-    boxShadow: "0 25px 50px rgba(0,0,0,0.6)"
+    boxShadow: "0 25px 50px rgba(0,0,0,0.7)"
   },
+
+  // PREMIUM WITHDRAW MODAL CARD
+  withdrawModalCardDark: {
+    background: "linear-gradient(145deg, #09182b 0%, #040e1a 100%)",
+    borderRadius: "24px",
+    padding: "28px 24px",
+    width: "100%",
+    maxWidth: "460px",
+    border: "1.5px solid rgba(56, 189, 248, 0.3)",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.8), 0 0 25px rgba(56, 189, 248, 0.15)"
+  },
+  withdrawBalanceCard: {
+    marginTop: "16px",
+    padding: "18px",
+    borderRadius: "16px",
+    border: "1px solid",
+    textAlign: "center",
+    boxShadow: "inset 0 0 15px rgba(0,0,0,0.5)"
+  },
+  dailyReturnBox: {
+    marginTop: "16px",
+    padding: "18px",
+    background: "#040d1a",
+    borderRadius: "16px",
+    border: "1px solid #1e293b",
+    textAlign: "center",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
+  },
+  withdrawTimingNote: {
+    marginTop: "16px",
+    padding: "12px 16px",
+    background: "rgba(56, 189, 248, 0.12)",
+    border: "1px solid rgba(56, 189, 248, 0.35)",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px"
+  },
+
   modalHeader: {
     display: "flex",
     justifyContent: "space-between",
@@ -2382,10 +2422,13 @@ const styles = {
     background: "#0f2138",
     color: "#fff",
     borderRadius: "50%",
-    width: "36px",
-    height: "36px",
+    width: "38px",
+    height: "38px",
     cursor: "pointer",
-    fontSize: "16px"
+    fontSize: "18px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   },
 
   // WELCOME OFFER POPUP STYLES
@@ -2394,7 +2437,7 @@ const styles = {
     borderRadius: "24px",
     padding: "32px 24px 24px 24px",
     width: "100%",
-    maxWidth: "400px",
+    maxWidth: "420px",
     border: "2px solid #22c55e",
     boxShadow: "0 0 35px rgba(34, 197, 94, 0.3)",
     textAlign: "center",
@@ -2408,43 +2451,43 @@ const styles = {
     background: "rgba(255,255,255,0.1)",
     color: "#fff",
     borderRadius: "50%",
-    width: "32px",
-    height: "32px",
+    width: "34px",
+    height: "34px",
     cursor: "pointer",
-    fontSize: "14px"
+    fontSize: "16px"
   },
   offerHeaderBadge: {
     display: "inline-block",
     background: "rgba(34, 197, 94, 0.15)",
     color: "#4ade80",
     border: "1px solid rgba(34, 197, 94, 0.3)",
-    padding: "6px 14px",
+    padding: "6px 16px",
     borderRadius: "20px",
-    fontSize: "12px",
+    fontSize: "13px",
     fontWeight: "bold",
     letterSpacing: "0.5px",
     marginBottom: "16px"
   },
   offerIconWrapper: {
-    fontSize: "48px",
+    fontSize: "52px",
     marginBottom: "12px"
   },
   offerTitle: {
     margin: "0 0 10px 0",
-    fontSize: "20px",
+    fontSize: "22px",
     fontWeight: "800",
     color: "#ffffff",
     lineHeight: "1.3"
   },
   offerDescription: {
-    fontSize: "15px",
+    fontSize: "16px",
     color: "#cbd5e1",
-    margin: "0 0 20px 0",
+    margin: "0 0 22px 0",
     lineHeight: "1.5"
   },
   offerHighlightText: {
     color: "#facc15",
-    fontSize: "18px",
+    fontSize: "20px",
     fontWeight: "900",
     display: "inline-block",
     marginTop: "4px"
@@ -2452,28 +2495,28 @@ const styles = {
   offerActionGroup: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px"
+    gap: "12px"
   },
   offerReferBtn: {
     width: "100%",
-    height: "48px",
+    height: "50px",
     borderRadius: "12px",
     border: "none",
     background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
     color: "#ffffff",
-    fontSize: "16px",
+    fontSize: "17px",
     fontWeight: "800",
     cursor: "pointer",
     boxShadow: "0 4px 15px rgba(34, 197, 94, 0.4)"
   },
   offerSkipBtn: {
     width: "100%",
-    height: "40px",
+    height: "42px",
     borderRadius: "10px",
     border: "none",
     background: "transparent",
     color: "#94a3b8",
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: "600",
     cursor: "pointer"
   },
@@ -2484,8 +2527,8 @@ const styles = {
     gap: "14px"
   },
   presetCard: {
-    borderRadius: "12px",
-    padding: "16px",
+    borderRadius: "14px",
+    padding: "18px",
     color: "white",
     cursor: "pointer",
     display: "flex",
@@ -2493,14 +2536,14 @@ const styles = {
     alignItems: "center",
     justifyContent: "center"
   },
-  presetBadge: { fontSize: "12px", textTransform: "uppercase", fontWeight: "bold" },
-  presetVal: { fontSize: "20px", fontWeight: "900", margin: "6px 0" },
-  presetLabel: { fontSize: "13px", opacity: 0.85 },
+  presetBadge: { fontSize: "13px", textTransform: "uppercase", fontWeight: "bold" },
+  presetVal: { fontSize: "22px", fontWeight: "900", margin: "6px 0" },
+  presetLabel: { fontSize: "14px", opacity: 0.85 },
 
   walletBoxDark: {
     background: "#040d1a",
-    padding: "16px",
-    borderRadius: "10px",
+    padding: "18px",
+    borderRadius: "12px",
     border: "1px solid #1e293b"
   },
   walletAddrRow: {
@@ -2510,53 +2553,49 @@ const styles = {
     gap: "10px",
     marginTop: "8px"
   },
-  walletText: { fontSize: "13px", wordBreak: "break-all", color: "#fff" },
+  walletText: { fontSize: "14px", wordBreak: "break-all", color: "#fff" },
   copyBtn: {
     background: "#16a34a",
     color: "white",
     border: "none",
-    padding: "8px 12px",
-    borderRadius: "6px",
+    padding: "8px 14px",
+    borderRadius: "8px",
     cursor: "pointer",
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: "bold"
   },
   inputModalDark: {
     width: "100%",
-    height: "50px",
-    borderRadius: "10px",
+    height: "52px",
+    borderRadius: "12px",
     border: "1px solid #334155",
     background: "#0f2138",
     color: "#fff",
-    padding: "0 14px",
-    fontSize: "15px",
+    padding: "0 16px",
+    fontSize: "16px",
     boxSizing: "border-box"
   },
-  fileInputDark: { width: "100%", fontSize: "14px", color: "#cbd5e1" },
+  fileInputDark: { width: "100%", fontSize: "15px", color: "#cbd5e1" },
   submitBtnDark: {
-    height: "50px",
-    borderRadius: "10px",
+    height: "52px",
+    borderRadius: "12px",
     border: "none",
     background: "#16a34a",
     color: "white",
     fontWeight: "bold",
-    fontSize: "16px",
+    fontSize: "17px",
     cursor: "pointer",
-    width: "100%"
-  },
-  withdrawBalanceInfoDark: {
-    padding: "14px",
-    borderRadius: "10px",
-    display: "flex",
-    justifyContent: "space-between",
-    fontSize: "15px"
+    width: "100%",
+    transition: "all 0.2s ease"
   },
   balanceAlertBoxDark: {
     background: "rgba(239, 68, 68, 0.15)",
     color: "#f87171",
-    fontSize: "13px",
-    padding: "12px",
-    borderRadius: "8px",
-    marginTop: "10px"
+    fontSize: "14px",
+    padding: "14px",
+    borderRadius: "10px",
+    marginTop: "14px",
+    fontWeight: "600",
+    textAlign: "center"
   }
 };
