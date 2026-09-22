@@ -316,14 +316,21 @@ export default function OneTime() {
     return (Number(amount) * Number(rate)) / 100;
   }, [amount, rate, activeInvestment]);
 
-  // আজকে উইথড্র করা হয়েছে কি না চেক করা
+  // 🔥FIXED: আজকের উইথড্রয়াল চেক - Rejected, Cancelled বা Failed হলে আবার করতে দেবে
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
-      const isWd = (item.type || "").toLowerCase().includes("withdrawal");
-      const itemDate = parseSafeDate(item.createdAt || item.startDate).toDateString();
+      const typeStr = (item.type || "").toLowerCase();
+      // শুধুমাত্র উইথড্রয়াল টাইপগুলো নির্বাচন করুন
+      if (typeStr !== "withdrawal" && !typeStr.includes("withdraw")) return false;
+
+      const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
       const status = (item.status || "").toLowerCase();
-      return isWd && itemDate === todayStr && status !== "rejected" && status !== "cancelled" && status !== "failed";
+
+      // আজকের দিনে পেমেন্ট Pending, Success, Approved বা Accepted অবস্থায় থাকলে নতুন রিকোয়েস্ট নেওয়া বন্ধ রাখবে
+      const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
+
+      return itemDate === todayStr && isBlocked;
     });
   }, [history]);
 
