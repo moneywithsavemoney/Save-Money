@@ -390,40 +390,33 @@ export default function Wallet() {
     triggerStatusOverlay("success", "Opening UPI Apps... Please complete payment.");
   };
 
-  const submitDepositRequest = async () => {
-    if (!addAmount || Number(addAmount) <= 0) {
-      return triggerStatusOverlay("warning", "Please enter a valid amount");
-    }
-    if (!depositTxnId || !depositTxnId.trim()) {
-      return triggerStatusOverlay("warning", "Please enter the 12-digit UPI Ref No");
-    }
-    try {
-      const res = await fetch(`${API}/deposit-request`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token || ""
-        },
-        body: JSON.stringify({
-          email: email,
-          amount: Number(addAmount),
-          txnId: depositTxnId.trim()
-        })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        return triggerStatusOverlay("error", data.msg || "Deposit request failed");
+  const handleAddMoney = async (amount) => {
+  try {
+    const token = localStorage.getItem("token"); // বা আপনার টোকেন স্টেট
+    const response = await fetch("YOUR_BACKEND_URL/api/create-payment-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ amount })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // যদি গেটওয়ে রিডাইরেক্ট ইউআরএল দেয়, ইউজারকে সেখানে নিয়ে যান অথবা QR দেখান
+      if (data.paymentUrl) {
+        window.location.href = data.paymentUrl;
       }
-      triggerStatusOverlay("success", data.msg || "Submitted successfully! Waiting for admin approval.");
-      setAddOpen(false);
-      setAddAmount("");
-      setDepositTxnId("");
-      loadWallet();
-    } catch (err) {
-      console.log("DEPOSIT ERROR:", err);
-      triggerStatusOverlay("error", "Server connectivity error");
+    } else {
+      alert(data.msg || "Failed to initiate payment.");
     }
-  };
+  } catch (error) {
+    console.error("Payment error:", error);
+    alert("Server error, please try again.");
+  }
+};
 
   const checkReceiver = async () => {
     if (!receiverWalletId.trim()) {
