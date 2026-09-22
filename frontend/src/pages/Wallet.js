@@ -375,20 +375,43 @@ export default function Wallet() {
 
   const openAddCash = () => {
     setAddAmount("");
-    setDepositTxnId("");
     setAddOpen(true);
+  };
+
+  // 👇 নতুন পেমেন্ট অর্ডার ক্রিয়েশন হ্যান্ডলার
+  const handleAddMoney = async (amount) => {
+    try {
+      const token = localStorage.getItem("token"); // আপনার Auth Token
+      const res = await fetch("https://save-money-vyv1.onrender.com/api/create-payment-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ amount })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // যদি লিঙ্ক দেয়, তবে পেমেন্ট পেজে রিডাইরেক্ট করবে
+        if (data.paymentUrl) {
+          window.location.href = data.paymentUrl;
+        }
+      } else {
+        alert(data.msg || "Payment order creation failed");
+      }
+    } catch (err) {
+      console.error("Payment Error:", err);
+      alert("Server Connection Error!");
+    }
   };
 
   const payViaUPI = () => {
     if (!addAmount || Number(addAmount) <= 0) {
       return triggerStatusOverlay("warning", "Please enter a valid amount");
     }
-    const MY_UPI_ID = "savemoney@razorpay";
-    const MERCHANT_NAME = "SaveMoney Wallet";
-    const txnRef = "TXN" + Date.now();
-    const upiUrl = `upi://pay?pa=${MY_UPI_ID}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${addAmount}&cu=INR&tr=${txnRef}`;
-    window.location.href = upiUrl;
-    triggerStatusOverlay("success", "Opening UPI Apps... Please complete payment.");
+    handleAddMoney(addAmount);
   };
 
   const submitDepositRequest = async () => {
@@ -1278,7 +1301,7 @@ export default function Wallet() {
             </div>
           )}
 
-          {/* Add Cash Modal - Updated Component */}
+          {/* Add Cash Modal */}
           {addOpen && (
             <div style={styles.depositOverlay}>
               <div style={styles.depositModal}>
@@ -1286,7 +1309,7 @@ export default function Wallet() {
 
                 <div style={styles.depositIcon}>⚡</div>
                 <h2 style={styles.depositTitle}>Direct UPI Add Cash</h2>
-                <p style={styles.depositSub}>Enter amount, click Pay Now to use PhonePe/Paytm/GPay, and then submit the Transaction ID.</p>
+                <p style={styles.depositSub}>Enter amount, click Pay Now to use PhonePe/Paytm, and then submit the Transaction ID.</p>
 
                 <label style={styles.depositLabel}>Amount (₹)</label>
                 <input
@@ -1304,8 +1327,8 @@ export default function Wallet() {
                   📱 Pay Via PhonePe / Paytm / GPay
                 </button>
 
-                <div style={{ borderTop: "1px dashed #cbd5e1", margin: "15px 0", paddingTop: "10px" }}>
-                  <p style={{ fontSize: "12px", color: "#64748b", textAlign: "center" }}>💡 After paying, copy the 12-digit UTR/Txn ID from your UPI app and paste below.</p>
+                <div style={{ borderTop: "1px dashed #334155", margin: "15px 0", paddingTop: "10px" }}>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", textAlign: "center" }}>💡 After paying, copy the 12-digit UTR/Txn ID from your UPI app and paste below.</p>
                 </div>
 
                 <label style={styles.depositLabel}>Transaction ID / UTR No</label>
@@ -1633,8 +1656,7 @@ const styles = {
     color: "white",
     fontWeight: "900",
     fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(6,182,212,.3)",
-    cursor: "pointer"
+    boxShadow: "0 12px 25px rgba(6,182,212,.3)"
   },
   iWantP2pBtn: {
     padding: "8px 12px",
@@ -1960,8 +1982,7 @@ const styles = {
     background: "white",
     boxShadow: "0 10px 25px rgba(15,23,42,.08)",
     fontSize: "24px",
-    position: "relative",
-    cursor: "pointer"
+    position: "relative"
   },
   avatar: {
     width: "58px",
@@ -2030,8 +2051,7 @@ const styles = {
     color: "#1e1b9b",
     fontWeight: "900",
     fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(0,0,0,.18)",
-    cursor: "pointer"
+    boxShadow: "0 12px 25px rgba(0,0,0,.18)"
   },
   withdrawBtn: {
     minWidth: "135px",
@@ -2042,8 +2062,7 @@ const styles = {
     color: "white",
     fontWeight: "900",
     fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(255,80,90,.28)",
-    cursor: "pointer"
+    boxShadow: "0 12px 25px rgba(255,80,90,.28)"
   },
   eyeBtn: {
     position: "absolute",
@@ -2056,8 +2075,7 @@ const styles = {
     background: "rgba(255,255,255,.13)",
     color: "white",
     fontSize: "20px",
-    zIndex: 8,
-    cursor: "pointer"
+    zIndex: 8
   },
   walletArt: {
     position: "absolute",
@@ -2232,8 +2250,7 @@ const styles = {
     color: "white",
     fontSize: "18px",
     fontWeight: "900",
-    boxShadow: "0 12px 24px rgba(236,22,142,.25)",
-    cursor: "pointer"
+    boxShadow: "0 12px 24px rgba(236,22,142,.25)"
   },
   inviteCard: {
     background: "linear-gradient(135deg,#fff4d9,#ffffff)",
@@ -2273,8 +2290,7 @@ const styles = {
     background: "linear-gradient(135deg,#6d28d9,#ec4899)",
     color: "white",
     fontWeight: "900",
-    fontSize: "16px",
-    cursor: "pointer"
+    fontSize: "16px"
   },
   historyCard: {
     background: "white",
@@ -2393,8 +2409,7 @@ const styles = {
     borderRadius: "14px",
     background: "#e5e7eb",
     color: "#071747",
-    fontWeight: "900",
-    cursor: "pointer"
+    fontWeight: "900"
   },
   confirmTop: {
     textAlign: "center"
@@ -2436,8 +2451,7 @@ const styles = {
     background: "#fee2e2",
     color: "#dc2626",
     fontWeight: "900",
-    marginTop: "10px",
-    cursor: "pointer"
+    marginTop: "10px"
   },
   shareGrid: {
     display: "grid",
@@ -2454,8 +2468,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    textDecoration: "none",
-    cursor: "pointer"
+    textDecoration: "none"
   },
   notifyCount: {
     position: "absolute",
@@ -2477,18 +2490,6 @@ const styles = {
     height: "100%",
     objectFit: "cover",
     borderRadius: "50%"
-  },
-  menuButton: {
-    fontSize: "24px",
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    marginRight: "10px",
-    display: "none"
-  },
-  topHeader: {
-    display: "flex",
-    flexDirection: "column"
   },
   depositOverlay: {
     position: "fixed",
@@ -2558,27 +2559,34 @@ const styles = {
   },
   depositInput: {
     width: "100%",
-    height: 50,
-    borderRadius: 15,
-    border: "1px solid #e5e7eb",
-    outline: "none",
+    height: "48px",
+    borderRadius: "14px",
+    border: "1px solid #cbd5e1",
     padding: "0 14px",
     fontSize: "15px",
-    fontWeight: 700,
-    background: "#fff",
+    outline: "none",
     boxSizing: "border-box"
   },
   submitDepositBtn: {
     width: "100%",
-    height: "54px",
+    height: "50px",
     border: "none",
-    borderRadius: "17px",
-    marginTop: "18px",
-    background: "linear-gradient(135deg,#2563eb,#7c3aed,#ec4899)",
-    color: "#fff",
-    fontSize: "16px",
+    borderRadius: "14px",
+    background: "linear-gradient(135deg, #10b981, #059669)",
+    color: "white",
     fontWeight: "900",
-    boxShadow: "0 16px 35px rgba(124,58,237,.35)",
-    cursor: "pointer"
+    fontSize: "15px",
+    cursor: "pointer",
+    boxShadow: "0 8px 20px rgba(16,185,129,0.25)"
+  },
+  topHeader: {
+    width: "100%"
+  },
+  menuButton: {
+    background: "transparent",
+    border: "none",
+    fontSize: "28px",
+    cursor: "pointer",
+    marginBottom: "10px"
   }
 };
