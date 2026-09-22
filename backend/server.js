@@ -8130,8 +8130,13 @@ const gatewayResponse = await axios.post(
         msg: gatewayResponse.data.msg || "Failed to create payment order"
       });
     }
-  } catch (err) {
-    console.error("CREATE PAYMENT ORDER ERROR:", err.message);
+} catch (err) {
+    if (err.response) {
+      // গেটওয়ে থেকে ফেরত আসা আসল এরর মেসেজটি লগে দেখাবে
+      console.error("CREATE PAYMENT ORDER ERROR DATA:", err.response.status, err.response.data);
+    } else {
+      console.error("CREATE PAYMENT ORDER ERROR:", err.message);
+    }
     res.status(500).json({ success: false, msg: "Server error during payment creation" });
   }
 });
