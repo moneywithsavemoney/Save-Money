@@ -7320,6 +7320,7 @@ if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" ||
 
 
 
+// ==================== ONETIME WITHDRAW API ====================
 app.post("/api/onetime/withdraw", async (req, res) => {
   try {
     const { email, amount, bankDetails } = req.body;
@@ -7335,40 +7336,54 @@ app.post("/api/onetime/withdraw", async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // history array নিশ্চিত করা
-    const historyList = user.onetimeHistory || user.oneTimeHistory || [];
+    const historyList = user.onetimeHistory || [];
 
-    // ১. পেন্ডিং উইথড্রয়াল চেক
-    const hasPendingWithdraw = historyList.some(
-      (item) => item && (item.type || "").toLowerCase() === "withdrawal" && item.status === "Pending"
-    );
+    // ১. কোনো Pending উইথড্রয়াল আছে কি না চেক করা
+    const hasPendingWithdraw = historyList.some((item) => {
+      if (!item) return false;
+      const itemType = (item.type || "").toLowerCase();
+      const itemStatus = (item.status || "").toLowerCase();
+      return itemType === "withdrawal" && itemStatus === "pending";
+    });
 
     if (hasPendingWithdraw) {
       return res.status(400).json({
         success: false,
-        message: "You already have a successful or pending withdrawal request today. You can only make one withdrawal per day."
+        message: "You already have a pending withdrawal request. Please wait for admin response."
       });
     }
 
-    // ২. আজকের দিনে উইথড্র হয়েছে কিনা চেক
+    // ২. আজকের তারিখে কোনো সফল বা পেন্ডিং উইথড্রয়াল আছে কি না চেক করা (Rejected / Cancelled হলে পুনরায় করতে পারবে)
     const todayStr = new Date().toDateString();
+    
     const hasWithdrawToday = historyList.some((item) => {
-      if (!item || (item.type || "").toLowerCase() !== "withdrawal") return false;
-      const itemDate = new Date(item.createdAt || item.startDate || Date.now()).toDateString();
-      return itemDate === todayStr && item.status !== "Rejected" && item.status !== "Cancelled";
+      if (!item) return false;
+      const itemType = (item.type || "").toLowerCase();
+      
+      // শুধুমাত্র "withdrawal" টাইপগুলো চেক করা হবে
+      if (itemType !== "withdrawal") return false;
+
+      const itemDate = new Date(item.createdAt || item.startDate || item.date).toDateString();
+      const itemStatus = (item.status || "").toLowerCase();
+
+      // আজকের দিনে যদি পেমেন্ট Pending, Approved, Accepted বা Success থাকে তবেই আজ আর করতে দেবে না।
+      // কিন্তু Rejected, Cancelled বা Failed হলে আবার উইথড্রয়াল করার অনুমতি দেবে।
+      const isBlockedStatus = ["pending", "approved", "accepted", "success"].includes(itemStatus);
+
+      return itemDate === todayStr && isBlockedStatus;
     });
 
     if (hasWithdrawToday) {
       return res.status(400).json({
         success: false,
-        message: "You already have a successful or pending withdrawal request today. You can only make one withdrawal per day."
+        message: "You have already made a withdrawal request today. You can make another request tomorrow or if your request gets rejected."
       });
     }
 
     // ৩. ব্যালেন্স চেক
     const currentBalance = Number(user.otbalance || user.otBalance || 0);
     if (currentBalance < withdrawAmount) {
-      return res.status(400).json({ success: false, message: "Insufficient otbalance" });
+      return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
     }
 
     // ৪. ব্যালেন্স কাটা
@@ -7381,7 +7396,8 @@ app.post("/api/onetime/withdraw", async (req, res) => {
       amount: withdrawAmount,
       bankDetails: bankDetails || user.bankDetails || {},
       status: "Pending",
-      createdAt: new Date()
+      createdAt: new Date(),
+      startDate: new Date()
     };
 
     if (!user.onetimeHistory) user.onetimeHistory = [];
@@ -7390,12 +7406,12 @@ app.post("/api/onetime/withdraw", async (req, res) => {
     user.markModified("onetimeHistory");
     await user.save();
 
-    // ৫. সেপারেট কলেকশনে ডাটা সেভ (যদি কলেকশন থেকে থাকে)
+    // ৫. Standalone Withdrawal Collection-এ যুক্ত করা (যদি থেকে থাকে)
     try {
       if (typeof Withdrawal !== "undefined") {
         await Withdrawal.create({
           _id: withdrawId,
-          name: user.name,
+          name: user.name || "",
           email: cleanEmail,
           amount: withdrawAmount,
           bankDetails: bankDetails || user.bankDetails || {},
@@ -7403,8 +7419,8 @@ app.post("/api/onetime/withdraw", async (req, res) => {
           createdAt: new Date()
         });
       }
-    } catch (e) {
-      console.log("Standalone withdrawal collection skipped:", e.message);
+    } catch (wErr) {
+      console.log("Standalone withdrawal collection skipped:", wErr.message);
     }
 
     return res.status(200).json({
@@ -7419,6 +7435,7 @@ app.post("/api/onetime/withdraw", async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error processing withdrawal: " + error.message });
   }
 });
+
 
 
 
