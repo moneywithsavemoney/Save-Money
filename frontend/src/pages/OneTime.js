@@ -80,10 +80,10 @@ export default function OneTime() {
   const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
-  // Deposit Form State
-  const [txnId, setTxnId] = useState("");
-  const [screenshot, setScreenshot] = useState(null);
+  // UPI Deposit State
+  const [customAddAmount, setCustomAddAmount] = useState(5000);
   const [depositing, setDepositing] = useState(false);
+  const [paymentData, setPaymentData] = useState(null); // Stores UPI QR & URL response
 
   // Bank Form State
   const [bankForm, setBankForm] = useState({
@@ -103,9 +103,7 @@ export default function OneTime() {
     setTimeout(() => setToast({ show: false, msg: "", type: "info" }), 3500);
   };
 
-  // ⚡ UPDATED: UPI GATEWAY DETAILS
-  const COMPANY_UPI_ID = "savemoney@upi"; // আপনার আসল UPI ID টি দিয়ে পরিবর্তন করে নিন
-  const COMPANY_NAME = "SAVE MONEY PRIVATE LIMITED";
+  const COMPANY_WALLET_ADDRESS = "0x53D944eDA838748A92F2c361d2F71cD7EcFc8643";
 
   const currentWalletBalance = Number(
     stats.availableBalance || user?.otbalance || user?.otBalance || user?.availableBalance || 0
@@ -318,7 +316,7 @@ export default function OneTime() {
     return (Number(amount) * Number(rate)) / 100;
   }, [amount, rate, activeInvestment]);
 
-  // Today Withdrawal Check
+  // আজকের উইথড্রয়াল চেক - Rejected, Cancelled বা Failed হলে আবার করতে দেবে
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
@@ -391,54 +389,42 @@ export default function OneTime() {
     }
   };
 
-  const handleDepositSubmit = async (e) => {
-    e.preventDefault();
-    if (!txnId) {
-      triggerToast("Please enter Transaction ID / UTR No.", "error");
-      return;
-    }
-    if (!screenshot) {
-      triggerToast("Please select payment screenshot", "error");
+  // NEW UPI GATEWAY PAYMENT ORDER CREATION
+  const handleCreateUpiPayment = async (e) => {
+    if (e) e.preventDefault();
+    const payAmt = Number(customAddAmount || amount);
+
+    if (!payAmt || payAmt <= 0) {
+      triggerToast("Please enter a valid amount", "error");
       return;
     }
 
     try {
       setDepositing(true);
-      const formData = new FormData();
-      formData.append("email", email);
-      formData.append("amount", amount);
-      formData.append("transactionId", txnId);
-      formData.append("screenshot", screenshot);
-
-      const res = await fetch(`${API}/api/onetime/deposit-request`, {
+      const res = await fetch(`${API}/api/create-payment-order`, {
         method: "POST",
-        headers: { authorization: token },
-        body: formData
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ? token : ""
+        },
+        body: JSON.stringify({ amount: payAmt })
       });
 
       const data = await res.json();
-      if (res.ok || data.success) {
-        triggerToast("Deposit request submitted! Status: Pending", "success");
-        setShowAddFundModal(false);
-
-        const newPendingDeposit = {
-          _id: data.deposit?._id || Date.now().toString(),
-          type: "Add Fund",
-          amount: Number(amount),
-          transactionId: txnId,
-          status: "Pending",
-          createdAt: new Date().toISOString()
-        };
-
-        setHistory((prev) => [newPendingDeposit, ...prev]);
-        setTxnId("");
-        setScreenshot(null);
-        await loadDashboardData();
+      if (res.ok && data.success) {
+        setPaymentData({
+          paymentUrl: data.paymentUrl,
+          qrCode: data.qrCode,
+          orderId: data.orderId,
+          amount: payAmt
+        });
+        triggerToast("Payment Order Created! Complete payment now.", "success");
       } else {
-        triggerToast(data.message || "Failed to submit deposit", "error");
+        triggerToast(data.msg || data.message || "Failed to initiate UPI payment", "error");
       }
     } catch (err) {
-      triggerToast("Error uploading deposit screenshot", "error");
+      console.error("UPI Payment Error:", err);
+      triggerToast("Error connecting to UPI Payment Gateway", "error");
     } finally {
       setDepositing(false);
     }
@@ -523,12 +509,6 @@ export default function OneTime() {
     } finally {
       setWithdrawing(false);
     }
-  };
-
-  // ⚡ UPDATED: UPI COPY FUNCTION
-  const handleCopyUPI = () => {
-    navigator.clipboard.writeText(COMPANY_UPI_ID);
-    triggerToast("UPI ID Copied!", "success");
   };
 
   const fileUrl = (file) => {
@@ -1049,7 +1029,14 @@ export default function OneTime() {
               {investing ? "Processing..." : activeInvestment ? "🚀 Active Running" : "🚀 Start Investment"}
             </button>
 
-            <button style={styles.addInvestBtnDark} onClick={() => setShowAddFundModal(true)}>
+            <button 
+              style={styles.addInvestBtnDark} 
+              onClick={() => {
+                setCustomAddAmount(amount);
+                setPaymentData(null);
+                setShowAddFundModal(true);
+              }}
+            >
               + Add Fund
             </button>
 
@@ -1086,7 +1073,7 @@ export default function OneTime() {
                 ) : (
                   displayedHistory.map((item, idx) => {
                     const itemType = (item.type || "").toLowerCase();
-                    const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId;
+                    const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId || !!item.razorpayOrderId;
                     const isWithdraw = itemType.includes("withdraw");
 
                     const rawStatus = item.status || "Pending";
@@ -1105,7 +1092,7 @@ export default function OneTime() {
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
                           {isDeposit ? (
-                            <span style={{ fontSize: "14px", color: "#94a3b8" }}>UTR: {item.transactionId || "N/A"}</span>
+                            <span style={{ fontSize: "14px", color: "#94a3b8" }}>Txn: {item.transactionId || item.razorpayOrderId || "UPI"}</span>
                           ) : isWithdraw ? (
                             <span style={{ fontSize: "14px", color: "#94a3b8" }}>Bank Request</span>
                           ) : (
@@ -1336,86 +1323,89 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* ⚡ UPDATED: ADD FUND MODAL WITH NEW UPI GATEWAY & SCANNER */}
+      {/* UPDATED ADD FUND MODAL WITH NEW UPI GATEWAY */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Investment Fund (UPI)</h3>
-              <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
-            </div>
-
-            <p style={{ fontSize: "15px", color: "#cbd5e1", margin: "0 0 14px 0" }}>
-              Scan QR code or copy UPI ID to deposit <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong>:
-            </p>
-
-            {/* Dynamic Dynamic UPI QR Code */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "16px", background: "#040d1a", padding: "16px", borderRadius: "14px", border: "1px solid #1e293b" }}>
-              <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=${encodeURIComponent(COMPANY_UPI_ID)}%26pn=${encodeURIComponent(COMPANY_NAME)}%26am=${amount}%26cu=INR`} 
-                alt="UPI QR Code" 
-                style={{ width: "160px", height: "160px", borderRadius: "10px", border: "3px solid #22c55e" }}
-              />
-              <span style={{ color: "#94a3b8", fontSize: "13px", marginTop: "8px", fontWeight: "600" }}>
-                Scan using GPay, PhonePe, Paytm or Any UPI App
-              </span>
-            </div>
-
-            <div style={styles.walletBoxDark}>
-              <small style={{ color: "#94a3b8", fontWeight: "bold", fontSize: "14px" }}>Company UPI ID:</small>
-              <div style={styles.walletAddrRow}>
-                <span style={styles.walletText}>{COMPANY_UPI_ID}</span>
-                <button style={styles.copyBtn} onClick={handleCopyUPI}>Copy UPI</button>
-              </div>
-            </div>
-
-            {/* Direct Pay Via UPI Apps */}
-            <div style={{ display: "flex", gap: "10px", marginTop: "14px" }}>
-              <a 
-                href={`upi://pay?pa=${COMPANY_UPI_ID}&pn=${encodeURIComponent(COMPANY_NAME)}&am=${amount}&cu=INR`}
-                style={{
-                  flex: 1,
-                  padding: "10px",
-                  borderRadius: "8px",
-                  background: "#10b981",
-                  color: "#fff",
-                  textAlign: "center",
-                  textDecoration: "none",
-                  fontWeight: "bold",
-                  fontSize: "14px"
+              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Money via UPI</h3>
+              <button 
+                style={styles.closeBtnDark} 
+                onClick={() => {
+                  setShowAddFundModal(false);
+                  setPaymentData(null);
                 }}
               >
-                ⚡ Pay via UPI App
-              </a>
+                ✕
+              </button>
             </div>
 
-            <form onSubmit={handleDepositSubmit} style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
-              <div>
-                <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
-                <input
-                  style={styles.inputModalDark}
-                  placeholder="Enter 12-digit UPI Ref/UTR No."
-                  value={txnId}
-                  onChange={(e) => setTxnId(e.target.value)}
-                  required
-                />
-              </div>
+            {!paymentData ? (
+              <form onSubmit={handleCreateUpiPayment} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div>
+                  <label style={styles.labelDark}>Enter Amount (₹)</label>
+                  <input
+                    type="number"
+                    style={styles.inputModalDark}
+                    placeholder="Enter amount"
+                    value={customAddAmount}
+                    onChange={(e) => setCustomAddAmount(e.target.value)}
+                    min="1"
+                    required
+                  />
+                </div>
 
-              <div>
-                <label style={styles.labelDark}>Payment Screenshot Proof*</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={styles.fileInputDark}
-                  onChange={(e) => setScreenshot(e.target.files[0])}
-                  required
-                />
-              </div>
+                <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
+                  {depositing ? "Generating Payment Link..." : "Pay via UPI Gateway"}
+                </button>
+              </form>
+            ) : (
+              <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
+                <p style={{ color: "#cbd5e1", margin: 0, fontSize: "15px" }}>
+                  Order ID: <strong style={{ color: "#38bdf8" }}>{paymentData.orderId}</strong>
+                </p>
 
-              <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
-                {depositing ? "Uploading Proof..." : "Submit Deposit Proof"}
-              </button>
-            </form>
+                {paymentData.qrCode && (
+                  <div style={{ background: "#fff", padding: "12px", borderRadius: "12px", display: "inline-block" }}>
+                    <img src={paymentData.qrCode} alt="UPI QR Code" style={{ width: "200px", height: "200px", display: "block" }} />
+                  </div>
+                )}
+
+                <p style={{ color: "#22c55e", fontSize: "18px", fontWeight: "bold", margin: 0 }}>
+                  Amount: ₹{paymentData.amount}
+                </p>
+
+                {paymentData.paymentUrl && (
+                  <a
+                    href={paymentData.paymentUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      ...styles.submitBtnDark,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textDecoration: "none",
+                      background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)"
+                    }}
+                  >
+                    🚀 Pay Now via App
+                  </a>
+                )}
+
+                <button
+                  type="button"
+                  style={{ ...styles.submitBtnDark, background: "#334155", marginTop: "6px" }}
+                  onClick={() => {
+                    setShowAddFundModal(false);
+                    setPaymentData(null);
+                    loadDashboardData();
+                  }}
+                >
+                  Done / Close
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1465,7 +1455,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* UPDATED WITHDRAW MODAL */}
+      {/* WITHDRAW MODAL */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -2562,30 +2552,6 @@ const styles = {
   presetVal: { fontSize: "22px", fontWeight: "900", margin: "6px 0" },
   presetLabel: { fontSize: "14px", opacity: 0.85 },
 
-  walletBoxDark: {
-    background: "#040d1a",
-    padding: "18px",
-    borderRadius: "12px",
-    border: "1px solid #1e293b"
-  },
-  walletAddrRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "10px",
-    marginTop: "8px"
-  },
-  walletText: { fontSize: "14px", wordBreak: "break-all", color: "#fff" },
-  copyBtn: {
-    background: "#16a34a",
-    color: "white",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "bold"
-  },
   inputModalDark: {
     width: "100%",
     height: "52px",
@@ -2597,7 +2563,6 @@ const styles = {
     fontSize: "16px",
     boxSizing: "border-box"
   },
-  fileInputDark: { width: "100%", fontSize: "15px", color: "#cbd5e1" },
   submitBtnDark: {
     height: "52px",
     borderRadius: "12px",
