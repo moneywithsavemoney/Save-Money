@@ -24,7 +24,6 @@ import AdminNotification from "./pages/AdminNotification";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminAddon from "./pages/AdminAddon";
 
-
 import PerformanceBonus from "./pages/PerformanceBonus";
 import TeamBonus from "./pages/TeamBonus";
 import RoyaltyBonus from "./pages/RoyaltyBonus";
@@ -49,11 +48,9 @@ import AboutCompany from "./pages/AboutCompany";
 import InvestNow from "./pages/InvestNow";
 import OneTime from "./pages/OneTime";
 
-
 import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
 
-// 🛠️ এখানে 'export default' রিমুভ করে শুধুমাত্র 'function App()' রাখা হলো
 function App() {
   const [popup, setPopup] = useState(null);
 
@@ -97,6 +94,16 @@ function App() {
       )}
 
       <Routes>
+        {/* 🏠 রুট ইউআরএল হুক (ডিফল্ট হোমপেজে নিয়ে যাবে) */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
         {/* 🔓 পাবলিক রুটস */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -184,7 +191,7 @@ function App() {
           }
         />
 
-          <Route
+        <Route
           path="/one-time"
           element={
             <ProtectedRoute>
@@ -310,10 +317,7 @@ function App() {
           }
         />
 
-
-          <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
-
-          
+        <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
 
         <Route
           path="/support"
@@ -323,7 +327,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
 
         {/* 🛠️ অ্যাডমিন রুটস */}
         <Route
@@ -362,7 +365,7 @@ function App() {
           }
         />
 
-          <Route
+        <Route
           path="/admin-one-time"
           element={
             <AdminRoute>
@@ -409,5 +412,4 @@ function App() {
   );
 }
 
-// 🎯 এটিই থাকবে একমাত্র অফিসিয়াল ডিফল্ট এক্সপোর্ট
 export default App;
