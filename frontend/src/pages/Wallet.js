@@ -375,6 +375,7 @@ export default function Wallet() {
 
   const openAddCash = () => {
     setAddAmount("");
+    setDepositTxnId("");
     setAddOpen(true);
   };
 
@@ -383,40 +384,47 @@ export default function Wallet() {
       return triggerStatusOverlay("warning", "Please enter a valid amount");
     }
     const MY_UPI_ID = "savemoney@razorpay";
-    const MERCHANT_NAME = "SaveMoney. Wallet";
+    const MERCHANT_NAME = "SaveMoney Wallet";
     const txnRef = "TXN" + Date.now();
     const upiUrl = `upi://pay?pa=${MY_UPI_ID}&pn=${encodeURIComponent(MERCHANT_NAME)}&am=${addAmount}&cu=INR&tr=${txnRef}`;
     window.location.href = upiUrl;
     triggerStatusOverlay("success", "Opening UPI Apps... Please complete payment.");
   };
 
-  const handleAddMoney = async (amount) => {
-  try {
-    const token = localStorage.getItem("token"); // বা আপনার টোকেন স্টেট
-    const response = await fetch("YOUR_BACKEND_URL/api/create-payment-order", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({ amount })
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      // যদি গেটওয়ে রিডাইরেক্ট ইউআরএল দেয়, ইউজারকে সেখানে নিয়ে যান অথবা QR দেখান
-      if (data.paymentUrl) {
-        window.location.href = data.paymentUrl;
-      }
-    } else {
-      alert(data.msg || "Failed to initiate payment.");
+  const submitDepositRequest = async () => {
+    if (!addAmount || Number(addAmount) <= 0) {
+      return triggerStatusOverlay("warning", "Please enter a valid amount");
     }
-  } catch (error) {
-    console.error("Payment error:", error);
-    alert("Server error, please try again.");
-  }
-};
+    if (!depositTxnId || !depositTxnId.trim()) {
+      return triggerStatusOverlay("warning", "Please enter the 12-digit UPI Ref No");
+    }
+    try {
+      const res = await fetch(`${API}/deposit-request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token || ""
+        },
+        body: JSON.stringify({
+          email: email,
+          amount: Number(addAmount),
+          txnId: depositTxnId.trim()
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return triggerStatusOverlay("error", data.msg || "Deposit request failed");
+      }
+      triggerStatusOverlay("success", data.msg || "Submitted successfully! Waiting for admin approval.");
+      setAddOpen(false);
+      setAddAmount("");
+      setDepositTxnId("");
+      loadWallet();
+    } catch (err) {
+      console.log("DEPOSIT ERROR:", err);
+      triggerStatusOverlay("error", "Server connectivity error");
+    }
+  };
 
   const checkReceiver = async () => {
     if (!receiverWalletId.trim()) {
@@ -1270,7 +1278,7 @@ export default function Wallet() {
             </div>
           )}
 
-          {/* Add Cash Modal */}
+          {/* Add Cash Modal - Updated Component */}
           {addOpen && (
             <div style={styles.depositOverlay}>
               <div style={styles.depositModal}>
@@ -1278,7 +1286,7 @@ export default function Wallet() {
 
                 <div style={styles.depositIcon}>⚡</div>
                 <h2 style={styles.depositTitle}>Direct UPI Add Cash</h2>
-                <p style={styles.depositSub}>Enter amount, click Pay Now to use PhonePe/Paytm, and then submit the Transaction ID.</p>
+                <p style={styles.depositSub}>Enter amount, click Pay Now to use PhonePe/Paytm/GPay, and then submit the Transaction ID.</p>
 
                 <label style={styles.depositLabel}>Amount (₹)</label>
                 <input
@@ -1296,8 +1304,8 @@ export default function Wallet() {
                   📱 Pay Via PhonePe / Paytm / GPay
                 </button>
 
-                <div style={{ borderTop: "1px dashed #334155", margin: "15px 0", paddingTop: "10px" }}>
-                  <p style={{ fontSize: "12px", color: "#94a3b8", textAlign: "center" }}>💡 After paying, copy the 12-digit UTR/Txn ID from your UPI app and paste below.</p>
+                <div style={{ borderTop: "1px dashed #cbd5e1", margin: "15px 0", paddingTop: "10px" }}>
+                  <p style={{ fontSize: "12px", color: "#64748b", textAlign: "center" }}>💡 After paying, copy the 12-digit UTR/Txn ID from your UPI app and paste below.</p>
                 </div>
 
                 <label style={styles.depositLabel}>Transaction ID / UTR No</label>
@@ -1625,7 +1633,8 @@ const styles = {
     color: "white",
     fontWeight: "900",
     fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(6,182,212,.3)"
+    boxShadow: "0 12px 25px rgba(6,182,212,.3)",
+    cursor: "pointer"
   },
   iWantP2pBtn: {
     padding: "8px 12px",
@@ -1951,7 +1960,8 @@ const styles = {
     background: "white",
     boxShadow: "0 10px 25px rgba(15,23,42,.08)",
     fontSize: "24px",
-    position: "relative"
+    position: "relative",
+    cursor: "pointer"
   },
   avatar: {
     width: "58px",
@@ -2020,7 +2030,8 @@ const styles = {
     color: "#1e1b9b",
     fontWeight: "900",
     fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(0,0,0,.18)"
+    boxShadow: "0 12px 25px rgba(0,0,0,.18)",
+    cursor: "pointer"
   },
   withdrawBtn: {
     minWidth: "135px",
@@ -2031,7 +2042,8 @@ const styles = {
     color: "white",
     fontWeight: "900",
     fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(255,80,90,.28)"
+    boxShadow: "0 12px 25px rgba(255,80,90,.28)",
+    cursor: "pointer"
   },
   eyeBtn: {
     position: "absolute",
@@ -2044,7 +2056,8 @@ const styles = {
     background: "rgba(255,255,255,.13)",
     color: "white",
     fontSize: "20px",
-    zIndex: 8
+    zIndex: 8,
+    cursor: "pointer"
   },
   walletArt: {
     position: "absolute",
@@ -2219,7 +2232,8 @@ const styles = {
     color: "white",
     fontSize: "18px",
     fontWeight: "900",
-    boxShadow: "0 12px 24px rgba(236,22,142,.25)"
+    boxShadow: "0 12px 24px rgba(236,22,142,.25)",
+    cursor: "pointer"
   },
   inviteCard: {
     background: "linear-gradient(135deg,#fff4d9,#ffffff)",
@@ -2259,7 +2273,8 @@ const styles = {
     background: "linear-gradient(135deg,#6d28d9,#ec4899)",
     color: "white",
     fontWeight: "900",
-    fontSize: "16px"
+    fontSize: "16px",
+    cursor: "pointer"
   },
   historyCard: {
     background: "white",
@@ -2378,7 +2393,8 @@ const styles = {
     borderRadius: "14px",
     background: "#e5e7eb",
     color: "#071747",
-    fontWeight: "900"
+    fontWeight: "900",
+    cursor: "pointer"
   },
   confirmTop: {
     textAlign: "center"
@@ -2420,7 +2436,8 @@ const styles = {
     background: "#fee2e2",
     color: "#dc2626",
     fontWeight: "900",
-    marginTop: "10px"
+    marginTop: "10px",
+    cursor: "pointer"
   },
   shareGrid: {
     display: "grid",
@@ -2437,7 +2454,8 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    textDecoration: "none"
+    textDecoration: "none",
+    cursor: "pointer"
   },
   notifyCount: {
     position: "absolute",
@@ -2459,6 +2477,18 @@ const styles = {
     height: "100%",
     objectFit: "cover",
     borderRadius: "50%"
+  },
+  menuButton: {
+    fontSize: "24px",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    marginRight: "10px",
+    display: "none"
+  },
+  topHeader: {
+    display: "flex",
+    flexDirection: "column"
   },
   depositOverlay: {
     position: "fixed",
@@ -2552,14 +2582,3 @@ const styles = {
     cursor: "pointer"
   }
 };
-
-const styleSheet = document.createElement("style");
-styleSheet.type = "text/css";
-styleSheet.innerText = `
-  @keyframes pulseIcon {
-    0% { transform: scale(0.95); }
-    50% { transform: scale(1.12); }
-    100% { transform: scale(0.95); }
-  }
-`;
-document.head.appendChild(styleSheet);
