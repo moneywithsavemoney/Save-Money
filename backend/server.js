@@ -8090,21 +8090,21 @@ app.post("/api/create-payment-order", auth, async (req, res) => {
 
     const orderId = "ORD-" + Date.now() + "-" + Math.floor(1000 + Math.random() * 9000);
 
-    // গেটওয়ে প্রোভাইডারের API এ রিকোয়েস্ট পাঠানো (PeGateway / UPI Gateway ডকুমেন্টেশন অনুযায়ী)
-    const gatewayResponse = await axios.post(
-      `${process.env.UPI_GATEWAY_URL}/create-order`,
-      {
-        key: process.env.UPI_GATEWAY_API_KEY,
-        client_txn_id: orderId,
-        amount: Number(amount),
-        p_info: "Wallet Add Money",
-        customer_name: req.user.name || "User",
-        customer_email: userEmail,
-        customer_mobile: req.user.mobile || "0000000000",
-        redirect_url: "https://save-moneyy-indol.vercel.app/wallet", // পেমেন্ট শেষে যেখানে রিডাইরেক্ট হবে
-        udf1: userEmail
-      }
-    );
+    // গেটওয়ে প্রোভাইডারের API এ রিকোয়েস্ট পাঠানো (সরাসরি process.env.UPI_GATEWAY_URL ব্যবহার করুন)
+const gatewayResponse = await axios.post(
+  process.env.UPI_GATEWAY_URL, // <-- এখান থেকে `${...}/create-order` সরিয়ে দিন
+  {
+    key: process.env.UPI_GATEWAY_API_KEY,
+    client_txn_id: orderId,
+    amount: Number(amount),
+    p_info: "Wallet Add Money",
+    customer_name: req.user.name || "User",
+    customer_email: userEmail,
+    customer_mobile: req.user.mobile || "0000000000",
+    redirect_url: "https://save-moneyy-indol.vercel.app/wallet",
+    udf1: userEmail
+  }
+);
 
     if (gatewayResponse.data && gatewayResponse.data.status) {
       // পেন্ডিং ট্রানজেকশন ক্রিয়েট করে রাখা
