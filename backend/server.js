@@ -8090,23 +8090,28 @@ app.post("/api/create-payment-order", auth, async (req, res) => {
 
     const orderId = "ORD-" + Date.now() + "-" + Math.floor(1000 + Math.random() * 9000);
 
-    // গেটওয়ে প্রোভাইডারের API এ রিকোয়েস্ট পাঠানো (সরাসরি process.env.UPI_GATEWAY_URL ব্যবহার করুন)
-const gatewayResponse = await axios.post(
-  process.env.UPI_GATEWAY_URL, // <-- এখান থেকে `${...}/create-order` সরিয়ে দিন
-  {
-    key: process.env.UPI_GATEWAY_API_KEY,
-    client_txn_id: orderId,
-    amount: Number(amount),
-    p_info: "Wallet Add Money",
-    customer_name: req.user.name || "User",
-    customer_email: userEmail,
-    customer_mobile: req.user.mobile || "0000000000",
-    redirect_url: "https://save-moneyy-indol.vercel.app/wallet",
-    udf1: userEmail
-  }
-);
+    // গেটওয়ে প্রোভাইডারের API এ রিকোয়েস্ট পাঠানো
+    const gatewayResponse = await axios.post(
+      process.env.UPI_GATEWAY_URL,
+      {
+        key: process.env.UPI_GATEWAY_API_KEY,
+        client_txn_id: orderId,
+        amount: Number(amount),
+        p_info: "Wallet Add Money",
+        customer_name: req.user.name || "User",
+        customer_email: userEmail,
+        customer_mobile: req.user.mobile || "0000000000",
+        redirect_url: "https://save-moneyy-indol.vercel.app/wallet",
+        udf1: userEmail
+      },
+      {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
-    if (gatewayResponse.data && gatewayResponse.data.status) {
+    if (gatewayResponse.data && (gatewayResponse.data.status === true || gatewayResponse.data.status === "COMPLETED" || gatewayResponse.data.status === "SUCCESS")) {
       // পেন্ডিং ট্রানজেকশন ক্রিয়েট করে রাখা
       await WalletTransaction.create({
         email: userEmail,
@@ -8115,29 +8120,31 @@ const gatewayResponse = await axios.post(
         description: `Order ID: ${orderId}`,
         amount: Number(amount),
         status: "Pending",
-        razorpayOrderId: orderId // অথবা upiOrderId হিসেবে স্টোর করতে পারেন
+        razorpayOrderId: orderId
       });
 
       return res.json({
         success: true,
-        paymentUrl: gatewayResponse.data.data.payment_url, // পেমেন্ট পেজ বা UPI Intent লিংক
-        qrCode: gatewayResponse.data.data.qr_code,        // QR কোড ইমেজ / ডেটা (যদি থাকে)
+        paymentUrl: gatewayResponse.data.data.payment_url,
+        qrCode: gatewayResponse.data.data.qr_code,
         orderId
       });
     } else {
       return res.status(400).json({
         success: false,
-        msg: gatewayResponse.data.msg || "Failed to create payment order"
+        msg: gatewayResponse.data.msg || gatewayResponse.data.message || "Failed to create payment order"
       });
     }
-} catch (err) {
+  } catch (err) {
     if (err.response) {
-      // গেটওয়ে থেকে ফেরত আসা আসল এরর মেসেজটি লগে দেখাবে
       console.error("CREATE PAYMENT ORDER ERROR DATA:", err.response.status, err.response.data);
     } else {
       console.error("CREATE PAYMENT ORDER ERROR:", err.message);
     }
-    res.status(500).json({ success: false, msg: "Server error during payment creation" });
+    res.status(500).json({ 
+      success: false, 
+      msg: err.response?.data?.msg || err.response?.data?.message || err.message || "Server error during payment creation" 
+    });
   }
 });
 
@@ -8181,14 +8188,6 @@ app.post("/api/upi-webhook", async (req, res) => {
           status: "Success",
           date: new Date()
         });
-
-        // ৪. পুশ নোটিফিকেশন পাঠানো
-        await sendPushNotification(
-          user.email,
-          "Money Added Successfully! 💳",
-          `₹${amount} has been successfully added to your wallet.`,
-          "/wallet"
-        );
       }
     }
 
@@ -8198,9 +8197,6 @@ app.post("/api/upi-webhook", async (req, res) => {
     res.status(500).send("Webhook Error");
   }
 });
-
-
-
 
 
 // ================= DOWNLOAD SLIP =================
