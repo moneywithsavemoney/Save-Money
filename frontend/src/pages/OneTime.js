@@ -80,10 +80,10 @@ export default function OneTime() {
   const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
-  // UPI Deposit State
-  const [customAddAmount, setCustomAddAmount] = useState(5000);
+  // Deposit Form State
+  const [txnId, setTxnId] = useState("");
+  const [screenshot, setScreenshot] = useState(null);
   const [depositing, setDepositing] = useState(false);
-  const [paymentData, setPaymentData] = useState(null); // Stores UPI QR & URL response
 
   // Bank Form State
   const [bankForm, setBankForm] = useState({
@@ -316,16 +316,18 @@ export default function OneTime() {
     return (Number(amount) * Number(rate)) / 100;
   }, [amount, rate, activeInvestment]);
 
-  // আজকের উইথড্রয়াল চেক - Rejected, Cancelled বা Failed হলে আবার করতে দেবে
+  // 🔥FIXED: আজকের উইথড্রয়াল চেক - Rejected, Cancelled বা Failed হলে আবার করতে দেবে
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
       const typeStr = (item.type || "").toLowerCase();
+      // শুধুমাত্র উইথড্রয়াল টাইপগুলো নির্বাচন করুন
       if (typeStr !== "withdrawal" && !typeStr.includes("withdraw")) return false;
 
       const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
       const status = (item.status || "").toLowerCase();
 
+      // আজকের দিনে পেমেন্ট Pending, Success, Approved বা Accepted অবস্থায় থাকলে নতুন রিকোয়েস্ট নেওয়া বন্ধ রাখবে
       const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
 
       return itemDate === todayStr && isBlocked;
@@ -389,42 +391,54 @@ export default function OneTime() {
     }
   };
 
-  // NEW UPI GATEWAY PAYMENT ORDER CREATION
-  const handleCreateUpiPayment = async (e) => {
-    if (e) e.preventDefault();
-    const payAmt = Number(customAddAmount || amount);
-
-    if (!payAmt || payAmt <= 0) {
-      triggerToast("Please enter a valid amount", "error");
+  const handleDepositSubmit = async (e) => {
+    e.preventDefault();
+    if (!txnId) {
+      triggerToast("Please enter Transaction ID / UTR No.", "error");
+      return;
+    }
+    if (!screenshot) {
+      triggerToast("Please select payment screenshot", "error");
       return;
     }
 
     try {
       setDepositing(true);
-      const res = await fetch(`${API}/api/create-payment-order`, {
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("amount", amount);
+      formData.append("transactionId", txnId);
+      formData.append("screenshot", screenshot);
+
+      const res = await fetch(`${API}/api/onetime/deposit-request`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token ? token : ""
-        },
-        body: JSON.stringify({ amount: payAmt })
+        headers: { authorization: token },
+        body: formData
       });
 
       const data = await res.json();
-      if (res.ok && data.success) {
-        setPaymentData({
-          paymentUrl: data.paymentUrl,
-          qrCode: data.qrCode,
-          orderId: data.orderId,
-          amount: payAmt
-        });
-        triggerToast("Payment Order Created! Complete payment now.", "success");
+      if (res.ok || data.success) {
+        triggerToast("Deposit request submitted! Status: Pending", "success");
+        setShowAddFundModal(false);
+
+        const newPendingDeposit = {
+          _id: data.deposit?._id || Date.now().toString(),
+          type: "Add Fund",
+          amount: Number(amount),
+          transactionId: txnId,
+          status: "Pending",
+          createdAt: new Date().toISOString()
+        };
+
+        setHistory((prev) => [newPendingDeposit, ...prev]);
+        setTxnId("");
+        setScreenshot(null);
+        await loadDashboardData();
       } else {
-        triggerToast(data.msg || data.message || "Failed to initiate UPI payment", "error");
+        triggerToast(data.message || "Failed to submit deposit", "error");
       }
     } catch (err) {
-      console.error("UPI Payment Error:", err);
-      triggerToast("Error connecting to UPI Payment Gateway", "error");
+      triggerToast("Error uploading deposit screenshot", "error");
     } finally {
       setDepositing(false);
     }
@@ -509,6 +523,11 @@ export default function OneTime() {
     } finally {
       setWithdrawing(false);
     }
+  };
+
+  const handleCopyWallet = () => {
+    navigator.clipboard.writeText(COMPANY_WALLET_ADDRESS);
+    triggerToast("Wallet Address Copied!", "success");
   };
 
   const fileUrl = (file) => {
@@ -1029,14 +1048,7 @@ export default function OneTime() {
               {investing ? "Processing..." : activeInvestment ? "🚀 Active Running" : "🚀 Start Investment"}
             </button>
 
-            <button 
-              style={styles.addInvestBtnDark} 
-              onClick={() => {
-                setCustomAddAmount(amount);
-                setPaymentData(null);
-                setShowAddFundModal(true);
-              }}
-            >
+            <button style={styles.addInvestBtnDark} onClick={() => setShowAddFundModal(true)}>
               + Add Fund
             </button>
 
@@ -1073,7 +1085,7 @@ export default function OneTime() {
                 ) : (
                   displayedHistory.map((item, idx) => {
                     const itemType = (item.type || "").toLowerCase();
-                    const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId || !!item.razorpayOrderId;
+                    const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId;
                     const isWithdraw = itemType.includes("withdraw");
 
                     const rawStatus = item.status || "Pending";
@@ -1092,7 +1104,7 @@ export default function OneTime() {
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
                           {isDeposit ? (
-                            <span style={{ fontSize: "14px", color: "#94a3b8" }}>Txn: {item.transactionId || item.razorpayOrderId || "UPI"}</span>
+                            <span style={{ fontSize: "14px", color: "#94a3b8" }}>UTR: {item.transactionId || "N/A"}</span>
                           ) : isWithdraw ? (
                             <span style={{ fontSize: "14px", color: "#94a3b8" }}>Bank Request</span>
                           ) : (
@@ -1323,89 +1335,53 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* UPDATED ADD FUND MODAL WITH NEW UPI GATEWAY */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Money via UPI</h3>
-              <button 
-                style={styles.closeBtnDark} 
-                onClick={() => {
-                  setShowAddFundModal(false);
-                  setPaymentData(null);
-                }}
-              >
-                ✕
-              </button>
+              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Investment Fund</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
 
-            {!paymentData ? (
-              <form onSubmit={handleCreateUpiPayment} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <div>
-                  <label style={styles.labelDark}>Enter Amount (₹)</label>
-                  <input
-                    type="number"
-                    style={styles.inputModalDark}
-                    placeholder="Enter amount"
-                    value={customAddAmount}
-                    onChange={(e) => setCustomAddAmount(e.target.value)}
-                    min="1"
-                    required
-                  />
-                </div>
+            <p style={{ fontSize: "16px", color: "#cbd5e1", margin: "0 0 14px 0" }}>
+              Send <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong> to company wallet & upload payment proof:
+            </p>
 
-                <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
-                  {depositing ? "Generating Payment Link..." : "Pay via UPI Gateway"}
-                </button>
-              </form>
-            ) : (
-              <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
-                <p style={{ color: "#cbd5e1", margin: 0, fontSize: "15px" }}>
-                  Order ID: <strong style={{ color: "#38bdf8" }}>{paymentData.orderId}</strong>
-                </p>
-
-                {paymentData.qrCode && (
-                  <div style={{ background: "#fff", padding: "12px", borderRadius: "12px", display: "inline-block" }}>
-                    <img src={paymentData.qrCode} alt="UPI QR Code" style={{ width: "200px", height: "200px", display: "block" }} />
-                  </div>
-                )}
-
-                <p style={{ color: "#22c55e", fontSize: "18px", fontWeight: "bold", margin: 0 }}>
-                  Amount: ₹{paymentData.amount}
-                </p>
-
-                {paymentData.paymentUrl && (
-                  <a
-                    href={paymentData.paymentUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      ...styles.submitBtnDark,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      textDecoration: "none",
-                      background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)"
-                    }}
-                  >
-                    🚀 Pay Now via App
-                  </a>
-                )}
-
-                <button
-                  type="button"
-                  style={{ ...styles.submitBtnDark, background: "#334155", marginTop: "6px" }}
-                  onClick={() => {
-                    setShowAddFundModal(false);
-                    setPaymentData(null);
-                    loadDashboardData();
-                  }}
-                >
-                  Done / Close
-                </button>
+            <div style={styles.walletBoxDark}>
+              <small style={{ color: "#94a3b8", fontWeight: "bold", fontSize: "14px" }}>Company Wallet Address:</small>
+              <div style={styles.walletAddrRow}>
+                <span style={styles.walletText}>{COMPANY_WALLET_ADDRESS}</span>
+                <button style={styles.copyBtn} onClick={handleCopyWallet}>Copy</button>
               </div>
-            )}
+            </div>
+
+            <form onSubmit={handleDepositSubmit} style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div>
+                <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
+                <input
+                  style={styles.inputModalDark}
+                  placeholder="Enter 12-digit UTR or Txn Hash"
+                  value={txnId}
+                  onChange={(e) => setTxnId(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={styles.labelDark}>Payment Screenshot Proof*</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={styles.fileInputDark}
+                  onChange={(e) => setScreenshot(e.target.files[0])}
+                  required
+                />
+              </div>
+
+              <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
+                {depositing ? "Uploading Proof..." : "Submit Deposit Proof"}
+              </button>
+            </form>
           </div>
         </div>
       )}
@@ -1455,7 +1431,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL */}
+      {/* UPDATED WITHDRAW MODAL (ALL INFO INSIDE POPUP WITH PREMIUM LOOK) */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1581,6 +1557,7 @@ const styles = {
     animation: "spin 1s linear infinite"
   },
 
+  // TOP-CENTER PREMIUM TOAST STYLES
   toast: {
     position: "fixed",
     top: "24px",
@@ -1601,6 +1578,7 @@ const styles = {
     textAlign: "center"
   },
 
+  // TOP NOTICE BANNER STYLES
   topNoticeBanner: {
     background: "linear-gradient(90deg, #052e16 0%, #064e3b 50%, #022c22 100%)",
     border: "1px solid #22c55e",
@@ -1636,6 +1614,7 @@ const styles = {
     marginRight: "6px"
   },
 
+  // HEADER
   header: {
     display: "flex",
     alignItems: "center",
@@ -1693,6 +1672,7 @@ const styles = {
     justifyContent: "center"
   },
 
+  // HERO BANNER
   topHeroBanner: {
     background: "linear-gradient(135deg, #062319 0%, #06182e 100%)",
     borderRadius: "18px",
@@ -1736,6 +1716,7 @@ const styles = {
     objectFit: "contain"
   },
 
+  // 4 STAT CARDS GRID
   statsGridContainer: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
@@ -1784,6 +1765,7 @@ const styles = {
     marginTop: "6px"
   },
 
+  // MAIN CARD
   darkMainCard: {
     background: "#081628",
     borderRadius: "18px",
@@ -1797,6 +1779,7 @@ const styles = {
     color: "#ffffff"
   },
 
+  // ACTIVE CARD
   activeInvestCardDark: {
     background: "#040d1a",
     borderRadius: "16px",
@@ -1857,6 +1840,7 @@ const styles = {
     marginTop: "4px"
   },
 
+  // FORM FIELDS
   formGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
@@ -1943,6 +1927,7 @@ const styles = {
     marginTop: "6px"
   },
 
+  // RETURN BOX
   returnContainerDark: {
     background: "#dcfce7",
     borderRadius: "16px",
@@ -1974,6 +1959,7 @@ const styles = {
     opacity: 0.95
   },
 
+  // BREAKDOWN GRID
   breakdownGridDark: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
@@ -2000,6 +1986,7 @@ const styles = {
     color: "#ffffff"
   },
 
+  // ACTION BUTTONS
   actionGridTriple: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
@@ -2042,6 +2029,7 @@ const styles = {
     cursor: "pointer"
   },
 
+  // HISTORY SECTION
   darkHistoryCard: {
     background: "#081628",
     borderRadius: "18px",
@@ -2128,6 +2116,7 @@ const styles = {
     border: "1px solid rgba(255, 255, 255, 0.1)"
   },
 
+  // TRUST BANNER
   trustBannerDark: {
     background: "linear-gradient(135deg, #051a13 0%, #081728 100%)",
     borderRadius: "18px",
@@ -2177,6 +2166,7 @@ const styles = {
     color: "#94a3b8"
   },
 
+  // FOOTER FEATURES GRID
   footerFeaturesGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -2192,6 +2182,7 @@ const styles = {
     gap: "16px"
   },
 
+  // FOOTER BAR
   footerBar: {
     textAlign: "center",
     padding: "22px 0",
@@ -2210,6 +2201,7 @@ const styles = {
     color: "#64748b"
   },
 
+  // SIDEBAR DRAWER STYLES
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -2366,6 +2358,7 @@ const styles = {
     borderRadius: "16px"
   },
 
+  // MODAL STYLES
   modalOverlay: {
     position: "fixed",
     inset: 0,
@@ -2387,6 +2380,7 @@ const styles = {
     boxShadow: "0 25px 50px rgba(0,0,0,0.7)"
   },
 
+  // PREMIUM WITHDRAW MODAL CARD
   withdrawModalCardDark: {
     background: "linear-gradient(145deg, #09182b 0%, #040e1a 100%)",
     borderRadius: "24px",
@@ -2444,6 +2438,7 @@ const styles = {
     justifyContent: "center"
   },
 
+  // WELCOME OFFER POPUP STYLES
   offerPopupCard: {
     background: "linear-gradient(145deg, #091a2e 0%, #031120 100%)",
     borderRadius: "24px",
@@ -2552,6 +2547,30 @@ const styles = {
   presetVal: { fontSize: "22px", fontWeight: "900", margin: "6px 0" },
   presetLabel: { fontSize: "14px", opacity: 0.85 },
 
+  walletBoxDark: {
+    background: "#040d1a",
+    padding: "18px",
+    borderRadius: "12px",
+    border: "1px solid #1e293b"
+  },
+  walletAddrRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "10px",
+    marginTop: "8px"
+  },
+  walletText: { fontSize: "14px", wordBreak: "break-all", color: "#fff" },
+  copyBtn: {
+    background: "#16a34a",
+    color: "white",
+    border: "none",
+    padding: "8px 14px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "bold"
+  },
   inputModalDark: {
     width: "100%",
     height: "52px",
@@ -2563,6 +2582,7 @@ const styles = {
     fontSize: "16px",
     boxSizing: "border-box"
   },
+  fileInputDark: { width: "100%", fontSize: "15px", color: "#cbd5e1" },
   submitBtnDark: {
     height: "52px",
     borderRadius: "12px",
