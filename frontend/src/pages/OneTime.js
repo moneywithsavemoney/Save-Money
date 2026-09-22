@@ -103,7 +103,9 @@ export default function OneTime() {
     setTimeout(() => setToast({ show: false, msg: "", type: "info" }), 3500);
   };
 
-  const COMPANY_WALLET_ADDRESS = "0x53D944eDA838748A92F2c361d2F71cD7EcFc8643";
+  // ⚡ UPDATED: UPI GATEWAY DETAILS
+  const COMPANY_UPI_ID = "savemoney@upi"; // আপনার আসল UPI ID টি দিয়ে পরিবর্তন করে নিন
+  const COMPANY_NAME = "SAVE MONEY PRIVATE LIMITED";
 
   const currentWalletBalance = Number(
     stats.availableBalance || user?.otbalance || user?.otBalance || user?.availableBalance || 0
@@ -316,18 +318,16 @@ export default function OneTime() {
     return (Number(amount) * Number(rate)) / 100;
   }, [amount, rate, activeInvestment]);
 
-  // 🔥FIXED: আজকের উইথড্রয়াল চেক - Rejected, Cancelled বা Failed হলে আবার করতে দেবে
+  // Today Withdrawal Check
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
       const typeStr = (item.type || "").toLowerCase();
-      // শুধুমাত্র উইথড্রয়াল টাইপগুলো নির্বাচন করুন
       if (typeStr !== "withdrawal" && !typeStr.includes("withdraw")) return false;
 
       const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
       const status = (item.status || "").toLowerCase();
 
-      // আজকের দিনে পেমেন্ট Pending, Success, Approved বা Accepted অবস্থায় থাকলে নতুন রিকোয়েস্ট নেওয়া বন্ধ রাখবে
       const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
 
       return itemDate === todayStr && isBlocked;
@@ -525,9 +525,10 @@ export default function OneTime() {
     }
   };
 
-  const handleCopyWallet = () => {
-    navigator.clipboard.writeText(COMPANY_WALLET_ADDRESS);
-    triggerToast("Wallet Address Copied!", "success");
+  // ⚡ UPDATED: UPI COPY FUNCTION
+  const handleCopyUPI = () => {
+    navigator.clipboard.writeText(COMPANY_UPI_ID);
+    triggerToast("UPI ID Copied!", "success");
   };
 
   const fileUrl = (file) => {
@@ -1335,24 +1336,57 @@ export default function OneTime() {
         </div>
       )}
 
+      {/* ⚡ UPDATED: ADD FUND MODAL WITH NEW UPI GATEWAY & SCANNER */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Investment Fund</h3>
+              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Investment Fund (UPI)</h3>
               <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
 
-            <p style={{ fontSize: "16px", color: "#cbd5e1", margin: "0 0 14px 0" }}>
-              Send <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong> to company wallet & upload payment proof:
+            <p style={{ fontSize: "15px", color: "#cbd5e1", margin: "0 0 14px 0" }}>
+              Scan QR code or copy UPI ID to deposit <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong>:
             </p>
 
+            {/* Dynamic Dynamic UPI QR Code */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "16px", background: "#040d1a", padding: "16px", borderRadius: "14px", border: "1px solid #1e293b" }}>
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=${encodeURIComponent(COMPANY_UPI_ID)}%26pn=${encodeURIComponent(COMPANY_NAME)}%26am=${amount}%26cu=INR`} 
+                alt="UPI QR Code" 
+                style={{ width: "160px", height: "160px", borderRadius: "10px", border: "3px solid #22c55e" }}
+              />
+              <span style={{ color: "#94a3b8", fontSize: "13px", marginTop: "8px", fontWeight: "600" }}>
+                Scan using GPay, PhonePe, Paytm or Any UPI App
+              </span>
+            </div>
+
             <div style={styles.walletBoxDark}>
-              <small style={{ color: "#94a3b8", fontWeight: "bold", fontSize: "14px" }}>Company Wallet Address:</small>
+              <small style={{ color: "#94a3b8", fontWeight: "bold", fontSize: "14px" }}>Company UPI ID:</small>
               <div style={styles.walletAddrRow}>
-                <span style={styles.walletText}>{COMPANY_WALLET_ADDRESS}</span>
-                <button style={styles.copyBtn} onClick={handleCopyWallet}>Copy</button>
+                <span style={styles.walletText}>{COMPANY_UPI_ID}</span>
+                <button style={styles.copyBtn} onClick={handleCopyUPI}>Copy UPI</button>
               </div>
+            </div>
+
+            {/* Direct Pay Via UPI Apps */}
+            <div style={{ display: "flex", gap: "10px", marginTop: "14px" }}>
+              <a 
+                href={`upi://pay?pa=${COMPANY_UPI_ID}&pn=${encodeURIComponent(COMPANY_NAME)}&am=${amount}&cu=INR`}
+                style={{
+                  flex: 1,
+                  padding: "10px",
+                  borderRadius: "8px",
+                  background: "#10b981",
+                  color: "#fff",
+                  textAlign: "center",
+                  textDecoration: "none",
+                  fontWeight: "bold",
+                  fontSize: "14px"
+                }}
+              >
+                ⚡ Pay via UPI App
+              </a>
             </div>
 
             <form onSubmit={handleDepositSubmit} style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -1360,7 +1394,7 @@ export default function OneTime() {
                 <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
                 <input
                   style={styles.inputModalDark}
-                  placeholder="Enter 12-digit UTR or Txn Hash"
+                  placeholder="Enter 12-digit UPI Ref/UTR No."
                   value={txnId}
                   onChange={(e) => setTxnId(e.target.value)}
                   required
@@ -1431,7 +1465,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* UPDATED WITHDRAW MODAL (ALL INFO INSIDE POPUP WITH PREMIUM LOOK) */}
+      {/* UPDATED WITHDRAW MODAL */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1557,7 +1591,6 @@ const styles = {
     animation: "spin 1s linear infinite"
   },
 
-  // TOP-CENTER PREMIUM TOAST STYLES
   toast: {
     position: "fixed",
     top: "24px",
@@ -1578,7 +1611,6 @@ const styles = {
     textAlign: "center"
   },
 
-  // TOP NOTICE BANNER STYLES
   topNoticeBanner: {
     background: "linear-gradient(90deg, #052e16 0%, #064e3b 50%, #022c22 100%)",
     border: "1px solid #22c55e",
@@ -1614,7 +1646,6 @@ const styles = {
     marginRight: "6px"
   },
 
-  // HEADER
   header: {
     display: "flex",
     alignItems: "center",
@@ -1672,7 +1703,6 @@ const styles = {
     justifyContent: "center"
   },
 
-  // HERO BANNER
   topHeroBanner: {
     background: "linear-gradient(135deg, #062319 0%, #06182e 100%)",
     borderRadius: "18px",
@@ -1716,7 +1746,6 @@ const styles = {
     objectFit: "contain"
   },
 
-  // 4 STAT CARDS GRID
   statsGridContainer: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
@@ -1765,7 +1794,6 @@ const styles = {
     marginTop: "6px"
   },
 
-  // MAIN CARD
   darkMainCard: {
     background: "#081628",
     borderRadius: "18px",
@@ -1779,7 +1807,6 @@ const styles = {
     color: "#ffffff"
   },
 
-  // ACTIVE CARD
   activeInvestCardDark: {
     background: "#040d1a",
     borderRadius: "16px",
@@ -1840,7 +1867,6 @@ const styles = {
     marginTop: "4px"
   },
 
-  // FORM FIELDS
   formGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
@@ -1927,7 +1953,6 @@ const styles = {
     marginTop: "6px"
   },
 
-  // RETURN BOX
   returnContainerDark: {
     background: "#dcfce7",
     borderRadius: "16px",
@@ -1959,7 +1984,6 @@ const styles = {
     opacity: 0.95
   },
 
-  // BREAKDOWN GRID
   breakdownGridDark: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
@@ -1986,7 +2010,6 @@ const styles = {
     color: "#ffffff"
   },
 
-  // ACTION BUTTONS
   actionGridTriple: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
@@ -2029,7 +2052,6 @@ const styles = {
     cursor: "pointer"
   },
 
-  // HISTORY SECTION
   darkHistoryCard: {
     background: "#081628",
     borderRadius: "18px",
@@ -2116,7 +2138,6 @@ const styles = {
     border: "1px solid rgba(255, 255, 255, 0.1)"
   },
 
-  // TRUST BANNER
   trustBannerDark: {
     background: "linear-gradient(135deg, #051a13 0%, #081728 100%)",
     borderRadius: "18px",
@@ -2166,7 +2187,6 @@ const styles = {
     color: "#94a3b8"
   },
 
-  // FOOTER FEATURES GRID
   footerFeaturesGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -2182,7 +2202,6 @@ const styles = {
     gap: "16px"
   },
 
-  // FOOTER BAR
   footerBar: {
     textAlign: "center",
     padding: "22px 0",
@@ -2201,7 +2220,6 @@ const styles = {
     color: "#64748b"
   },
 
-  // SIDEBAR DRAWER STYLES
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -2358,7 +2376,6 @@ const styles = {
     borderRadius: "16px"
   },
 
-  // MODAL STYLES
   modalOverlay: {
     position: "fixed",
     inset: 0,
@@ -2380,7 +2397,6 @@ const styles = {
     boxShadow: "0 25px 50px rgba(0,0,0,0.7)"
   },
 
-  // PREMIUM WITHDRAW MODAL CARD
   withdrawModalCardDark: {
     background: "linear-gradient(145deg, #09182b 0%, #040e1a 100%)",
     borderRadius: "24px",
@@ -2438,7 +2454,6 @@ const styles = {
     justifyContent: "center"
   },
 
-  // WELCOME OFFER POPUP STYLES
   offerPopupCard: {
     background: "linear-gradient(145deg, #091a2e 0%, #031120 100%)",
     borderRadius: "24px",
