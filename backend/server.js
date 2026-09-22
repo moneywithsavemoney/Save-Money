@@ -8076,6 +8076,127 @@ app.post("/admin/onetime-cancel-investment", async (req, res) => {
 
 
 
+// ==================== UPI GATEWAY ADD MONEY & WEBHOOK ====================
+
+// ১. পেমেন্ট রিকোয়েস্ট / QR কোড জেনারেট করার API
+app.post("/api/create-payment-order", auth, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const userEmail = req.user.email;
+
+    if (!amount || Number(amount) <= 0) {
+      return res.status(400).json({ success: false, msg: "Invalid amount" });
+    }
+
+    const orderId = "ORD-" + Date.now() + "-" + Math.floor(1000 + Math.random() * 9000);
+
+    // গেটওয়ে প্রোভাইডারের API এ রিকোয়েস্ট পাঠানো (PeGateway / UPI Gateway ডকুমেন্টেশন অনুযায়ী)
+    const gatewayResponse = await axios.post(
+      `${process.env.UPI_GATEWAY_URL}/create-order`,
+      {
+        key: process.env.UPI_GATEWAY_API_KEY,
+        client_txn_id: orderId,
+        amount: Number(amount),
+        p_info: "Wallet Add Money",
+        customer_name: req.user.name || "User",
+        customer_email: userEmail,
+        customer_mobile: req.user.mobile || "0000000000",
+        redirect_url: "https://save-moneyy-indol.vercel.app/wallet", // পেমেন্ট শেষে যেখানে রিডাইরেক্ট হবে
+        udf1: userEmail
+      }
+    );
+
+    if (gatewayResponse.data && gatewayResponse.data.status) {
+      // পেন্ডিং ট্রানজেকশন ক্রিয়েট করে রাখা
+      await WalletTransaction.create({
+        email: userEmail,
+        type: "Credit",
+        title: "Add Money Pending",
+        description: `Order ID: ${orderId}`,
+        amount: Number(amount),
+        status: "Pending",
+        razorpayOrderId: orderId // অথবা upiOrderId হিসেবে স্টোর করতে পারেন
+      });
+
+      return res.json({
+        success: true,
+        paymentUrl: gatewayResponse.data.data.payment_url, // পেমেন্ট পেজ বা UPI Intent লিংক
+        qrCode: gatewayResponse.data.data.qr_code,        // QR কোড ইমেজ / ডেটা (যদি থাকে)
+        orderId
+      });
+    } else {
+      return res.status(400).json({
+        success: false,
+        msg: gatewayResponse.data.msg || "Failed to create payment order"
+      });
+    }
+  } catch (err) {
+    console.error("CREATE PAYMENT ORDER ERROR:", err.message);
+    res.status(500).json({ success: false, msg: "Server error during payment creation" });
+  }
+});
+
+// ২. পেমেন্ট গেটওয়ের Webhook (পেমেন্ট সফল হলে অটো ওয়ালেটে টাকা যোগ হবে)
+app.post("/api/upi-webhook", async (req, res) => {
+  try {
+    const { client_txn_id, status, amount, udf1 } = req.body; 
+
+    if (status === "COMPLETED" || status === "SUCCESS" || status === "success") {
+      const email = udf1;
+
+      // ট্রানজেকশন ইতিমধ্যে প্রসেস হয়েছে কি না চেক
+      const existingTxn = await WalletTransaction.findOne({
+        razorpayOrderId: client_txn_id,
+        status: "Success"
+      });
+
+      if (existingTxn) {
+        return res.json({ success: true, msg: "Already processed" });
+      }
+
+      // ১. ট্রানজেকশন আপডেট
+      await WalletTransaction.updateOne(
+        { razorpayOrderId: client_txn_id },
+        { $set: { status: "Success", title: "Add Money Successful" } }
+      );
+
+      // ২. ইউজারের ওয়ালেট ব্যালেন্স আপডেট
+      const user = await User.findOne({ email });
+      if (user) {
+        user.balance = Number(user.balance || 0) + Number(amount);
+        await user.save();
+
+        // ৩. ওয়ালেট হিস্ট্রি এনট্রি
+        await WalletHistory.create({
+          email: user.email,
+          type: "Credit",
+          amount: Number(amount),
+          title: "Add Money (UPI Gateway)",
+          description: `Add money via UPI Payment. Txn: ${client_txn_id}`,
+          status: "Success",
+          date: new Date()
+        });
+
+        // ৪. পুশ নোটিফিকেশন পাঠানো
+        await sendPushNotification(
+          user.email,
+          "Money Added Successfully! 💳",
+          `₹${amount} has been successfully added to your wallet.`,
+          "/wallet"
+        );
+      }
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("WEBHOOK ERROR:", err.message);
+    res.status(500).send("Webhook Error");
+  }
+});
+
+
+
+
 
 // ================= DOWNLOAD SLIP =================
 app.get("/download-slip/:id", async (req, res) => {
