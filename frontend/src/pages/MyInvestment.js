@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { API } from "../config";
 import axios from "axios";
@@ -16,6 +16,7 @@ function formatDate(d) {
 
 export default function MyInvestment() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
@@ -27,8 +28,73 @@ export default function MyInvestment() {
   const [renewOpen, setRenewOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
 
+  // Home.js থেকে সাইডবার ও ডাউনলোডের স্টেটসমূহ
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
+
+  // স্বাইপ হ্যান্ডলার স্টেট
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchStartY, setTouchStartY] = useState(0);
+
   // কাস্টম অ্যালার্ট ও ডিটেইলস মডালের জন্য ডাইনামিক স্টেট
   const [customAlert, setCustomAlert] = useState({ show: false, title: "", message: "", type: "info" });
+
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const diffX = touchEndX - touchStartX;
+    const diffY = touchEndY - touchStartY;
+
+    if (touchStartX < 80 && diffX > 60 && Math.abs(diffX) > Math.abs(diffY)) {
+      setIsDrawerOpen(true);
+    }
+  };
+
+  const handleDownloadPlan = () => {
+    if (isDownloadingPlan) return;
+    setIsDownloadingPlan(true);
+
+    setTimeout(() => {
+      const link = document.createElement("a");
+      link.href = "/SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      link.download = "SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setIsDownloadingPlan(false);
+    }, 1200);
+  };
+
+  const handleLogout = async () => {
+    try {
+      if (email) {
+        await fetch(`${API}/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email })
+        });
+      }
+    } catch (err) {
+      console.log("Logout backend error:", err);
+    } finally {
+      localStorage.clear();
+      navigate("/login");
+      window.location.reload();
+    }
+  };
+
+  const go = (path) => {
+    navigate(path);
+  };
 
   const getDaysLeft = (renewDate) => {
     if (!renewDate) return 0;
@@ -115,16 +181,6 @@ export default function MyInvestment() {
     );
   };
 
-  const openStatement = (plan) => {
-    setSelectedPlan(plan);
-    setStatementOpen(true);
-  };
-
-  const openRenewInfo = (plan) => {
-    setSelectedPlan(plan);
-    setRenewOpen(true);
-  };
-
   const downloadSlip = (planId, historyId) => {
     window.open(`${API}/investment-slip/${planId}/${historyId}`, "_blank");
   };
@@ -179,7 +235,6 @@ export default function MyInvestment() {
     }
   };
 
-  // ব্রাউজার অ্যালার্ট রিমুভ করে সুন্দর কাস্টম ডিজাইন পপআপ করা হলো
   const viewDetails = (inv) => {
     const detailsContent = (
       <div style={{ textAlign: "left", marginTop: "10px" }}>
@@ -231,10 +286,224 @@ export default function MyInvestment() {
   }
 
   return (
-    <div style={styles.page}>
-      <div style={styles.wrap}>
+    <div 
+      style={styles.page}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* 👇 Home.js থেকে কপি করা SIDEBAR DRAWER */}
+      <div style={{
+        ...styles.drawerOverlay,
+        opacity: isDrawerOpen ? 1 : 0,
+        visibility: isDrawerOpen ? "visible" : "hidden"
+      }} onClick={() => setIsDrawerOpen(false)}>
+        <div style={{
+          ...styles.drawerContainer,
+          transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
+        }} onClick={(e) => e.stopPropagation()}>
+          
+          {/* LOGO & BRANDING */}
+          <div style={styles.drawerHeader}>
+            <div style={styles.drawerBrand}>
+              <div style={styles.drawerLogoWrapper}>
+                <img 
+                  src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
+                  alt="SM Logo" 
+                  style={styles.drawerLogoImg} 
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
+                <span style={styles.drawerLogoSubtext}>Invest Small, Earn Big</span>
+              </div>
+            </div>
+          </div>
 
+          {/* SIDEBAR CONTENT */}
+          <div style={styles.drawerScrollArea}>
+            <div style={styles.drawerNavList}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDashboard,
+                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/home"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🏠</span>
+                <span style={styles.drawerNavText}>Dashboard</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavMyInvestment,
+                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📈</span>
+                <span style={styles.drawerNavText}>My Investment</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSaveMoney,
+                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>💰</span>
+                <span style={styles.drawerNavText}>Save Money</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavOneTime,
+                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>⚡</span>
+                <span style={styles.drawerNavText}>One Time</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavPlan
+                }} 
+                onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
+                disabled={isDownloadingPlan}
+              >
+                <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
+                <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavAddFund,
+                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🌐</span>
+                <span style={styles.drawerNavText}>Add Fund</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavRefer,
+                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👥</span>
+                <span style={styles.drawerNavText}>Refer & Earn</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavWithdraw,
+                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>➔</span>
+                <span style={styles.drawerNavText}>Withdraw</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDailyReward,
+                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎁</span>
+                <span style={styles.drawerNavText}>Daily Reward</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavInvestmentAssistant,
+                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📊</span>
+                <span style={styles.drawerNavText}>Investment Assistance</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSupport,
+                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/support"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎧</span>
+                <span style={styles.drawerNavText}>Support</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavProfile,
+                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👤</span>
+                <span style={styles.drawerNavText}>Profile</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavLogout
+                }} 
+                onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
+              >
+                <span style={styles.drawerNavIcon}>🚪</span>
+                <span style={styles.drawerNavText}>Logout</span>
+              </button>
+            </div>
+
+            {/* TREE PLANT SECTION */}
+            <div style={styles.treePlantOnlyWrapper}>
+              <img 
+                src="/tree plant.png" 
+                alt="Tree Plant" 
+                style={styles.treePlantOnlyImg}
+                onError={(e) => {
+                  if (e.target.src.includes('.png')) {
+                    e.target.src = '/tree plant.jpg';
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style={styles.wrap}>
+        {/* HEADER */}
         <div style={styles.header}>
+          <button style={styles.menuBtn} onClick={() => setIsDrawerOpen(true)}>
+            ☰
+          </button>
+
           <button style={styles.backBtn} onClick={() => navigate("/home")}>
             ←
           </button>
@@ -248,7 +517,6 @@ export default function MyInvestment() {
             <div style={styles.secureBadge}>🛡 100% Secure</div>
             <button style={styles.bellBtn} onClick={() => navigate("/notifications")}>
               🔔
-              <span></span>
             </button>
           </div>
         </div>
@@ -293,17 +561,17 @@ export default function MyInvestment() {
         <div style={styles.modalOverlay}>
           <div style={styles.modalBox}>
             <h2>Payment Statement</h2>
-            <p>Start SIP payment and all renew payments are listed below.</p>
+            <p style={{ fontSize: "13px", color: "#64748b" }}>Start SIP payment and all renew payments are listed below.</p>
 
             {(selectedPlan.history || []).length === 0 ? (
-              <p>No payment slip found</p>
+              <p style={{ margin: "20px 0" }}>No payment slip found</p>
             ) : (
               selectedPlan.history.map((h, i) => (
                 <div key={i} style={styles.slipRow}>
                   <div>
                     <b>{i === 0 ? "Start SIP Payment" : "Renew Payment"}</b>
-                    <p>{formatDate(h.date)}</p>
-                    <h3 style={{ color: "#16a34a", fontWeight: "800" }}>
+                    <p style={{ fontSize: "12px", color: "#64748b", margin: "2px 0" }}>{formatDate(h.date)}</p>
+                    <h3 style={{ color: "#16a34a", fontWeight: "800", margin: 0 }}>
                       ₹ {Number(h.amount || 0).toLocaleString("en-IN")}
                     </h3>
                   </div>
@@ -332,34 +600,34 @@ export default function MyInvestment() {
           <div style={styles.modalBox}>
             <h2>Renew Information</h2>
 
-            <p>
+            <p style={{ fontSize: "13px", color: "#64748b" }}>
               Your SIP renewal is due exactly after 30 days from your investment start date.
             </p>
 
-            <h3>Renew Due Date</h3>
+            <h3 style={{ fontSize: "14px", marginTop: "12px" }}>Renew Due Date</h3>
 
-            <h2 style={{ color: "#16a34a" }}>
+            <h2 style={{ color: "#16a34a", margin: "4px 0" }}>
               {renewDateText()}
             </h2>
 
-            <h3>Days Left For Renew</h3>
+            <h3 style={{ fontSize: "14px", marginTop: "12px" }}>Days Left For Renew</h3>
 
             {isOverdue(selectedPlan?.renewDate || selectedPlan?.nextRenewDate) ? (
-              <h1 style={{ color: "#ef4444" }}>Overdue</h1>
+              <h1 style={{ color: "#ef4444", margin: "4px 0" }}>Overdue</h1>
             ) : (
-              <h1 style={{ color: "#7c3aed" }}>
+              <h1 style={{ color: "#7c3aed", margin: "4px 0" }}>
                 {getDaysLeft(selectedPlan?.renewDate || selectedPlan?.nextRenewDate)} Days
               </h1>
             )}
 
-            <p>
+            <p style={{ fontSize: "12px", color: "#64748b", marginTop: "8px" }}>
               Please renew on or before your renew due date. If the renew date is missed,
               your investment status may become inactive and bonus / auto withdrawal benefits
               may be affected.
             </p>
 
             <button
-              style={styles.greenBtn}
+              style={{ ...styles.greenBtn, width: "100%", marginTop: "14px", padding: "12px" }}
               onClick={async () => {
                 try {
                   const res = await axios.post(
@@ -371,7 +639,6 @@ export default function MyInvestment() {
 
                   setRenewOpen(false);
 
-                  // রিনিউ রেসপন্স মেসেজ কাস্টম মডালে পাঠানো হলো
                   setCustomAlert({ 
                     show: true, 
                     title: "Notification", 
@@ -401,7 +668,7 @@ export default function MyInvestment() {
         </div>
       )}
 
-      {/* প্রিমিয়াম ইন্টেলিজেন্ট গ্লাস-ব্লুর কাস্টম পপআপ মডাল */}
+      {/* CUSTOM POPUP */}
       {customAlert.show && (
         <div style={{
           position: "fixed",
@@ -416,57 +683,42 @@ export default function MyInvestment() {
           padding: "20px"
         }}>
           
-          <style>{`
-            @keyframes popupBounceScale {
-              0% { transform: scale(0.75); opacity: 0; }
-              100% { transform: scale(1); opacity: 1; }
-            }
-          `}</style>
-
           <div style={{
             width: "100%",
             maxWidth: "380px",
             background: "white",
-            borderRadius: "26px",
-            padding: "30px 24px",
+            borderRadius: "24px",
+            padding: "24px 20px",
             color: "#071747",
             boxShadow: "0 25px 60px -15px rgba(0,0,0,0.35)",
             textAlign: "center",
-            border: "1px solid rgba(255, 255, 255, 0.8)",
-            animation: "popupBounceScale 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards"
+            border: "1px solid rgba(255, 255, 255, 0.8)"
           }}>
-            
-            {/* টাইপ অনুযায়ী আকর্ষণীয় বড় আইকন */}
-            <div style={{ fontSize: "56px", marginBottom: "12px", display: "inline-block" }}>
+            <div style={{ fontSize: "48px", marginBottom: "8px" }}>
               {customAlert.type === "details" ? "📊" : "ℹ️"}
             </div>
             
-            <h2 style={{ fontSize: "22px", fontWeight: "800", marginBottom: "16px", color: "#071747", letterSpacing: "-0.5px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "12px", color: "#071747" }}>
               {customAlert.title}
             </h2>
             
-            {/* কন্টেন্ট বা ডেসক্রিপশন টেক্সট (খুবই চমৎকার ও বড় সাইজ) */}
-            <div style={{ fontSize: "17px", fontWeight: "700", color: "#334155", marginBottom: "28px", lineHeight: "1.6" }}>
+            <div style={{ fontSize: "15px", fontWeight: "600", color: "#334155", marginBottom: "20px", lineHeight: "1.5" }}>
               {customAlert.message}
             </div>
             
             <button 
               style={{ 
                 width: "100%", 
-                padding: "14px", 
-                fontSize: "16px", 
-                fontWeight: "900", 
+                padding: "12px", 
+                fontSize: "15px", 
+                fontWeight: "800", 
                 background: customAlert.type === "details" ? "#0969ff" : "#16a34a", 
                 color: "white", 
                 border: "none", 
-                borderRadius: "16px", 
-                cursor: "pointer",
-                boxShadow: "0 8px 22px rgba(0,0,0,0.15)",
-                transition: "transform 0.1s"
+                borderRadius: "14px", 
+                cursor: "pointer"
               }} 
               onClick={() => setCustomAlert({ show: false, title: "", message: "", type: "info" })}
-              onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.97)"}
-              onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
             >
               Okay, Got it
             </button>
@@ -483,8 +735,8 @@ function EmptyInvestment({ navigate }) {
   return (
     <div style={styles.emptyBox}>
       <div style={styles.emptyIcon}>📭</div>
-      <h1>No any investment start</h1>
-      <p>You have not started any investment yet.</p>
+      <h1 style={{ fontSize: "20px", margin: "10px 0" }}>No any investment start</h1>
+      <p style={{ color: "#64748b", fontSize: "14px" }}>You have not started any investment yet.</p>
 
       <button style={styles.emptyBtn} onClick={() => navigate("/invest-now")}>
         Start Investment
@@ -496,7 +748,7 @@ function EmptyInvestment({ navigate }) {
 function SummaryHero({ summary, money }) {
   return (
     <section style={styles.hero}>
-      <div style={styles.heroLeft}>
+      <div style={styles.heroGrid}>
         <HeroItem
           icon="💼"
           title="Required Investment"
@@ -514,16 +766,7 @@ function SummaryHero({ summary, money }) {
           title="Total Return (All Time)"
           value={money(summary.totalReturn)}
           green />
-      </div>
 
-      <div style={styles.safeArt}>
-        <div style={styles.safeBox}>▣</div>
-        <div style={styles.coin1}>₹</div>
-        <div style={styles.coin2}>₹</div>
-        <div style={styles.shield}>✓</div>
-      </div>
-
-      <div style={styles.heroRight}>
         <HeroItem icon="📊" title="Average Return Rate" value={`${summary.averageReturnRate.toFixed(2)}%`} green />
         <HeroItem icon="💼" title="Active Investments" value={summary.activeInvestments} />
       </div>
@@ -538,10 +781,10 @@ function SummaryHero({ summary, money }) {
 function HeroItem({ icon, title, value, green }) {
   return (
     <div style={styles.heroItem}>
-      <span>{icon}</span>
+      <span style={{ fontSize: "22px" }}>{icon}</span>
       <div>
-        <p>{title}</p>
-        <h2 style={{ color: green ? "#20e58d" : "white" }}>{value}</h2>
+        <p style={{ margin: 0, fontSize: "11px", opacity: 0.8 }}>{title}</p>
+        <h2 style={{ margin: 0, fontSize: "15px", color: green ? "#20e58d" : "white" }}>{value}</h2>
       </div>
     </div>
   );
@@ -593,7 +836,6 @@ function InvestmentCard({
   const totalReturn = inv.totalReturn || inv.returnAmount || 0;
   const maturityAmount = inv.maturityAmount || Number(amount) + Number(totalReturn);
   const progress = inv.progress || 0;
-  const renewDateValue = inv?.renewDate || inv?.nextRenewDate;
 
   return (
     <section style={styles.card}>
@@ -603,8 +845,8 @@ function InvestmentCard({
         </div>
 
         <div style={styles.planTitleArea}>
-          <h2 style={{ color: theme.color }}>
-            {theme.title} <span>({theme.sub})</span>
+          <h2 style={{ color: theme.color, fontSize: "16px", margin: 0 }}>
+            {theme.title} <span style={{ fontSize: "12px", opacity: 0.8 }}>({theme.sub})</span>
           </h2>
 
           <div style={{ ...styles.activeBadge, color: theme.color, borderColor: theme.color }}>
@@ -613,9 +855,8 @@ function InvestmentCard({
         </div>
 
         <button style={styles.idBox} onClick={() => copyId(investmentId)}>
-          <p>Investment ID</p>
-          <b>{String(investmentId).slice(0, 14)}</b>
-          <span>📋 ›</span>
+          <p style={{ margin: 0, fontSize: "10px", color: "#64748b" }}>Investment ID</p>
+          <b style={{ fontSize: "12px" }}>{String(investmentId).slice(0, 10)}...</b>
         </button>
       </div>
 
@@ -634,8 +875,8 @@ function InvestmentCard({
 
       <div style={{ ...styles.progressBox, background: theme.soft }}>
         <div style={styles.progressTop}>
-          <span style={{ color: theme.color }}>📈 Your Investment is Growing Steadily</span>
-          <b style={{ background: theme.color }}>{progress}%</b>
+          <span style={{ color: theme.color, fontSize: "12px" }}>📈 Investment Growth</span>
+          <b style={{ background: theme.color, color: "white", padding: "2px 8px", borderRadius: "10px", fontSize: "11px" }}>{progress}%</b>
         </div>
 
         <div style={styles.progressTrack}>
@@ -643,16 +884,15 @@ function InvestmentCard({
         </div>
 
         <div style={styles.maturityBox}>
-          <p>Expected Maturity Amount</p>
-          <h2 style={{ color: theme.color }}>{money(maturityAmount)}</h2>
+          <p style={{ margin: 0, fontSize: "11px", color: "#64748b" }}>Expected Maturity Amount</p>
+          <h2 style={{ color: theme.color, margin: "2px 0", fontSize: "18px" }}>{money(maturityAmount)}</h2>
           <div style={styles.daysLeftBox}>
             {isOverdue(inv?.renewDate || inv?.nextRenewDate) ? (
-              <>⚠️ Renew overdue — Investment inactive</>
+              <>⚠️ Renew overdue — Inactive</>
             ) : (
               <>
-                ⏳ Renew due on {new Date(inv?.renewDate || inv?.nextRenewDate).toLocaleDateString("en-GB")}
-                {" — "}
-                {daysLeft} Days Left
+                ⏳ Renew due: {new Date(inv?.renewDate || inv?.nextRenewDate).toLocaleDateString("en-GB")}
+                {" — "}{daysLeft} Days Left
               </>
             )}
           </div>
@@ -660,10 +900,10 @@ function InvestmentCard({
       </div>
 
       <div style={styles.actions}>
-        <button onClick={() => viewDetails(inv)}>👁 View Details</button>
-        <button style={styles.actionBtn} onClick={() => certificate(inv)}>🏅 Certificate</button>
-        <button style={styles.actionBtn} onClick={() => downloadStatement(inv)}>⬇️ Statement</button>
-        <button style={styles.renewBtn} onClick={() => renewNow(inv)}>🔄 Renew Now</button>
+        <button style={styles.btnAction} onClick={() => viewDetails(inv)}>👁 View</button>
+        <button style={styles.btnAction} onClick={() => certificate(inv)}>🏅 Certificate</button>
+        <button style={styles.btnAction} onClick={() => downloadStatement(inv)}>⬇️ Statement</button>
+        <button style={styles.renewBtn} onClick={() => renewNow(inv)}>🔄 Renew</button>
       </div>
     </section>
   );
@@ -674,8 +914,8 @@ function Info({ icon, title, value, color }) {
     <div style={styles.info}>
       <div style={{ ...styles.infoIcon, color }}>{icon}</div>
       <div>
-        <p>{title}</p>
-        <h3 style={{ color }}>{value}</h3>
+        <p style={{ margin: 0, fontSize: "10px", color: "#64748b" }}>{title}</p>
+        <h3 style={{ margin: 0, color, fontSize: "12px", fontWeight: "800" }}>{value}</h3>
       </div>
     </div>
   );
@@ -708,14 +948,8 @@ function BottomBanner() {
       <div style={styles.trophy}>🏆</div>
 
       <div style={styles.bottomText}>
-        <h2>Great Choice!</h2>
-        <p>You are building a secure future for you and your family.</p>
-      </div>
-
-      <div style={styles.bottomBenefits}>
-        <div>🎯 <b>Disciplined<br />Investing</b></div>
-        <div>📊 <b>Better<br />Returns</b></div>
-        <div>💎 <b>Financial<br />Freedom</b></div>
+        <h2 style={{ margin: 0, fontSize: "15px" }}>Great Choice!</h2>
+        <p style={{ margin: "2px 0 0 0", fontSize: "12px", color: "#475569" }}>Building a secure financial future.</p>
       </div>
     </section>
   );
@@ -725,13 +959,13 @@ const styles = {
   page: {
     minHeight: "100vh",
     background: "linear-gradient(180deg,#050842 0%,#082a93 38%,#dbeafe 100%)",
-    padding: "16px",
-    fontFamily: "Arial, sans-serif",
+    padding: "12px 12px 60px",
+    fontFamily: "system-ui, -apple-system, sans-serif",
     color: "#101a3a"
   },
 
   wrap: {
-    maxWidth: "980px",
+    maxWidth: "800px",
     margin: "0 auto"
   },
 
@@ -746,218 +980,150 @@ const styles = {
 
   loadingBox: {
     background: "rgba(255,255,255,.12)",
-    padding: "28px",
-    borderRadius: "28px",
+    padding: "24px",
+    borderRadius: "20px",
     textAlign: "center"
   },
 
   header: {
-    height: "78px",
+    height: "60px",
     display: "flex",
     alignItems: "center",
-    gap: "14px",
+    gap: "10px",
     color: "white"
   },
 
-  backBtn: {
-    width: "54px",
-    height: "54px",
-    borderRadius: "16px",
-    border: "1px solid rgba(255,255,255,.45)",
-    background: "rgba(255,255,255,.08)",
+  menuBtn: {
+    background: "transparent",
+    border: "none",
     color: "white",
-    fontSize: "34px",
-    cursor: "pointer"
+    fontSize: "24px",
+    cursor: "pointer",
+    padding: "4px"
+  },
+
+  backBtn: {
+    width: "36px",
+    height: "36px",
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,.3)",
+    background: "rgba(255,255,255,.1)",
+    color: "white",
+    fontSize: "18px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   },
 
   headerTitle: {
     flex: 1,
-    textAlign: "center"
+    textAlign: "left",
+    overflow: "hidden"
   },
 
   rightTop: {
     display: "flex",
     alignItems: "center",
-    gap: "12px"
+    gap: "8px"
   },
 
   secureBadge: {
-    background: "rgba(255,255,255,.12)",
-    borderRadius: "16px",
-    padding: "12px 18px",
-    fontWeight: "900"
+    background: "rgba(255,255,255,.15)",
+    borderRadius: "12px",
+    padding: "6px 10px",
+    fontWeight: "800",
+    fontSize: "11px"
   },
 
   bellBtn: {
-    position: "relative",
     border: "none",
     background: "transparent",
     color: "white",
-    fontSize: "28px",
+    fontSize: "20px",
     cursor: "pointer"
   },
 
   emptyBox: {
-    marginTop: "40px",
+    marginTop: "30px",
     background: "white",
-    borderRadius: "30px",
-    padding: "45px 25px",
+    borderRadius: "20px",
+    padding: "30px 15px",
     textAlign: "center",
-    boxShadow: "0 18px 35px rgba(15,23,42,.18)"
+    boxShadow: "0 10px 25px rgba(15,23,42,.15)"
   },
 
   emptyIcon: {
-    fontSize: "80px"
+    fontSize: "50px"
   },
 
   emptyBtn: {
-    marginTop: "18px",
+    marginTop: "14px",
     border: "none",
-    borderRadius: "18px",
-    padding: "15px 26px",
+    borderRadius: "12px",
+    padding: "12px 20px",
     background: "linear-gradient(135deg,#16c784,#059669)",
     color: "white",
-    fontWeight: "900",
-    fontSize: "17px",
+    fontWeight: "800",
+    fontSize: "14px",
     cursor: "pointer"
   },
 
   hero: {
-    position: "relative",
-    overflow: "hidden",
     background: "linear-gradient(135deg,#2e1065,#4615a8,#1e0b58)",
-    borderRadius: "28px",
-    padding: "24px",
-    minHeight: "225px",
+    borderRadius: "20px",
+    padding: "16px",
     color: "white",
-    display: "grid",
-    gridTemplateColumns: "1fr 240px 1fr",
-    gap: "12px",
     border: "1px solid rgba(255,255,255,.16)",
-    boxShadow: "0 18px 35px rgba(0,0,0,.28)"
+    boxShadow: "0 10px 25px rgba(0,0,0,.25)"
   },
 
-  heroLeft: {
-    zIndex: 2
-  },
-
-  heroRight: {
-    zIndex: 2
+  heroGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "12px"
   },
 
   heroItem: {
     display: "flex",
     alignItems: "center",
-    gap: "14px",
-    marginBottom: "20px"
+    gap: "10px"
   },
 
   heroBottom: {
-    gridColumn: "1 / 4",
+    marginTop: "12px",
     textAlign: "center",
     borderTop: "1px solid rgba(255,255,255,.15)",
-    paddingTop: "14px",
-    fontSize: "18px",
-    zIndex: 2
-  },
-
-  safeArt: {
-    position: "relative",
-    width: "230px",
-    height: "145px",
-    margin: "0 auto"
-  },
-
-  safeBox: {
-    position: "absolute",
-    left: "62px",
-    top: "5px",
-    width: "110px",
-    height: "105px",
-    borderRadius: "20px",
-    background: "linear-gradient(135deg,#a855f7,#5b21b6)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#ddd6fe",
-    fontSize: "60px",
-    boxShadow: "inset -12px -12px 0 rgba(0,0,0,.18),0 16px 22px rgba(0,0,0,.25)"
-  },
-
-  coin1: {
-    position: "absolute",
-    left: "20px",
-    bottom: "18px",
-    width: "45px",
-    height: "45px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg,#fde047,#f59e0b)",
-    color: "#92400e",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900",
-    boxShadow: "0 8px 16px rgba(0,0,0,.25)"
-  },
-
-  coin2: {
-    position: "absolute",
-    left: "58px",
-    bottom: "4px",
-    width: "48px",
-    height: "48px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg,#facc15,#f97316)",
-    color: "#92400e",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900"
-  },
-
-  shield: {
-    position: "absolute",
-    right: "20px",
-    bottom: "10px",
-    width: "65px",
-    height: "78px",
-    borderRadius: "26px 26px 35px 35px",
-    background: "linear-gradient(135deg,#bbf7d0,#10b981)",
-    color: "white",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "42px",
-    fontWeight: "900",
-    border: "5px solid #dcfce7",
-    boxShadow: "0 10px 20px rgba(0,0,0,.22)"
+    paddingTop: "10px",
+    fontSize: "12px",
+    opacity: 0.9
   },
 
   card: {
     background: "linear-gradient(180deg,#ffffff,#f8fbff)",
-    borderRadius: "28px",
-    padding: "24px",
+    borderRadius: "20px",
+    padding: "16px",
     marginTop: "14px",
-    boxShadow: "0 15px 32px rgba(15,23,42,.14)",
+    boxShadow: "0 8px 20px rgba(15,23,42,.1)",
     border: "1px solid rgba(255,255,255,.85)"
   },
 
   cardHeader: {
     display: "flex",
     alignItems: "center",
-    gap: "18px",
-    marginBottom: "18px"
+    gap: "12px",
+    marginBottom: "12px"
   },
 
   planLogo: {
-    width: "98px",
-    height: "98px",
+    width: "50px",
+    height: "50px",
     borderRadius: "50%",
-    background: "radial-gradient(circle,#ffffff,#eefdf6)",
-    boxShadow: "0 10px 24px rgba(0,0,0,.12)",
+    background: "#eefdf6",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    flexShrink: 0
   },
 
   planTitleArea: {
@@ -966,31 +1132,29 @@ const styles = {
 
   activeBadge: {
     display: "inline-block",
-    marginTop: "8px",
-    padding: "8px 14px",
-    borderRadius: "12px",
+    marginTop: "4px",
+    padding: "2px 8px",
+    borderRadius: "8px",
     border: "1px solid",
-    fontWeight: "900",
+    fontWeight: "800",
+    fontSize: "10px",
     background: "#f8fffb"
   },
 
   idBox: {
-    width: "245px",
-    minHeight: "68px",
     border: "1px solid #dbe3ef",
-    borderRadius: "16px",
+    borderRadius: "10px",
     background: "#f9fbff",
     textAlign: "left",
-    padding: "12px 14px",
-    cursor: "pointer",
-    position: "relative"
+    padding: "6px 8px",
+    cursor: "pointer"
   },
 
   detailsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(3,1fr)",
+    gridTemplateColumns: "repeat(2, 1fr)",
     border: "1px solid #e5eaf3",
-    borderRadius: "20px",
+    borderRadius: "14px",
     overflow: "hidden",
     background: "#ffffff"
   },
@@ -998,177 +1162,195 @@ const styles = {
   info: {
     display: "flex",
     alignItems: "center",
-    gap: "13px",
-    padding: "18px",
+    gap: "8px",
+    padding: "10px",
     borderRight: "1px solid #e5eaf3",
     borderBottom: "1px solid #e5eaf3"
   },
 
   infoIcon: {
-    width: "44px",
-    height: "44px",
+    width: "28px",
+    height: "28px",
     borderRadius: "50%",
     background: "#f1f5f9",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: "900"
+    fontSize: "14px",
+    flexShrink: 0
   },
 
   progressBox: {
-    marginTop: "14px",
-    borderRadius: "16px",
-    padding: "14px"
+    marginTop: "12px",
+    borderRadius: "12px",
+    padding: "10px"
   },
 
   progressTop: {
     display: "flex",
     justifyContent: "space-between",
-    fontWeight: "900"
+    alignItems: "center"
   },
 
   progressTrack: {
-    marginTop: "10px",
-    height: "10px",
-    borderRadius: "20px",
+    marginTop: "6px",
+    height: "8px",
+    borderRadius: "10px",
     background: "#dbeafe",
     overflow: "hidden"
   },
 
   progressFill: {
     height: "100%",
-    borderRadius: "20px"
+    borderRadius: "10px"
   },
 
   maturityBox: {
     textAlign: "right",
-    marginTop: "8px"
+    marginTop: "6px"
   },
 
   actions: {
-    marginTop: "14px",
+    marginTop: "12px",
     display: "grid",
-    gridTemplateColumns: "1fr 1.4fr 1.4fr 1fr",
+    gridTemplateColumns: "repeat(2, 1fr)",
     gap: "8px"
+  },
+
+  btnAction: {
+    padding: "8px",
+    borderRadius: "10px",
+    border: "1px solid #cbd5e1",
+    background: "#fff",
+    fontSize: "12px",
+    fontWeight: "700",
+    cursor: "pointer"
+  },
+
+  renewBtn: {
+    padding: "8px",
+    borderRadius: "10px",
+    border: "none",
+    background: "linear-gradient(135deg,#7c3aed,#6d28d9)",
+    color: "white",
+    fontSize: "12px",
+    fontWeight: "700",
+    cursor: "pointer"
   },
 
   bottomBanner: {
     marginTop: "14px",
     background: "linear-gradient(135deg,#fff7df,#ffffff)",
-    borderRadius: "24px",
-    padding: "20px",
+    borderRadius: "16px",
+    padding: "12px 16px",
     display: "flex",
     alignItems: "center",
-    gap: "18px",
-    boxShadow: "0 12px 28px rgba(15,23,42,.10)"
+    gap: "12px"
   },
 
   trophy: {
-    fontSize: "74px"
+    fontSize: "36px"
   },
 
   bottomText: {
     flex: 1
   },
 
-  bottomBenefits: {
-    display: "flex",
-    gap: "26px"
-  },
-
   plantIcon: {
     position: "relative",
-    width: "70px",
-    height: "70px"
+    width: "40px",
+    height: "40px"
   },
 
   leafA: {
     position: "absolute",
-    width: "32px",
-    height: "22px",
+    width: "18px",
+    height: "12px",
     background: "#22c55e",
     borderRadius: "100% 0 100% 0",
-    top: "8px",
-    left: "10px"
+    top: "4px",
+    left: "6px"
   },
 
   leafB: {
     position: "absolute",
-    width: "34px",
-    height: "23px",
+    width: "18px",
+    height: "12px",
     background: "#16a34a",
     borderRadius: "0 100% 0 100%",
-    top: "8px",
-    right: "8px"
+    top: "4px",
+    right: "6px"
   },
 
   stem: {
     position: "absolute",
-    width: "6px",
-    height: "34px",
+    width: "4px",
+    height: "18px",
     background: "#15803d",
-    left: "34px",
-    top: "24px",
+    left: "18px",
+    top: "14px",
     borderRadius: "10px"
   },
 
   pot: {
     position: "absolute",
-    bottom: "0",
-    left: "18px",
-    width: "40px",
-    height: "26px",
-    borderRadius: "0 0 14px 14px",
+    bottom: "2px",
+    left: "10px",
+    width: "20px",
+    height: "14px",
+    borderRadius: "0 0 8px 8px",
     background: "#f59e0b",
     color: "#fff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    fontSize: "10px",
     fontWeight: "900"
   },
 
   rocketIcon: {
     position: "relative",
-    width: "70px",
-    height: "70px"
+    width: "40px",
+    height: "40px"
   },
 
   rocketBody: {
     position: "absolute",
-    width: "30px",
-    height: "58px",
-    borderRadius: "50% 50% 18px 18px",
+    width: "16px",
+    height: "30px",
+    borderRadius: "50% 50% 10px 10px",
     background: "linear-gradient(180deg,#bae6fd,#0284c7)",
-    left: "22px",
-    top: "0",
+    left: "12px",
+    top: "2px",
     transform: "rotate(28deg)"
   },
 
   rocketWindow: {
     position: "absolute",
-    width: "13px",
-    height: "13px",
+    width: "7px",
+    height: "7px",
     borderRadius: "50%",
     background: "#1d4ed8",
-    left: "37px",
-    top: "19px"
+    left: "20px",
+    top: "12px"
   },
 
   rocketFire: {
     position: "absolute",
-    width: "30px",
-    height: "30px",
+    width: "14px",
+    height: "14px",
     background: "linear-gradient(180deg,#facc15,#f97316)",
     borderRadius: "50% 50% 50% 0",
-    left: "6px",
-    bottom: "5px",
+    left: "4px",
+    bottom: "4px",
     transform: "rotate(25deg)"
   },
 
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,.55)",
+    background: "rgba(0,0,0,.6)",
+    backdropFilter: "blur(4px)",
     zIndex: 9999,
     display: "flex",
     alignItems: "center",
@@ -1178,63 +1360,267 @@ const styles = {
 
   modalBox: {
     width: "100%",
-    maxWidth: "430px",
+    maxWidth: "380px",
     background: "white",
-    borderRadius: "22px",
-    padding: "22px",
+    borderRadius: "18px",
+    padding: "18px",
     color: "#071747",
-    boxShadow: "0 25px 50px rgba(0,0,0,.25)"
+    boxShadow: "0 20px 40px rgba(0,0,0,.25)"
   },
 
   slipRow: {
     background: "#f8fafc",
-    borderRadius: "16px",
-    padding: "14px",
-    marginTop: "12px",
+    borderRadius: "12px",
+    padding: "10px",
+    marginTop: "8px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: "10px"
+    gap: "8px"
   },
 
   greenBtn: {
     border: "none",
-    borderRadius: "12px",
-    padding: "11px 14px",
+    borderRadius: "8px",
+    padding: "8px 12px",
     background: "#16a34a",
     color: "white",
-    fontWeight: "900",
+    fontWeight: "800",
+    fontSize: "12px",
     cursor: "pointer"
   },
 
   daysLeftBox: {
-    marginTop: "12px",
+    marginTop: "8px",
     background: "#fef3c7",
     color: "#92400e",
     border: "1px solid #facc15",
-    borderRadius: "14px",
-    padding: "12px",
-    fontWeight: "900",
+    borderRadius: "10px",
+    padding: "8px",
+    fontWeight: "800",
+    fontSize: "11px",
     textAlign: "center"
   },
 
   closeBtn: {
     width: "100%",
-    marginTop: "16px",
+    marginTop: "12px",
     border: "none",
-    borderRadius: "12px",
-    padding: "13px",
+    borderRadius: "10px",
+    padding: "10px",
     background: "#e5e7eb",
     color: "#071747",
-    fontWeight: "900",
+    fontWeight: "800",
+    fontSize: "13px",
     cursor: "pointer"
   },
 
   detailRow: {
     display: "flex",
     justifyContent: "space-between",
-    padding: "12px 8px",
+    padding: "8px 0",
     borderBottom: "1px solid #f1f5f9",
-    fontSize: "16px"
+    fontSize: "14px"
+  },
+
+  // SIDEBAR DRAWER STYLES
+  drawerOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0, 0, 0, 0.75)",
+    backdropFilter: "blur(6px)",
+    zIndex: 100002,
+    display: "flex",
+    justifyContent: "flex-start",
+    transition: "opacity 0.3s ease, visibility 0.3s ease"
+  },
+  drawerContainer: {
+    position: "fixed",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    background: "#08101e",
+    width: "230px",
+    height: "100vh",
+    padding: "12px 8px",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
+    borderRight: "1px solid #1e293b",
+    transform: "translateX(-100%)",
+    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    overflow: "hidden",
+    zIndex: 100003
+  },
+  drawerHeader: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "10px",
+    paddingBottom: "8px",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+    flexShrink: 0
+  },
+  drawerBrand: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px"
+  },
+  drawerLogoWrapper: {
+    width: "42px",
+    height: "42px",
+    borderRadius: "50%",
+    background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
+    border: "2px solid #22c55e",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 0 10px rgba(34, 197, 94, 0.4)"
+  },
+  drawerLogoImg: {
+    width: "26px",
+    height: "26px",
+    objectFit: "contain"
+  },
+  drawerLogoText: {
+    margin: 0,
+    fontSize: "15px",
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: "0.6px",
+    textAlign: "center"
+  },
+  drawerLogoSubtext: {
+    fontSize: "10px",
+    color: "#a7f3d0",
+    fontWeight: "600",
+    marginTop: "1px",
+    textAlign: "center"
+  },
+  drawerScrollArea: {
+    flex: 1,
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    paddingRight: "2px"
+  },
+  drawerNavList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    flexShrink: 0
+  },
+  drawerNavItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 12px",
+    background: "rgba(255, 255, 255, 0.12)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    border: "1px solid rgba(255, 255, 255, 0.25)",
+    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    color: "#ffffff",
+    fontSize: "12px",
+    fontWeight: "800",
+    cursor: "pointer",
+    textAlign: "left",
+    transition: "all 0.25s ease",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+  },
+  drawerNavItemActive: {
+    background: "rgba(255, 255, 255, 0.3)",
+    border: "1px solid #ffffff",
+    boxShadow: "0 0 12px rgba(255, 255, 255, 0.5)",
+    fontWeight: "900"
+  },
+  drawerNavIcon: {
+    fontSize: "16px",
+    width: "20px",
+    display: "inline-block",
+    textAlign: "center"
+  },
+  drawerNavText: {
+    flex: 1,
+    fontSize: "12px",
+    letterSpacing: "0.3px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  },
+  drawerNavDashboard: {
+    background: "rgba(59, 130, 246, 0.25)",
+    border: "1px solid rgba(59, 130, 246, 0.5)"
+  },
+  drawerNavMyInvestment: {
+    background: "rgba(16, 185, 129, 0.25)",
+    border: "1px solid rgba(16, 185, 129, 0.5)"
+  },
+  drawerNavSaveMoney: {
+    background: "rgba(245, 158, 11, 0.25)",
+    border: "1px solid rgba(245, 158, 11, 0.5)"
+  },
+  drawerNavOneTime: {
+    background: "rgba(168, 85, 247, 0.25)",
+    border: "1px solid rgba(168, 85, 247, 0.5)"
+  },
+  drawerNavPlan: {
+    background: "rgba(6, 182, 212, 0.25)",
+    border: "1px solid rgba(6, 182, 212, 0.5)"
+  },
+  drawerNavAddFund: {
+    background: "rgba(20, 184, 166, 0.25)",
+    border: "1px solid rgba(20, 184, 166, 0.5)"
+  },
+  drawerNavRefer: {
+    background: "rgba(236, 72, 153, 0.25)",
+    border: "1px solid rgba(236, 72, 153, 0.5)"
+  },
+  drawerNavWithdraw: {
+    background: "rgba(249, 115, 22, 0.25)",
+    border: "1px solid rgba(249, 115, 22, 0.5)"
+  },
+  drawerNavDailyReward: {
+    background: "rgba(244, 63, 94, 0.25)",
+    border: "1px solid rgba(244, 63, 94, 0.5)"
+  },
+  drawerNavInvestmentAssistant: {
+    background: "rgba(2, 132, 199, 0.25)",
+    border: "1px solid rgba(2, 132, 199, 0.5)"
+  },
+  drawerNavSupport: {
+    background: "rgba(99, 102, 241, 0.25)",
+    border: "1px solid rgba(99, 102, 241, 0.5)"
+  },
+  drawerNavProfile: {
+    background: "rgba(236, 72, 153, 0.25)",
+    border: "1px solid rgba(236, 72, 153, 0.5)"
+  },
+  drawerNavLogout: {
+    background: "rgba(239, 68, 68, 0.25)",
+    border: "1px solid rgba(239, 68, 68, 0.5)"
+  },
+  treePlantOnlyWrapper: {
+    width: "100%",
+    paddingTop: "6px",
+    paddingBottom: "10px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexShrink: 0
+  },
+  treePlantOnlyImg: {
+    width: "100%",
+    maxHeight: "110px",
+    objectFit: "cover",
+    borderRadius: "12px",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)"
   }
 };
