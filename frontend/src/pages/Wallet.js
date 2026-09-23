@@ -140,7 +140,7 @@ export default function Wallet() {
   const [p2pModalOpen, setP2pModalOpen] = useState(false);
   const [p2pUserList, setP2pUserList] = useState([]);
   
-  // একটিমাত্র কম্বাইন্ড রিভিউ মডাল স্টেট (ওপরে লেখার অপশন ও নিচে আগের রিভিউ)
+  // কম্বাইন্ড রিভিউ মডাল স্টেট
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedP2pUser, setSelectedP2pUser] = useState(null);
   const [reviewText, setReviewText] = useState("");
@@ -159,7 +159,7 @@ export default function Wallet() {
   const [historyFilter, setHistoryFilter] = useState("all");
   const [showAllHistory, setShowAllHistory] = useState(false);
 
-  // 👇 ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
+  // ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
 
@@ -220,7 +220,6 @@ export default function Wallet() {
     }
   };
 
-  // 👇 PLAN PDF ডাউনলোডের জন্য হ্যান্ডলার
   const handleDownloadPlan = () => {
     if (isDownloadingPlan) return;
     setIsDownloadingPlan(true);
@@ -378,10 +377,9 @@ export default function Wallet() {
     setAddOpen(true);
   };
 
-  // 👇 নতুন পেমেন্ট অর্ডার ক্রিয়েশন হ্যান্ডলার
   const handleAddMoney = async (amount) => {
     try {
-      const token = localStorage.getItem("token"); // আপনার Auth Token
+      const token = localStorage.getItem("token");
       const res = await fetch("https://save-money-vyv1.onrender.com/api/create-payment-order", {
         method: "POST",
         headers: {
@@ -394,7 +392,6 @@ export default function Wallet() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // যদি লিঙ্ক দেয়, তবে পেমেন্ট পেজে রিডাইরেক্ট করবে
         if (data.paymentUrl) {
           window.location.href = data.paymentUrl;
         }
@@ -620,7 +617,7 @@ export default function Wallet() {
     <div style={styles.page}>
       <div style={styles.app}>
 
-        {/* 👇 SIDEBAR DRAWER */}
+        {/* SIDEBAR DRAWER */}
         <div style={{
           ...styles.drawerOverlay,
           opacity: isDrawerOpen ? 1 : 0,
@@ -653,7 +650,6 @@ export default function Wallet() {
 
             {/* SIDEBAR NAV BUTTONS - DIAMOND CUT & WATER TRANSPARENT */}
             <div style={styles.drawerNavList}>
-              {/* 1. Dashboard */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -666,7 +662,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Dashboard</span>
               </button>
 
-              {/* 2. My Investment */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -679,7 +674,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>My Investment</span>
               </button>
 
-              {/* 3. Save Money */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -692,7 +686,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Save Money</span>
               </button>
 
-              {/* 4. One Time */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -705,7 +698,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>One Time</span>
               </button>
 
-              {/* 5. PLAN (PDF Download) */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -718,7 +710,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
               </button>
 
-              {/* Add Fund */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -731,7 +722,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Add Fund</span>
               </button>
 
-              {/* Refer (refer.js) */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -744,7 +734,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Refer & Earn</span>
               </button>
 
-              {/* Withdraw (withdraw.js) */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -757,7 +746,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Withdraw</span>
               </button>
 
-              {/* Daily Reward (dailyreward.js) */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -770,7 +758,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Daily Reward</span>
               </button>
 
-              {/* Investment Assistance */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -783,7 +770,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Investment Assistance</span>
               </button>
 
-              {/* Support */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -796,7 +782,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Support</span>
               </button>
 
-              {/* Profile */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -809,7 +794,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Profile</span>
               </button>
 
-              {/* Logout */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -822,7 +806,7 @@ export default function Wallet() {
               </button>
             </div>
 
-            {/* 👇 PLANT IMAGE CONTAINER AT THE BOTTOM */}
+            {/* PLANT IMAGE CONTAINER */}
             <div style={styles.treePlantOnlyWrapper}>
               <img 
                 src="/tree plant.png" 
@@ -1099,7 +1083,7 @@ export default function Wallet() {
             </div>
           </section>
 
-          {/* --- P2P মডাল উইন্ডো --- */}
+          {/* P2P Marketplace Modal */}
           {p2pModalOpen && (
             <div style={styles.modalOverlay}>
               <div style={{ ...styles.modal, maxWidth: "600px", maxHeight: "85vh", overflowY: "auto" }}>
@@ -1167,7 +1151,7 @@ export default function Wallet() {
             </div>
           )}
 
-          {/* --- কম্বাইন্ড রিভিউ মডাল --- */}
+          {/* Combined Review Modal */}
           {reviewModalOpen && selectedP2pUser && (
             <div style={styles.modalOverlay}>
               <div style={{ ...styles.modal, maxWidth: "480px", maxHeight: "85vh", overflowY: "auto" }}>
@@ -1226,7 +1210,7 @@ export default function Wallet() {
             </div>
           )}
 
-          {/* --- ট্রানজ্যাকশন রিসিপ্ট মডাল --- */}
+          {/* Receipt Modal */}
           {selectedTxn && (
             <div style={styles.modalOverlay}>
               <div style={styles.receiptContainer}>
@@ -1454,6 +1438,21 @@ function IncomeCard({ icon, title, amount, color }) {
 }
 
 const styles = {
+  // Mobile Responsvieness এবং Responsive Sizing এর জন্য Style Fix
+  topHeader: {
+    position: "relative",
+    width: "100%"
+  },
+  menuButton: {
+    background: "#ffffff",
+    border: "1px solid #e2e8f0",
+    borderRadius: "12px",
+    padding: "8px 14px",
+    fontSize: "20px",
+    cursor: "pointer",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    marginBottom: "12px"
+  },
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -1644,19 +1643,21 @@ const styles = {
   treePlantOnlyImg: {
     width: "90%",
     height: "65%",
-    objectFit: "95%",
+    objectFit: "contain",
     borderRadius: "16px"
   },
   p2pMainBtn: {
-    minWidth: "120px",
-    height: "54px",
+    flex: "1 1 auto",
+    minWidth: "100px",
+    height: "48px",
     border: "none",
-    borderRadius: "18px",
+    borderRadius: "14px",
     background: "linear-gradient(135deg,#06b6d4,#2563eb)",
     color: "white",
-    fontWeight: "900",
-    fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(6,182,212,.3)"
+    fontWeight: "800",
+    fontSize: "14px",
+    cursor: "pointer",
+    boxShadow: "0 8px 18px rgba(6,182,212,.3)"
   },
   iWantP2pBtn: {
     padding: "8px 12px",
@@ -1709,13 +1710,430 @@ const styles = {
   },
   clickableHistoryRow: {
     display: "grid",
-    gridTemplateColumns: "70px 1.6fr 1fr 1fr 1.2fr",
+    gridTemplateColumns: "50px 1.5fr 1fr 1fr 1fr",
     alignItems: "center",
-    padding: "16px 8px",
+    padding: "12px 8px",
     borderBottom: "1px solid #eef2ff",
     cursor: "pointer",
     transition: "all 0.2s ease",
-    borderRadius: "12px"
+    borderRadius: "12px",
+    fontSize: "13px"
+  },
+  typeCircle: {
+    width: "36px",
+    height: "36px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "800",
+    fontSize: "16px"
+  },
+  rowTitle: {
+    fontWeight: "700",
+    color: "#0f172a",
+    fontSize: "13px"
+  },
+  rowSub: {
+    fontSize: "11px",
+    color: "#94a3b8"
+  },
+  successBadge: {
+    background: "#dcfce7",
+    color: "#16a34a",
+    padding: "3px 8px",
+    borderRadius: "6px",
+    fontSize: "11px",
+    fontWeight: "700"
+  },
+  viewMore: {
+    width: "100%",
+    padding: "12px",
+    border: "none",
+    background: "none",
+    color: "#2563eb",
+    fontWeight: "700",
+    cursor: "pointer",
+    marginTop: "10px"
+  },
+  historyHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "16px",
+    flexWrap: "wrap",
+    gap: "10px"
+  },
+  historyTitle: {
+    margin: 0,
+    fontSize: "20px",
+    fontWeight: "800"
+  },
+  historySub: {
+    margin: "4px 0 0 0",
+    fontSize: "12px",
+    color: "#64748b"
+  },
+  filterSelect: {
+    padding: "8px 12px",
+    borderRadius: "10px",
+    border: "1px solid #cbd5e1",
+    fontSize: "13px",
+    outline: "none"
+  },
+  tableHead: {
+    display: "grid",
+    gridTemplateColumns: "50px 1.5fr 1fr 1fr 1fr",
+    padding: "10px 8px",
+    background: "#f8fafc",
+    borderRadius: "10px",
+    fontWeight: "700",
+    fontSize: "11px",
+    color: "#64748b"
+  },
+  emptyHistory: {
+    textAlign: "center",
+    padding: "30px",
+    color: "#94a3b8",
+    fontSize: "14px"
+  },
+  historyCard: {
+    background: "white",
+    borderRadius: "24px",
+    padding: "20px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.04)",
+    marginBottom: "24px",
+    overflowX: "auto"
+  },
+  bottomFeatures: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+    gap: "16px",
+    marginTop: "20px"
+  },
+  featureItem: {
+    background: "white",
+    padding: "16px",
+    borderRadius: "18px",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    fontSize: "24px",
+    boxShadow: "0 4px 14px rgba(0,0,0,0.03)"
+  },
+  incomePanel: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+    gap: "14px",
+    marginBottom: "24px"
+  },
+  incomeCard: {
+    background: "white",
+    borderRadius: "20px",
+    padding: "16px",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.03)",
+    textAlign: "center"
+  },
+  incomeIcon: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "white",
+    margin: "0 auto 10px auto",
+    fontSize: "18px"
+  },
+  incomeWave: {
+    fontSize: "12px",
+    fontWeight: "bold",
+    opacity: 0.5
+  },
+  middleGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "20px",
+    marginBottom: "24px"
+  },
+  transferCard: {
+    background: "white",
+    borderRadius: "24px",
+    padding: "24px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.04)"
+  },
+  transferIcon: {
+    fontSize: "30px",
+    marginBottom: "10px"
+  },
+  transferTitle: {
+    margin: "0 0 4px 0",
+    fontSize: "20px",
+    fontWeight: "800"
+  },
+  transferSub: {
+    margin: "0 0 16px 0",
+    fontSize: "12px",
+    color: "#64748b"
+  },
+  label: {
+    fontSize: "12px",
+    fontWeight: "700",
+    color: "#475569",
+    display: "block",
+    marginBottom: "6px"
+  },
+  inputWrap: {
+    position: "relative",
+    marginBottom: "14px"
+  },
+  transferInput: {
+    width: "100%",
+    height: "44px",
+    borderRadius: "12px",
+    border: "1px solid #cbd5e1",
+    padding: "0 12px 0 38px",
+    fontSize: "14px",
+    boxSizing: "border-box",
+    outline: "none"
+  },
+  inputIcon: {
+    position: "absolute",
+    left: "12px",
+    top: "12px",
+    fontSize: "16px",
+    color: "#94a3b8"
+  },
+  transferBtn: {
+    width: "100%",
+    height: "48px",
+    borderRadius: "14px",
+    border: "none",
+    background: "linear-gradient(135deg,#2563eb,#1d4ed8)",
+    color: "white",
+    fontWeight: "800",
+    fontSize: "15px",
+    cursor: "pointer",
+    boxShadow: "0 8px 18px rgba(37,99,235,0.3)"
+  },
+  inviteCard: {
+    background: "linear-gradient(135deg,#ec4899,#8b5cf6)",
+    borderRadius: "24px",
+    padding: "24px",
+    color: "white",
+    textAlign: "center",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 10px 30px rgba(236,72,153,0.25)"
+  },
+  inviteTop: {
+    background: "rgba(255,255,255,0.2)",
+    padding: "4px 12px",
+    borderRadius: "20px",
+    fontSize: "11px",
+    fontWeight: "800",
+    letterSpacing: "1px",
+    marginBottom: "10px"
+  },
+  inviteTitle: {
+    margin: 0,
+    fontSize: "22px",
+    fontWeight: "900"
+  },
+  inviteTitle2: {
+    margin: "2px 0 12px 0",
+    fontSize: "14px",
+    fontWeight: "600",
+    opacity: 0.9
+  },
+  giftBox: {
+    fontSize: "42px",
+    margin: "10px 0 16px 0"
+  },
+  inviteBtn: {
+    padding: "12px 28px",
+    borderRadius: "14px",
+    border: "none",
+    background: "white",
+    color: "#8b5cf6",
+    fontWeight: "900",
+    fontSize: "14px",
+    cursor: "pointer",
+    boxShadow: "0 8px 18px rgba(0,0,0,0.15)"
+  },
+  depositOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(15, 23, 42, 0.75)",
+    backdropFilter: "blur(8px)",
+    zIndex: 100000,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px"
+  },
+  depositModal: {
+    background: "#0f172a",
+    color: "white",
+    padding: "28px",
+    borderRadius: "24px",
+    width: "100%",
+    maxWidth: "420px",
+    position: "relative",
+    border: "1px solid #1e293b",
+    boxShadow: "0 25px 50px rgba(0,0,0,0.5)"
+  },
+  depositCloseX: {
+    position: "absolute",
+    right: "16px",
+    top: "16px",
+    background: "none",
+    border: "none",
+    color: "#94a3b8",
+    fontSize: "24px",
+    cursor: "pointer"
+  },
+  depositIcon: {
+    fontSize: "36px",
+    marginBottom: "10px"
+  },
+  depositTitle: {
+    margin: "0 0 6px 0",
+    fontSize: "22px"
+  },
+  depositSub: {
+    margin: "0 0 20px 0",
+    fontSize: "12px",
+    color: "#94a3b8",
+    lineHeight: "1.5"
+  },
+  depositLabel: {
+    fontSize: "12px",
+    color: "#cbd5e1",
+    display: "block",
+    marginBottom: "6px",
+    fontWeight: "700"
+  },
+  depositInput: {
+    width: "100%",
+    height: "44px",
+    borderRadius: "12px",
+    border: "1px solid #334155",
+    background: "#1e293b",
+    color: "white",
+    padding: "0 12px",
+    fontSize: "14px",
+    boxSizing: "border-box",
+    marginBottom: "16px",
+    outline: "none"
+  },
+  submitDepositBtn: {
+    width: "100%",
+    height: "48px",
+    borderRadius: "12px",
+    border: "none",
+    background: "linear-gradient(135deg,#10b981,#059669)",
+    color: "white",
+    fontWeight: "800",
+    fontSize: "14px",
+    cursor: "pointer"
+  },
+  modalOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(15, 23, 42, 0.75)",
+    backdropFilter: "blur(6px)",
+    zIndex: 100000,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px"
+  },
+  modal: {
+    background: "white",
+    borderRadius: "24px",
+    padding: "28px",
+    width: "100%",
+    maxWidth: "440px",
+    boxShadow: "0 25px 50px rgba(0,0,0,0.2)"
+  },
+  closeBtn: {
+    width: "100%",
+    height: "46px",
+    borderRadius: "12px",
+    border: "none",
+    background: "#f1f5f9",
+    color: "#475569",
+    fontWeight: "800",
+    fontSize: "14px",
+    cursor: "pointer",
+    marginTop: "16px"
+  },
+  confirmTop: {
+    textAlign: "center",
+    marginBottom: "20px"
+  },
+  confirmAvatar: {
+    width: "50px",
+    height: "50px",
+    borderRadius: "50%",
+    background: "#eff6ff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "24px",
+    margin: "0 auto 10px auto"
+  },
+  receiverCard: {
+    background: "#f8fafc",
+    padding: "16px",
+    borderRadius: "16px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    marginBottom: "20px"
+  },
+  sendMoneyBtn: {
+    width: "100%",
+    height: "48px",
+    borderRadius: "12px",
+    border: "none",
+    background: "#16a34a",
+    color: "white",
+    fontWeight: "800",
+    fontSize: "15px",
+    cursor: "pointer",
+    marginBottom: "8px"
+  },
+  cancelBtn: {
+    width: "100%",
+    height: "44px",
+    borderRadius: "12px",
+    border: "none",
+    background: "#f1f5f9",
+    color: "#64748b",
+    fontWeight: "700",
+    fontSize: "14px",
+    cursor: "pointer"
+  },
+  shareGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "10px",
+    margin: "20px 0"
+  },
+  shareBtn: {
+    padding: "10px",
+    borderRadius: "10px",
+    border: "1px solid #cbd5e1",
+    textAlign: "center",
+    textDecoration: "none",
+    color: "#0f172a",
+    fontWeight: "700",
+    fontSize: "12px",
+    background: "#f8fafc"
   },
   receiptContainer: {
     width: "100%",
@@ -1736,8 +2154,7 @@ const styles = {
   },
   receiptHeader: {
     padding: "30px 20px 20px 20px",
-    textAlign: "center",
-    background: "transparent"
+    textAlign: "center"
   },
   receiptPulseIconCircle: {
     width: "60px",
@@ -1748,8 +2165,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    margin: "0 auto 12px auto",
-    animation: "pulseIcon 1.5s infinite ease-in-out"
+    margin: "0 auto 12px auto"
   },
   receiptCheckMark: {
     color: "#34d399",
@@ -1809,8 +2225,7 @@ const styles = {
     padding: "24px 24px 16px 24px",
     display: "flex",
     flexDirection: "column",
-    gap: "16px",
-    background: "transparent"
+    gap: "16px"
   },
   receiptRowItem: {
     display: "flex",
@@ -1941,66 +2356,76 @@ const styles = {
   page: {
     minHeight: "100vh",
     background: "#f4f7ff",
-    padding: "26px",
+    padding: "16px",
     fontFamily: "Arial, sans-serif",
-    color: "#071747"
+    color: "#071747",
+    boxSizing: "border-box",
+    width: "100%",
+    overflowX: "hidden"
   },
   app: {
     maxWidth: "1040px",
-    margin: "0 auto"
+    margin: "0 auto",
+    width: "100%"
   },
   header: {
     display: "flex",
     alignItems: "center",
-    gap: "18px",
-    marginBottom: "22px"
+    gap: "12px",
+    marginBottom: "20px",
+    flexWrap: "wrap"
   },
   pageTitle: {
     margin: 0,
-    fontSize: "38px",
+    fontSize: "28px",
     fontWeight: "900",
     color: "#071747"
   },
   titleWave: {
-    width: "105px",
-    height: "6px",
+    width: "80px",
+    height: "5px",
     borderRadius: "50px",
     background: "linear-gradient(90deg,#ff8a00,#ec4899,#7c3aed)",
-    marginTop: "8px"
+    marginTop: "6px"
   },
   pageSub: {
     color: "#64748b",
-    fontSize: "16px",
-    marginTop: "9px"
+    fontSize: "14px",
+    marginTop: "6px"
   },
   notifyBtn: {
     marginLeft: "auto",
-    width: "54px",
-    height: "54px",
+    width: "46px",
+    height: "46px",
     borderRadius: "50%",
     border: "none",
     background: "white",
     boxShadow: "0 10px 25px rgba(15,23,42,.08)",
-    fontSize: "24px",
+    fontSize: "20px",
     position: "relative"
   },
   avatar: {
-    width: "58px",
-    height: "58px",
+    width: "48px",
+    height: "48px",
     borderRadius: "50%",
     background: "#ede9fe",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "30px",
+    fontSize: "24px",
     boxShadow: "0 10px 25px rgba(124,58,237,.15)",
     overflow: "hidden"
   },
+  avatarImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  },
   walletHero: {
     position: "relative",
-    minHeight: "330px",
-    borderRadius: "30px",
-    padding: "38px",
+    minHeight: "auto",
+    borderRadius: "24px",
+    padding: "24px",
     color: "white",
     overflow: "hidden",
     background:
@@ -2009,584 +2434,81 @@ const styles = {
     marginBottom: "24px"
   },
   walletLeft: {
-    width: "52%",
+    width: "100%",
     position: "relative",
     zIndex: 5
   },
   heroLabel: {
-    letterSpacing: "2px",
-    fontSize: "13px",
+    letterSpacing: "1.5px",
+    fontSize: "11px",
     fontWeight: "900",
-    opacity: 0.75
+    opacity: 0.8
   },
   walletId: {
-    fontSize: "30px",
-    margin: "8px 0 0",
+    fontSize: "22px",
+    margin: "6px 0 0",
     fontWeight: "900",
     display: "flex",
     alignItems: "center",
     gap: "10px"
   },
   dashedLine: {
-    borderTop: "1px dashed rgba(255,255,255,.45)",
-    margin: "22px 0"
+    borderTop: "1px dashed rgba(255,255,255,.35)",
+    margin: "16px 0"
   },
   balanceText: {
-    fontSize: "46px",
-    margin: "8px 0",
-    fontWeight: "900"
+    fontSize: "32px",
+    margin: "6px 0",
+    fontWeight: "900",
+    wordBreak: "break-all"
   },
   heroActions: {
     display: "flex",
-    gap: "16px",
-    marginTop: "22px",
+    gap: "10px",
+    marginTop: "18px",
     flexWrap: "wrap"
   },
   addCashBtn: {
-    minWidth: "135px",
-    height: "54px",
+    flex: "1 1 auto",
+    minWidth: "100px",
+    height: "48px",
     border: "none",
-    borderRadius: "18px",
+    borderRadius: "14px",
     background: "white",
     color: "#1e1b9b",
     fontWeight: "900",
-    fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(0,0,0,.18)"
+    fontSize: "14px",
+    cursor: "pointer",
+    boxShadow: "0 8px 18px rgba(0,0,0,.15)"
   },
   withdrawBtn: {
-    minWidth: "135px",
-    height: "54px",
+    flex: "1 1 auto",
+    minWidth: "100px",
+    height: "48px",
     border: "none",
-    borderRadius: "18px",
+    borderRadius: "14px",
     background: "linear-gradient(135deg,#ff4b63,#ff8a3d)",
     color: "white",
     fontWeight: "900",
-    fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(255,80,90,.28)"
+    fontSize: "14px",
+    cursor: "pointer",
+    boxShadow: "0 8px 18px rgba(255,80,90,.25)"
   },
   eyeBtn: {
     position: "absolute",
-    top: "28px",
-    right: "28px",
-    width: "46px",
-    height: "46px",
-    borderRadius: "15px",
+    top: "20px",
+    right: "20px",
+    width: "38px",
+    height: "38px",
+    borderRadius: "12px",
     border: "1px solid rgba(255,255,255,.3)",
     background: "rgba(255,255,255,.13)",
     color: "white",
-    fontSize: "20px",
-    zIndex: 8
+    fontSize: "18px",
+    zIndex: 8,
+    cursor: "pointer"
   },
   walletArt: {
-    position: "absolute",
-    right: "70px",
-    top: "70px",
-    width: "300px",
-    height: "230px",
-    zIndex: 2
-  },
-  moneyNote1: {
-    position: "absolute",
-    right: "78px",
-    top: "10px",
-    width: "100px",
-    height: "72px",
-    borderRadius: "15px",
-    background: "linear-gradient(135deg,#21d06b,#0ea55f)",
-    transform: "rotate(-16deg)",
-    boxShadow: "0 15px 22px rgba(0,0,0,.18)"
-  },
-  moneyNote2: {
-    position: "absolute",
-    right: "28px",
-    top: "28px",
-    width: "100px",
-    height: "72px",
-    borderRadius: "15px",
-    background: "linear-gradient(135deg,#41e6c3,#0ea5a0)",
-    transform: "rotate(18deg)",
-    boxShadow: "0 15px 22px rgba(0,0,0,.18)"
-  },
-  walletBag: {
-    position: "absolute",
-    right: "55px",
-    bottom: "30px",
-    width: "165px",
-    height: "132px",
-    borderRadius: "28px",
-    background: "linear-gradient(145deg,#7c2cff,#ba31ff)",
-    color: "#facc15",
-    fontSize: "52px",
-    fontWeight: "900",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "inset -14px -12px 0 rgba(0,0,0,.14),0 24px 32px rgba(0,0,0,.25)"
-  },
-  coin1: {
-    position: "absolute",
-    right: "18px",
-    bottom: "35px",
-    width: "58px",
-    height: "58px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg,#facc15,#f59e0b)",
-    color: "#92400e",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900",
-    boxShadow: "0 12px 18px rgba(0,0,0,.18)"
-  },
-  coin2: {
-    position: "absolute",
-    right: "82px",
-    bottom: "0",
-    width: "62px",
-    height: "62px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg,#fde047,#f97316)",
-    color: "#92400e",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900",
-    boxShadow: "0 12px 18px rgba(0,0,0,.18)"
-  },
-  incomePanel: {
-    background: "white",
-    borderRadius: "28px",
-    padding: "22px",
-    display: "grid",
-    gridTemplateColumns: "repeat(5,1fr)",
-    gap: "8px",
-    boxShadow: "0 15px 30px rgba(15,23,42,.08)",
-    marginBottom: "24px"
-  },
-  incomeCard: {
-    textAlign: "center",
-    padding: "12px 8px",
-    borderRight: "1px dashed #d9e1f2"
-  },
-  incomeIcon: {
-    width: "58px",
-    height: "58px",
-    margin: "0 auto 10px",
-    borderRadius: "50%",
-    color: "white",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "26px",
-    boxShadow: "0 10px 20px rgba(15,23,42,.12)"
-  },
-  incomeWave: {
-    fontSize: "30px",
-    fontWeight: "900",
-    marginTop: "-6px"
-  },
-  middleGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "22px",
-    marginBottom: "24px"
-  },
-  transferCard: {
-    background: "#070a55",
-    color: "white",
-    borderRadius: "28px",
-    padding: "30px",
-    boxShadow: "0 18px 32px rgba(7,10,85,.22)"
-  },
-  transferIcon: {
-    width: "60px",
-    height: "60px",
-    borderRadius: "18px",
-    background: "linear-gradient(135deg,#2563eb,#06b6d4)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "28px",
-    marginBottom: "12px"
-  },
-  transferTitle: {
-    margin: 0,
-    fontSize: "28px"
-  },
-  transferSub: {
-    color: "#aab1d6",
-    marginBottom: "22px"
-  },
-  label: {
-    display: "block",
-    fontWeight: "900",
-    marginBottom: "8px"
-  },
-  inputWrap: {
-    height: "56px",
-    borderRadius: "16px",
-    background: "white",
-    display: "flex",
-    alignItems: "center",
-    padding: "0 15px",
-    marginBottom: "18px"
-  },
-  transferInput: {
-    flex: 1,
-    border: "none",
-    outline: "none",
-    fontSize: "16px",
-    color: "#000"
-  },
-  inputIcon: {
-    fontSize: "22px"
-  },
-  transferBtn: {
-    width: "100%",
-    height: "58px",
-    border: "none",
-    borderRadius: "18px",
-    background: "linear-gradient(135deg,#ff7a35,#ec168e)",
-    color: "white",
-    fontSize: "18px",
-    fontWeight: "900",
-    boxShadow: "0 12px 24px rgba(236,22,142,.25)"
-  },
-  inviteCard: {
-    background: "linear-gradient(135deg,#fff4d9,#ffffff)",
-    borderRadius: "28px",
-    padding: "30px",
-    position: "relative",
-    overflow: "hidden",
-    boxShadow: "0 15px 30px rgba(15,23,42,.08)"
-  },
-  inviteTop: {
-    color: "#f59e0b",
-    fontWeight: "900",
-    fontSize: "18px"
-  },
-  inviteTitle: {
-    fontSize: "32px",
-    margin: "10px 0 0"
-  },
-  inviteTitle2: {
-    color: "#6d28d9",
-    fontSize: "24px",
-    margin: "6px 0"
-  },
-  giftBox: {
-    fontSize: "115px",
-    textAlign: "right",
-    filter: "drop-shadow(0 14px 18px rgba(245,158,11,.22))"
-  },
-  inviteBtn: {
-    position: "absolute",
-    left: "30px",
-    bottom: "30px",
-    height: "52px",
-    minWidth: "140px",
-    border: "none",
-    borderRadius: "18px",
-    background: "linear-gradient(135deg,#6d28d9,#ec4899)",
-    color: "white",
-    fontWeight: "900",
-    fontSize: "16px"
-  },
-  historyCard: {
-    background: "white",
-    borderRadius: "28px",
-    padding: "24px",
-    boxShadow: "0 15px 30px rgba(15,23,42,.08)",
-    marginBottom: "20px"
-  },
-  historyHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "18px"
-  },
-  historyTitle: {
-    margin: 0,
-    fontSize: "28px"
-  },
-  historySub: {
-    color: "#64748b"
-  },
-  filterSelect: {
-    height: "44px",
-    borderRadius: "14px",
-    border: "1px solid #dbe3ef",
-    padding: "0 14px",
-    fontWeight: "900"
-  },
-  tableHead: {
-    display: "grid",
-    gridTemplateColumns: "70px 1.6fr 1fr 1fr 1.2fr",
-    color: "#94a3b8",
-    fontSize: "13px",
-    fontWeight: "900",
-    padding: "12px 0",
-    borderBottom: "1px solid #eef2ff"
-  },
-  typeCircle: {
-    width: "46px",
-    height: "46px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "22px"
-  },
-  rowTitle: {
-    fontWeight: "900",
-    color: "#071747"
-  },
-  rowSub: {
-    color: "#64748b",
-    fontSize: "13px"
-  },
-  successBadge: {
-    display: "inline-block",
-    background: "#dcfce7",
-    color: "#16a34a",
-    padding: "8px 14px",
-    borderRadius: "14px",
-    fontWeight: "900",
-    fontSize: "13px"
-  },
-  emptyHistory: {
-    textAlign: "center",
-    padding: "35px",
-    color: "#64748b",
-    fontWeight: "900"
-  },
-  viewMore: {
-    textAlign: "center",
-    color: "#6d28d9",
-    fontWeight: "900",
-    marginTop: "18px",
-    background: "none",
-    border: "none",
-    cursor: "pointer"
-  },
-  bottomFeatures: {
-    background: "white",
-    borderRadius: "22px",
-    padding: "18px",
-    display: "grid",
-    gridTemplateColumns: "repeat(3,1fr)",
-    gap: "15px",
-    boxShadow: "0 12px 25px rgba(15,23,42,.07)"
-  },
-  featureItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px"
-  },
-  modalOverlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,.45)",
-    zIndex: 9999,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  modal: {
-    width: "90%",
-    maxWidth: "430px",
-    background: "white",
-    borderRadius: "26px",
-    padding: "26px",
-    color: "#071747",
-    boxShadow: "0 25px 50px rgba(0,0,0,.25)"
-  },
-  closeBtn: {
-    width: "100%",
-    height: "50px",
-    marginTop: "14px",
-    border: "none",
-    borderRadius: "14px",
-    background: "#e5e7eb",
-    color: "#071747",
-    fontWeight: "900"
-  },
-  confirmTop: {
-    textAlign: "center"
-  },
-  confirmAvatar: {
-    width: "70px",
-    height: "70px",
-    borderRadius: "50%",
-    background: "#ede9fe",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    margin: "0 auto",
-    fontSize: "34px"
-  },
-  receiverCard: {
-    background: "#f8fafc",
-    borderRadius: "18px",
-    padding: "18px",
-    marginTop: "16px",
-    textAlign: "center"
-  },
-  sendMoneyBtn: {
-    width: "100%",
-    height: "52px",
-    border: "none",
-    borderRadius: "15px",
-    background: "#16a34a",
-    color: "white",
-    fontWeight: "900",
-    marginTop: "15px",
-    cursor: "pointer"
-  },
-  cancelBtn: {
-    width: "100%",
-    height: "48px",
-    border: "none",
-    borderRadius: "15px",
-    background: "#fee2e2",
-    color: "#dc2626",
-    fontWeight: "900",
-    marginTop: "10px"
-  },
-  shareGrid: {
-    display: "grid",
-    gap: "12px",
-    marginTop: "18px"
-  },
-  shareBtn: {
-    height: "50px",
-    borderRadius: "15px",
-    border: "none",
-    background: "linear-gradient(135deg,#22c55e,#16a34a)",
-    color: "white",
-    fontWeight: "900",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    textDecoration: "none"
-  },
-  notifyCount: {
-    position: "absolute",
-    top: "-5px",
-    right: "-5px",
-    background: "#ef4444",
-    color: "white",
-    width: "20px",
-    height: "20px",
-    borderRadius: "50%",
-    fontSize: "12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900"
-  },
-  avatarImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    borderRadius: "50%"
-  },
-  depositOverlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(5, 10, 30, 0.65)",
-    backdropFilter: "blur(10px)",
-    zIndex: 9999,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 18
-  },
-  depositModal: {
-    width: "100%",
-    maxWidth: 390,
-    background: "linear-gradient(145deg, #ffffff, #f7f2ff)",
-    borderRadius: 28,
-    padding: 22,
-    boxShadow: "0 30px 80px rgba(70, 30, 180, 0.35)",
-    position: "relative",
-    border: "1px solid rgba(255,255,255,0.8)"
-  },
-  depositCloseX: {
-    position: "absolute",
-    top: 14,
-    right: 16,
-    width: 34,
-    height: 34,
-    borderRadius: "50%",
-    border: "none",
-    background: "#f1eaff",
-    color: "#6d28d9",
-    fontSize: 22,
-    fontWeight: 900,
-    cursor: "pointer"
-  },
-  depositIcon: {
-    width: 62,
-    height: 62,
-    borderRadius: 20,
-    background: "linear-gradient(135deg,#2563eb,#9333ea,#ec4899)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 30,
-    color: "#fff",
-    marginBottom: 12
-  },
-  depositTitle: {
-    margin: 0,
-    fontSize: 26,
-    fontWeight: 900,
-    color: "#101a44"
-  },
-  depositSub: {
-    margin: "6px 0 18px",
-    color: "#6b7280",
-    fontSize: 13,
-    lineHeight: 1.4
-  },
-  depositLabel: {
-    display: "block",
-    fontSize: 13,
-    fontWeight: 800,
-    color: "#18204a",
-    margin: "12px 0 7px"
-  },
-  depositInput: {
-    width: "100%",
-    height: "48px",
-    borderRadius: "14px",
-    border: "1px solid #cbd5e1",
-    padding: "0 14px",
-    fontSize: "15px",
-    outline: "none",
-    boxSizing: "border-box"
-  },
-  submitDepositBtn: {
-    width: "100%",
-    height: "50px",
-    border: "none",
-    borderRadius: "14px",
-    background: "linear-gradient(135deg, #10b981, #059669)",
-    color: "white",
-    fontWeight: "900",
-    fontSize: "15px",
-    cursor: "pointer",
-    boxShadow: "0 8px 20px rgba(16,185,129,0.25)"
-  },
-  topHeader: {
-    width: "100%"
-  },
-  menuButton: {
-    background: "transparent",
-    border: "none",
-    fontSize: "28px",
-    cursor: "pointer",
-    marginBottom: "10px"
+    display: "none"
   }
 };
