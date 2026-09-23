@@ -40,7 +40,7 @@ export default function Home() {
     }, 2500);
   };
 
-  // 👇 নিখুঁত স্বাইপ জেশ্চার হ্যান্ডলার (স্ক্রিনের বাম ৮০ পিক্সেলের ভেতর থেকে ডানে টান দিলে)
+  // 👇 নিখুঁত স্বাইপ জেশ্চার হ্যান্ডলার
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);
     setTouchStartY(e.touches[0].clientY);
@@ -392,175 +392,177 @@ export default function Home() {
             </div>
           </div>
 
-          {/* SIDEBAR NAV BUTTONS */}
-          <div style={styles.drawerNavList}>
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavDashboard,
-                ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/home"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🏠</span>
-              <span style={styles.drawerNavText}>Dashboard</span>
-            </button>
+          {/* SIDEBAR NAV BUTTONS + TREE IMAGE CONTAINER WITH INTERNAL SCROLL */}
+          <div style={styles.drawerScrollArea}>
+            <div style={styles.drawerNavList}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDashboard,
+                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/home"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🏠</span>
+                <span style={styles.drawerNavText}>Dashboard</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavMyInvestment,
-                ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>📈</span>
-              <span style={styles.drawerNavText}>My Investment</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavMyInvestment,
+                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📈</span>
+                <span style={styles.drawerNavText}>My Investment</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavSaveMoney,
-                ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>💰</span>
-              <span style={styles.drawerNavText}>Save Money</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSaveMoney,
+                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>💰</span>
+                <span style={styles.drawerNavText}>Save Money</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavOneTime,
-                ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>⚡</span>
-              <span style={styles.drawerNavText}>One Time</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavOneTime,
+                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>⚡</span>
+                <span style={styles.drawerNavText}>One Time</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavPlan
-              }} 
-              onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
-              disabled={isDownloadingPlan}
-            >
-              <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
-              <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavPlan
+                }} 
+                onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
+                disabled={isDownloadingPlan}
+              >
+                <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
+                <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavAddFund,
-                ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🌐</span>
-              <span style={styles.drawerNavText}>Add Fund</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavAddFund,
+                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🌐</span>
+                <span style={styles.drawerNavText}>Add Fund</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavRefer,
-                ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>👥</span>
-              <span style={styles.drawerNavText}>Refer & Earn</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavRefer,
+                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👥</span>
+                <span style={styles.drawerNavText}>Refer & Earn</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavWithdraw,
-                ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>➔</span>
-              <span style={styles.drawerNavText}>Withdraw</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavWithdraw,
+                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>➔</span>
+                <span style={styles.drawerNavText}>Withdraw</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavDailyReward,
-                ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🎁</span>
-              <span style={styles.drawerNavText}>Daily Reward</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDailyReward,
+                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎁</span>
+                <span style={styles.drawerNavText}>Daily Reward</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavInvestmentAssistant,
-                ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>📊</span>
-              <span style={styles.drawerNavText}>Investment Assistance</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavInvestmentAssistant,
+                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📊</span>
+                <span style={styles.drawerNavText}>Investment Assistance</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavSupport,
-                ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/support"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🎧</span>
-              <span style={styles.drawerNavText}>Support</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSupport,
+                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/support"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎧</span>
+                <span style={styles.drawerNavText}>Support</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavProfile,
-                ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>👤</span>
-              <span style={styles.drawerNavText}>Profile</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavProfile,
+                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👤</span>
+                <span style={styles.drawerNavText}>Profile</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavLogout
-              }} 
-              onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
-            >
-              <span style={styles.drawerNavIcon}>🚪</span>
-              <span style={styles.drawerNavText}>Logout</span>
-            </button>
-          </div>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavLogout
+                }} 
+                onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
+              >
+                <span style={styles.drawerNavIcon}>🚪</span>
+                <span style={styles.drawerNavText}>Logout</span>
+              </button>
+            </div>
 
-          <div style={styles.treePlantOnlyWrapper}>
-            <img 
-              src="/tree plant.png" 
-              alt="Tree Plant" 
-              style={styles.treePlantOnlyImg}
-              onError={(e) => {
-                if (e.target.src.includes('.png')) {
-                  e.target.src = '/tree plant.jpg';
-                }
-              }}
-            />
+            <div style={styles.treePlantOnlyWrapper}>
+              <img 
+                src="/tree plant.png" 
+                alt="Tree Plant" 
+                style={styles.treePlantOnlyImg}
+                onError={(e) => {
+                  if (e.target.src.includes('.png')) {
+                    e.target.src = '/tree plant.jpg';
+                  }
+                }}
+              />
+            </div>
           </div>
 
         </div>
@@ -1198,7 +1200,7 @@ const styles = {
   marqueeText: {
     display: "inline-block",
     paddingLeft: "100%",
-    animation: "marquee 20s linear infinite"
+    animation: "marquee 10s linear infinite" // 👈 স্পীড বাড়িয়ে ১০ সেকেন্ড করা হয়েছে
   },
   limitedOfferBadge: {
     background: "#f59e0b",
@@ -1296,13 +1298,19 @@ const styles = {
     marginTop: "2px",
     textAlign: "center"
   },
+  drawerScrollArea: {
+    flex: 1,
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    paddingRight: "2px"
+  },
   drawerNavList: {
     display: "flex",
     flexDirection: "column",
     gap: "8px",
-    flexShrink: 0,
-    overflowY: "auto",
-    maxHeight: "calc(100vh - 210px)"
+    flexShrink: 0
   },
   drawerNavItem: {
     display: "flex",
@@ -1395,21 +1403,19 @@ const styles = {
   },
 
   treePlantOnlyWrapper: {
-    flex: 1,
-    minHeight: 0,
-    marginTop: "10px",
-    marginBottom: "4px",
     width: "100%",
+    minHeight: "120px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
     borderRadius: "16px",
-    boxShadow: "0 6px 18px rgba(0, 0, 0, 0.4)"
+    boxShadow: "0 6px 18px rgba(0, 0, 0, 0.4)",
+    flexShrink: 0
   },
   treePlantOnlyImg: {
-    width: "90%",
-    height: "65%",
+    width: "100%",
+    height: "120px",
     objectFit: "cover",
     borderRadius: "16px"
   },
