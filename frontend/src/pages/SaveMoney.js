@@ -17,6 +17,11 @@ export default function SaveMoney() {
   const token = localStorage.getItem("token") || "";
 
   // =========================================================================
+  // SIDEBAR STATE
+  // =========================================================================
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // =========================================================================
   // REACTOR CORE STATE CONFIGURATOR INDICES
   // =========================================================================
   const [balance, setBalance] = useState(0);
@@ -117,15 +122,14 @@ export default function SaveMoney() {
       return;
     }
 
-    // ডেমো কুপন লজিক: 'SAVE300' কোড দিলে ৩০০ টাকা ছাড় পাবে
-    if (code === "SAVEE300") {
+    if (code === "SAVE300") {
       const sipAmt = Number(amount || 0);
       if (sipAmt <= 300) {
         showStatusMsg("error", "SIP amount must be greater than discount amount");
         return;
       }
       setDiscountAmount(300);
-      setAppliedCouponName("SAVE3000");
+      setAppliedCouponName("SAVE300");
       showStatusMsg("success", "Coupon Applied Successfully! ₹300 OFF 🎉");
     } else {
       showStatusMsg("error", "Invalid or expired coupon code");
@@ -160,7 +164,6 @@ export default function SaveMoney() {
       totalInterest = 0;
     }
 
-    // ফাইন্যাল পেঅফ ক্যালকুলেশন (যে টাকা অ্যাকাউন্ট থেকে কাটা হবে)
     const finalPayableToday = Math.max(0, monthly - discountAmount);
 
     return {
@@ -214,7 +217,6 @@ export default function SaveMoney() {
       return;
     }
 
-    // ওয়ালেট ব্যালেন্স চেক হবে ডিসকাউন্ট বাদ দেওয়া ফাইনাল টাকার সাথে
     if (Number(balance) < calc.finalPayableToday) {
       showStatusMsg("error", "Insufficient wallet balance for discounted SIP");
       return toast.error("Insufficient wallet balance");
@@ -278,6 +280,38 @@ export default function SaveMoney() {
       <div style={styles.dynamicAuraSphere2}></div>
       <div style={styles.dynamicAuraSphere3}></div>
 
+      {/* NAVIGATION SIDEBAR */}
+      {sidebarOpen && (
+        <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)}>
+          <div style={styles.sidebarContainer} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.sidebarHeader}>
+              <h3 style={styles.sidebarTitle}>NAVIGATION</h3>
+              <button style={styles.sidebarCloseBtn} onClick={() => setSidebarOpen(false)}>✕</button>
+            </div>
+            <div style={styles.sidebarMenu}>
+              <button style={styles.sidebarMenuItem} onClick={() => navigate("/dashboard")}>
+                🏠 Dashboard
+              </button>
+              <button style={styles.sidebarMenuItem} onClick={() => navigate("/wallet")}>
+                💳 Wallet & Funds
+              </button>
+              <button style={{ ...styles.sidebarMenuItem, backgroundColor: "rgba(0, 255, 163, 0.15)", color: "#00ffa3" }}>
+                🌱 Save Money (SIP)
+              </button>
+              <button style={styles.sidebarMenuItem} onClick={() => navigate("/transactions")}>
+                📊 Transaction History
+              </button>
+              <button style={styles.sidebarMenuItem} onClick={() => navigate("/profile")}>
+                👤 User Profile
+              </button>
+              <button style={styles.sidebarMenuItem} onClick={() => { localStorage.clear(); navigate("/login"); }}>
+                🚪 Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TOP DEPLOYMENT LEDGER BAR MONITOR */}
       <div style={styles.vipStatusBar}>
         <div style={styles.vipStatusIndicator}>
@@ -310,6 +344,13 @@ export default function SaveMoney() {
         
         {/* HELM HEAD ROW ACTION PACK CONTROLLERS */}
         <div style={styles.controlHelmRow}>
+          <button 
+            style={styles.hamburgerBtn}
+            onClick={() => setSidebarOpen(true)}
+          >
+            ☰
+          </button>
+
           <button 
             style={{...styles.helmActionBtn, ...(hoveredCard === 'back' ? styles.helmActionBtnHover : {})}}
             onMouseEnter={() => setHoveredCard('back')}
@@ -387,9 +428,7 @@ export default function SaveMoney() {
                 </div>
               </div>
 
-              {/* ========================================================= */}
-              {/* নতুন কুপন কোড এপ্লাই করার সেকশন (ওয়ালেট ব্যালেন্সের নিচে) */}
-              {/* ========================================================= */}
+              {/* কুপন সেকশন */}
               <div style={styles.couponSectionContainer}>
                 <div style={styles.inputFieldLabelFlexHeader}>
                   <span style={styles.inputFieldMainTitleLabel}>HAVE A PROMO / COUPON CODE?</span>
@@ -426,7 +465,6 @@ export default function SaveMoney() {
                   </div>
                 )}
               </div>
-              {/* ========================================================= */}
 
               <button 
                 style={styles.walletActionInjectFundsBtn}
@@ -541,7 +579,7 @@ export default function SaveMoney() {
                 </div>
               </div>
 
-              {/* PAYMENT BREAKDOWN SUMMARY (কুপন ডিসকাউন্ট সহ) */}
+              {/* PAYMENT BREAKDOWN SUMMARY */}
               {Number(amount) > 0 && (
                 <div style={styles.paymentSummaryBox}>
                   <div style={styles.summaryRow}>
@@ -561,7 +599,7 @@ export default function SaveMoney() {
                 </div>
               )}
 
-              {/* SYSTEM INFORMATIONAL BAR COMPLIANCE ADVICE */}
+              {/* SYSTEM INFORMATIONAL BAR */}
               <div style={styles.adviceSystemBarWrapperBox}>
                 <div style={styles.adviceSystemLightBulbIcon}>💡</div>
                 <div style={styles.adviceSystemTextBodyBlock}>
@@ -574,7 +612,7 @@ export default function SaveMoney() {
 
         </div>
 
-        {/* BOTTOM SECTION SEPARATOR: PROJECTIONS HEADER ROW STRIP */}
+        {/* BOTTOM SECTION SEPARATOR */}
         <div style={styles.compoundingHeaderSeparatorBlock}>
           <div style={styles.separatorLineDecorativeLeft}></div>
           <span style={styles.separatorCentralHeadlineTitleText}>LIVE ASSET PROJECTION DATA SHEETS</span>
@@ -778,7 +816,7 @@ export default function SaveMoney() {
 }
 
 // =========================================================================
-// STYLES ADDITIONS FOR COUPON & PAYMENT SUMMARY
+// STYLES INCLUDING SIDEBAR & RESPONSIVE LAYOUT
 // =========================================================================
 const styles = {
   cyberPageWrapper: {
@@ -844,6 +882,79 @@ const styles = {
     pointerEvents: "none",
     zIndex: 2
   },
+  // SIDEBAR STYLES
+  hamburgerBtn: {
+    padding: "10px 16px",
+    borderRadius: "14px",
+    border: "1px solid #334155",
+    backgroundColor: "rgba(15, 23, 42, 0.8)",
+    color: "#00ffa3",
+    fontSize: "20px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 0 15px rgba(0,255,163,0.1)"
+  },
+  sidebarOverlay: {
+    position: "fixed",
+    inset: 0,
+    backgroundColor: "rgba(0,0,0,0.75)",
+    backdropFilter: "blur(5px)",
+    zIndex: 99999,
+    display: "flex"
+  },
+  sidebarContainer: {
+    width: "280px",
+    height: "100%",
+    backgroundColor: "#0b111e",
+    borderRight: "1px solid #1e293b",
+    padding: "24px",
+    boxSizing: "border-box",
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px",
+    boxShadow: "10px 0 30px rgba(0,0,0,0.5)"
+  },
+  sidebarHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottom: "1px solid #1e293b",
+    paddingBottom: "14px"
+  },
+  sidebarTitle: {
+    margin: 0,
+    fontSize: "14px",
+    fontWeight: "800",
+    color: "#00ffa3",
+    letterSpacing: "2px"
+  },
+  sidebarCloseBtn: {
+    backgroundColor: "transparent",
+    border: "none",
+    color: "#94a3b8",
+    fontSize: "18px",
+    cursor: "pointer"
+  },
+  sidebarMenu: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  sidebarMenuItem: {
+    width: "100%",
+    padding: "12px 16px",
+    borderRadius: "12px",
+    border: "1px solid transparent",
+    backgroundColor: "rgba(255,255,255,0.03)",
+    color: "#cbd5e1",
+    fontSize: "14px",
+    fontWeight: "600",
+    textAlign: "left",
+    cursor: "pointer",
+    transition: "all 0.2s ease"
+  },
   vipStatusBar: {
     width: "100%",
     height: "36px",
@@ -852,7 +963,7 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "0 40px",
+    padding: "0 20px",
     boxSizing: "border-box",
     zIndex: 10,
     position: "relative"
@@ -926,8 +1037,8 @@ const styles = {
   },
   ultimateMainCanvas: {
     width: "100%",
-    maxWidth: "100%",
-    padding: "40px",
+    maxWidth: "1200px",
+    padding: "20px",
     boxSizing: "border-box",
     zIndex: 5,
     position: "relative",
@@ -938,23 +1049,25 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "40px",
-    width: "100%"
+    marginBottom: "30px",
+    width: "100%",
+    gap: "10px",
+    flexWrap: "wrap"
   },
   helmActionBtn: {
-    padding: "14px 28px",
-    borderRadius: "16px",
+    padding: "10px 18px",
+    borderRadius: "14px",
     border: "1px solid #334155",
     backgroundColor: "rgba(15, 23, 42, 0.8)",
     backdropFilter: "blur(10px)",
     color: "#cbd5e1",
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: "700",
     letterSpacing: "1px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: "8px",
     transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
   },
   helmActionBtnHover: {
@@ -970,30 +1083,30 @@ const styles = {
   helmCenterBadge: {
     backgroundColor: "rgba(30, 41, 59, 0.6)",
     border: "1px solid rgba(255, 215, 0, 0.3)",
-    padding: "8px 20px",
+    padding: "6px 14px",
     borderRadius: "30px",
     backdropFilter: "blur(5px)"
   },
   goldTextBadge: {
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "800",
     color: "#ffd700",
-    letterSpacing: "2.5px"
+    letterSpacing: "1.5px"
   },
   helmHelpBtn: {
-    padding: "14px 28px",
-    borderRadius: "16px",
+    padding: "10px 18px",
+    borderRadius: "14px",
     border: "1px solid #334155",
     backgroundColor: "rgba(15, 23, 42, 0.8)",
     backdropFilter: "blur(10px)",
     color: "#60a5fa",
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: "700",
     letterSpacing: "1px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "8px",
     transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
   },
   helmHelpBtnHover: {
@@ -1003,39 +1116,39 @@ const styles = {
     boxShadow: "0 0 25px rgba(59, 130, 246, 0.2)"
   },
   helpQuestionMark: {
-    width: "18px",
-    height: "18px",
+    width: "16px",
+    height: "16px",
     borderRadius: "50%",
     backgroundColor: "rgba(59, 130, 246, 0.25)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "11px",
+    fontSize: "10px",
     color: "#ffffff"
   },
   cyberBrandHeaderSection: {
     textAlign: "center",
-    marginBottom: "50px",
+    marginBottom: "40px",
     width: "100%"
   },
   cyberLogoHexagonWrap: {
-    width: "90px",
-    height: "90px",
-    margin: "0 auto 20px",
+    width: "80px",
+    height: "80px",
+    margin: "0 auto 16px",
     position: "relative",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   cyberLogoCoreElement: {
-    width: "60px",
-    height: "60px",
-    borderRadius: "20px",
+    width: "50px",
+    height: "50px",
+    borderRadius: "16px",
     background: "linear-gradient(135deg, #00ffa3 0%, #00d2ff 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "28px",
+    fontSize: "24px",
     fontWeight: "900",
     color: "#020617",
     boxShadow: "0 15px 35px rgba(0,255,163,0.4)",
@@ -1044,21 +1157,20 @@ const styles = {
   cyberLogoOrbitLine1: {
     position: "absolute",
     inset: "-5px",
-    borderRadius: "28px",
-    border: "2px dashed rgba(0, 255, 163, 0.4)",
-    animation: "spin 20s linear infinite"
+    borderRadius: "24px",
+    border: "2px dashed rgba(0, 255, 163, 0.4)"
   },
   cyberLogoOrbitLine2: {
     position: "absolute",
     inset: "5px",
-    borderRadius: "22px",
+    borderRadius: "20px",
     border: "1px solid rgba(0, 210, 255, 0.3)"
   },
   cyberMainTitleText: {
     margin: 0,
-    fontSize: "46px",
+    fontSize: "36px",
     fontWeight: "900",
-    letterSpacing: "4px",
+    letterSpacing: "3px",
     color: "#ffffff"
   },
   cyberMainTitleHighlight: {
@@ -1067,10 +1179,10 @@ const styles = {
     WebkitTextFillColor: "transparent"
   },
   cyberBrandDividerLine: {
-    width: "160px",
+    width: "140px",
     height: "2px",
     backgroundColor: "rgba(255,255,255,0.1)",
-    margin: "18px auto",
+    margin: "14px auto",
     position: "relative"
   },
   cyberDividerCoreGlow: {
@@ -1079,8 +1191,8 @@ const styles = {
     background: "linear-gradient(90deg, transparent, #00ffa3, transparent)"
   },
   cyberBrandSubtextPara: {
-    fontSize: "13px",
-    letterSpacing: "4px",
+    fontSize: "11px",
+    letterSpacing: "3px",
     color: "#cbd5e1",
     fontWeight: "700",
     textTransform: "uppercase",
@@ -1088,10 +1200,10 @@ const styles = {
   },
   executiveTwinControlLayout: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "30px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+    gap: "24px",
     width: "100%",
-    marginBottom: "40px"
+    marginBottom: "30px"
   },
   executivePanelZone: {
     width: "100%",
@@ -1102,21 +1214,19 @@ const styles = {
     backgroundColor: "rgba(13, 20, 35, 0.65)",
     backdropFilter: "blur(16px)",
     WebkitBackdropFilter: "blur(16px)",
-    borderRadius: "28px",
+    borderRadius: "24px",
     border: "1px solid rgba(255, 255, 255, 0.08)",
-    padding: "35px",
+    padding: "24px",
     boxSizing: "border-box",
     position: "relative",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
+    boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
     transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
   },
   cyberLuxuryCardUnitHover: {
-    transform: "translateY(-4px)",
-    borderColor: "rgba(255, 255, 255, 0.15)",
-    boxShadow: "0 30px 60px rgba(0,0,0,0.7)"
+    borderColor: "rgba(255, 255, 255, 0.15)"
   },
   cardGlowCornerTop: {
     position: "absolute",
@@ -1139,101 +1249,97 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: "30px"
+    marginBottom: "20px"
   },
   cardTitleBadgeRow: {
     display: "flex",
     alignItems: "center",
-    gap: "16px"
+    gap: "12px"
   },
   cardHeaderIconBoxContainer: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "14px",
+    width: "38px",
+    height: "38px",
+    borderRadius: "12px",
     backgroundColor: "rgba(0, 210, 255, 0.15)",
     border: "1px solid rgba(0, 210, 255, 0.3)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px"
+    fontSize: "18px"
   },
   cardHeaderIconBoxContainerAccent: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "14px",
+    width: "38px",
+    height: "38px",
+    borderRadius: "12px",
     backgroundColor: "rgba(0, 255, 163, 0.15)",
     border: "1px solid rgba(0, 255, 163, 0.3)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px"
+    fontSize: "18px"
   },
   cardHeaderMainTitleText: {
     margin: 0,
-    fontSize: "15px",
+    fontSize: "13px",
     fontWeight: "800",
     color: "#ffffff",
-    letterSpacing: "1.2px"
+    letterSpacing: "1px"
   },
   onlinePulseStatusText: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "700",
     color: "#00d2ff",
     backgroundColor: "rgba(0, 210, 255, 0.15)",
-    padding: "6px 14px",
-    borderRadius: "10px",
-    letterSpacing: "1px"
+    padding: "4px 10px",
+    borderRadius: "8px"
   },
   onlinePulseStatusTextAccent: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "700",
     color: "#00ffa3",
     backgroundColor: "rgba(0, 255, 163, 0.15)",
-    padding: "6px 14px",
-    borderRadius: "10px",
-    letterSpacing: "1px"
+    padding: "4px 10px",
+    borderRadius: "8px"
   },
   walletBalanceDisplayBlock: {
     backgroundColor: "rgba(2, 6, 12, 0.6)",
     border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: "20px",
-    padding: "26px",
+    borderRadius: "16px",
+    padding: "20px",
     width: "100%",
     boxSizing: "border-box",
-    marginBottom: "20px"
+    marginBottom: "16px"
   },
   walletMetaLabelRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: "12px"
+    marginBottom: "10px"
   },
   walletMetaLabel: {
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "700",
-    color: "#cbd5e1",
-    letterSpacing: "1px"
+    color: "#cbd5e1"
   },
   walletSecureShieldTag: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "600",
     color: "#94a3b8"
   },
   walletLargeNumericalSum: {
-    fontSize: "42px",
+    fontSize: "32px",
     fontWeight: "900",
     color: "#ffffff",
-    letterSpacing: "-0.5px",
-    marginBottom: "18px"
+    marginBottom: "14px"
   },
   walletProgressIndicatorTrack: {
     width: "100%",
-    height: "6px",
+    height: "5px",
     backgroundColor: "#334155",
     borderRadius: "10px",
     overflow: "hidden",
-    marginBottom: "12px"
+    marginBottom: "10px"
   },
   walletProgressIndicatorFillBar: {
     width: "100%",
@@ -1247,53 +1353,51 @@ const styles = {
     width: "100%"
   },
   walletCapSubtextText: {
-    fontSize: "11px",
+    fontSize: "10px",
     color: "#cbd5e1"
   },
   walletCapPercentageText: {
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "700",
     color: "#00ffa3"
   },
-  // কুপন সেকশন স্টাইল
   couponSectionContainer: {
     width: "100%",
-    marginBottom: "20px"
+    marginBottom: "16px"
   },
   couponAppliedBadge: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "700",
     color: "#00ffa3",
     backgroundColor: "rgba(0,255,163,0.15)",
-    padding: "3px 8px",
-    borderRadius: "6px"
+    padding: "2px 6px",
+    borderRadius: "4px"
   },
   applyCouponBtnElement: {
-    padding: "0 20px",
-    height: "38px",
+    padding: "0 16px",
+    height: "36px",
     backgroundColor: "#00ffa3",
     color: "#020617",
     fontWeight: "800",
-    fontSize: "12px",
+    fontSize: "11px",
     border: "none",
-    borderRadius: "12px",
-    cursor: "pointer",
-    boxShadow: "0 4px 15px rgba(0,255,163,0.3)"
+    borderRadius: "10px",
+    cursor: "pointer"
   },
   appliedCouponInfoBox: {
     width: "100%",
-    height: "52px",
+    height: "46px",
     backgroundColor: "rgba(0,255,163,0.08)",
     border: "1px solid rgba(0,255,163,0.3)",
-    borderRadius: "18px",
+    borderRadius: "14px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "0 16px",
+    padding: "0 12px",
     boxSizing: "border-box"
   },
   appliedCouponSuccessText: {
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: "700",
     color: "#00ffa3"
   },
@@ -1301,80 +1405,75 @@ const styles = {
     backgroundColor: "transparent",
     border: "none",
     color: "#ff4a4a",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "700",
     cursor: "pointer"
   },
   walletActionInjectFundsBtn: {
     width: "100%",
-    height: "54px",
-    borderRadius: "16px",
+    height: "48px",
+    borderRadius: "14px",
     background: "linear-gradient(90deg, #1e293b 0%, #0f172a 100%)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
     border: "1px solid rgba(255,255,255,0.08)",
     color: "#ffffff",
-    fontSize: "14px",
+    fontSize: "12px",
     fontWeight: "700",
-    letterSpacing: "0.5px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "10px",
-    transition: "all 0.2s ease"
+    gap: "8px"
   },
   btnAccentPlusSymbol: {
     color: "#00d2ff",
-    fontSize: "18px"
+    fontSize: "16px"
   },
   inputFieldComplexContainer: {
     width: "100%",
-    marginBottom: "24px"
+    marginBottom: "20px"
   },
   inputFieldLabelFlexHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: "10px"
+    marginBottom: "8px"
   },
   inputFieldMainTitleLabel: {
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "700",
-    color: "#cbd5e1",
-    letterSpacing: "1px"
+    color: "#cbd5e1"
   },
   inputFieldRightHandBadge: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "700",
     color: "#ff9c00",
     backgroundColor: "rgba(255,156,0,0.15)",
-    padding: "4px 10px",
-    borderRadius: "6px"
+    padding: "3px 8px",
+    borderRadius: "5px"
   },
   inputFieldRightHandBadgeAccent: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "700",
     color: "#00ffa3",
     backgroundColor: "rgba(0,255,163,0.15)",
-    padding: "4px 10px",
-    borderRadius: "6px"
+    padding: "3px 8px",
+    borderRadius: "5px"
   },
   cyberInputWrapperGlassBox: {
-    height: "60px",
+    height: "50px",
     width: "100%",
-    borderRadius: "18px",
+    borderRadius: "14px",
     border: "1px solid #475569",
     backgroundColor: "rgba(2, 6, 12, 0.7)",
     display: "flex",
     alignItems: "center",
-    padding: "0 20px",
+    padding: "0 14px",
     boxSizing: "border-box",
-    gap: "14px",
-    transition: "all 0.2s ease"
+    gap: "10px"
   },
   cyberInputPrependCurrencySymbol: {
-    fontSize: "22px",
+    fontSize: "18px",
     fontWeight: "800",
     color: "#00ffa3"
   },
@@ -1383,53 +1482,50 @@ const styles = {
     border: "none",
     outline: "none",
     backgroundColor: "transparent",
-    fontSize: "18px",
+    fontSize: "15px",
     fontWeight: "700",
     color: "#ffffff"
   },
   cyberInputAppendBadgeUnit: {
     backgroundColor: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    padding: "6px 12px",
-    borderRadius: "10px"
+    padding: "4px 8px",
+    borderRadius: "8px"
   },
   cyberInputAppendBadgeText: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "700",
-    color: "#cbd5e1",
-    letterSpacing: "0.5px"
+    color: "#cbd5e1"
   },
   cyberValidationWarningAlertBox: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    marginTop: "10px",
+    gap: "8px",
+    marginTop: "8px",
     backgroundColor: "rgba(239, 68, 68, 0.12)",
-    border: "1px solid rgba(239, 68, 68, 0.3)",
-    padding: "10px 14px",
-    borderRadius: "12px"
+    padding: "8px 12px",
+    borderRadius: "10px"
   },
   validationWarningIcon: {
-    fontSize: "14px"
+    fontSize: "12px"
   },
   validationWarningText: {
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#f87171",
     fontWeight: "600"
   },
   tenureSelectionStructureBox: {
     width: "100%",
-    marginBottom: "20px"
+    marginBottom: "16px"
   },
   tenureGridSelectorLayoutMatrix: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "12px",
+    gap: "10px",
     width: "100%"
   },
   tenureSelectorNodeItemButton: {
-    height: "68px",
-    borderRadius: "16px",
+    height: "60px",
+    borderRadius: "14px",
     border: "1px solid",
     display: "flex",
     flexDirection: "column",
@@ -1437,81 +1533,73 @@ const styles = {
     justifyContent: "center",
     cursor: "pointer",
     position: "relative",
-    gap: "4px",
-    padding: "4px 8px",
-    boxSizing: "border-box",
-    transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+    gap: "2px",
+    padding: "4px"
   },
   tenureNodeYearLabelText: {
-    fontSize: "12px",
-    fontWeight: "800",
-    letterSpacing: "0.5px"
+    fontSize: "11px",
+    fontWeight: "800"
   },
   tenureNodePercentageSubBadge: {
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "700"
   },
   tenureNodeSelectionCheckIndicatorCircle: {
     position: "absolute",
-    top: "-5px",
-    right: "-5px",
-    width: "18px",
-    height: "18px",
+    top: "-4px",
+    right: "-4px",
+    width: "16px",
+    height: "16px",
     borderRadius: "50%",
     backgroundColor: "#ffffff",
     color: "#020617",
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "900",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.5)"
+    justifyContent: "center"
   },
   paymentSummaryBox: {
     backgroundColor: "rgba(0, 210, 255, 0.04)",
     border: "1px solid rgba(0, 210, 255, 0.2)",
-    borderRadius: "16px",
-    padding: "14px 18px",
-    marginBottom: "20px",
+    borderRadius: "14px",
+    padding: "12px 14px",
+    marginBottom: "16px",
     display: "flex",
     flexDirection: "column",
-    gap: "8px",
-    boxSizing: "border-box"
+    gap: "6px"
   },
   summaryRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#cbd5e1"
   },
   adviceSystemBarWrapperBox: {
     backgroundColor: "rgba(0, 210, 255, 0.05)",
     border: "1px dashed rgba(0, 210, 255, 0.3)",
-    borderRadius: "16px",
-    padding: "16px 20px",
+    borderRadius: "14px",
+    padding: "12px 14px",
     display: "flex",
     alignItems: "flex-start",
-    gap: "14px",
-    width: "100%",
-    boxSizing: "border-box"
+    gap: "10px"
   },
   adviceSystemLightBulbIcon: {
-    fontSize: "18px",
+    fontSize: "16px",
     color: "#00d2ff"
   },
   adviceSystemTextBodyBlock: {
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#cbd5e1",
-    lineHeight: "1.6",
-    margin: 0
+    lineHeight: "1.5"
   },
   compoundingHeaderSeparatorBlock: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    margin: "30px 0 24px"
+    margin: "20px 0 16px"
   },
   separatorLineDecorativeLeft: {
     flex: 1,
@@ -1524,148 +1612,134 @@ const styles = {
     background: "linear-gradient(90deg, rgba(255,255,255,0.15), transparent)"
   },
   separatorCentralHeadlineTitleText: {
-    padding: "0 24px",
-    fontSize: "13px",
+    padding: "0 16px",
+    fontSize: "11px",
     fontWeight: "800",
     color: "#cbd5e1",
-    letterSpacing: "3px",
-    textTransform: "uppercase"
+    letterSpacing: "2px"
   },
   compoundingDataDisplayRowLineOneGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "24px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "16px",
     width: "100%",
-    marginBottom: "24px"
+    marginBottom: "16px"
   },
   compoundingDataDisplayRowLineTwoGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "24px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "16px",
     width: "100%",
-    marginBottom: "35px"
+    marginBottom: "24px"
   },
   projectionDataMetricsCardCellBlock: {
     backgroundColor: "rgba(10, 16, 30, 0.85)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-    borderRadius: "20px",
+    borderRadius: "16px",
     border: "1px solid rgba(255,255,255,0.06)",
-    padding: "26px",
-    boxSizing: "border-box",
+    padding: "20px",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-between",
-    gap: "12px"
+    gap: "10px"
   },
   projectionCellTopMetaLine: {
     display: "flex",
     alignItems: "center",
-    gap: "14px"
+    gap: "10px"
   },
   projectionCellIconCircleBox: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "10px",
+    width: "32px",
+    height: "32px",
+    borderRadius: "8px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "18px"
+    fontSize: "16px"
   },
   projectionCellMetaTitleLabelText: {
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "700",
-    color: "#ffffff",
-    letterSpacing: "1px"
+    color: "#ffffff"
   },
   projectionCellBigMetricValueText: {
-    fontSize: "32px",
-    fontWeight: "900",
-    margin: "4px 0",
-    letterSpacing: "-0.5px"
+    fontSize: "24px",
+    fontWeight: "900"
   },
   projectionCellBottomStatusBarTrack: {
     width: "100%",
-    height: "5px",
+    height: "4px",
     backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: "6px",
-    overflow: "hidden"
+    borderRadius: "4px"
   },
   projectionCellStatusFillColorBar: {
     height: "100%",
-    borderRadius: "6px"
+    borderRadius: "4px"
   },
   projectionCellFooterNarrativeText: {
     margin: 0,
-    fontSize: "12px",
-    color: "#cbd5e1",
-    lineHeight: "1.4"
+    fontSize: "11px",
+    color: "#cbd5e1"
   },
   systemAnalyticalDisclaimerBox: {
     width: "100%",
     backgroundColor: "rgba(15, 23, 42, 0.5)",
     border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: "16px",
-    padding: "16px 24px",
-    boxSizing: "border-box",
+    borderRadius: "14px",
+    padding: "14px 18px",
     display: "flex",
     alignItems: "center",
-    gap: "16px",
-    marginBottom: "35px"
+    gap: "12px",
+    marginBottom: "24px"
   },
   disclaimerIconInfoBadge: {
-    width: "18px",
-    height: "18px",
+    width: "16px",
+    height: "16px",
     borderRadius: "50%",
     border: "1px solid #cbd5e1",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "11px",
+    fontSize: "10px",
     color: "#ffffff",
     fontWeight: "700",
     flexShrink: 0
   },
   disclaimerTextMessagePara: {
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#ffffff",
-    lineHeight: "1.6",
+    lineHeight: "1.5",
     margin: 0
   },
   legalComplianceActionShieldContainerBox: {
     width: "100%",
-    marginBottom: "35px"
+    marginBottom: "24px"
   },
   legalInteractiveClickableRowBox: {
     backgroundColor: "rgba(13, 20, 35, 0.6)",
     border: "1px solid #475569",
-    borderRadius: "20px",
-    padding: "22px 28px",
-    boxSizing: "border-box",
+    borderRadius: "16px",
+    padding: "16px 20px",
     display: "flex",
     alignItems: "center",
-    gap: "20px",
-    cursor: "pointer",
-    transition: "all 0.2s ease"
+    gap: "14px",
+    cursor: "pointer"
   },
   legalInteractiveClickableRowBoxActive: {
     borderColor: "rgba(0, 255, 163, 0.5)",
     backgroundColor: "rgba(0, 255, 163, 0.04)"
   },
   legalCustomCheckboxSquareBox: {
-    width: "22px",
-    height: "22px",
-    borderRadius: "7px",
+    width: "18px",
+    height: "18px",
+    borderRadius: "5px",
     border: "2px solid",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    flexShrink: 0,
-    transition: "all 0.2s ease"
+    flexShrink: 0
   },
   legalCheckboxCheckMarkCheck: {
     color: "#020617",
-    fontSize: "13px",
+    fontSize: "11px",
     fontWeight: "900"
   },
   legalTextStatementColumnLabelBlock: {
@@ -1673,169 +1747,161 @@ const styles = {
   },
   legalMainDeclarationSentenceText: {
     margin: 0,
-    fontSize: "13px",
+    fontSize: "11px",
     color: "#ffffff",
-    lineHeight: "1.6"
+    lineHeight: "1.5"
   },
   legalHighLightHyperlinkText: {
     color: "#00ffa3",
     fontWeight: "700"
   },
   legalPaperDocumentIconBadgeUnit: {
-    fontSize: "22px",
+    fontSize: "18px",
     flexShrink: 0
   },
   ultimateLaunchButtonCentralContainerFlex: {
     width: "100%",
     display: "flex",
     justifyContent: "center",
-    marginBottom: "60px"
+    marginBottom: "40px"
   },
   ultimateLaunchCoreActionBtnElement: {
     width: "100%",
-    height: "68px",
-    borderRadius: "22px",
+    height: "56px",
+    borderRadius: "18px",
     border: "none",
     background: "linear-gradient(90deg, #00ffa3 0%, #00d2ff 50%, #3b82f6 100%)",
     color: "#020617",
-    fontSize: "17px",
+    fontSize: "14px",
     fontWeight: "900",
-    letterSpacing: "1px",
+    letterSpacing: "0.5px",
     position: "relative",
-    boxShadow: "0 20px 45px rgba(0,255,163,0.35)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "14px",
-    transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+    gap: "10px"
   },
   ultimateLaunchBtnGlowBackingTrack: {
     position: "absolute",
     inset: 0,
-    borderRadius: "22px",
+    borderRadius: "18px",
     background: "linear-gradient(90deg, #00ffa3 0%, #00d2ff 50%, #3b82f6 100%)",
-    filter: "blur(10px)",
+    filter: "blur(8px)",
     opacity: 0.6,
     zIndex: -1
   },
   ultimateLaunchBtnIconBadgeNode: {
-    fontSize: "20px"
+    fontSize: "18px"
   },
   ultimateLaunchBtnMainStringLabelText: {
     textShadow: "0 1px 1px rgba(255,255,255,0.3)"
   },
   systemCapabilitiesTripleFooterGridColumnLayout: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-    gap: "20px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: "16px",
     width: "100%"
   },
   capabilityCellBlockNodeCard: {
     backgroundColor: "rgba(15, 23, 42, 0.4)",
     border: "1px solid rgba(255,255,255,0.04)",
-    borderRadius: "20px",
-    padding: "24px",
-    boxSizing: "border-box",
+    borderRadius: "16px",
+    padding: "18px",
     display: "flex",
     alignItems: "flex-start",
-    gap: "18px"
+    gap: "14px"
   },
   capabilityIconCircleWrapContainer: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "14px",
+    width: "36px",
+    height: "36px",
+    borderRadius: "10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px",
+    fontSize: "16px",
     flexShrink: 0
   },
   capabilityTextInformationBlockWrap: {
     flex: 1
   },
   capabilityHeadingMainTextTitle: {
-    margin: "0 0 6px",
-    fontSize: "13px",
+    margin: "0 0 4px",
+    fontSize: "12px",
     fontWeight: "800",
-    color: "#ffffff",
-    letterSpacing: "0.5px"
+    color: "#ffffff"
   },
   capabilitySubtextBodyParagraph: {
     margin: 0,
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#cbd5e1",
-    lineHeight: "1.5"
+    lineHeight: "1.4"
   },
   modalSystemFallbackOverlayBlurScreen: {
     position: "fixed",
     inset: 0,
     backgroundColor: "rgba(2,4,10,0.92)",
     backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
     zIndex: 99999,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "24px"
+    padding: "20px"
   },
   modalSystemOuterBoxArchitecture: {
     width: "100%",
-    maxWidth: "480px",
+    maxWidth: "420px",
     backgroundColor: "#0b111e",
     border: "1px solid rgba(0, 255, 163, 0.3)",
-    borderRadius: "32px",
-    padding: "35px",
-    boxSizing: "border-box",
+    borderRadius: "24px",
+    padding: "24px",
     boxShadow: "0 30px 80px rgba(0,0,0,0.8)"
   },
   modalSystemHeaderTitleFlexRow: {
     display: "flex",
     alignItems: "center",
-    gap: "16px",
-    marginBottom: "24px"
+    gap: "12px",
+    marginBottom: "18px"
   },
   modalSystemHeaderIconBadge: {
-    fontSize: "26px",
+    fontSize: "22px",
     color: "#00ffa3"
   },
   modalSystemHeaderMainTitleHeadlineText: {
     margin: 0,
-    fontSize: "22px",
+    fontSize: "18px",
     fontWeight: "800",
     color: "#ffffff"
   },
   modalSystemInternalScrollableContentPanelBox: {
-    maxHeight: "260px",
+    maxHeight: "220px",
     overflowY: "auto",
-    paddingRight: "10px",
+    paddingRight: "8px",
     display: "flex",
     flexDirection: "column",
-    gap: "16px"
+    gap: "12px"
   },
   modalSystemParagraphParaBlockText: {
     margin: 0,
-    fontSize: "13px",
+    fontSize: "12px",
     color: "#cbd5e1",
-    lineHeight: "1.7",
-    textAlign: "justify"
+    lineHeight: "1.6"
   },
   modalSystemParagraphParaBlockTextHelpTextBangla: {
     margin: 0,
-    fontSize: "14px",
+    fontSize: "13px",
     color: "#ffffff",
-    lineHeight: "1.7"
+    lineHeight: "1.6"
   },
   modalSystemAcceptActionButtonTriggerElement: {
     width: "100%",
-    height: "54px",
-    marginTop: "30px",
+    height: "48px",
+    marginTop: "20px",
     border: "none",
-    borderRadius: "16px",
+    borderRadius: "14px",
     background: "linear-gradient(90deg, #00ffa3, #00b876)",
     color: "#020617",
     fontWeight: "800",
-    fontSize: "15px",
-    cursor: "pointer",
-    boxShadow: "0 8px 25px rgba(0,255,163,0.3)"
+    fontSize: "13px",
+    cursor: "pointer"
   }
 };
