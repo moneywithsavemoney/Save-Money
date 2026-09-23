@@ -1,5 +1,8 @@
 .App {
   text-align: center;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .App-logo {
@@ -38,17 +41,14 @@
 }
 
 @keyframes slideDown {
-
   from{
     opacity:0;
     transform:translate(-50%,-40px);
   }
-
   to{
     opacity:1;
     transform:translate(-50%,0);
   }
-
 }
 
 @keyframes pulseBadge {
@@ -56,12 +56,10 @@
     transform: scale(1);
     box-shadow: 0 0 5px #38bdf8;
   }
-
   50% {
     transform: scale(1.15);
     box-shadow: 0 0 18px #38bdf8;
   }
-
   100% {
     transform: scale(1);
     box-shadow: 0 0 5px #38bdf8;
@@ -75,7 +73,7 @@
 
 .cash-table {
   width: 100%;
-  min-width: 900px;
+  min-width: 100%; /* ফিক্সড ৯০০ পিক্সেল কেটে দেওয়া হলো যাতে মোবাইলে আটকে না থাকে */
   border-collapse: collapse;
   margin-top: 15px;
 }
