@@ -14,97 +14,7 @@ const DUMMY_P2P_USERS = [
   { "name": "Anish Das", "walletId": "WAL918234", "mobile": "+91 7402 81935", "balance": 7800 },
   { "name": "Anjan Roy", "walletId": "WAL472910", "mobile": "+91 9152 74829", "balance": 2500 },
   { "name": "Ankita Mukherjee", "walletId": "WAL503819", "mobile": "+91 6291 04827", "balance": 45000 },
-  { "name": "Ananya Banerjee", "walletId": "WAL829104", "mobile": "+91 8301 94820", "balance": 18200 },
-  { "name": "Arijit Ghosh", "walletId": "WAL276533", "mobile": "+91 9831 40291", "balance": 25000 },
-  { "name": "Arjun Nair", "walletId": "WAL875356", "mobile": "+91 7980 12394", "balance": 10000 },
-  { "name": "Arnav Gupta", "walletId": "WAL104928", "mobile": "+91 6002 91840", "balance": 50000 },
-  { "name": "Avani Joshi", "walletId": "WAL639102", "mobile": "+91 8720 19384", "balance": 3200 },
-  { "name": "Ayush Choudhury", "walletId": "WAL482019", "mobile": "+91 9123 84729", "balance": 15000 },
-  { "name": "Bipasha Basu", "walletId": "WAL739104", "mobile": "+91 7044 92810", "balance": 22000 },
-  { "name": "Debashis Dutt", "walletId": "WAL920183", "mobile": "+91 8910 28471", "balance": 12500 },
-  { "name": "Deepak Kumar", "walletId": "WAL310492", "mobile": "+91 9433 01829", "balance": 4500 },
-  { "name": "Devraj Saha", "walletId": "WAL849201", "mobile": "+91 6289 10482", "balance": 30000 },
-  { "name": "Diya Mehta", "walletId": "WAL182940", "mobile": "+91 7890 29184", "balance": 7800 },
-  { "name": "Gaurav Malhotra", "walletId": "WAL592018", "mobile": "+91 8240 19284", "balance": 25000 },
-  { "name": "Isha Bhattacharya", "walletId": "WAL204918", "mobile": "+91 9007 28194", "balance": 18200 },
-  { "name": "Ishaan Kapoor", "walletId": "WAL681940", "mobile": "+91 8100 29481", "balance": 50000 },
-  { "name": "Kabir Singh", "walletId": "WAL392014", "mobile": "+91 7003 19284", "balance": 3200 },
-  { "name": "Kavya Reddy", "walletId": "WAL840192", "mobile": "+91 9830 19284", "balance": 15000 },
-  { "name": "Koyel Ghosh", "walletId": "WAL192048", "mobile": "+91 9432 01928", "balance": 45000 },
-  { "name": "Kunal Agarwal", "walletId": "WAL730194", "mobile": "+91 6290 19284", "balance": 10000 },
-  { "name": "Madhav Iyer", "walletId": "WAL402918", "mobile": "+91 8981 02948", "balance": 22000 },
-  { "name": "Manish Saxena", "walletId": "WAL910284", "mobile": "+91 7980 91824", "balance": 5000 },
-  { "name": "Manish Kumar", "walletId": "WAL284019", "mobile": "+91 9874 01928", "balance": 12500 },
-  { "name": "Megha Pillai", "walletId": "WAL601928", "mobile": "+91 8334 01928", "balance": 30000 },
-  { "name": "Mitali Das", "walletId": "WAL394018", "mobile": "+91 9163 01928", "balance": 7800 },
-  { "name": "Mohit Chauhan", "walletId": "WAL820194", "mobile": "+91 7044 01928", "balance": 2500 },
-  { "name": "Neha Deshmukh", "walletId": "WAL102948", "mobile": "+91 8910 01928", "balance": 45000 },
-  { "name": "Nikhil Sen", "walletId": "WAL740192", "mobile": "+91 9831 01928", "balance": 18200 },
-  { "name": "Nisha Jain", "walletId": "WAL491028", "mobile": "+91 6289 01928", "balance": 25000 },
-  { "name": "Nitin Bose", "walletId": "WAL930182", "mobile": "+91 7890 01928", "balance": 10000 },
-  { "name": "Payal Biswas", "walletId": "WAL281940", "mobile": "+91 8240 01928", "balance": 50000 },
-  { "name": "Pooja Hegde", "walletId": "WAL640192", "mobile": "+91 9007 01928", "balance": 3200 },
-  { "name": "Pradeep Sen", "walletId": "WAL381029", "mobile": "+91 8100 01928", "balance": 15000 },
-  { "name": "Pratima Roy", "walletId": "WAL801924", "mobile": "+91 7003 01928", "balance": 22000 },
-  { "name": "Pritam Ghosh", "walletId": "WAL190284", "mobile": "+91 9830 01928", "balance": 12500 },
-  { "name": "Priya Sharma", "walletId": "WAL720194", "mobile": "+91 9432 01928", "balance": 4500 },
-  { "name": "Rahul Mukherjee", "walletId": "WAL410298", "mobile": "+91 6290 01928", "balance": 30000 },
-  { "name": "Rajesh Mudi", "walletId": "WAL902814", "mobile": "+91 8981 01928", "balance": 7800 },
-  { "name": "Rajib Sen", "walletId": "WAL291048", "mobile": "+91 7980 01928", "balance": 25000 },
-  { "name": "Rakesh Sen", "walletId": "WAL602918", "mobile": "+91 9874 01928", "balance": 18200 },
-  { "name": "Riya Chakraborty", "walletId": "WAL310294", "mobile": "+91 8334 01928", "balance": 50000 },
-  { "name": "Rohan Sen", "walletId": "WAL840291", "mobile": "+91 9163 01928", "balance": 3200 },
-  { "name": "Roshni Roy", "walletId": "WAL102849", "mobile": "+91 7044 01928", "balance": 15000 },
-  { "name": "Rupam Sen", "walletId": "WAL790124", "mobile": "+91 8910 01928", "balance": 45000 },
-  { "name": "Sachin Sen", "walletId": "WAL480192", "mobile": "+91 9831 01928", "balance": 10000 },
-  { "name": "Sagarika Basu", "walletId": "WAL920148", "mobile": "+91 6289 01928", "balance": 22000 },
-  { "name": "Sahil Khan", "walletId": "WAL201948", "mobile": "+91 7890 01928", "balance": 5000 },
-  { "name": "Sai Kumar", "walletId": "WAL610294", "mobile": "+91 8240 01928", "balance": 12500 },
-  { "name": "Samir Sen", "walletId": "WAL340192", "mobile": "+91 9007 01928", "balance": 30000 },
-  { "name": "Sanjay Ghosh", "walletId": "WAL890124", "mobile": "+91 8100 01928", "balance": 7800 },
-  { "name": "Sanjoy Sen", "walletId": "WAL120948", "mobile": "+91 7003 01928", "balance": 2500 },
-  { "name": "Sayan Ghosh", "walletId": "WAL780192", "mobile": "+91 9830 01928", "balance": 45000 },
-  { "name": "Sayani Dutta", "walletId": "WAL430192", "mobile": "+91 9432 01928", "balance": 18200 },
-  { "name": "Shikha Roy", "walletId": "WAL901284", "mobile": "+91 6290 01928", "balance": 25000 },
-  { "name": "Shreya Ghoshal", "walletId": "WAL240198", "mobile": "+91 8981 01928", "balance": 10000 },
-  { "name": "Shubham Sen", "walletId": "WAL690124", "mobile": "+91 7980 01928", "balance": 50000 },
-  { "name": "Sneha Roy", "walletId": "WAL320194", "mobile": "+91 9874 01928", "balance": 3200 },
-  { "name": "Sourav Ganguly", "walletId": "WAL810294", "mobile": "+91 8334 01928", "balance": 15000 },
-  { "name": "Srabanti Chatterjee", "walletId": "WAL140298", "mobile": "+91 9163 01928", "balance": 22000 },
-  { "name": "Subhash Sen", "walletId": "WAL701294", "mobile": "+91 7044 01928", "balance": 12500 },
-  { "name": "Subhajit Pal", "walletId": "WAL490128", "mobile": "+91 8910 01928", "balance": 4500 },
-  { "name": "Sudipta Sen", "walletId": "WAL950124", "mobile": "+91 9831 01928", "balance": 30000 },
-  { "name": "Suman Sen", "walletId": "WAL210948", "mobile": "+91 6289 01928", "balance": 7800 },
-  { "name": "Sumit Roy", "walletId": "WAL630194", "mobile": "+91 7890 01928", "balance": 25000 },
-  { "name": "Sunil Sen", "walletId": "WAL370129", "mobile": "+91 8240 01928", "balance": 18200 },
-  { "name": "Surbhi Das", "walletId": "WAL801294", "mobile": "+91 9007 01928", "balance": 50000 },
-  { "name": "Swapan Sen", "walletId": "WAL160294", "mobile": "+91 8100 01928", "balance": 3200 },
-  { "name": "Swarup Sen", "walletId": "WAL720149", "mobile": "+91 7003 01928", "balance": 15000 },
-  { "name": "Tanmay Sen", "walletId": "WAL450129", "mobile": "+91 9830 01928", "balance": 45000 },
-  { "name": "Tanushree Dutta", "walletId": "WAL980124", "mobile": "+91 9432 01928", "balance": 10000 },
-  { "name": "Trisha Sen", "walletId": "WAL230194", "mobile": "+91 6290 01928", "balance": 22000 },
-  { "name": "Tuhin Sen", "walletId": "WAL670129", "mobile": "+91 8981 01928", "balance": 5000 },
-  { "name": "Uday Sen", "walletId": "WAL310924", "mobile": "+91 7980 01928", "balance": 12500 },
-  { "name": "Upasana Sen", "walletId": "WAL860129", "mobile": "+91 9874 01928", "balance": 30000 },
-  { "name": "Utpal Sen", "walletId": "WAL190428", "mobile": "+91 8334 01928", "balance": 7800 },
-  { "name": "Varun Dhawan", "walletId": "WAL740291", "mobile": "+91 9163 01928", "balance": 2500 },
-  { "name": "Vikram Rathore", "walletId": "WAL410928", "mobile": "+91 7044 01928", "balance": 45000 },
-  { "name": "Vikas Dubey", "walletId": "WAL960124", "mobile": "+91 8910 01928", "balance": 18200 },
-  { "name": "Vishal Sen", "walletId": "WAL280194", "mobile": "+91 9831 01928", "balance": 25000 },
-  { "name": "Vivek Oberoi", "walletId": "WAL620194", "mobile": "+91 6289 01928", "balance": 10000 },
-  { "name": "Yash Sen", "walletId": "WAL350129", "mobile": "+91 7890 01928", "balance": 50000 },
-  { "name": "Abhishek Sen", "walletId": "WAL890421", "mobile": "+91 8240 01928", "balance": 3200 },
-  { "name": "Amrita Sen", "walletId": "WAL130924", "mobile": "+91 9007 01928", "balance": 15000 },
-  { "name": "Bikash Sen", "walletId": "WAL710294", "mobile": "+91 8100 01928", "balance": 22000 },
-  { "name": "Chandan Sen", "walletId": "WAL460129", "mobile": "+91 7003 01928", "balance": 12500 },
-  { "name": "Dipankar Sen", "walletId": "WAL920418", "mobile": "+91 9830 01928", "balance": 4500 },
-  { "name": "Goutam Sen", "walletId": "WAL250194", "mobile": "+91 9432 01928", "balance": 30000 },
-  { "name": "Indranil Sen", "walletId": "WAL680129", "mobile": "+91 6290 01928", "balance": 7800 },
-  { "name": "Jitendra Sen", "walletId": "WAL390124", "mobile": "+91 8981 01928", "balance": 25000 },
-  { "name": "Kaushik Sen", "walletId": "WAL810924", "mobile": "+91 7980 01928", "balance": 18200 },
-  { "name": "Manoj Sen", "walletId": "WAL170294", "mobile": "+91 9874 01928", "balance": 50000 },
-  { "name": "Nabaneeta Sen", "walletId": "WAL730928", "mobile": "+91 8334 01928", "balance": 3200 },
-  { "name": "Partha Sen", "walletId": "WAL420194", "mobile": "+91 9163 01928", "balance": 15000 }
+  { "name": "Ananya Banerjee", "walletId": "WAL829104", "mobile": "+91 8301 94820", "balance": 18200 }
 ];
 
 export default function Wallet() {
@@ -140,7 +50,6 @@ export default function Wallet() {
   const [p2pModalOpen, setP2pModalOpen] = useState(false);
   const [p2pUserList, setP2pUserList] = useState([]);
   
-  // একটিমাত্র কম্বাইন্ড রিভিউ মডাল স্টেট (ওপরে লেখার অপশন ও নিচে আগের রিভিউ)
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedP2pUser, setSelectedP2pUser] = useState(null);
   const [reviewText, setReviewText] = useState("");
@@ -159,7 +68,6 @@ export default function Wallet() {
   const [historyFilter, setHistoryFilter] = useState("all");
   const [showAllHistory, setShowAllHistory] = useState(false);
 
-  // 👇 ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
 
@@ -220,7 +128,6 @@ export default function Wallet() {
     }
   };
 
-  // 👇 PLAN PDF ডাউনলোডের জন্য হ্যান্ডলার
   const handleDownloadPlan = () => {
     if (isDownloadingPlan) return;
     setIsDownloadingPlan(true);
@@ -378,10 +285,9 @@ export default function Wallet() {
     setAddOpen(true);
   };
 
-  // 👇 নতুন পেমেন্ট অর্ডার ক্রিয়েশন হ্যান্ডলার
   const handleAddMoney = async (amount) => {
     try {
-      const token = localStorage.getItem("token"); // আপনার Auth Token
+      const token = localStorage.getItem("token");
       const res = await fetch("https://save-money-vyv1.onrender.com/api/create-payment-order", {
         method: "POST",
         headers: {
@@ -394,7 +300,6 @@ export default function Wallet() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // যদি লিঙ্ক দেয়, তবে পেমেন্ট পেজে রিডাইরেক্ট করবে
         if (data.paymentUrl) {
           window.location.href = data.paymentUrl;
         }
@@ -618,9 +523,10 @@ export default function Wallet() {
 
   return (
     <div style={styles.page}>
+      <style>{mobileResponsiveCSS}</style>
       <div style={styles.app}>
 
-        {/* 👇 SIDEBAR DRAWER */}
+        {/* SIDEBAR DRAWER */}
         <div style={{
           ...styles.drawerOverlay,
           opacity: isDrawerOpen ? 1 : 0,
@@ -631,7 +537,6 @@ export default function Wallet() {
             transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
           }} onClick={(e) => e.stopPropagation()}>
             
-            {/* LOGO & BRANDING */}
             <div style={styles.drawerHeader}>
               <div style={styles.drawerBrand}>
                 <div style={styles.drawerLogoWrapper}>
@@ -651,9 +556,7 @@ export default function Wallet() {
               </div>
             </div>
 
-            {/* SIDEBAR NAV BUTTONS - DIAMOND CUT & WATER TRANSPARENT */}
             <div style={styles.drawerNavList}>
-              {/* 1. Dashboard */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -666,7 +569,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Dashboard</span>
               </button>
 
-              {/* 2. My Investment */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -679,7 +581,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>My Investment</span>
               </button>
 
-              {/* 3. Save Money */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -692,7 +593,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Save Money</span>
               </button>
 
-              {/* 4. One Time */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -705,7 +605,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>One Time</span>
               </button>
 
-              {/* 5. PLAN (PDF Download) */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -718,7 +617,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
               </button>
 
-              {/* Add Fund */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -731,7 +629,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Add Fund</span>
               </button>
 
-              {/* Refer (refer.js) */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -744,7 +641,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Refer & Earn</span>
               </button>
 
-              {/* Withdraw (withdraw.js) */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -757,7 +653,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Withdraw</span>
               </button>
 
-              {/* Daily Reward (dailyreward.js) */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -770,7 +665,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Daily Reward</span>
               </button>
 
-              {/* Investment Assistance */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -783,7 +677,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Investment Assistance</span>
               </button>
 
-              {/* Support */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -796,7 +689,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Support</span>
               </button>
 
-              {/* Profile */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -809,7 +701,6 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>Profile</span>
               </button>
 
-              {/* Logout */}
               <button 
                 style={{
                   ...styles.drawerNavItem,
@@ -822,7 +713,6 @@ export default function Wallet() {
               </button>
             </div>
 
-            {/* 👇 PLANT IMAGE CONTAINER AT THE BOTTOM */}
             <div style={styles.treePlantOnlyWrapper}>
               <img 
                 src="/tree plant.png" 
@@ -859,23 +749,16 @@ export default function Wallet() {
 
         {/* TOP HEADER */}
         <div style={styles.topHeader}>
-          <button 
-            style={styles.menuButton}
-            onClick={() => setIsDrawerOpen(true)}
-          >
-            ☰
-          </button>
-
-          <header style={styles.header}>
-            <div>
-              <h1 style={styles.pageTitle}>My Wallet</h1>
-              <div style={styles.titleWave}></div>
-              <p style={styles.pageSub}>Manage your balance, track transactions and grow more.</p>
-            </div>
+          <div className="mobile-header-bar" style={styles.mobileHeaderBar}>
+            <button 
+              style={styles.menuButton}
+              onClick={() => setIsDrawerOpen(true)}
+            >
+              ☰
+            </button>
 
             <button style={styles.notifyBtn} onClick={() => window.location.href = "/notifications"}>
               🔔
-              <span style={styles.notifyCount}></span>
             </button>
 
             <div style={styles.avatar}>
@@ -889,22 +772,34 @@ export default function Wallet() {
                 "👨‍💼"
               )}
             </div>
+          </div>
+
+          <header style={styles.header}>
+            <div>
+              <h1 style={styles.pageTitle}>My Wallet</h1>
+              <div style={styles.titleWave}></div>
+              <p style={styles.pageSub}>Manage your balance, track transactions and grow more.</p>
+            </div>
           </header>
 
-          <section style={styles.walletHero}>
-            <div style={styles.walletLeft}>
+          <section style={styles.walletHero} className="wallet-hero-box">
+            <button style={styles.eyeBtn} onClick={() => setShowBalance(!showBalance)}>
+              {showBalance ? "👁" : "🙈"}
+            </button>
+
+            <div style={styles.walletLeft} className="wallet-left-content">
               <p style={styles.heroLabel}>WALLET ID</p>
-              <h2 style={styles.walletId}>
+              <h2 style={styles.walletId} className="wallet-id-text">
                 {wallet.walletId}
-                <button onClick={copyWalletId}>©☑️</button>
+                <button onClick={copyWalletId} style={styles.copyBtn}>📋</button>
               </h2>
 
               <div style={styles.dashedLine}></div>
 
               <p style={styles.heroLabel}>AVAILABLE BALANCE</p>
-              <h1 style={styles.balanceText}>{visibleBalance}</h1>
+              <h1 style={styles.balanceText} className="balance-text-mobile">{visibleBalance}</h1>
 
-              <div style={styles.heroActions}>
+              <div style={styles.heroActions} className="hero-actions-mobile">
                 <button style={styles.addCashBtn} onClick={openAddCash}>
                   <b>＋</b> Add Cash
                 </button>
@@ -917,14 +812,10 @@ export default function Wallet() {
               </div>
             </div>
 
-            <button style={styles.eyeBtn} onClick={() => setShowBalance(!showBalance)}>
-              {showBalance ? "👁" : "🙈"}
-            </button>
-
             <WalletIllustration />
           </section>
 
-          <section style={styles.incomePanel}>
+          <section style={styles.incomePanel} className="income-panel-grid">
             <IncomeCard icon="👥" title="REFERRAL" amount={wallet.referral} color="#10b981" />
             <IncomeCard icon="📈" title="PERFORMANCE" amount={wallet.performance} color="#f59e0b" />
             <IncomeCard icon="👥" title="TEAM" amount={wallet.team} color="#2563eb" />
@@ -932,8 +823,8 @@ export default function Wallet() {
             <IncomeCard icon="👛" title="TODAY EARNING" amount={wallet.todayBalance} color="#14b8a6" />
           </section>
 
-          <section style={styles.middleGrid}>
-            <div style={styles.transferCard}>
+          <section style={styles.middleGrid} className="middle-grid-mobile">
+            <div style={styles.transferCard} className="card-box-mobile">
               <div style={styles.transferIcon}>✈️</div>
               <h2 style={styles.transferTitle}>Wallet Transfer</h2>
               <p style={styles.transferSub}>Send money to another wallet instantly</p>
@@ -966,20 +857,20 @@ export default function Wallet() {
               </button>
             </div>
 
-            <div style={styles.inviteCard}>
+            <div style={styles.inviteCard} className="card-box-mobile">
               <div style={styles.inviteTop}>Grow More</div>
               <h2 style={styles.inviteTitle}>Invite Your Friends</h2>
               <h3 style={styles.inviteTitle2}>& Earn Unlimited Rewards</h3>
-              <div style={styles.giftBox}>🎁</div>
-              <button style={styles.inviteBtn} onClick={openInvite}>Invite Now</button>
+              <div style={styles.giftBox} className="gift-box-mobile">🎁</div>
+              <button style={styles.inviteBtn} className="invite-btn-mobile" onClick={openInvite}>Invite Now</button>
             </div>
           </section>
 
-          <section style={styles.historyCard}>
-            <div style={styles.historyHeader}>
+          <section style={styles.historyCard} className="card-box-mobile">
+            <div style={styles.historyHeader} className="history-header-mobile">
               <div>
                 <h2 style={styles.historyTitle}>🛡 Wallet History</h2>
-                <p style={styles.historySub}>Your recent wallet transactions (Click to view receipt)</p>
+                <p style={styles.historySub}>Your recent transactions (Click to view receipt)</p>
               </div>
 
               <select
@@ -990,13 +881,13 @@ export default function Wallet() {
                   setShowAllHistory(false);
                 }}
               >
-                <option value="all">All Transactions</option>
+                <option value="all">All</option>
                 <option value="credit">Credit</option>
                 <option value="debit">Debit</option>
               </select>
             </div>
 
-            <div style={styles.tableHead}>
+            <div style={styles.tableHead} className="table-head-desktop">
               <div>TYPE</div>
               <div>DESCRIPTION</div>
               <div>AMOUNT</div>
@@ -1028,9 +919,10 @@ export default function Wallet() {
                 <div
                   key={index}
                   style={styles.clickableHistoryRow}
+                  className="history-row-responsive"
                   onClick={() => setSelectedTxn({ ...item, isCredit, desc })}
                 >
-                  <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     <div
                       style={{
                         ...styles.typeCircle,
@@ -1040,27 +932,21 @@ export default function Wallet() {
                     >
                       {isCredit ? "↓" : "↑"}
                     </div>
+                    <div>
+                      <div style={styles.rowTitle}>{desc}</div>
+                      <div style={styles.rowSub}>
+                        {item.createdAt || item.date
+                          ? new Date(item.createdAt || item.date).toLocaleDateString("en-IN")
+                          : "N/A"}
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <div style={styles.rowTitle}>{desc}</div>
-                    <div style={styles.rowSub}>{item.note || "Tap to details"}</div>
-                  </div>
-
-                  <div>
-                    <span style={{ color: isCredit ? "#16a34a" : "#dc2626", fontWeight: "700" }}>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ color: isCredit ? "#16a34a" : "#dc2626", fontWeight: "700", fontSize: "15px" }}>
                       {isCredit ? "+" : "-"} ₹{Number(item.amount).toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div>
+                    </div>
                     <span style={styles.successBadge}>Success</span>
-                  </div>
-
-                  <div style={{ fontSize: "13px", color: "#64748b" }}>
-                    {item.createdAt || item.date
-                      ? new Date(item.createdAt || item.date).toLocaleString("en-IN")
-                      : "N/A"}
                   </div>
                 </div>
               );
@@ -1073,7 +959,7 @@ export default function Wallet() {
             )}
           </section>
 
-          <section style={styles.bottomFeatures}>
+          <section style={styles.bottomFeatures} className="features-grid-mobile">
             <div style={styles.featureItem}>
               🛡
               <div>
@@ -1099,19 +985,19 @@ export default function Wallet() {
             </div>
           </section>
 
-          {/* --- P2P মডাল উইন্ডো --- */}
+          {/* P2P Modal */}
           {p2pModalOpen && (
             <div style={styles.modalOverlay}>
-              <div style={{ ...styles.modal, maxWidth: "600px", maxHeight: "85vh", overflowY: "auto" }}>
+              <div style={{ ...styles.modal, maxWidth: "600px", maxHeight: "85vh", overflowY: "auto" }} className="modal-inner-mobile">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-                  <h2 style={{ margin: 0, fontSize: "24px" }}>🤝 P2P Marketplace</h2>
+                  <h2 style={{ margin: 0, fontSize: "20px" }}>🤝 P2P Marketplace</h2>
                   <button style={styles.depositCloseX} onClick={() => setP2pModalOpen(false)}>×</button>
                 </div>
                 
-                <div style={{ background: "#f8fafc", padding: "15px", borderRadius: "16px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ background: "#f8fafc", padding: "12px", borderRadius: "16px", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div>
-                    <h4 style={{ margin: "0 0 5px 0" }}>Want to become a P2P Sender?</h4>
-                    <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>Requires minimum ₹2,000 wallet balance.</p>
+                    <h4 style={{ margin: "0 0 4px 0", fontSize: "14px" }}>Want to become a P2P Sender?</h4>
+                    <p style={{ margin: 0, fontSize: "11px", color: "#64748b" }}>Requires minimum ₹2,000 wallet balance.</p>
                   </div>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <button style={styles.iWantP2pBtn} onClick={handleIWantP2P}>I want P2P</button>
@@ -1119,7 +1005,7 @@ export default function Wallet() {
                   </div>
                 </div>
 
-                <h3 style={{ fontSize: "18px", marginBottom: "10px" }}>Available P2P Senders</h3>
+                <h3 style={{ fontSize: "16px", marginBottom: "10px" }}>Available P2P Senders</h3>
                 
                 {p2pUserList.length === 0 ? (
                   <p style={{ textAlign: "center", color: "#64748b", padding: "20px" }}>No P2P registered users found.</p>
@@ -1133,12 +1019,12 @@ export default function Wallet() {
                         <div key={idx} style={styles.p2pUserCard}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div>
-                              <h4 style={{ margin: "0 0 2px 0", fontSize: "16px" }}>{user.name}</h4>
+                              <h4 style={{ margin: "0 0 2px 0", fontSize: "15px" }}>{user.name}</h4>
                               <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
                                 <span style={{ fontSize: "12px", fontWeight: "800", color: "#f59e0b" }}>★ {avgRating}</span>
                                 <span style={{ fontSize: "11px", color: "#64748b" }}>({uReviews.length} reviews)</span>
                               </div>
-                              <p style={{ margin: "0 0 4px 0", fontSize: "13px", color: "#64748b" }}>📱 {user.mobile || "N/A"}</p>
+                              <p style={{ margin: "0 0 4px 0", fontSize: "12px", color: "#64748b" }}>📱 {user.mobile || "N/A"}</p>
                               <p style={{ margin: 0, fontSize: "13px", fontWeight: "700", color: "#16a34a" }}>Balance: ₹{Number(user.balance).toLocaleString()}</p>
                             </div>
                             
@@ -1167,12 +1053,12 @@ export default function Wallet() {
             </div>
           )}
 
-          {/* --- কম্বাইন্ড রিভিউ মডাল --- */}
+          {/* Review Modal */}
           {reviewModalOpen && selectedP2pUser && (
             <div style={styles.modalOverlay}>
-              <div style={{ ...styles.modal, maxWidth: "480px", maxHeight: "85vh", overflowY: "auto" }}>
+              <div style={{ ...styles.modal, maxWidth: "480px", maxHeight: "85vh", overflowY: "auto" }} className="modal-inner-mobile">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                  <h2 style={{ margin: 0, fontSize: "20px" }}>Reviews for {selectedP2pUser.name}</h2>
+                  <h2 style={{ margin: 0, fontSize: "18px" }}>Reviews for {selectedP2pUser.name}</h2>
                   <button style={styles.depositCloseX} onClick={() => setReviewModalOpen(false)}>×</button>
                 </div>
                 <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 15px 0" }}>Wallet ID: {selectedP2pUser.walletId}</p>
@@ -1226,10 +1112,10 @@ export default function Wallet() {
             </div>
           )}
 
-          {/* --- ট্রানজ্যাকশন রিসিপ্ট মডাল --- */}
+          {/* Receipt Modal */}
           {selectedTxn && (
             <div style={styles.modalOverlay}>
-              <div style={styles.receiptContainer}>
+              <div style={styles.receiptContainer} className="modal-inner-mobile">
                 <div ref={receiptRef} style={styles.receiptCard}>
                   <div style={styles.receiptHeader}>
                     <div style={styles.receiptPulseIconCircle}>
@@ -1304,7 +1190,7 @@ export default function Wallet() {
           {/* Add Cash Modal */}
           {addOpen && (
             <div style={styles.depositOverlay}>
-              <div style={styles.depositModal}>
+              <div style={styles.depositModal} className="modal-inner-mobile">
                 <button style={styles.depositCloseX} onClick={() => setAddOpen(false)}>×</button>
 
                 <div style={styles.depositIcon}>⚡</div>
@@ -1321,14 +1207,14 @@ export default function Wallet() {
                 />
 
                 <button
-                  style={{ ...styles.submitDepositBtn, background: "linear-gradient(135deg, #a855f7, #7c3aed)", marginBottom: "20px" }}
+                  style={{ ...styles.submitDepositBtn, background: "linear-gradient(135deg, #a855f7, #7c3aed)", marginBottom: "15px" }}
                   onClick={payViaUPI}
                 >
                   📱 Pay Via PhonePe / Paytm / GPay
                 </button>
 
                 <div style={{ borderTop: "1px dashed #334155", margin: "15px 0", paddingTop: "10px" }}>
-                  <p style={{ fontSize: "12px", color: "#94a3b8", textAlign: "center" }}>💡 After paying, copy the 12-digit UTR/Txn ID from your UPI app and paste below.</p>
+                  <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center" }}>💡 After paying, copy the 12-digit UTR/Txn ID from your UPI app and paste below.</p>
                 </div>
 
                 <label style={styles.depositLabel}>Transaction ID / UTR No</label>
@@ -1350,18 +1236,18 @@ export default function Wallet() {
           {/* Withdraw Popup */}
           {withdrawOpen && (
             <div style={styles.modalOverlay}>
-              <div style={styles.modal}>
-                <h2>💳 Auto Withdrawal</h2>
+              <div style={styles.modal} className="modal-inner-mobile">
+                <h2 style={{ fontSize: "20px" }}>💳 Auto Withdrawal</h2>
                 {withdrawStatus && (
-                  <div style={{ marginTop: "15px", padding: "15px", borderRadius: "12px", background: "#f8fafc" }}>
-                    <p>Status : <b>{withdrawStatus.enabled ? " ✅ Active" : " ❌ Paused"}</b></p>
+                  <div style={{ marginTop: "15px", padding: "12px", borderRadius: "12px", background: "#f8fafc" }}>
+                    <p style={{ fontSize: "14px" }}>Status : <b>{withdrawStatus.enabled ? " ✅ Active" : " ❌ Paused"}</b></p>
                     {withdrawStatus.nextWithdrawal && (
-                      <p>Next Withdrawal : <b>{new Date(withdrawStatus.nextWithdrawal).toLocaleDateString("en-IN")}</b></p>
+                      <p style={{ fontSize: "14px" }}>Next Withdrawal : <b>{new Date(withdrawStatus.nextWithdrawal).toLocaleDateString("en-IN")}</b></p>
                     )}
                     {withdrawStatus.note?.length > 0 && (
                       <>
-                        <h4 style={{ marginTop: "20px", marginBottom: "10px", color: "#0f172a" }}>NOTE :</h4>
-                        <ul style={{ paddingLeft: "18px", lineHeight: "28px", fontSize: "14px", color: "#475569" }}>
+                        <h4 style={{ marginTop: "15px", marginBottom: "8px", color: "#0f172a", fontSize: "14px" }}>NOTE :</h4>
+                        <ul style={{ paddingLeft: "18px", lineHeight: "24px", fontSize: "13px", color: "#475569" }}>
                           {withdrawStatus.note.map((item, index) => (
                             <li key={index}>{item}</li>
                           ))}
@@ -1380,11 +1266,11 @@ export default function Wallet() {
           {/* Transfer Confirm Modal */}
           {confirmTransferOpen && receiverInfo && (
             <div style={styles.modalOverlay}>
-              <div style={styles.modal}>
+              <div style={styles.modal} className="modal-inner-mobile">
                 <div style={styles.confirmTop}>
                   <div style={styles.confirmAvatar}>👤</div>
-                  <h2>Confirm Transfer</h2>
-                  <p>Verify receiver details before sending money</p>
+                  <h2 style={{ fontSize: "20px" }}>Confirm Transfer</h2>
+                  <p style={{ fontSize: "12px" }}>Verify receiver details before sending money</p>
                 </div>
 
                 <div style={styles.receiverCard}>
@@ -1398,7 +1284,7 @@ export default function Wallet() {
                   </div>
                   <div>
                     <span>Amount</span>
-                    <h2 style={{ color: "#16a34a" }}>₹{Number(transferAmount).toLocaleString()}</h2>
+                    <h2 style={{ color: "#16a34a", fontSize: "22px" }}>₹{Number(transferAmount).toLocaleString()}</h2>
                   </div>
                 </div>
 
@@ -1411,7 +1297,7 @@ export default function Wallet() {
           {/* Share Modal */}
           {shareOpen && (
             <div style={styles.modalOverlay}>
-              <div style={styles.modal}>
+              <div style={styles.modal} className="modal-inner-mobile">
                 <h2>Invite Friends</h2>
                 <p>Share your referral link</p>
                 <div style={styles.shareGrid}>
@@ -1432,7 +1318,7 @@ export default function Wallet() {
 
 function WalletIllustration() {
   return (
-    <div style={styles.walletArt}>
+    <div style={styles.walletArt} className="wallet-art-mobile">
       <div style={styles.moneyNote1}></div>
       <div style={styles.moneyNote2}></div>
       <div style={styles.walletBag}>₹</div>
@@ -1444,7 +1330,7 @@ function WalletIllustration() {
 
 function IncomeCard({ icon, title, amount, color }) {
   return (
-    <div style={styles.incomeCard}>
+    <div style={styles.incomeCard} className="income-card-item">
       <div style={{ ...styles.incomeIcon, background: color }}>{icon}</div>
       <h4>{title}</h4>
       <h2>₹{Number(amount).toLocaleString()}</h2>
@@ -1453,7 +1339,105 @@ function IncomeCard({ icon, title, amount, color }) {
   );
 }
 
+const mobileResponsiveCSS = `
+  @media (max-width: 768px) {
+    .mobile-header-bar {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .wallet-hero-box {
+      padding: 20px !important;
+      min-height: auto !important;
+      border-radius: 20px !important;
+    }
+    .wallet-left-content {
+      width: 100% !important;
+    }
+    .wallet-art-mobile {
+      display: none !important;
+    }
+    .balance-text-mobile {
+      font-size: 32px !important;
+    }
+    .wallet-id-text {
+      font-size: 20px !important;
+    }
+    .hero-actions-mobile {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 8px !important;
+      margin-top: 16px !important;
+    }
+    .hero-actions-mobile button {
+      min-width: unset !important;
+      height: 42px !important;
+      font-size: 12px !important;
+      border-radius: 12px !important;
+      padding: 0 4px !important;
+    }
+    .income-panel-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 10px !important;
+      padding: 14px !important;
+      border-radius: 20px !important;
+    }
+    .income-card-item {
+      border-right: none !important;
+      border-bottom: 1px dashed #e2e8f0;
+      padding-bottom: 10px !important;
+    }
+    .income-card-item h4 {
+      font-size: 11px !important;
+    }
+    .income-card-item h2 {
+      font-size: 16px !important;
+    }
+    .middle-grid-mobile {
+      grid-template-columns: 1fr !important;
+      gap: 14px !important;
+    }
+    .card-box-mobile {
+      padding: 18px !important;
+      border-radius: 20px !important;
+    }
+    .gift-box-mobile {
+      font-size: 70px !important;
+    }
+    .invite-btn-mobile {
+      position: static !important;
+      width: 100% !important;
+      margin-top: 10px;
+    }
+    .table-head-desktop {
+      display: none !important;
+    }
+    .history-row-responsive {
+      grid-template-columns: 1fr 1fr !important;
+      padding: 12px 0 !important;
+    }
+    .history-header-mobile {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 10px !important;
+    }
+    .features-grid-mobile {
+      grid-template-columns: 1fr !important;
+      gap: 12px !important;
+    }
+    .modal-inner-mobile {
+      width: 92% !important;
+      padding: 18px !important;
+      border-radius: 20px !important;
+    }
+  }
+`;
+
 const styles = {
+  mobileHeaderBar: {
+    display: "none"
+  },
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -1644,19 +1628,33 @@ const styles = {
   treePlantOnlyImg: {
     width: "90%",
     height: "65%",
-    objectFit: "95%",
+    objectFit: "cover",
     borderRadius: "16px"
   },
-  p2pMainBtn: {
-    minWidth: "120px",
-    height: "54px",
+  menuButton: {
+    background: "none",
     border: "none",
-    borderRadius: "18px",
+    fontSize: "26px",
+    cursor: "pointer",
+    color: "#071747"
+  },
+  copyBtn: {
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "18px"
+  },
+  p2pMainBtn: {
+    minWidth: "100px",
+    height: "50px",
+    border: "none",
+    borderRadius: "16px",
     background: "linear-gradient(135deg,#06b6d4,#2563eb)",
     color: "white",
     fontWeight: "900",
-    fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(6,182,212,.3)"
+    fontSize: "15px",
+    boxShadow: "0 8px 20px rgba(6,182,212,.3)",
+    cursor: "pointer"
   },
   iWantP2pBtn: {
     padding: "8px 12px",
@@ -1709,13 +1707,40 @@ const styles = {
   },
   clickableHistoryRow: {
     display: "grid",
-    gridTemplateColumns: "70px 1.6fr 1fr 1fr 1.2fr",
+    gridTemplateColumns: "1fr 1fr",
     alignItems: "center",
-    padding: "16px 8px",
+    justifyContent: "space-between",
+    padding: "12px 8px",
     borderBottom: "1px solid #eef2ff",
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    borderRadius: "12px"
+    cursor: "pointer"
+  },
+  typeCircle: {
+    width: "36px",
+    height: "36px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "900",
+    fontSize: "16px"
+  },
+  rowTitle: {
+    fontSize: "14px",
+    fontWeight: "700",
+    color: "#0f172a"
+  },
+  rowSub: {
+    fontSize: "12px",
+    color: "#64748b"
+  },
+  successBadge: {
+    background: "#dcfce7",
+    color: "#15803d",
+    fontSize: "10px",
+    fontWeight: "800",
+    padding: "2px 8px",
+    borderRadius: "10px",
+    display: "inline-block"
   },
   receiptContainer: {
     width: "100%",
@@ -1728,44 +1753,42 @@ const styles = {
   receiptCard: {
     background: "linear-gradient(145deg, #0f172a, #090d16)",
     borderRadius: "24px",
-    boxShadow: "0 25px 60px rgba(0,0,0,0.5), 0 0 20px rgba(212, 175, 55, 0.15)",
+    boxShadow: "0 25px 60px rgba(0,0,0,0.5)",
     overflow: "hidden",
     fontFamily: "Arial, sans-serif",
     border: "1px solid rgba(212, 175, 55, 0.25)",
     color: "#f8fafc"
   },
   receiptHeader: {
-    padding: "30px 20px 20px 20px",
-    textAlign: "center",
-    background: "transparent"
+    padding: "24px 16px 16px 16px",
+    textAlign: "center"
   },
   receiptPulseIconCircle: {
-    width: "60px",
-    height: "60px",
+    width: "50px",
+    height: "50px",
     borderRadius: "50%",
     background: "rgba(16, 185, 129, 0.15)",
     border: "1px solid rgba(16, 185, 129, 0.4)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    margin: "0 auto 12px auto",
-    animation: "pulseIcon 1.5s infinite ease-in-out"
+    margin: "0 auto 10px auto"
   },
   receiptCheckMark: {
     color: "#34d399",
-    fontSize: "30px",
+    fontSize: "24px",
     fontWeight: "900"
   },
   receiptStatusText: {
-    fontSize: "14px",
+    fontSize: "12px",
     color: "#94a3b8",
-    margin: "0 0 8px 0",
+    margin: "0 0 6px 0",
     fontWeight: "600",
     letterSpacing: "1px",
     textTransform: "uppercase"
   },
   receiptAmountDisplay: {
-    fontSize: "34px",
+    fontSize: "28px",
     fontWeight: "800",
     margin: "0 0 6px 0"
   },
@@ -1773,13 +1796,10 @@ const styles = {
     display: "inline-block",
     background: "rgba(255,255,255,0.08)",
     color: "#e2e8f0",
-    padding: "4px 12px",
+    padding: "4px 10px",
     borderRadius: "20px",
-    fontSize: "11px",
-    fontWeight: "700",
-    letterSpacing: "0.8px",
-    margin: 0,
-    border: "1px solid rgba(255,255,255,0.1)"
+    fontSize: "10px",
+    fontWeight: "700"
   },
   receiptDivider: {
     position: "relative",
@@ -1806,11 +1826,10 @@ const styles = {
     background: "#090d16"
   },
   receiptBody: {
-    padding: "24px 24px 16px 24px",
+    padding: "16px",
     display: "flex",
     flexDirection: "column",
-    gap: "16px",
-    background: "transparent"
+    gap: "12px"
   },
   receiptRowItem: {
     display: "flex",
@@ -1818,67 +1837,59 @@ const styles = {
     alignItems: "center"
   },
   receiptLabelText: {
-    fontSize: "13px",
-    color: "#94a3b8",
-    fontWeight: "500"
+    fontSize: "12px",
+    color: "#94a3b8"
   },
   receiptValueText: {
-    fontSize: "14px",
+    fontSize: "13px",
     color: "#ffffff",
-    fontWeight: "700",
-    textAlign: "right"
+    fontWeight: "700"
   },
   receiptStatusBadge: {
     background: "rgba(16, 185, 129, 0.2)",
     color: "#34d399",
-    padding: "4px 10px",
+    padding: "3px 8px",
     borderRadius: "6px",
-    fontSize: "11px",
-    fontWeight: "800",
-    border: "1px solid rgba(16, 185, 129, 0.3)",
-    letterSpacing: "0.5px"
+    fontSize: "10px",
+    fontWeight: "800"
   },
   receiptFooter: {
     background: "rgba(0, 0, 0, 0.3)",
-    padding: "16px",
-    textAlign: "center",
-    borderTop: "1px solid rgba(255, 255, 255, 0.08)"
+    padding: "12px",
+    textAlign: "center"
   },
   receiptBrand: {
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#fbbf24",
     margin: 0,
-    fontWeight: "700",
-    letterSpacing: "0.5px"
+    fontWeight: "700"
   },
   receiptActionContainer: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px"
+    gap: "8px"
   },
   receiptShareBtn: {
     width: "100%",
-    height: "52px",
+    height: "46px",
     border: "none",
-    borderRadius: "16px",
+    borderRadius: "14px",
     background: "linear-gradient(135deg,#d97706,#fbbf24)",
     color: "#0f172a",
     fontWeight: "900",
-    fontSize: "15px",
-    boxShadow: "0 8px 20px rgba(251,191,36,0.3)",
+    fontSize: "14px",
     cursor: "pointer"
   },
   receiptCloseBtn: {
     width: "100%",
-    height: "48px",
+    height: "44px",
     border: "none",
-    borderRadius: "16px",
+    borderRadius: "14px",
     background: "rgba(255, 255, 255, 0.08)",
     color: "#ffffff",
     fontWeight: "700",
-    fontSize: "14px",
-    cursor: "pointer",
-    border: "1px solid rgba(255, 255, 255, 0.15)"
+    fontSize: "13px",
+    cursor: "pointer"
   },
   statusOverlayBg: {
     position: "fixed",
@@ -1892,29 +1903,29 @@ const styles = {
   },
   statusOverlayCard: {
     background: "#ffffff",
-    padding: "30px 40px",
-    borderRadius: "24px",
+    padding: "20px 24px",
+    borderRadius: "20px",
     textAlign: "center",
-    boxShadow: "0 30px 70px rgba(0,0,0,0.25)",
-    maxWidth: "400px",
+    boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
+    maxWidth: "320px",
     width: "85%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "16px"
+    gap: "12px"
   },
   statusOverlayIcon: {
-    width: "64px",
-    height: "64px",
+    width: "50px",
+    height: "50px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "32px",
+    fontSize: "24px",
     fontWeight: "bold"
   },
   statusOverlayText: {
-    fontSize: "20px",
+    fontSize: "16px",
     color: "#0f172a",
     margin: 0,
     fontWeight: "800",
@@ -1930,663 +1941,585 @@ const styles = {
   },
   loadingCard: {
     background: "white",
-    padding: "35px",
-    borderRadius: "30px",
+    padding: "30px",
+    borderRadius: "20px",
     textAlign: "center",
-    boxShadow: "0 18px 35px rgba(15,23,42,.12)"
+    boxShadow: "0 10px 25px rgba(15,23,42,.1)"
   },
   loadingIcon: {
-    fontSize: "70px"
+    fontSize: "50px"
   },
   page: {
     minHeight: "100vh",
     background: "#f4f7ff",
-    padding: "26px",
+    padding: "12px",
     fontFamily: "Arial, sans-serif",
-    color: "#071747"
+    color: "#071747",
+    boxSizing: "border-box"
   },
   app: {
     maxWidth: "1040px",
     margin: "0 auto"
   },
   header: {
-    display: "flex",
-    alignItems: "center",
-    gap: "18px",
-    marginBottom: "22px"
+    marginBottom: "16px"
   },
   pageTitle: {
     margin: 0,
-    fontSize: "38px",
+    fontSize: "28px",
     fontWeight: "900",
     color: "#071747"
   },
   titleWave: {
-    width: "105px",
-    height: "6px",
+    width: "70px",
+    height: "4px",
     borderRadius: "50px",
     background: "linear-gradient(90deg,#ff8a00,#ec4899,#7c3aed)",
-    marginTop: "8px"
+    marginTop: "4px"
   },
   pageSub: {
     color: "#64748b",
-    fontSize: "16px",
-    marginTop: "9px"
+    fontSize: "13px",
+    marginTop: "6px"
   },
   notifyBtn: {
-    marginLeft: "auto",
-    width: "54px",
-    height: "54px",
+    width: "44px",
+    height: "44px",
     borderRadius: "50%",
     border: "none",
     background: "white",
-    boxShadow: "0 10px 25px rgba(15,23,42,.08)",
-    fontSize: "24px",
-    position: "relative"
+    boxShadow: "0 6px 16px rgba(15,23,42,.08)",
+    fontSize: "18px",
+    cursor: "pointer"
   },
   avatar: {
-    width: "58px",
-    height: "58px",
+    width: "44px",
+    height: "44px",
     borderRadius: "50%",
     background: "#ede9fe",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "30px",
-    boxShadow: "0 10px 25px rgba(124,58,237,.15)",
+    fontSize: "22px",
     overflow: "hidden"
+  },
+  avatarImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
   },
   walletHero: {
     position: "relative",
-    minHeight: "330px",
-    borderRadius: "30px",
-    padding: "38px",
+    borderRadius: "24px",
+    padding: "24px",
     color: "white",
     overflow: "hidden",
-    background:
-      "radial-gradient(circle at 82% 20%,rgba(255,255,255,.22),transparent 20%),linear-gradient(135deg,#1614a8,#7c2cff,#ff4b78)",
-    boxShadow: "0 22px 42px rgba(94,42,210,.30)",
-    marginBottom: "24px"
+    background: "linear-gradient(135deg,#1614a8,#7c2cff,#ff4b78)",
+    boxShadow: "0 15px 30px rgba(94,42,210,.25)",
+    marginBottom: "16px"
   },
   walletLeft: {
-    width: "52%",
     position: "relative",
     zIndex: 5
   },
   heroLabel: {
-    letterSpacing: "2px",
-    fontSize: "13px",
+    letterSpacing: "1px",
+    fontSize: "11px",
     fontWeight: "900",
-    opacity: 0.75
+    opacity: 0.8
   },
   walletId: {
-    fontSize: "30px",
-    margin: "8px 0 0",
+    fontSize: "22px",
+    margin: "4px 0 0",
     fontWeight: "900",
     display: "flex",
     alignItems: "center",
-    gap: "10px"
+    gap: "8px"
   },
   dashedLine: {
-    borderTop: "1px dashed rgba(255,255,255,.45)",
-    margin: "22px 0"
+    borderTop: "1px dashed rgba(255,255,255,.3)",
+    margin: "14px 0"
   },
   balanceText: {
-    fontSize: "46px",
-    margin: "8px 0",
+    fontSize: "36px",
+    margin: "4px 0",
     fontWeight: "900"
   },
   heroActions: {
     display: "flex",
-    gap: "16px",
-    marginTop: "22px",
+    gap: "10px",
+    marginTop: "16px",
     flexWrap: "wrap"
   },
   addCashBtn: {
-    minWidth: "135px",
-    height: "54px",
+    minWidth: "100px",
+    height: "46px",
     border: "none",
-    borderRadius: "18px",
+    borderRadius: "14px",
     background: "white",
     color: "#1e1b9b",
     fontWeight: "900",
-    fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(0,0,0,.18)"
+    fontSize: "14px",
+    cursor: "pointer"
   },
   withdrawBtn: {
-    minWidth: "135px",
-    height: "54px",
+    minWidth: "100px",
+    height: "46px",
     border: "none",
-    borderRadius: "18px",
+    borderRadius: "14px",
     background: "linear-gradient(135deg,#ff4b63,#ff8a3d)",
     color: "white",
     fontWeight: "900",
-    fontSize: "16px",
-    boxShadow: "0 12px 25px rgba(255,80,90,.28)"
+    fontSize: "14px",
+    cursor: "pointer"
   },
   eyeBtn: {
     position: "absolute",
-    top: "28px",
-    right: "28px",
-    width: "46px",
-    height: "46px",
-    borderRadius: "15px",
+    top: "16px",
+    right: "16px",
+    width: "38px",
+    height: "38px",
+    borderRadius: "12px",
     border: "1px solid rgba(255,255,255,.3)",
-    background: "rgba(255,255,255,.13)",
+    background: "rgba(255,255,255,.15)",
     color: "white",
-    fontSize: "20px",
-    zIndex: 8
+    fontSize: "16px",
+    zIndex: 8,
+    cursor: "pointer"
   },
   walletArt: {
     position: "absolute",
-    right: "70px",
-    top: "70px",
-    width: "300px",
-    height: "230px",
+    right: "40px",
+    top: "40px",
+    width: "220px",
+    height: "180px",
     zIndex: 2
   },
   moneyNote1: {
     position: "absolute",
-    right: "78px",
+    right: "60px",
     top: "10px",
-    width: "100px",
-    height: "72px",
-    borderRadius: "15px",
+    width: "80px",
+    height: "55px",
+    borderRadius: "12px",
     background: "linear-gradient(135deg,#21d06b,#0ea55f)",
-    transform: "rotate(-16deg)",
-    boxShadow: "0 15px 22px rgba(0,0,0,.18)"
+    transform: "rotate(-16deg)"
   },
   moneyNote2: {
     position: "absolute",
-    right: "28px",
-    top: "28px",
-    width: "100px",
-    height: "72px",
-    borderRadius: "15px",
+    right: "20px",
+    top: "20px",
+    width: "80px",
+    height: "55px",
+    borderRadius: "12px",
     background: "linear-gradient(135deg,#41e6c3,#0ea5a0)",
-    transform: "rotate(18deg)",
-    boxShadow: "0 15px 22px rgba(0,0,0,.18)"
+    transform: "rotate(18deg)"
   },
   walletBag: {
     position: "absolute",
-    right: "55px",
-    bottom: "30px",
-    width: "165px",
-    height: "132px",
-    borderRadius: "28px",
+    right: "30px",
+    bottom: "20px",
+    width: "120px",
+    height: "95px",
+    borderRadius: "20px",
     background: "linear-gradient(145deg,#7c2cff,#ba31ff)",
     color: "#facc15",
-    fontSize: "52px",
+    fontSize: "38px",
     fontWeight: "900",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "inset -14px -12px 0 rgba(0,0,0,.14),0 24px 32px rgba(0,0,0,.25)"
+    justifyContent: "center"
   },
   coin1: {
     position: "absolute",
-    right: "18px",
-    bottom: "35px",
-    width: "58px",
-    height: "58px",
+    right: "10px",
+    bottom: "20px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#facc15,#f59e0b)",
     color: "#92400e",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: "900",
-    boxShadow: "0 12px 18px rgba(0,0,0,.18)"
+    fontWeight: "900"
   },
   coin2: {
     position: "absolute",
-    right: "82px",
-    bottom: "0",
-    width: "62px",
-    height: "62px",
+    right: "50px",
+    bottom: "-5px",
+    width: "45px",
+    height: "45px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#fde047,#f97316)",
     color: "#92400e",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: "900",
-    boxShadow: "0 12px 18px rgba(0,0,0,.18)"
+    fontWeight: "900"
   },
   incomePanel: {
     background: "white",
-    borderRadius: "28px",
-    padding: "22px",
+    borderRadius: "20px",
+    padding: "16px",
     display: "grid",
     gridTemplateColumns: "repeat(5,1fr)",
     gap: "8px",
-    boxShadow: "0 15px 30px rgba(15,23,42,.08)",
-    marginBottom: "24px"
+    boxShadow: "0 10px 20px rgba(15,23,42,.05)",
+    marginBottom: "16px"
   },
   incomeCard: {
     textAlign: "center",
-    padding: "12px 8px",
-    borderRight: "1px dashed #d9e1f2"
+    padding: "8px 4px"
   },
   incomeIcon: {
-    width: "58px",
-    height: "58px",
-    margin: "0 auto 10px",
+    width: "44px",
+    height: "44px",
+    margin: "0 auto 8px",
     borderRadius: "50%",
     color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "26px",
-    boxShadow: "0 10px 20px rgba(15,23,42,.12)"
+    fontSize: "20px"
   },
   incomeWave: {
-    fontSize: "30px",
+    fontSize: "20px",
     fontWeight: "900",
-    marginTop: "-6px"
+    marginTop: "-4px"
   },
   middleGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "22px",
-    marginBottom: "24px"
+    gap: "16px",
+    marginBottom: "16px"
   },
   transferCard: {
     background: "#070a55",
     color: "white",
-    borderRadius: "28px",
-    padding: "30px",
-    boxShadow: "0 18px 32px rgba(7,10,85,.22)"
+    borderRadius: "20px",
+    padding: "20px"
   },
   transferIcon: {
-    width: "60px",
-    height: "60px",
-    borderRadius: "18px",
+    width: "46px",
+    height: "46px",
+    borderRadius: "14px",
     background: "linear-gradient(135deg,#2563eb,#06b6d4)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "28px",
-    marginBottom: "12px"
+    fontSize: "22px",
+    marginBottom: "10px"
   },
   transferTitle: {
     margin: 0,
-    fontSize: "28px"
+    fontSize: "20px"
   },
   transferSub: {
     color: "#aab1d6",
-    marginBottom: "22px"
+    fontSize: "12px",
+    marginBottom: "16px"
   },
   label: {
     display: "block",
-    fontWeight: "900",
-    marginBottom: "8px"
+    fontWeight: "700",
+    fontSize: "12px",
+    marginBottom: "6px"
   },
   inputWrap: {
-    height: "56px",
-    borderRadius: "16px",
+    height: "46px",
+    borderRadius: "12px",
     background: "white",
     display: "flex",
     alignItems: "center",
-    padding: "0 15px",
-    marginBottom: "18px"
+    padding: "0 12px",
+    marginBottom: "14px"
   },
   transferInput: {
     flex: 1,
     border: "none",
     outline: "none",
-    fontSize: "16px",
+    fontSize: "14px",
     color: "#000"
   },
   inputIcon: {
-    fontSize: "22px"
+    fontSize: "18px"
   },
   transferBtn: {
     width: "100%",
-    height: "58px",
+    height: "46px",
     border: "none",
-    borderRadius: "18px",
+    borderRadius: "14px",
     background: "linear-gradient(135deg,#ff7a35,#ec168e)",
     color: "white",
-    fontSize: "18px",
+    fontSize: "15px",
     fontWeight: "900",
-    boxShadow: "0 12px 24px rgba(236,22,142,.25)"
+    cursor: "pointer"
   },
   inviteCard: {
     background: "linear-gradient(135deg,#fff4d9,#ffffff)",
-    borderRadius: "28px",
-    padding: "30px",
+    borderRadius: "20px",
+    padding: "20px",
     position: "relative",
-    overflow: "hidden",
-    boxShadow: "0 15px 30px rgba(15,23,42,.08)"
+    overflow: "hidden"
   },
   inviteTop: {
     color: "#f59e0b",
     fontWeight: "900",
-    fontSize: "18px"
+    fontSize: "14px"
   },
   inviteTitle: {
-    fontSize: "32px",
-    margin: "10px 0 0"
+    fontSize: "22px",
+    margin: "6px 0 0"
   },
   inviteTitle2: {
     color: "#6d28d9",
-    fontSize: "24px",
-    margin: "6px 0"
+    fontSize: "16px",
+    margin: "4px 0"
   },
   giftBox: {
-    fontSize: "115px",
-    textAlign: "right",
-    filter: "drop-shadow(0 14px 18px rgba(245,158,11,.22))"
+    fontSize: "80px",
+    textAlign: "right"
   },
   inviteBtn: {
-    position: "absolute",
-    left: "30px",
-    bottom: "30px",
-    height: "52px",
-    minWidth: "140px",
+    height: "44px",
+    minWidth: "120px",
     border: "none",
-    borderRadius: "18px",
+    borderRadius: "14px",
     background: "linear-gradient(135deg,#6d28d9,#ec4899)",
     color: "white",
     fontWeight: "900",
-    fontSize: "16px"
+    fontSize: "14px",
+    cursor: "pointer"
   },
   historyCard: {
     background: "white",
-    borderRadius: "28px",
-    padding: "24px",
-    boxShadow: "0 15px 30px rgba(15,23,42,.08)",
-    marginBottom: "20px"
+    borderRadius: "20px",
+    padding: "16px",
+    boxShadow: "0 10px 20px rgba(15,23,42,.05)",
+    marginBottom: "16px"
   },
   historyHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "18px"
+    marginBottom: "14px"
   },
   historyTitle: {
     margin: 0,
-    fontSize: "28px"
+    fontSize: "18px"
   },
   historySub: {
+    margin: "2px 0 0",
+    fontSize: "11px",
     color: "#64748b"
   },
   filterSelect: {
-    height: "44px",
-    borderRadius: "14px",
-    border: "1px solid #dbe3ef",
-    padding: "0 14px",
-    fontWeight: "900"
+    padding: "6px 10px",
+    borderRadius: "8px",
+    border: "1px solid #cbd5e1",
+    outline: "none",
+    fontSize: "12px"
   },
   tableHead: {
     display: "grid",
     gridTemplateColumns: "70px 1.6fr 1fr 1fr 1.2fr",
+    fontSize: "11px",
+    fontWeight: "800",
     color: "#94a3b8",
-    fontSize: "13px",
-    fontWeight: "900",
-    padding: "12px 0",
-    borderBottom: "1px solid #eef2ff"
-  },
-  typeCircle: {
-    width: "46px",
-    height: "46px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "22px"
-  },
-  rowTitle: {
-    fontWeight: "900",
-    color: "#071747"
-  },
-  rowSub: {
-    color: "#64748b",
-    fontSize: "13px"
-  },
-  successBadge: {
-    display: "inline-block",
-    background: "#dcfce7",
-    color: "#16a34a",
-    padding: "8px 14px",
-    borderRadius: "14px",
-    fontWeight: "900",
-    fontSize: "13px"
+    paddingBottom: "8px",
+    borderBottom: "1px solid #f1f5f9"
   },
   emptyHistory: {
     textAlign: "center",
-    padding: "35px",
-    color: "#64748b",
-    fontWeight: "900"
+    padding: "20px",
+    color: "#94a3b8",
+    fontSize: "13px"
   },
   viewMore: {
-    textAlign: "center",
-    color: "#6d28d9",
-    fontWeight: "900",
-    marginTop: "18px",
-    background: "none",
+    width: "100%",
+    padding: "10px",
     border: "none",
+    background: "#f8fafc",
+    color: "#475569",
+    fontWeight: "700",
+    fontSize: "12px",
+    borderRadius: "10px",
+    marginTop: "10px",
     cursor: "pointer"
   },
   bottomFeatures: {
-    background: "white",
-    borderRadius: "22px",
-    padding: "18px",
     display: "grid",
-    gridTemplateColumns: "repeat(3,1fr)",
-    gap: "15px",
-    boxShadow: "0 12px 25px rgba(15,23,42,.07)"
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "12px"
   },
   featureItem: {
+    background: "white",
+    padding: "12px",
+    borderRadius: "16px",
     display: "flex",
     alignItems: "center",
-    gap: "12px"
+    gap: "10px",
+    fontSize: "12px"
   },
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,.45)",
-    zIndex: 9999,
+    background: "rgba(0,0,0,0.6)",
+    backdropFilter: "blur(4px)",
+    zIndex: 100005,
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    padding: "12px"
   },
   modal: {
-    width: "90%",
-    maxWidth: "430px",
     background: "white",
-    borderRadius: "26px",
-    padding: "26px",
-    color: "#071747",
-    boxShadow: "0 25px 50px rgba(0,0,0,.25)"
-  },
-  closeBtn: {
+    padding: "20px",
+    borderRadius: "20px",
     width: "100%",
-    height: "50px",
-    marginTop: "14px",
-    border: "none",
-    borderRadius: "14px",
-    background: "#e5e7eb",
-    color: "#071747",
-    fontWeight: "900"
-  },
-  confirmTop: {
-    textAlign: "center"
-  },
-  confirmAvatar: {
-    width: "70px",
-    height: "70px",
-    borderRadius: "50%",
-    background: "#ede9fe",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    margin: "0 auto",
-    fontSize: "34px"
-  },
-  receiverCard: {
-    background: "#f8fafc",
-    borderRadius: "18px",
-    padding: "18px",
-    marginTop: "16px",
-    textAlign: "center"
-  },
-  sendMoneyBtn: {
-    width: "100%",
-    height: "52px",
-    border: "none",
-    borderRadius: "15px",
-    background: "#16a34a",
-    color: "white",
-    fontWeight: "900",
-    marginTop: "15px",
-    cursor: "pointer"
-  },
-  cancelBtn: {
-    width: "100%",
-    height: "48px",
-    border: "none",
-    borderRadius: "15px",
-    background: "#fee2e2",
-    color: "#dc2626",
-    fontWeight: "900",
-    marginTop: "10px"
-  },
-  shareGrid: {
-    display: "grid",
-    gap: "12px",
-    marginTop: "18px"
-  },
-  shareBtn: {
-    height: "50px",
-    borderRadius: "15px",
-    border: "none",
-    background: "linear-gradient(135deg,#22c55e,#16a34a)",
-    color: "white",
-    fontWeight: "900",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    textDecoration: "none"
-  },
-  notifyCount: {
-    position: "absolute",
-    top: "-5px",
-    right: "-5px",
-    background: "#ef4444",
-    color: "white",
-    width: "20px",
-    height: "20px",
-    borderRadius: "50%",
-    fontSize: "12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900"
-  },
-  avatarImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    borderRadius: "50%"
+    maxWidth: "400px",
+    boxSizing: "border-box"
   },
   depositOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(5, 10, 30, 0.65)",
-    backdropFilter: "blur(10px)",
-    zIndex: 9999,
+    background: "rgba(0,0,0,0.6)",
+    backdropFilter: "blur(4px)",
+    zIndex: 100005,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: 18
+    padding: "12px"
   },
   depositModal: {
+    background: "#0f172a",
+    color: "white",
+    padding: "20px",
+    borderRadius: "20px",
     width: "100%",
-    maxWidth: 390,
-    background: "linear-gradient(145deg, #ffffff, #f7f2ff)",
-    borderRadius: 28,
-    padding: 22,
-    boxShadow: "0 30px 80px rgba(70, 30, 180, 0.35)",
+    maxWidth: "400px",
     position: "relative",
-    border: "1px solid rgba(255,255,255,0.8)"
+    boxSizing: "border-box"
   },
   depositCloseX: {
     position: "absolute",
-    top: 14,
-    right: 16,
-    width: 34,
-    height: 34,
-    borderRadius: "50%",
+    top: "12px",
+    right: "12px",
+    background: "none",
     border: "none",
-    background: "#f1eaff",
-    color: "#6d28d9",
-    fontSize: 22,
-    fontWeight: 900,
+    color: "#94a3b8",
+    fontSize: "24px",
     cursor: "pointer"
   },
   depositIcon: {
-    width: 62,
-    height: 62,
-    borderRadius: 20,
-    background: "linear-gradient(135deg,#2563eb,#9333ea,#ec4899)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 30,
-    color: "#fff",
-    marginBottom: 12
+    fontSize: "32px",
+    textAlign: "center",
+    marginBottom: "6px"
   },
   depositTitle: {
-    margin: 0,
-    fontSize: 26,
-    fontWeight: 900,
-    color: "#101a44"
+    fontSize: "18px",
+    textAlign: "center",
+    margin: "0 0 6px 0"
   },
   depositSub: {
-    margin: "6px 0 18px",
-    color: "#6b7280",
-    fontSize: 13,
-    lineHeight: 1.4
+    fontSize: "11px",
+    color: "#94a3b8",
+    textAlign: "center",
+    marginBottom: "16px"
   },
   depositLabel: {
     display: "block",
-    fontSize: 13,
-    fontWeight: 800,
-    color: "#18204a",
-    margin: "12px 0 7px"
+    fontSize: "12px",
+    fontWeight: "700",
+    marginBottom: "6px"
   },
   depositInput: {
     width: "100%",
-    height: "48px",
-    borderRadius: "14px",
-    border: "1px solid #cbd5e1",
-    padding: "0 14px",
-    fontSize: "15px",
+    height: "44px",
+    borderRadius: "10px",
+    border: "1px solid #334155",
+    background: "#1e293b",
+    color: "white",
+    padding: "0 12px",
+    marginBottom: "12px",
     outline: "none",
     boxSizing: "border-box"
   },
   submitDepositBtn: {
     width: "100%",
-    height: "50px",
+    height: "46px",
     border: "none",
-    borderRadius: "14px",
-    background: "linear-gradient(135deg, #10b981, #059669)",
+    borderRadius: "12px",
+    background: "linear-gradient(135deg,#10b981,#059669)",
     color: "white",
-    fontWeight: "900",
-    fontSize: "15px",
-    cursor: "pointer",
-    boxShadow: "0 8px 20px rgba(16,185,129,0.25)"
+    fontWeight: "800",
+    fontSize: "14px",
+    cursor: "pointer"
   },
-  topHeader: {
-    width: "100%"
+  confirmTop: {
+    textAlign: "center",
+    marginBottom: "14px"
   },
-  menuButton: {
-    background: "transparent",
+  confirmAvatar: {
+    fontSize: "36px"
+  },
+  receiverCard: {
+    background: "#f8fafc",
+    padding: "12px",
+    borderRadius: "12px",
+    marginBottom: "14px"
+  },
+  sendMoneyBtn: {
+    width: "100%",
+    height: "44px",
     border: "none",
-    fontSize: "28px",
-    cursor: "pointer",
-    marginBottom: "10px"
+    borderRadius: "12px",
+    background: "#10b981",
+    color: "white",
+    fontWeight: "800",
+    fontSize: "14px",
+    marginBottom: "8px",
+    cursor: "pointer"
+  },
+  cancelBtn: {
+    width: "100%",
+    height: "40px",
+    border: "none",
+    borderRadius: "12px",
+    background: "#f1f5f9",
+    color: "#475569",
+    fontWeight: "700",
+    fontSize: "13px",
+    cursor: "pointer"
+  },
+  closeBtn: {
+    width: "100%",
+    height: "40px",
+    border: "none",
+    borderRadius: "12px",
+    background: "#f1f5f9",
+    color: "#475569",
+    fontWeight: "700",
+    fontSize: "13px",
+    marginTop: "10px",
+    cursor: "pointer"
+  },
+  shareGrid: {
+    display: "flex",
+    gap: "10px",
+    margin: "16px 0"
+  },
+  shareBtn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    border: "none",
+    background: "#2563eb",
+    color: "white",
+    textDecoration: "none",
+    textAlign: "center",
+    fontSize: "12px",
+    fontWeight: "700"
   }
 };
