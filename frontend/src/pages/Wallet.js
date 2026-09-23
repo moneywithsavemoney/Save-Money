@@ -73,6 +73,7 @@ export default function Wallet() {
 
   const [selectedTxn, setSelectedTxn] = useState(null);
   const receiptRef = useRef(null);
+  const overlayTimerRef = useRef(null);
 
   const [statusOverlay, setStatusOverlay] = useState({
     show: false,
@@ -87,10 +88,19 @@ export default function Wallet() {
   }, []);
 
   const triggerStatusOverlay = (type, message) => {
+    if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current);
+    
     setStatusOverlay({ show: true, type, message });
-    setTimeout(() => {
+    
+    // ৩ সেকেন্ডের জন্য শো করবে
+    overlayTimerRef.current = setTimeout(() => {
       setStatusOverlay({ show: false, type: "info", message: "" });
-    }, 2200);
+    }, 3000);
+  };
+
+  const closeStatusOverlay = () => {
+    if (overlayTimerRef.current) clearTimeout(overlayTimerRef.current);
+    setStatusOverlay({ show: false, type: "info", message: "" });
   };
 
   const loadWallet = async () => {
@@ -729,20 +739,64 @@ export default function Wallet() {
           </div>
         </div>
 
+        {/* --- ULTRA PREMIUM GLASSMORPHIC INFO OVERLAY --- */}
         {statusOverlay.show && (
           <div style={styles.statusOverlayBg}>
             <div style={{
               ...styles.statusOverlayCard,
-              borderTop: statusOverlay.type === "success" ? "6px solid #10b981" : statusOverlay.type === "warning" ? "6px solid #f59e0b" : "6px solid #ef4444"
+              border: statusOverlay.type === "success" 
+                ? "1px solid rgba(52, 211, 153, 0.4)" 
+                : statusOverlay.type === "warning" 
+                ? "1px solid rgba(251, 191, 36, 0.4)" 
+                : "1px solid rgba(248, 113, 113, 0.4)",
+              boxShadow: statusOverlay.type === "success"
+                ? "0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(16, 185, 129, 0.3)"
+                : statusOverlay.type === "warning"
+                ? "0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(245, 158, 11, 0.3)"
+                : "0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(239, 68, 68, 0.3)"
             }}>
               <div style={{
                 ...styles.statusOverlayIcon,
-                background: statusOverlay.type === "success" ? "#dcfce7" : statusOverlay.type === "warning" ? "#fef3c7" : "#fee2e2",
-                color: statusOverlay.type === "success" ? "#10b981" : statusOverlay.type === "warning" ? "#d97706" : "#ef4444"
+                background: statusOverlay.type === "success" 
+                  ? "radial-gradient(circle, rgba(16,185,129,0.3) 0%, rgba(5,150,105,0.1) 100%)" 
+                  : statusOverlay.type === "warning" 
+                  ? "radial-gradient(circle, rgba(245,158,11,0.3) 0%, rgba(217,119,6,0.1) 100%)" 
+                  : "radial-gradient(circle, rgba(239,68,68,0.3) 0%, rgba(220,38,38,0.1) 100%)",
+                color: statusOverlay.type === "success" ? "#34d399" : statusOverlay.type === "warning" ? "#fbbf24" : "#f87171",
+                border: statusOverlay.type === "success" ? "1.5px solid #10b981" : statusOverlay.type === "warning" ? "1.5px solid #f59e0b" : "1.5px solid #ef4444"
               }}>
-                {statusOverlay.type === "success" ? "✓" : statusOverlay.type === "warning" ? "⚠" : "✕"}
+                {statusOverlay.type === "success" ? "✓" : statusOverlay.type === "warning" ? "⚠️" : "✕"}
               </div>
-              <h3 style={styles.statusOverlayText}>{statusOverlay.message}</h3>
+              
+              <div style={{ flex: 1, width: "100%" }}>
+                <span style={{
+                  fontSize: "11px",
+                  fontWeight: "800",
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  color: statusOverlay.type === "success" ? "#34d399" : statusOverlay.type === "warning" ? "#fbbf24" : "#f87171",
+                  display: "block",
+                  marginBottom: "4px"
+                }}>
+                  {statusOverlay.type === "success" ? "System Notification" : statusOverlay.type === "warning" ? "Attention Needed" : "Action Failed"}
+                </span>
+                <h3 style={styles.statusOverlayText}>{statusOverlay.message}</h3>
+              </div>
+
+              {/* BOTTOM CLOSE BUTTON */}
+              <button 
+                style={{
+                  ...styles.statusOverlayCloseBtn,
+                  background: statusOverlay.type === "success" 
+                    ? "linear-gradient(135deg, #10b981, #059669)" 
+                    : statusOverlay.type === "warning" 
+                    ? "linear-gradient(135deg, #f59e0b, #d97706)" 
+                    : "linear-gradient(135deg, #ef4444, #dc2626)"
+                }} 
+                onClick={closeStatusOverlay}
+              >
+                OK, CLOSE
+              </button>
             </div>
           </div>
         )}
@@ -1340,6 +1394,11 @@ function IncomeCard({ icon, title, amount, color }) {
 }
 
 const mobileResponsiveCSS = `
+  @keyframes overlayPopIn {
+    0% { opacity: 0; transform: scale(0.85) translateY(20px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
   @media (max-width: 768px) {
     .mobile-header-bar {
       display: flex !important;
@@ -1891,45 +1950,61 @@ const styles = {
     fontSize: "13px",
     cursor: "pointer"
   },
+  // STYLES FOR PREMIUM OVERLAY
   statusOverlayBg: {
     position: "fixed",
     inset: 0,
-    background: "rgba(15, 23, 42, 0.4)",
-    backdropFilter: "blur(6px)",
+    background: "rgba(3, 7, 18, 0.75)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
     zIndex: 100000,
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    padding: "20px"
   },
   statusOverlayCard: {
-    background: "#ffffff",
-    padding: "20px 24px",
-    borderRadius: "20px",
+    background: "linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(8, 14, 28, 0.98))",
+    padding: "24px",
+    borderRadius: "24px",
     textAlign: "center",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.25)",
-    maxWidth: "320px",
-    width: "85%",
+    maxWidth: "340px",
+    width: "90%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "12px"
+    gap: "14px",
+    animation: "overlayPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
   },
   statusOverlayIcon: {
-    width: "50px",
-    height: "50px",
+    width: "56px",
+    height: "56px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "24px",
+    fontSize: "26px",
     fontWeight: "bold"
   },
   statusOverlayText: {
-    fontSize: "16px",
-    color: "#0f172a",
+    fontSize: "15px",
+    color: "#f8fafc",
     margin: 0,
-    fontWeight: "800",
+    fontWeight: "700",
     lineHeight: "1.4"
+  },
+  statusOverlayCloseBtn: {
+    width: "100%",
+    height: "42px",
+    border: "none",
+    borderRadius: "12px",
+    color: "#ffffff",
+    fontWeight: "900",
+    fontSize: "13px",
+    letterSpacing: "0.8px",
+    cursor: "pointer",
+    boxShadow: "0 6px 16px rgba(0,0,0,0.4)",
+    marginTop: "4px"
   },
   loadingPage: {
     minHeight: "100vh",
