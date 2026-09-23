@@ -191,7 +191,7 @@ export default function InvestNow() {
 
             <p style={styles.heroGain}>
               +{showInvestment ? money(summary.monthlyInvestment) : "₹ •••••"}{" "}
-              <span style={{ color: "#a7f3d0", fontSize: "16px" }}>
+              <span style={{ color: "#a7f3d0", fontSize: "14px" }}>
                 (▲ {summary.returnRate}%)
               </span>
             </p>
@@ -200,7 +200,6 @@ export default function InvestNow() {
           </div>
 
           <div style={styles.heroRight}>
-            <HeroGraph />
             <PiggyArt />
           </div>
         </section>
@@ -248,14 +247,13 @@ export default function InvestNow() {
         <section style={styles.motivationCard}>
           <div style={styles.trophyIcon}>🏆</div>
           <div style={styles.motivationText}>
-            <h2 style={{ margin: "0 0 5px 0", fontSize: "22px", fontWeight: "bold" }}>
+            <h2 style={{ margin: "0 0 5px 0", fontSize: "18px", fontWeight: "bold" }}>
               Discipline Today, Wealth Tomorrow.
             </h2>
-            <p style={{ margin: 0, opacity: 0.8, fontSize: "15px" }}>
+            <p style={{ margin: 0, opacity: 0.8, fontSize: "13px" }}>
               Small steps now, big freedom later.
             </p>
           </div>
-          <div style={styles.motiveChart}>▂▃▅▇</div>
         </section>
 
         {/* STATS */}
@@ -275,26 +273,7 @@ function HeroNetwork() {
     <div style={styles.networkLayer}>
       <span style={styles.netDotA}></span>
       <span style={styles.netDotB}></span>
-      <span style={styles.netDotC}></span>
-      <span style={styles.netDotD}></span>
-      <span style={styles.netLineA}></span>
-      <span style={styles.netLineB}></span>
-      <span style={styles.netLineC}></span>
       <span style={styles.netCircleA}></span>
-      <span style={styles.netCircleB}></span>
-    </div>
-  );
-}
-
-function HeroGraph() {
-  return (
-    <div style={styles.heroGraph}>
-      <span style={styles.graphArrow}>↗</span>
-      <span style={styles.graphBar1}></span>
-      <span style={styles.graphBar2}></span>
-      <span style={styles.graphBar3}></span>
-      <span style={styles.graphBar4}></span>
-      <span style={styles.graphBar5}></span>
     </div>
   );
 }
@@ -313,13 +292,6 @@ function PiggyArt({ small }) {
         <span style={styles.pigLegRight}></span>
         <span style={styles.pigTail}>↺</span>
       </div>
-      {!small && (
-        <>
-          <span style={styles.floatCoinA}>●</span>
-          <span style={styles.floatCoinB}>◆</span>
-          <span style={styles.floatCoinC}>✦</span>
-        </>
-      )}
     </div>
   );
 }
@@ -332,8 +304,8 @@ function QuickAction({ icon, title, subtitle, color, onClick }) {
     <button style={styles.quickAction} onClick={onClick}>
       <div style={iconStyle}>{icon === "wallet" ? "💳" : "📋"}</div>
       <div>
-        <h3 style={{ margin: "0 0 4px 0", fontSize: "16px", color: "#ffffff", fontWeight: "bold" }}>{title}</h3>
-        <p style={{ margin: 0, fontSize: "13px", color: "#9ca3af" }}>{subtitle}</p>
+        <h3 style={{ margin: "0 0 2px 0", fontSize: "15px", color: "#ffffff", fontWeight: "bold" }}>{title}</h3>
+        <p style={{ margin: 0, fontSize: "12px", color: "#9ca3af" }}>{subtitle}</p>
       </div>
     </button>
   );
@@ -343,7 +315,7 @@ function SectionTitle({ title }) {
   return (
     <div style={styles.sectionTitle}>
       <div style={styles.sectionLineLeft}></div>
-      <h2 style={{ color: "#ffffff", margin: 0, fontSize: "20px", fontWeight: "bold" }}>{title}</h2>
+      <h2 style={{ color: "#ffffff", margin: 0, fontSize: "18px", fontWeight: "bold" }}>{title}</h2>
       <div style={styles.sectionLineRight}></div>
     </div>
   );
@@ -355,7 +327,6 @@ function PlanCard({ plan }) {
   return (
     <div style={isSave ? styles.savePlanCard : styles.onePlanCard}>
       <div style={styles.planGlow}></div>
-      <div style={styles.planPattern}></div>
 
       <div style={styles.planTop}>
         <div style={styles.planImageCircle}>
@@ -379,7 +350,7 @@ function PlanCard({ plan }) {
         </div>
 
         <div style={styles.planHeadingBox}>
-          <h1 style={{ margin: 0, fontSize: "18px", fontWeight: "bold", color: "#ffffff" }}>{plan.title}</h1>
+          <h1 style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#ffffff" }}>{plan.title}</h1>
           <span style={styles.planSubtitleYellow}>{plan.subtitle}</span>
         </div>
       </div>
@@ -403,8 +374,8 @@ function PlanCard({ plan }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            width: "28px",
-            height: "28px",
+            width: "24px",
+            height: "24px",
             borderRadius: "50%",
             color: "#ffffff",
             background: isSave
@@ -437,8 +408,8 @@ function ComingCard({ item, onClick }) {
         {item.icon === "piggy" && <MiniPiggy />}
       </div>
 
-      <h3 style={{ margin: "14px 0 6px 0", fontSize: "16px", color: "#ffffff", fontWeight: "bold" }}>{item.title}</h3>
-      <p style={{ margin: "0 0 40px 0", fontSize: "13px", color: "#9ca3af", lineHeight: "1.4" }}>{item.text}</p>
+      <h3 style={{ margin: "10px 0 4px 0", fontSize: "15px", color: "#ffffff", fontWeight: "bold" }}>{item.title}</h3>
+      <p style={{ margin: "0 0 35px 0", fontSize: "12px", color: "#9ca3af", lineHeight: "1.3" }}>{item.text}</p>
 
       <div style={styles.comingButton}>🕒 Coming Soon</div>
     </button>
@@ -483,8 +454,8 @@ function MiniStat({ stat }) {
       </div>
 
       <div>
-        <p style={{ margin: "0 0 2px 0", fontSize: "13px", color: "#9ca3af" }}>{stat.title}</p>
-        <h3 style={{ margin: 0, fontSize: "16px", color: "#ffffff", fontWeight: "bold" }}>{stat.value}</h3>
+        <p style={{ margin: "0 0 2px 0", fontSize: "11px", color: "#9ca3af" }}>{stat.title}</p>
+        <h3 style={{ margin: 0, fontSize: "14px", color: "#ffffff", fontWeight: "bold" }}>{stat.value}</h3>
       </div>
     </div>
   );
@@ -494,14 +465,14 @@ const styles = {
   page: {
     minHeight: "100vh",
     background: "linear-gradient(180deg, #0f172a, #020617)",
-    padding: "18px",
+    padding: "12px",
     fontFamily: "Arial, sans-serif",
     color: "#f8fafc"
   },
 
   appWrap: {
     width: "100%",
-    maxWidth: "940px",
+    maxWidth: "480px",
     margin: "0 auto"
   },
 
@@ -515,8 +486,8 @@ const styles = {
 
   loadingCard: {
     background: "#1e293b",
-    padding: "28px",
-    borderRadius: "28px",
+    padding: "24px",
+    borderRadius: "20px",
     textAlign: "center",
     boxShadow: "0 18px 45px rgba(0,0,0,.4)"
   },
@@ -528,336 +499,206 @@ const styles = {
   },
 
   heroCard: {
-    height: "230px",
-    borderRadius: "32px",
+    borderRadius: "24px",
     background: "linear-gradient(135deg,#31108f,#5b21b6,#db2777)",
     position: "relative",
     overflow: "hidden",
-    padding: "36px 44px",
+    padding: "20px",
     color: "white",
-    boxShadow: "0 20px 42px rgba(0,0,0,.4)"
+    boxShadow: "0 15px 30px rgba(0,0,0,.4)",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
 
   networkLayer: {
     position: "absolute",
     inset: 0,
-    opacity: 0.25
+    opacity: 0.2
   },
 
   netDotA: {
     position: "absolute",
-    top: "35px",
-    right: "300px",
-    width: "12px",
-    height: "12px",
+    top: "20px",
+    right: "100px",
+    width: "8px",
+    height: "8px",
     borderRadius: "50%",
     background: "white"
   },
 
   netDotB: {
     position: "absolute",
-    top: "85px",
-    right: "165px",
-    width: "14px",
-    height: "14px",
+    bottom: "20px",
+    left: "40px",
+    width: "10px",
+    height: "10px",
     borderRadius: "50%",
     background: "#facc15"
   },
 
-  netDotC: {
-    position: "absolute",
-    bottom: "48px",
-    right: "245px",
-    width: "12px",
-    height: "12px",
-    borderRadius: "50%",
-    background: "#bbf7d0"
-  },
-
-  netDotD: {
-    position: "absolute",
-    bottom: "95px",
-    right: "390px",
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%",
-    background: "white"
-  },
-
-  netLineA: {
-    position: "absolute",
-    top: "48px",
-    right: "170px",
-    width: "140px",
-    height: "2px",
-    background: "white",
-    transform: "rotate(20deg)"
-  },
-
-  netLineB: {
-    position: "absolute",
-    top: "105px",
-    right: "225px",
-    width: "160px",
-    height: "2px",
-    background: "white",
-    transform: "rotate(-28deg)"
-  },
-
-  netLineC: {
-    position: "absolute",
-    bottom: "72px",
-    right: "235px",
-    width: "170px",
-    height: "2px",
-    background: "white",
-    transform: "rotate(16deg)"
-  },
-
   netCircleA: {
     position: "absolute",
-    right: "70px",
-    top: "25px",
-    width: "150px",
-    height: "150px",
-    border: "1px solid rgba(255,255,255,0.2)",
-    borderRadius: "50%"
-  },
-
-  netCircleB: {
-    position: "absolute",
-    right: "280px",
-    bottom: "-35px",
-    width: "170px",
-    height: "170px",
+    right: "-20px",
+    top: "-20px",
+    width: "120px",
+    height: "120px",
     border: "1px solid rgba(255,255,255,0.2)",
     borderRadius: "50%"
   },
 
   heroLeft: {
     position: "relative",
-    zIndex: 5
+    zIndex: 5,
+    flex: 1
   },
 
   heroLabelRow: {
     display: "flex",
     alignItems: "center",
-    gap: "10px"
+    gap: "8px"
   },
 
   heroLabel: {
     margin: 0,
-    fontSize: "19px",
-    opacity: 0.95,
+    fontSize: "14px",
+    opacity: 0.9,
     fontWeight: "600"
   },
 
   heroAmount: {
-    margin: "18px 0 8px",
-    fontSize: "50px",
+    margin: "8px 0 4px",
+    fontSize: "28px",
     fontWeight: "900",
-    letterSpacing: "1px"
+    letterSpacing: "0.5px"
   },
 
   heroGain: {
     margin: 0,
     color: "#34d399",
-    fontSize: "22px",
-    fontWeight: "900"
+    fontSize: "15px",
+    fontWeight: "700"
   },
 
   heroSub: {
-    marginTop: "12px",
-    fontSize: "18px",
-    opacity: 0.9
+    marginTop: "4px",
+    fontSize: "12px",
+    opacity: 0.8
   },
 
   heroRight: {
-    position: "absolute",
-    right: "70px",
-    top: "20px",
-    width: "310px",
-    height: "190px",
-    zIndex: 3
-  },
-
-  heroGraph: {
-    position: "absolute",
-    right: "0",
-    bottom: "0",
-    width: "280px",
-    height: "160px",
-    opacity: 0.15
-  },
-
-  graphArrow: {
-    position: "absolute",
-    right: "15px",
-    top: "-5px",
-    fontSize: "115px",
-    color: "white",
-    fontWeight: "900"
-  },
-
-  graphBar1: {
-    position: "absolute",
-    bottom: 0,
-    left: 8,
-    width: 24,
-    height: 48,
-    background: "white",
-    borderRadius: 8
-  },
-
-  graphBar2: {
-    position: "absolute",
-    bottom: 0,
-    left: 48,
-    width: 24,
-    height: 70,
-    background: "white",
-    borderRadius: 8
-  },
-
-  graphBar3: {
-    position: "absolute",
-    bottom: 0,
-    left: 88,
-    width: 24,
-    height: 98,
-    background: "white",
-    borderRadius: 8
-  },
-
-  graphBar4: {
-    position: "absolute",
-    bottom: 0,
-    left: 128,
-    width: 24,
-    height: 125,
-    background: "white",
-    borderRadius: 8
-  },
-
-  graphBar5: {
-    position: "absolute",
-    bottom: 0,
-    left: 168,
-    width: 24,
-    height: 150,
-    background: "white",
-    borderRadius: 8
+    position: "relative",
+    zIndex: 5,
+    width: "90px",
+    display: "flex",
+    justifyContent: "center"
   },
 
   piggyStage: {
-    position: "absolute",
-    right: "95px",
-    top: "35px",
-    width: "150px",
-    height: "125px",
-    zIndex: 6
+    position: "relative",
+    width: "85px",
+    height: "70px"
   },
 
   piggySmallStage: {
     position: "relative",
-    width: "110px",
-    height: "90px",
+    width: "85px",
+    height: "70px",
     margin: "0 auto"
   },
 
   pigCoin: {
     position: "absolute",
-    top: "-8px",
-    left: "55px",
-    width: "42px",
-    height: "42px",
+    top: "-6px",
+    left: "30px",
+    width: "24px",
+    height: "24px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#fde047,#f59e0b)",
     color: "#92400e",
-    border: "4px solid #fef3c7",
+    border: "2px solid #fef3c7",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     fontWeight: "900",
-    fontSize: "22px",
-    zIndex: 8,
-    boxShadow: "0 8px 16px rgba(0,0,0,.3)"
+    fontSize: "13px",
+    zIndex: 8
   },
 
   pigBody: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    width: "135px",
-    height: "88px",
+    width: "80px",
+    height: "52px",
     background: "linear-gradient(135deg,#ffb3c6,#f43f5e)",
-    borderRadius: "58px 62px 46px 46px",
-    boxShadow: "inset -10px -8px 0 rgba(0,0,0,.2),0 18px 22px rgba(0,0,0,.3)"
+    borderRadius: "35px 38px 28px 28px",
+    boxShadow: "inset -5px -4px 0 rgba(0,0,0,.2)"
   },
 
   pigBodySmall: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    width: "105px",
-    height: "68px",
+    width: "80px",
+    height: "52px",
     background: "linear-gradient(135deg,#ffb3c6,#f43f5e)",
-    borderRadius: "45px 48px 35px 35px",
-    boxShadow: "inset -8px -6px 0 rgba(0,0,0,.2)"
+    borderRadius: "35px 38px 28px 28px",
+    boxShadow: "inset -5px -4px 0 rgba(0,0,0,.2)"
   },
 
   pigEarLeft: {
     position: "absolute",
-    top: "-16px",
-    left: "25px",
-    width: "30px",
-    height: "30px",
+    top: "-10px",
+    left: "15px",
+    width: "18px",
+    height: "18px",
     background: "#ff758f",
-    borderRadius: "10px 22px 10px 22px",
+    borderRadius: "6px 14px 6px 14px",
     transform: "rotate(28deg)"
   },
 
   pigEarRight: {
     position: "absolute",
-    top: "-12px",
-    right: "22px",
-    width: "25px",
-    height: "25px",
+    top: "-8px",
+    right: "14px",
+    width: "15px",
+    height: "15px",
     background: "#ff758f",
-    borderRadius: "10px 20px 10px 20px",
+    borderRadius: "6px 12px 6px 12px",
     transform: "rotate(45deg)"
   },
 
   pigEyeLeft: {
     position: "absolute",
-    top: "28px",
-    left: "76px",
-    width: "7px",
-    height: "7px",
+    top: "16px",
+    left: "45px",
+    width: "4px",
+    height: "4px",
     background: "#111827",
     borderRadius: "50%"
   },
 
   pigEyeRight: {
     position: "absolute",
-    top: "28px",
-    left: "98px",
-    width: "7px",
-    height: "7px",
+    top: "16px",
+    left: "58px",
+    width: "4px",
+    height: "4px",
     background: "#111827",
     borderRadius: "50%"
   },
 
   pigNose: {
     position: "absolute",
-    right: "-8px",
-    top: "36px",
-    width: "36px",
-    height: "26px",
+    right: "-5px",
+    top: "22px",
+    width: "22px",
+    height: "16px",
     background: "#f43f5e",
     borderRadius: "50%",
     color: "#7f1d1d",
-    fontSize: "9px",
+    fontSize: "7px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center"
@@ -865,71 +706,47 @@ const styles = {
 
   pigLegLeft: {
     position: "absolute",
-    bottom: "-7px",
-    left: "35px",
-    width: "20px",
-    height: "16px",
+    bottom: "-4px",
+    left: "20px",
+    width: "12px",
+    height: "10px",
     background: "#f43f5e",
-    borderRadius: "0 0 8px 8px"
+    borderRadius: "0 0 5px 5px"
   },
 
   pigLegRight: {
     position: "absolute",
-    bottom: "-7px",
-    right: "34px",
-    width: "20px",
-    height: "16px",
+    bottom: "-4px",
+    right: "20px",
+    width: "12px",
+    height: "10px",
     background: "#f43f5e",
-    borderRadius: "0 0 8px 8px"
+    borderRadius: "0 0 5px 5px"
   },
 
   pigTail: {
     position: "absolute",
-    left: "-14px",
-    top: "35px",
+    left: "-8px",
+    top: "20px",
     color: "#f43f5e",
-    fontSize: "20px",
+    fontSize: "14px",
     fontWeight: "900"
   },
 
-  floatCoinA: {
-    position: "absolute",
-    top: "18px",
-    left: "-18px",
-    color: "#fde047",
-    fontSize: "22px"
-  },
-
-  floatCoinB: {
-    position: "absolute",
-    right: "-12px",
-    bottom: "22px",
-    color: "#93c5fd",
-    fontSize: "20px"
-  },
-
-  floatCoinC: {
-    position: "absolute",
-    top: "45px",
-    right: "-25px",
-    color: "#f472b6",
-    fontSize: "18px"
-  },
-
   quickPanel: {
-    height: "92px",
+    padding: "16px",
     background: "#1e293b",
-    borderRadius: "28px",
-    margin: "18px 4px 0",
+    borderRadius: "20px",
+    margin: "14px 0",
     display: "grid",
     gridTemplateColumns: "1fr 1px 1fr",
     alignItems: "center",
-    padding: "0 26px",
-    boxShadow: "0 12px 30px rgba(0,0,0,.2)"
+    gap: "10px",
+    boxShadow: "0 8px 20px rgba(0,0,0,.2)"
   },
 
   quickDivider: {
-    height: "46px",
+    height: "36px",
     background: "#334155"
   },
 
@@ -938,103 +755,96 @@ const styles = {
     background: "transparent",
     display: "flex",
     alignItems: "center",
-    gap: "16px",
+    gap: "10px",
     color: "#ffffff",
     textAlign: "left",
-    cursor: "pointer"
+    cursor: "pointer",
+    padding: 0
   },
 
   quickIconPurple: {
-    width: 52,
-    height: 52,
-    borderRadius: "18px",
+    width: 40,
+    height: 40,
+    borderRadius: "12px",
     background: "linear-gradient(135deg,#6d28d9,#8b5cf6)",
     color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 24,
-    boxShadow: "0 8px 18px rgba(139,92,246,.2)"
+    fontSize: 18
   },
 
   quickIconGreen: {
-    width: 52,
-    height: 52,
-    borderRadius: "18px",
+    width: 40,
+    height: 40,
+    borderRadius: "12px",
     background: "linear-gradient(135deg,#059669,#10b981)",
     color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 24,
-    boxShadow: "0 8px 18px rgba(16,185,129,.2)"
+    fontSize: 18
   },
 
   sectionTitle: {
-    margin: "34px 0 22px",
+    margin: "20px 0 14px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "18px"
+    gap: "12px"
   },
 
   sectionLineLeft: {
-    width: "82px",
-    height: "4px",
-    borderRadius: "20px",
-    background: "linear-gradient(90deg,transparent,#6d28d9,#db2777)"
+    flex: 1,
+    height: "2px",
+    borderRadius: "10px",
+    background: "linear-gradient(90deg,transparent,#6d28d9)"
   },
 
   sectionLineRight: {
-    width: "82px",
-    height: "4px",
-    borderRadius: "20px",
-    background: "linear-gradient(90deg,#db2777,#6d28d9,transparent)"
+    flex: 1,
+    height: "2px",
+    borderRadius: "10px",
+    background: "linear-gradient(90deg,#6d28d9,transparent)"
   },
 
   activeGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "24px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: "12px"
   },
 
   savePlanCard: {
     background: "linear-gradient(135deg,#065f46,#047857)",
-    borderRadius: "28px",
-    minHeight: "260px",
-    padding: "22px",
+    borderRadius: "20px",
+    padding: "16px",
     position: "relative",
     overflow: "hidden",
-    boxShadow: "0 15px 32px rgba(4,120,87,.2)"
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    minHeight: "220px"
   },
 
   onePlanCard: {
     background: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
-    borderRadius: "28px",
-    minHeight: "260px",
-    padding: "22px",
+    borderRadius: "20px",
+    padding: "16px",
     position: "relative",
     overflow: "hidden",
-    boxShadow: "0 15px 32px rgba(29,78,216,.2)"
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    minHeight: "220px"
   },
 
   planGlow: {
     position: "absolute",
-    right: "-45px",
-    top: "-45px",
-    width: "150px",
-    height: "150px",
-    background: "rgba(255,255,255,.1)",
-    borderRadius: "50%"
-  },
-
-  planPattern: {
-    position: "absolute",
-    left: "-30px",
-    bottom: "-30px",
-    width: "120px",
-    height: "120px",
-    border: "18px solid rgba(255,255,255,.05)",
+    right: "-30px",
+    top: "-30px",
+    width: "100px",
+    height: "100px",
+    background: "rgba(255,255,255,.08)",
     borderRadius: "50%"
   },
 
@@ -1042,49 +852,46 @@ const styles = {
     position: "relative",
     zIndex: 2,
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start"
+    flexDirection: "column",
+    gap: "8px"
   },
 
   planImageCircle: {
-    width: "118px",
-    height: "118px",
+    width: "60px",
+    height: "60px",
     borderRadius: "50%",
     background: "#1f2937",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 12px 26px rgba(0,0,0,.3)"
+    justifyContent: "center"
   },
 
   planHeadingBox: {
-    textAlign: "right",
-    color: "white",
-    maxWidth: "210px"
+    textAlign: "left",
+    color: "white"
   },
 
   plantArt: {
     position: "relative",
-    width: "78px",
-    height: "78px"
+    width: "40px",
+    height: "40px"
   },
 
   plantStem: {
     position: "absolute",
-    left: "37px",
-    top: "22px",
-    width: "6px",
-    height: "35px",
-    background: "#059669",
-    borderRadius: "8px"
+    left: "19px",
+    top: "10px",
+    width: "3px",
+    height: "18px",
+    background: "#059669"
   },
 
   plantLeafLeft: {
     position: "absolute",
-    left: "15px",
-    top: "23px",
-    width: "28px",
-    height: "18px",
+    left: "8px",
+    top: "12px",
+    width: "14px",
+    height: "9px",
     background: "#10b981",
     borderRadius: "100% 0 100% 0",
     transform: "rotate(-20deg)"
@@ -1092,10 +899,10 @@ const styles = {
 
   plantLeafRight: {
     position: "absolute",
-    right: "10px",
-    top: "15px",
-    width: "30px",
-    height: "20px",
+    right: "6px",
+    top: "8px",
+    width: "15px",
+    height: "10px",
     background: "#34d399",
     borderRadius: "0 100% 0 100%",
     transform: "rotate(20deg)"
@@ -1103,82 +910,83 @@ const styles = {
 
   plantPot: {
     position: "absolute",
-    bottom: "7px",
-    left: "22px",
-    width: "38px",
-    height: "24px",
+    bottom: "4px",
+    left: "11px",
+    width: "19px",
+    height: "12px",
     background: "#ea580c",
-    borderRadius: "0 0 12px 12px"
+    borderRadius: "0 0 6px 6px"
   },
 
   plantCoin: {
     position: "absolute",
     right: "0px",
-    bottom: "6px",
-    width: "26px",
-    height: "26px",
+    bottom: "3px",
+    width: "14px",
+    height: "14px",
     borderRadius: "50%",
     background: "#facc15",
     color: "#92400e",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    fontWeight: "900"
+    fontWeight: "900",
+    fontSize: "9px"
   },
 
   rocketArt: {
     position: "relative",
-    width: "82px",
-    height: "82px"
+    width: "40px",
+    height: "40px"
   },
 
   rocketBody: {
     position: "absolute",
-    left: "30px",
-    top: "8px",
-    width: "28px",
-    height: "55px",
+    left: "14px",
+    top: "4px",
+    width: "14px",
+    height: "26px",
     background: "linear-gradient(180deg,#f0f9ff,#7dd3fc)",
-    borderRadius: "50% 50% 18px 18px",
+    borderRadius: "50% 50% 8px 8px",
     transform: "rotate(25deg)"
   },
 
   rocketWindow: {
     position: "absolute",
-    left: "43px",
-    top: "27px",
-    width: "12px",
-    height: "12px",
+    left: "20px",
+    top: "12px",
+    width: "6px",
+    height: "6px",
     background: "#1d4ed8",
     borderRadius: "50%"
   },
 
   rocketFinLeft: {
     position: "absolute",
-    left: "24px",
-    bottom: "20px",
-    width: "18px",
-    height: "18px",
+    left: "10px",
+    bottom: "10px",
+    width: "8px",
+    height: "8px",
     background: "#dc2626",
     clipPath: "polygon(100% 0,0 100%,100% 100%)"
   },
 
   rocketFinRight: {
     position: "absolute",
-    right: "16px",
-    bottom: "14px",
-    width: "18px",
-    height: "18px",
+    right: "8px",
+    bottom: "8px",
+    width: "8px",
+    height: "8px",
     background: "#dc2626",
     clipPath: "polygon(0 0,0 100%,100% 100%)"
   },
 
   rocketFire: {
     position: "absolute",
-    left: "18px",
-    bottom: "4px",
-    width: "28px",
-    height: "28px",
+    left: "8px",
+    bottom: "2px",
+    width: "14px",
+    height: "14px",
     background: "linear-gradient(180deg,#facc15,#ea580c)",
     borderRadius: "50% 50% 50% 0",
     transform: "rotate(30deg)"
@@ -1188,59 +996,51 @@ const styles = {
     position: "relative",
     zIndex: 2,
     color: "white",
-    marginTop: "12px",
-    maxWidth: "320px",
-    paddingBottom: "65px"
+    margin: "10px 0"
   },
 
   planContent_h2: {
-    margin: "0 0 10px 0",
-    fontSize: "28px",
-    lineHeight: "1.1",
-    fontWeight: "900"
+    margin: "0 0 6px 0",
+    fontSize: "18px",
+    lineHeight: "1.2",
+    fontWeight: "800"
   },
 
   planContent_p: {
     margin: 0,
-    fontSize: "16px",
-    lineHeight: "1.35",
-    opacity: 0.85
+    fontSize: "12px",
+    lineHeight: "1.3",
+    opacity: 0.8
   },
 
   planButton: {
-    position: "absolute",
-    left: "22px",
-    right: "22px",
-    bottom: "18px",
-    height: "54px",
+    width: "100%",
+    height: "40px",
     border: "none",
-    borderRadius: "17px",
-    fontSize: "20px",
-    fontWeight: "900",
+    borderRadius: "12px",
+    fontSize: "14px",
+    fontWeight: "800",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingLeft: "20px",
-    paddingRight: "15px",
+    padding: "0 12px",
     cursor: "pointer",
-    boxShadow: "0 10px 22px rgba(0,0,0,.3)",
-    lineHeight: "1"
+    boxShadow: "0 4px 12px rgba(0,0,0,.2)"
   },
 
   comingGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
-    gap: "18px"
+    gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+    gap: "10px"
   },
 
   comingCard: {
-    minHeight: "226px",
     border: "none",
-    borderRadius: "26px",
-    padding: "20px",
+    borderRadius: "18px",
+    padding: "14px",
     position: "relative",
     textAlign: "left",
-    boxShadow: "0 12px 30px rgba(0,0,0,.2)",
+    boxShadow: "0 8px 20px rgba(0,0,0,.2)",
     overflow: "hidden",
     cursor: "pointer"
   },
@@ -1260,31 +1060,30 @@ const styles = {
   comingRibbon: {
     position: "absolute",
     top: 0,
-    left: 22,
+    left: 12,
     background: "linear-gradient(135deg,#7c3aed,#9f1239)",
     color: "white",
-    padding: "8px 17px",
-    borderBottomLeftRadius: 12,
-    borderBottomRightRadius: 12,
-    fontSize: 13,
+    padding: "4px 10px",
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+    fontSize: "10px",
     fontWeight: "900"
   },
 
   comingIconCircle: {
-    marginTop: "40px",
-    width: "70px",
-    height: "70px",
-    borderRadius: "22px",
+    marginTop: "24px",
+    width: "42px",
+    height: "42px",
+    borderRadius: "12px",
     background: "#334155",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 8px 18px rgba(0,0,0,.2)"
+    justifyContent: "center"
   },
 
   goldIcon: {
-    width: "46px",
-    height: "46px",
+    width: "28px",
+    height: "28px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#eab308,#ca8a04)",
     color: "#451a03",
@@ -1292,12 +1091,12 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontWeight: "900",
-    fontSize: "22px"
+    fontSize: "14px"
   },
 
   silverIcon: {
-    width: "46px",
-    height: "46px",
+    width: "28px",
+    height: "28px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#94a3b8,#64748b)",
     color: "#0f172a",
@@ -1305,129 +1104,121 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontWeight: "900",
-    fontSize: "22px"
+    fontSize: "14px"
   },
 
   miniPiggy: {
     position: "relative",
-    width: "50px",
-    height: "40px"
+    width: "30px",
+    height: "24px"
   },
 
   miniPigBody: {
     position: "absolute",
     bottom: 0,
     left: 0,
-    width: "48px",
-    height: "32px",
-    borderRadius: "20px",
+    width: "28px",
+    height: "20px",
+    borderRadius: "12px",
     background: "#e11d48"
   },
 
   miniPigEye: {
     position: "absolute",
-    top: "9px",
-    right: "14px",
-    width: "5px",
-    height: "5px",
+    top: "5px",
+    right: "8px",
+    width: "3px",
+    height: "3px",
     borderRadius: "50%",
     background: "#111827"
   },
 
   miniPigNose: {
     position: "absolute",
-    right: "-8px",
-    top: "12px",
-    width: "18px",
-    height: "14px",
+    right: "-4px",
+    top: "7px",
+    width: "10px",
+    height: "8px",
     borderRadius: "50%",
     background: "#fda4af",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "8px"
+    fontSize: "6px"
   },
 
   comingButton: {
-    position: "absolute",
-    left: 18,
-    right: 18,
-    bottom: 14,
+    marginTop: "10px",
     background: "rgba(124,58,237,.15)",
-    borderRadius: 15,
-    padding: "11px",
+    borderRadius: "10px",
+    padding: "6px",
     color: "#a78bfa",
     textAlign: "center",
-    fontWeight: "900"
+    fontWeight: "800",
+    fontSize: "11px"
   },
 
   motivationCard: {
-    marginTop: "24px",
-    minHeight: "130px",
-    borderRadius: "28px",
+    marginTop: "16px",
+    borderRadius: "20px",
     background: "linear-gradient(135deg,#1e1b4b,#311042,#0f172a)",
     color: "white",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-around",
-    boxShadow: "0 15px 30px rgba(0,0,0,.3)",
-    padding: "18px"
+    gap: "12px",
+    boxShadow: "0 10px 20px rgba(0,0,0,.3)",
+    padding: "14px"
   },
 
   trophyIcon: {
-    fontSize: "72px"
+    fontSize: "36px"
   },
 
   motivationText: {
-    textAlign: "center"
-  },
-
-  motiveChart: {
-    fontSize: "70px",
-    color: "#a78bfa"
+    textAlign: "left"
   },
 
   statsPanel: {
-    minHeight: "86px",
     background: "#1e293b",
-    marginTop: "20px",
-    borderRadius: "26px",
+    marginTop: "16px",
+    borderRadius: "20px",
     display: "grid",
-    gridTemplateColumns: "repeat(4,1fr)",
-    boxShadow: "0 12px 30px rgba(0,0,0,.2)",
-    overflow: "hidden"
+    gridTemplateColumns: "1fr 1fr",
+    gap: "10px",
+    padding: "12px",
+    boxShadow: "0 8px 20px rgba(0,0,0,.2)"
   },
 
   miniStat: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    borderRight: "1px solid #334155",
-    padding: "12px"
+    gap: "10px",
+    background: "#0f172a",
+    padding: "10px",
+    borderRadius: "14px"
   },
 
   miniIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: "14px",
+    width: "32px",
+    height: "32px",
+    borderRadius: "10px",
     color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontWeight: "900",
-    fontSize: "18px"
+    fontSize: "14px"
   },
 
   eyeBtn: {
-    border: "2px solid rgba(255,255,255,.4)",
+    border: "1px solid rgba(255,255,255,.4)",
     background: "rgba(255,255,255,.08)",
     color: "white",
-    width: "42px",
-    height: "30px",
-    borderRadius: "10px",
+    width: "32px",
+    height: "24px",
+    borderRadius: "8px",
     cursor: "pointer",
-    fontSize: "15px",
+    fontSize: "12px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
@@ -1435,13 +1226,12 @@ const styles = {
 
   planSubtitleYellow: {
     display: "inline-block",
-    marginTop: "8px",
+    marginTop: "4px",
     background: "#eab308",
     color: "#0f172a",
-    padding: "6px 14px",
-    borderRadius: "14px",
-    fontWeight: "900",
-    fontSize: "14px",
-    boxShadow: "0 6px 12px rgba(0,0,0,.2)"
+    padding: "3px 8px",
+    borderRadius: "8px",
+    fontWeight: "800",
+    fontSize: "11px"
   }
 };
