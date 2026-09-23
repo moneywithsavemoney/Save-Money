@@ -229,7 +229,12 @@ export default function MyInvestment() {
   const copyId = async (id) => {
     try {
       await navigator.clipboard.writeText(id);
-      toast.success("Investment ID copied");
+      setCustomAlert({
+        show: true,
+        title: "Success",
+        message: "Investment ID copied to clipboard!",
+        type: "info"
+      });
     } catch {
       toast.error("Copy failed");
     }
@@ -291,7 +296,17 @@ export default function MyInvestment() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* 👇 Home.js থেকে কপি করা SIDEBAR DRAWER */}
+      {/* CSS Keyframe Style for Modal Animation */}
+      <style>
+        {`
+          @keyframes modalScale {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        `}
+      </style>
+
+      {/* SIDEBAR DRAWER */}
       <div style={{
         ...styles.drawerOverlay,
         opacity: isDrawerOpen ? 1 : 0,
@@ -302,7 +317,6 @@ export default function MyInvestment() {
           transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
         }} onClick={(e) => e.stopPropagation()}>
           
-          {/* LOGO & BRANDING */}
           <div style={styles.drawerHeader}>
             <div style={styles.drawerBrand}>
               <div style={styles.drawerLogoWrapper}>
@@ -320,7 +334,6 @@ export default function MyInvestment() {
             </div>
           </div>
 
-          {/* SIDEBAR CONTENT */}
           <div style={styles.drawerScrollArea}>
             <div style={styles.drawerNavList}>
               <button 
@@ -479,7 +492,6 @@ export default function MyInvestment() {
               </button>
             </div>
 
-            {/* TREE PLANT SECTION */}
             <div style={styles.treePlantOnlyWrapper}>
               <img 
                 src="/tree plant.png" 
@@ -498,19 +510,15 @@ export default function MyInvestment() {
       </div>
 
       <div style={styles.wrap}>
-        {/* HEADER */}
+        {/* FIXED HEADER WITHOUT BACK BUTTON */}
         <div style={styles.header}>
           <button style={styles.menuBtn} onClick={() => setIsDrawerOpen(true)}>
             ☰
           </button>
 
-          <button style={styles.backBtn} onClick={() => navigate("/home")}>
-            ←
-          </button>
-
           <div style={styles.headerTitle}>
-            <h1>My Investment</h1>
-            <p>Track, manage & grow your wealth</p>
+            <h1 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#fff", lineHeight: "1.2" }}>My Investment</h1>
+            <p style={{ margin: 0, fontSize: "11px", color: "rgba(255, 255, 255, 0.7)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Track, manage & grow your wealth</p>
           </div>
 
           <div style={styles.rightTop}>
@@ -559,7 +567,7 @@ export default function MyInvestment() {
 
       {statementOpen && selectedPlan && (
         <div style={styles.modalOverlay}>
-          <div style={styles.modalBox}>
+          <div style={{ ...styles.modalBox, animation: "modalScale 0.3s ease-out forwards" }}>
             <h2>Payment Statement</h2>
             <p style={{ fontSize: "13px", color: "#64748b" }}>Start SIP payment and all renew payments are listed below.</p>
 
@@ -597,7 +605,7 @@ export default function MyInvestment() {
 
       {renewOpen && selectedPlan && (
         <div style={styles.modalOverlay}>
-          <div style={styles.modalBox}>
+          <div style={{ ...styles.modalBox, animation: "modalScale 0.3s ease-out forwards" }}>
             <h2>Renew Information</h2>
 
             <p style={{ fontSize: "13px", color: "#64748b" }}>
@@ -668,14 +676,14 @@ export default function MyInvestment() {
         </div>
       )}
 
-      {/* CUSTOM POPUP */}
+      {/* BEAUTIFUL CENTERED ANIMATED POPUP */}
       {customAlert.show && (
         <div style={{
           position: "fixed",
           inset: 0,
-          background: "rgba(5, 8, 66, 0.4)",
-          backdropFilter: "blur(12px)", 
-          WebkitBackdropFilter: "blur(12px)",
+          background: "rgba(5, 8, 66, 0.6)",
+          backdropFilter: "blur(10px)", 
+          WebkitBackdropFilter: "blur(10px)",
           zIndex: 99999,
           display: "flex",
           alignItems: "center",
@@ -685,24 +693,35 @@ export default function MyInvestment() {
           
           <div style={{
             width: "100%",
-            maxWidth: "380px",
-            background: "white",
+            maxWidth: "360px",
+            background: "linear-gradient(145deg, #ffffff, #f0f4ff)",
             borderRadius: "24px",
             padding: "24px 20px",
             color: "#071747",
-            boxShadow: "0 25px 60px -15px rgba(0,0,0,0.35)",
+            boxShadow: "0 20px 50px rgba(0,0,0,0.3)",
             textAlign: "center",
-            border: "1px solid rgba(255, 255, 255, 0.8)"
+            border: "1px solid rgba(255, 255, 255, 0.8)",
+            animation: "modalScale 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
           }}>
-            <div style={{ fontSize: "48px", marginBottom: "8px" }}>
+            <div style={{ 
+              width: "60px", 
+              height: "60px", 
+              margin: "0 auto 12px", 
+              borderRadius: "50%", 
+              background: customAlert.type === "details" ? "#e0f2fe" : "#dcfce7", 
+              display: "flex", 
+              alignItems: "center", 
+              justifyContent: "center", 
+              fontSize: "30px" 
+            }}>
               {customAlert.type === "details" ? "📊" : "ℹ️"}
             </div>
             
-            <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "12px", color: "#071747" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: "800", marginBottom: "8px", color: "#071747" }}>
               {customAlert.title}
             </h2>
             
-            <div style={{ fontSize: "15px", fontWeight: "600", color: "#334155", marginBottom: "20px", lineHeight: "1.5" }}>
+            <div style={{ fontSize: "14px", fontWeight: "600", color: "#475569", marginBottom: "20px", lineHeight: "1.5" }}>
               {customAlert.message}
             </div>
             
@@ -712,11 +731,12 @@ export default function MyInvestment() {
                 padding: "12px", 
                 fontSize: "15px", 
                 fontWeight: "800", 
-                background: customAlert.type === "details" ? "#0969ff" : "#16a34a", 
+                background: customAlert.type === "details" ? "linear-gradient(135deg, #0969ff, #0242a5)" : "linear-gradient(135deg, #16a34a, #0d652d)", 
                 color: "white", 
                 border: "none", 
                 borderRadius: "14px", 
-                cursor: "pointer"
+                cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
               }} 
               onClick={() => setCustomAlert({ show: false, title: "", message: "", type: "info" })}
             >
@@ -989,8 +1009,10 @@ const styles = {
     height: "60px",
     display: "flex",
     alignItems: "center",
+    justifyContent: "space-between",
     gap: "10px",
-    color: "white"
+    color: "white",
+    marginBottom: "10px"
   },
 
   menuBtn: {
@@ -1002,24 +1024,10 @@ const styles = {
     padding: "4px"
   },
 
-  backBtn: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "10px",
-    border: "1px solid rgba(255,255,255,.3)",
-    background: "rgba(255,255,255,.1)",
-    color: "white",
-    fontSize: "18px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-
   headerTitle: {
     flex: 1,
     textAlign: "left",
-    overflow: "hidden"
+    marginLeft: "4px"
   },
 
   rightTop: {
@@ -1033,7 +1041,8 @@ const styles = {
     borderRadius: "12px",
     padding: "6px 10px",
     fontWeight: "800",
-    fontSize: "11px"
+    fontSize: "11px",
+    whiteSpace: "nowrap"
   },
 
   bellBtn: {
