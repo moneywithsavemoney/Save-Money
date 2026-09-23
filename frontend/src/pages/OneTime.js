@@ -765,7 +765,7 @@ export default function OneTime() {
         {/* NOTICE BANNER */}
         <div style={styles.topNoticeBanner}>
           <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <div style={{ display: 'inline-block', animation: 'marquee 15s linear infinite' }}>
+            <div style={{ display: 'inline-block', animation: 'marquee 30s linear infinite' }}>
               <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
               Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 15% flat bonus!</span> 🎉
             </div>
