@@ -624,25 +624,27 @@ export default function Home() {
           Welcome, {name}
         </h2>
 
-        <button
-          style={styles.notificationButton}
-          onClick={() => go("/notifications")}
-        >
-          <span>🔔</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button
+            style={styles.notificationButton}
+            onClick={() => go("/notifications")}
+          >
+            <span>🔔</span>
 
-          {notificationCount > 0 && (
-            <small style={styles.notificationBadge}>
-              {notificationCount}
-            </small>
-          )}
-        </button>
+            {notificationCount > 0 && (
+              <small style={styles.notificationBadge}>
+                {notificationCount}
+              </small>
+            )}
+          </button>
 
-        <button
-          style={styles.logoutBtn}
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
+          <button
+            style={styles.logoutBtn}
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
+        </div>
 
       </div>
 
@@ -685,13 +687,13 @@ export default function Home() {
         </div>
 
         <div style={styles.heroWalletCard}>
-          <p>Total Wallet</p>
+          <p style={styles.heroWalletLabel}>Total Wallet</p>
 
-          <h2>
+          <h2 style={styles.heroWalletValue}>
             Scale: ₹{wallet.toFixed(2)}
           </h2>
 
-          <span>
+          <span style={{ fontSize: "16px" }}>
             👛
           </span>
         </div>
@@ -699,9 +701,9 @@ export default function Home() {
 
       {/* LIMITED OFFER ANNOUNCEMENT BAR */}
       <div style={styles.limitedOfferBar}>
+        <div style={styles.limitedOfferBadge}>LIMITED OFFER 🔥</div>
         <div style={styles.marqueeContainer}>
           <div style={styles.marqueeText}>
-            <span style={styles.limitedOfferBadge}>LIMITED OFFER 🔥</span>
             <span style={styles.announcementText}>
               {latestUpdateText || "Our platform had been experiencing issues for few days, but the server is running now. Thank you everyone for staying with us."}
             </span>
@@ -714,7 +716,7 @@ export default function Home() {
         <DashboardStatCard
           icon="📈"
           title="Total Investment"
-          value={`₹${totalInvestment.toFixed(2)}`}
+          value={`₹${totalInvestment.toFixed(0)}`}
           gradient="blue"
         />
 
@@ -855,13 +857,13 @@ export default function Home() {
       {/* PURPLE PROMO BANNER */}
       <section style={styles.promoBanner}>
         <div style={styles.promoContent}>
-          <h1>
+          <h1 style={styles.promoTitle}>
             Grow Your Money
             <br />
             Build Your Future
           </h1>
 
-          <p>
+          <p style={styles.promoSubtitle}>
             Invest Smart, Earn More
           </p>
 
@@ -975,7 +977,7 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer style={styles.footer}>
-        <h2>
+        <h2 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 10px 0" }}>
           Save Money
         </h2>
 
@@ -1005,7 +1007,7 @@ export default function Home() {
           </button>
         </div>
 
-        <p>
+        <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
           © 2026 Save Money. All Rights Reserved.
         </p>
       </footer>
@@ -1147,7 +1149,7 @@ function TrustMiniCard({ icon, title, subtitle }) {
         {icon}
       </div>
 
-      <div>
+      <div style={{ overflow: "hidden" }}>
         <h3 style={styles.trustTitle}>
           {title}
         </h3>
@@ -1180,37 +1182,38 @@ const styles = {
     marginTop: "16px",
     background: "linear-gradient(180deg, #022013 0%, #043820 100%)",
     borderRadius: "16px",
-    padding: "10px 14px",
+    padding: "8px 12px",
     border: "1px solid #10b981",
     boxShadow: "0 0 15px rgba(16, 185, 129, 0.2)",
     display: "flex",
-    alignItems: "center"
+    alignItems: "center",
+    gap: "10px",
+    overflow: "hidden"
   },
   marqueeContainer: {
     overflow: "hidden",
     whiteSpace: "nowrap",
-    width: "100%"
+    flex: 1
   },
   marqueeText: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "10px",
+    display: "inline-block",
     paddingLeft: "100%",
-    animation: "marquee 30s linear infinite"
+    animation: "marquee 20s linear infinite"
   },
   limitedOfferBadge: {
     background: "#f59e0b",
     color: "#000000",
     fontWeight: "900",
-    fontSize: "11px",
-    padding: "4px 10px",
-    borderRadius: "8px",
+    fontSize: "10px",
+    padding: "4px 8px",
+    borderRadius: "6px",
     letterSpacing: "0.5px",
-    display: "inline-block",
+    whiteSpace: "nowrap",
+    flexShrink: 0,
     boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
   },
   announcementText: {
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: "700",
     color: "#ffffff"
   },
@@ -1312,7 +1315,7 @@ const styles = {
     border: "1px solid rgba(255, 255, 255, 0.25)",
     clipPath: "polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%)",
     color: "#ffffff",
-    fontSize: "15px",
+    fontSize: "14px",
     fontWeight: "800",
     cursor: "pointer",
     textAlign: "left",
@@ -1327,14 +1330,14 @@ const styles = {
     fontWeight: "900"
   },
   drawerNavIcon: {
-    fontSize: "22px",
-    width: "26px",
+    fontSize: "20px",
+    width: "24px",
     display: "inline-block",
     textAlign: "center"
   },
   drawerNavText: {
     flex: 1,
-    fontSize: "14px",
+    fontSize: "13px",
     letterSpacing: "0.4px"
   },
 
@@ -1407,7 +1410,7 @@ const styles = {
   treePlantOnlyImg: {
     width: "90%",
     height: "65%",
-    objectFit: "95%",
+    objectFit: "cover",
     borderRadius: "16px"
   },
 
@@ -1417,13 +1420,13 @@ const styles = {
     marginTop: "28px",
     background: "linear-gradient(135deg, #061826 0%, #0b2f38 50%, #03141e 100%)",
     borderRadius: "24px",
-    padding: "24px 18px",
+    padding: "20px 16px",
     border: "1px solid rgba(34, 197, 94, 0.5)",
     boxShadow: "0 15px 35px rgba(0,0,0,0.6), inset 0 0 15px rgba(34, 197, 94, 0.15)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "18px",
+    gap: "16px",
     overflow: "hidden"
   },
   appGlowBackground: {
@@ -1628,7 +1631,7 @@ const styles = {
     clipPath: "polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%)",
     color: "#ffffff",
     fontWeight: "800",
-    fontSize: "15px",
+    fontSize: "14px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
@@ -1672,7 +1675,7 @@ const styles = {
     fontWeight: "bold"
   },
   statusOverlayText: {
-    fontSize: "18px",
+    fontSize: "16px",
     color: "#ffffff",
     margin: 0,
     fontWeight: "800",
@@ -1684,8 +1687,8 @@ const styles = {
     background:
       "linear-gradient(180deg,#020617 0%,#031026 45%,#020617 100%)",
     color: "white",
-    padding: "0 16px 160px",
-    fontFamily: "Arial, sans-serif"
+    padding: "0 12px 140px",
+    fontFamily: "system-ui, -apple-system, sans-serif"
   },
 
   loadingPage: {
@@ -1707,37 +1710,43 @@ const styles = {
   },
 
   topHeader: {
-    height: "64px",
+    height: "60px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    padding: "0 4px"
   },
 
   menuButton: {
     background: "transparent",
     border: "none",
     color: "white",
-    fontSize: "30px",
-    cursor: "pointer"
+    fontSize: "26px",
+    cursor: "pointer",
+    padding: "4px"
   },
 
   headerTitle: {
     margin: 0,
-    fontSize: "19px",
-    fontWeight: "800"
+    fontSize: "15px",
+    fontWeight: "800",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "180px"
   },
 
   logoutBtn: {
-    height: "42px",
-    padding: "0 18px",
+    height: "36px",
+    padding: "0 12px",
     border: "1px solid rgba(239, 68, 68, 0.4)",
     background: "rgba(239, 68, 68, 0.2)",
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
-    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    clipPath: "polygon(8px 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%)",
     color: "white",
     fontWeight: "800",
-    fontSize: "14px",
+    fontSize: "12px",
     boxShadow: "0 4px 14px rgba(0, 0, 0, 0.35)",
     cursor: "pointer"
   },
@@ -1747,20 +1756,21 @@ const styles = {
     background: "transparent",
     border: "none",
     color: "white",
-    fontSize: "25px",
-    cursor: "pointer"
+    fontSize: "20px",
+    cursor: "pointer",
+    padding: "4px"
   },
 
   notificationBadge: {
     position: "absolute",
-    top: "-6px",
-    right: "-6px",
+    top: "-2px",
+    right: "-2px",
     background: "#ff1744",
     color: "white",
-    width: "21px",
-    height: "21px",
+    width: "18px",
+    height: "18px",
     borderRadius: "50%",
-    fontSize: "11px",
+    fontSize: "10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1771,9 +1781,9 @@ const styles = {
     position: "relative",
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    padding: "16px",
-    borderRadius: "24px",
+    gap: "10px",
+    padding: "14px 12px",
+    borderRadius: "20px",
     overflow: "hidden",
     background:
       "radial-gradient(circle at 90% 0%,#22ff88 0%,transparent 34%),linear-gradient(135deg,#06152d,#043858,#08c96b)",
@@ -1790,17 +1800,18 @@ const styles = {
   },
 
   profilePhotoCircle: {
-    width: "82px",
-    height: "82px",
+    width: "60px",
+    height: "60px",
     borderRadius: "50%",
     background: "#334155",
-    border: "3px solid #e0f2fe",
+    border: "2px solid #e0f2fe",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
     zIndex: 2,
-    boxShadow: "0 0 16px rgba(255,255,255,0.35)"
+    flexShrink: 0,
+    boxShadow: "0 0 12px rgba(255,255,255,0.35)"
   },
 
   profilePhoto: {
@@ -1810,75 +1821,101 @@ const styles = {
   },
 
   defaultProfileIcon: {
-    fontSize: "43px"
+    fontSize: "30px"
   },
 
   heroUserInfo: {
     flex: 1,
-    zIndex: 2
+    zIndex: 2,
+    overflow: "hidden"
   },
 
   heroWelcome: {
     margin: 0,
-    fontSize: "15px",
-    fontWeight: "800"
+    fontSize: "11px",
+    fontWeight: "700",
+    color: "#cbd5e1"
   },
 
   heroNameRow: {
     display: "flex",
     alignItems: "center",
-    gap: "7px"
+    gap: "5px"
   },
 
   heroName: {
-    margin: "4px 0",
-    fontSize: "25px",
-    fontWeight: "900",
-    lineHeight: "30px"
+    margin: "2px 0",
+    fontSize: "15px",
+    fontWeight: "800",
+    lineHeight: "1.2",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
   },
 
   verifiedBadge: {
-    width: "22px",
-    height: "22px",
+    width: "16px",
+    height: "16px",
     borderRadius: "50%",
     background: "#2563eb",
-    display: "flex",
+    display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "12px",
-    fontWeight: "bold"
+    fontSize: "10px",
+    fontWeight: "bold",
+    flexShrink: 0
   },
 
   heroSubtitle: {
     margin: 0,
-    fontSize: "12px",
+    fontSize: "10px",
     color: "#dcfce7",
-    fontWeight: "700"
+    fontWeight: "600",
+    whiteSpace: "nowrap"
   },
 
   heroWalletCard: {
-    minWidth: "105px",
-    borderRadius: "18px",
-    padding: "12px",
+    minWidth: "90px",
+    borderRadius: "14px",
+    padding: "8px 10px",
     background: "linear-gradient(135deg,#16ff75,#00b96b)",
-    boxShadow: "0 12px 25px rgba(0,0,0,0.35)",
-    zIndex: 2
+    boxShadow: "0 8px 18px rgba(0,0,0,0.35)",
+    zIndex: 2,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    flexShrink: 0
+  },
+  heroWalletLabel: {
+    margin: 0,
+    fontSize: "10px",
+    fontWeight: "700",
+    color: "#000000"
+  },
+  heroWalletValue: {
+    margin: "2px 0",
+    fontSize: "13px",
+    fontWeight: "900",
+    color: "#000000"
   },
 
   statsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(4,1fr)",
-    gap: "12px",
-    marginTop: "16px"
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "10px",
+    marginTop: "14px"
   },
 
   statCard: {
     position: "relative",
-    minHeight: "120px",
-    borderRadius: "20px",
-    padding: "14px",
+    borderRadius: "16px",
+    padding: "12px",
     overflow: "hidden",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.45)"
+    boxShadow: "0 8px 20px rgba(0,0,0,0.35)",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    minHeight: "90px"
   },
 
   statBlue: {
@@ -1898,294 +1935,317 @@ const styles = {
   },
 
   statIconWrap: {
-    fontSize: "29px"
+    lineHeight: "1"
   },
 
   statIcon: {
-    fontSize: "29px"
+    fontSize: "22px"
   },
 
   statTitle: {
-    margin: "10px 0 4px",
+    margin: "6px 0 2px",
     color: "rgba(255,255,255,0.9)",
-    fontSize: "13px",
-    fontWeight: "700"
+    fontSize: "11px",
+    fontWeight: "700",
+    whiteSpace: "nowrap"
   },
 
   statValue: {
     margin: 0,
-    fontSize: "22px",
+    fontSize: "16px",
     fontWeight: "900"
   },
 
   statGlow: {
     position: "absolute",
-    right: "-20px",
-    top: "-20px",
-    width: "75px",
-    height: "75px",
+    right: "-15px",
+    top: "-15px",
+    width: "55px",
+    height: "55px",
     borderRadius: "50%",
     background: "rgba(255,255,255,0.18)"
   },
 
   sectionTitleWrap: {
-    margin: "25px 0 13px",
+    margin: "20px 0 10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "10px"
+    gap: "8px"
   },
 
   sectionLine: {
-    width: "70px",
-    height: "3px",
+    flex: 1,
+    height: "2px",
     borderRadius: "10px",
     background: "linear-gradient(90deg,transparent,#38bdf8,#facc15,transparent)"
   },
 
   sectionTitleText: {
     margin: 0,
-    fontSize: "19px",
+    fontSize: "14px",
     fontWeight: "900",
-    letterSpacing: "1px"
+    letterSpacing: "0.5px"
   },
 
   actionPanel: {
     background: "linear-gradient(180deg,#061936,#07101e)",
-    border: "2px solid #1d4ed8",
-    borderRadius: "26px",
-    padding: "14px",
+    border: "1.5px solid #1d4ed8",
+    borderRadius: "20px",
+    padding: "10px",
     display: "grid",
-    gridTemplateColumns: "repeat(3,1fr)",
-    gap: "14px",
-    boxShadow: "inset 0 0 35px rgba(59,130,246,0.25)"
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "10px",
+    boxShadow: "inset 0 0 25px rgba(59,130,246,0.2)"
   },
 
   actionButton: {
     position: "relative",
-    border: "1px solid rgba(255, 255, 255, 0.25)",
-    background: "rgba(255, 255, 255, 0.12)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-    clipPath: "polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%)",
-    minHeight: "120px",
-    color: "white",
-    padding: "14px",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    background: "rgba(255, 255, 255, 0.08)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    padding: "10px 4px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: "8px",
+    gap: "4px",
     overflow: "hidden",
-    boxShadow: "0 10px 26px rgba(0,0,0,0.45)",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
     cursor: "pointer"
   },
 
   actionIconCircle: {
-    width: "46px",
-    height: "46px",
-    borderRadius: "16px",
-    background: "rgba(255,255,255,0.22)",
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
+    width: "36px",
+    height: "36px",
+    borderRadius: "12px",
+    background: "rgba(255,255,255,0.18)",
+    backdropFilter: "blur(6px)",
+    WebkitBackdropFilter: "blur(6px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "28px",
-    boxShadow: "inset 0 0 12px rgba(255,255,255,0.2)"
+    fontSize: "18px"
   },
 
   actionTextBox: {
     textAlign: "center",
-    zIndex: 2
+    zIndex: 2,
+    width: "100%"
   },
 
   actionTitle: {
     margin: 0,
-    fontSize: "14px",
-    fontWeight: "900"
+    fontSize: "11px",
+    fontWeight: "800",
+    lineHeight: "1.1",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
   },
 
   actionSubtitle: {
-    margin: "4px 0 0",
-    fontSize: "11px",
-    color: "rgba(255,255,255,0.92)",
-    fontWeight: "700"
+    margin: "2px 0 0",
+    fontSize: "9px",
+    color: "rgba(255,255,255,0.8)",
+    fontWeight: "600",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
   },
 
   actionShine: {
     position: "absolute",
-    right: "-22px",
-    top: "-22px",
-    width: "70px",
-    height: "70px",
+    right: "-18px",
+    top: "-18px",
+    width: "50px",
+    height: "50px",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.15)"
+    background: "rgba(255,255,255,0.12)"
   },
 
   actionInvest: {
-    background: "rgba(0, 255, 117, 0.15)",
-    border: "1px solid rgba(0, 255, 117, 0.35)"
+    background: "rgba(0, 255, 117, 0.12)",
+    border: "1px solid rgba(0, 255, 117, 0.3)"
   },
   actionMyInvestment: {
-    background: "rgba(0, 180, 255, 0.15)",
-    border: "1px solid rgba(0, 180, 255, 0.35)"
+    background: "rgba(0, 180, 255, 0.12)",
+    border: "1px solid rgba(0, 180, 255, 0.3)"
   },
   actionWallet: {
-    background: "rgba(217, 70, 239, 0.15)",
-    border: "1px solid rgba(217, 70, 239, 0.35)"
+    background: "rgba(217, 70, 239, 0.12)",
+    border: "1px solid rgba(217, 70, 239, 0.3)"
   },
   actionWithdraw: {
-    background: "rgba(255, 107, 0, 0.15)",
-    border: "1px solid rgba(255, 107, 0, 0.35)"
+    background: "rgba(255, 107, 0, 0.12)",
+    border: "1px solid rgba(255, 107, 0, 0.3)"
   },
   actionRefer: {
-    background: "rgba(255, 0, 122, 0.15)",
-    border: "1px solid rgba(255, 0, 122, 0.35)"
+    background: "rgba(255, 0, 122, 0.12)",
+    border: "1px solid rgba(255, 0, 122, 0.3)"
   },
   actionTransaction: {
-    background: "rgba(0, 229, 255, 0.15)",
-    border: "1px solid rgba(0, 229, 255, 0.35)"
+    background: "rgba(0, 229, 255, 0.12)",
+    border: "1px solid rgba(0, 229, 255, 0.3)"
   },
   actionKyc: {
-    background: "rgba(0, 245, 255, 0.15)",
-    border: "1px solid rgba(0, 245, 255, 0.35)"
+    background: "rgba(0, 245, 255, 0.12)",
+    border: "1px solid rgba(0, 245, 255, 0.3)"
   },
   actionReward: {
-    background: "rgba(168, 85, 247, 0.15)",
-    border: "1px solid rgba(168, 85, 247, 0.35)"
+    background: "rgba(168, 85, 247, 0.12)",
+    border: "1px solid rgba(168, 85, 247, 0.3)"
   },
   actionBank: {
-    background: "rgba(255, 183, 3, 0.15)",
-    border: "1px solid rgba(255, 183, 3, 0.35)"
+    background: "rgba(255, 183, 3, 0.12)",
+    border: "1px solid rgba(255, 183, 3, 0.3)"
   },
   actionPlan: {
-    background: "rgba(0, 176, 255, 0.15)",
-    border: "1px solid rgba(0, 176, 255, 0.35)"
+    background: "rgba(0, 176, 255, 0.12)",
+    border: "1px solid rgba(0, 176, 255, 0.3)"
   },
   actionNotification: {
-    background: "rgba(255, 23, 68, 0.15)",
-    border: "1px solid rgba(255, 23, 68, 0.35)"
+    background: "rgba(255, 23, 68, 0.12)",
+    border: "1px solid rgba(255, 23, 68, 0.3)"
   },
   actionSupport: {
-    background: "rgba(0, 255, 117, 0.15)",
-    border: "1px solid rgba(0, 255, 117, 0.35)"
+    background: "rgba(0, 255, 117, 0.12)",
+    border: "1px solid rgba(0, 255, 117, 0.3)"
   },
 
   promoBanner: {
-    marginTop: "18px",
-    borderRadius: "23px",
-    padding: "20px",
+    marginTop: "16px",
+    borderRadius: "18px",
+    padding: "16px",
     background:
       "linear-gradient(135deg,#4c1d95,#8b00ff,#9d00ff)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 10px 28px rgba(126,34,206,0.35)"
+    boxShadow: "0 8px 24px rgba(126,34,206,0.35)"
   },
 
   promoContent: {
     flex: 1
   },
 
+  promoTitle: {
+    margin: 0,
+    fontSize: "16px",
+    fontWeight: "900",
+    lineHeight: "1.2"
+  },
+
+  promoSubtitle: {
+    margin: "4px 0 0",
+    fontSize: "11px",
+    color: "#e9d5ff"
+  },
+
   promoButton: {
-    marginTop: "12px",
+    marginTop: "10px",
     border: "1px solid rgba(250, 204, 21, 0.5)",
     background: "rgba(250, 204, 21, 0.2)",
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
-    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    clipPath: "polygon(8px 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%)",
     color: "#ffffff",
     fontWeight: "900",
+    fontSize: "12px",
     cursor: "pointer",
-    padding: "10px 18px"
+    padding: "8px 14px"
   },
 
   promoIcon: {
-    fontSize: "55px"
+    fontSize: "36px"
   },
 
   trustPanel: {
     display: "grid",
-    gridTemplateColumns: "repeat(4,1fr)",
-    gap: "10px",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "8px",
     marginTop: "14px",
     background: "#071831",
-    borderRadius: "22px",
-    padding: "12px",
-    border: "2px solid #1e40af"
+    borderRadius: "18px",
+    padding: "10px",
+    border: "1px solid #1e40af"
   },
 
   trustMiniCard: {
     display: "flex",
     alignItems: "center",
-    gap: "99px",
-    fontSize: "12px",
+    gap: "8px",
     background: "rgba(15,23,42,0.65)",
-    borderRadius: "15px",
-    padding: "10px"
+    borderRadius: "12px",
+    padding: "8px 10px"
   },
 
   trustIconCircle: {
-    fontSize: "24px"
+    fontSize: "18px"
   },
 
   trustTitle: {
     margin: 0,
-    fontSize: "13px"
+    fontSize: "11px",
+    fontWeight: "800",
+    whiteSpace: "nowrap"
   },
 
   trustSubtitle: {
-    margin: "3px 0 0",
+    margin: "2px 0 0",
     color: "#94a3b8",
-    fontSize: "11px"
+    fontSize: "9px",
+    whiteSpace: "nowrap"
   },
 
   aboutStrip: {
-    width: "calc(100% + 32px)",
-    marginLeft: "-16px",
-    marginTop: "20px",
-    padding: "15px",
+    width: "100%",
+    marginTop: "16px",
+    padding: "12px",
     border: "1px solid rgba(6, 182, 212, 0.4)",
     background: "rgba(6, 182, 212, 0.2)",
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
-    clipPath: "polygon(15px 0%, calc(100% - 15px) 0%, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0% 50%)",
+    clipPath: "polygon(12px 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0% 50%)",
     color: "white",
     fontWeight: "900",
-    fontSize: "15px",
+    fontSize: "13px",
     cursor: "pointer"
   },
 
   helpText: {
     textAlign: "center",
     color: "#22ff73",
-    fontSize: "22px",
+    fontSize: "15px",
     fontWeight: "900",
-    marginTop: "22px"
+    marginTop: "18px",
+    letterSpacing: "0.5px"
   },
 
   footer: {
     textAlign: "center",
-    padding: "24px 4px",
+    padding: "20px 4px 10px",
     color: "#87CEEB"
   },
 
   footerLinks: {
     display: "flex",
     flexWrap: "wrap",
-    gap: "10px",
+    gap: "8px",
     justifyContent: "center",
-    marginBottom: "12px"
+    marginBottom: "10px"
   },
 
   footerLinkBtn: {
     background: "transparent",
     border: "none",
     color: "#38bdf8",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "700",
-    cursor: "pointer"
+    cursor: "pointer",
+    padding: "2px 4px"
   },
 
   loadingLogoImg: {
@@ -2200,7 +2260,7 @@ const styles = {
     bottom: 0,
     left: 0,
     right: 0,
-    height: "62px",
+    height: "56px",
     background: "#020817",
     display: "grid",
     gridTemplateColumns: "repeat(4,1fr)",
@@ -2216,7 +2276,7 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "12px",
+    fontSize: "11px",
     cursor: "pointer"
   },
 
@@ -2226,12 +2286,12 @@ const styles = {
   },
 
   bottomNavIcon: {
-    fontSize: "21px"
+    fontSize: "18px"
   },
 
   bottomNavText: {
     fontSize: "10px",
-    marginTop: "3px"
+    marginTop: "2px"
   }
 };
 
