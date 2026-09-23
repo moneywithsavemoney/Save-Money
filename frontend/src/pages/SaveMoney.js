@@ -517,7 +517,7 @@ export default function SaveMoney() {
         </div>
       </div>
 
-      {/* TOP DEPLOYMENT LEDGER BAR MONITOR */}
+      {/* TOP STATUS BAR */}
       <div style={styles.vipStatusBar}>
         <div style={styles.vipStatusIndicator}>
           <span style={styles.pulseNode}></span> LIVE CONNECTION SECURE
@@ -525,7 +525,7 @@ export default function SaveMoney() {
         <div style={styles.vipTimestamp}>HIGH SPEED AUTO-COMPOUND ENGINE ACTIVE</div>
       </div>
 
-      {/* SECURE POPUP SHIELD RADAR INTERFACE */}
+      {/* STATUS OVERLAY */}
       {statusOverlay.show && (
         <div style={styles.glassOverlayShield}>
           <div style={{
@@ -544,10 +544,10 @@ export default function SaveMoney() {
         </div>
       )}
 
-      {/* EXPANDED SYSTEM VIEW SCREEN ELEMENT CANVAS */}
+      {/* MAIN CANVAS */}
       <div style={styles.ultimateMainCanvas}>
         
-        {/* HELM HEAD ROW ACTION PACK CONTROLLERS */}
+        {/* CONTROL HELM ROW */}
         <div style={styles.controlHelmRow}>
           <button 
             style={styles.hamburgerBtn}
@@ -579,7 +579,7 @@ export default function SaveMoney() {
           </button>
         </div>
 
-        {/* MAXIMUM HIGH CONTRAST EXHILARATING HERO TITLE BRAND */}
+        {/* BRAND HEADER */}
         <header style={styles.cyberBrandHeaderSection}>
           <div style={styles.cyberLogoHexagonWrap}>
             <div style={styles.cyberLogoCoreElement}>
@@ -597,10 +597,10 @@ export default function SaveMoney() {
           <p style={styles.cyberBrandSubtextPara}>INTELLIGENT WEALTH GENERATION SYSTEM</p>
         </header>
 
-        {/* দুটি বক্স পাশাপাশি (Side-by-Side) করার লেআউট */}
+        {/* সেকশন দুটিকে পাশাপাশি (Side-by-Side) রাখা হয়েছে */}
         <div style={styles.executiveTwinControlLayout}>
           
-          {/* ZONE BLOCK 1: WALLET ASSET CONSOLE */}
+          {/* SECURE WALLET MANAGEMENT */}
           <div style={styles.executivePanelZone}>
             <section 
               style={{...styles.cyberLuxuryCardUnit, ...(hoveredCard === 'wallet' ? styles.cyberLuxuryCardUnitHover : {})}}
@@ -633,7 +633,7 @@ export default function SaveMoney() {
                 </div>
               </div>
 
-              {/* কুপন সেকশন */}
+              {/* Coupon Section */}
               <div style={styles.couponSectionContainer}>
                 <div style={styles.inputFieldLabelFlexHeader}>
                   <span style={styles.inputFieldMainTitleLabel}>HAVE A PROMO / COUPON CODE?</span>
@@ -680,7 +680,7 @@ export default function SaveMoney() {
             </section>
           </div>
 
-          {/* ZONE BLOCK 2: SIP CONGREGATION INPUT METRICS CONFIGS */}
+          {/* ASSET DEPLOYMENT CALIBRATION */}
           <div style={styles.executivePanelZone}>
             <section 
               style={{...styles.cyberLuxuryCardUnit, ...(hoveredCard === 'config' ? styles.cyberLuxuryCardUnitHover : {})}}
@@ -696,7 +696,6 @@ export default function SaveMoney() {
                 <span style={styles.onlinePulseStatusTextAccent}>CONFIG READY</span>
               </div>
 
-              {/* MONETARY MAGNITUDE CONTROLLER ENTRY */}
               <div style={styles.inputFieldComplexContainer}>
                 <div style={styles.inputFieldLabelFlexHeader}>
                   <span style={styles.inputFieldMainTitleLabel}>CHOOSE MONTHLY COMMITMENT AMOUNT</span>
@@ -730,7 +729,6 @@ export default function SaveMoney() {
                 )}
               </div>
 
-              {/* TENURE SELECTION LAYOUT */}
               <div style={styles.tenureSelectionStructureBox}>
                 <div style={styles.inputFieldLabelFlexHeader}>
                   <span style={styles.inputFieldMainTitleLabel}>SELECT ASSET ACCUMULATION TIMEFRAME</span>
@@ -784,7 +782,6 @@ export default function SaveMoney() {
                 </div>
               </div>
 
-              {/* PAYMENT BREAKDOWN SUMMARY */}
               {Number(amount) > 0 && (
                 <div style={styles.paymentSummaryBox}>
                   <div style={styles.summaryRow}>
@@ -804,7 +801,6 @@ export default function SaveMoney() {
                 </div>
               )}
 
-              {/* SYSTEM INFORMATIONAL BAR */}
               <div style={styles.adviceSystemBarWrapperBox}>
                 <div style={styles.adviceSystemLightBulbIcon}>💡</div>
                 <div style={styles.adviceSystemTextBodyBlock}>
@@ -824,7 +820,7 @@ export default function SaveMoney() {
           <div style={styles.separatorLineDecorativeRight}></div>
         </div>
 
-        {/* ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) লেআউট */}
+        {/* ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) ফরম্যাটে সাজানো হয়েছে */}
         <div style={styles.projectionGrid2x2Layout}>
           
           <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #00ffa3"}}>
@@ -1415,7 +1411,7 @@ const styles = {
     fontWeight: "bold"
   },
 
-  // পাশাপাশি লেআউট (Side-by-Side Grid)
+  // পাশাপাশি (Side-by-Side) লেআউট স্টাইল
   executiveTwinControlLayout: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
@@ -1810,7 +1806,7 @@ const styles = {
     background: "linear-gradient(90deg, #334155, transparent)"
   },
 
-  // ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) লেআউট
+  // ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) করার লেআউট স্টাইল
   projectionGrid2x2Layout: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
@@ -1952,7 +1948,7 @@ const styles = {
     flexShrink: 0
   },
 
-  ultimateLaunchButtonCentralContainerFlex: {
+  ultimateLaunchButtonContainerFlex: {
     display: "flex",
     justifyContent: "center"
   },
