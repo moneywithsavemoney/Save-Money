@@ -1,10 +1,10 @@
-/* ১. গ্লোবাল বক্স-সাইজিং এবং সাইজ লিমিট লক করা */
-* {
+/* ১. বাধ্যতামূলক রেসপন্সিভ সাইজ ও বক্স মডেল */
+*, *::before, *::after {
   box-sizing: border-box !important;
   max-width: 100% !important;
 }
 
-/* ২. রুট কন্টেইনার এবং বডি ওভারফ্লো ফিক্স */
+/* ২. রুট ও বডি লেভেলে জুম লক করা */
 html, body, #root {
   width: 100% !important;
   max-width: 100vw !important;
@@ -24,8 +24,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ৩. সমস্ত ইনপুট, ফর্ম ও ডিভকে স্ক্রিনের ভেতরে বাধ্যতামূলক লক রাখা */
-div, form, input, button, select, textarea {
+/* ৩. সব ফর্ম, ডিভ ও ইনপুট মোবাইল স্ক্রিনে বাধ্য করা */
+div, section, main, form, input, button, select, textarea {
   max-width: 100% !important;
   box-sizing: border-box !important;
 }
