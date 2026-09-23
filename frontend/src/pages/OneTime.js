@@ -2,6 +2,19 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API } from "../config";
 
+// Keyframe Style Injection for Marquee Animation
+if (typeof document !== "undefined") {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = `
+    @keyframes marquee {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+  `;
+  document.head.appendChild(styleSheet);
+}
+
 // Safe Date Parser
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date(0);
@@ -546,7 +559,7 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
-      {/* SIDEBAR DRAWER (Exact copy from Home.js) */}
+      {/* SIDEBAR DRAWER */}
       <div 
         style={{
           ...styles.drawerOverlay,
@@ -762,11 +775,11 @@ export default function OneTime() {
           </div>
         )}
 
-        {/* NOTICE BANNER */}
+        {/* FIXED SMOOTH MARQUEE NOTICE BANNER */}
         <div style={styles.topNoticeBanner}>
-          <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-            <div style={{ display: 'inline-block', animation: 'marquee 30s linear infinite' }}>
-              <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
+          <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
+          <div style={styles.marqueeContainer}>
+            <div style={styles.marqueeText}>
               Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 15% flat bonus!</span> 🎉
             </div>
           </div>
@@ -802,7 +815,7 @@ export default function OneTime() {
           </div>
         </header>
 
-        {/* TOP HERO BANNER (FIXED RESPONSIVE FIT) */}
+        {/* TOP HERO BANNER */}
         <div style={styles.topHeroBanner}>
           <div style={styles.heroTextContent}>
             <h2 style={styles.heroTitle}>
@@ -1267,7 +1280,7 @@ const styles = {
   },
   container: {
     width: "100%",
-    maxWidth: "480px", // Fixed layout width to prevent zooming issues on mobiles
+    maxWidth: "480px",
     display: "flex",
     flexDirection: "column",
     gap: "16px"
@@ -1308,6 +1321,9 @@ const styles = {
     border: "1px solid #22c55e",
     borderRadius: "10px",
     padding: "8px 12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
     overflow: "hidden"
   },
   noticeBadge: {
@@ -1317,7 +1333,23 @@ const styles = {
     fontSize: "10px",
     padding: "2px 6px",
     borderRadius: "4px",
-    marginRight: "8px"
+    whiteSpace: "nowrap",
+    flexShrink: 0
+  },
+  marqueeContainer: {
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    flex: 1,
+    display: "flex",
+    alignItems: "center"
+  },
+  marqueeText: {
+    display: "inline-block",
+    whiteSpace: "nowrap",
+    animation: "marquee 25s linear infinite",
+    fontSize: "11px",
+    fontWeight: "600",
+    color: "#e2e8f0"
   },
   bonusHighlight: {
     color: "#facc15",
@@ -1758,7 +1790,7 @@ const styles = {
     color: "#64748b"
   },
 
-  // SIDEBAR STYLES (MATCHED EXACTLY WITH HOME.JS)
+  // SIDEBAR STYLES
   drawerOverlay: {
     position: "fixed",
     top: 0,
