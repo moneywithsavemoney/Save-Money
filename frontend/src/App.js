@@ -76,338 +76,341 @@ function App() {
 
   return (
     <BrowserRouter>
+      {/* 🟢 জুম ও মোবাইল ওভারফ্লো বন্ধ করার মূল কন্টেইনার Wrapper */}
+      <div style={{ width: "100%", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh", boxSizing: "border-box" }}>
 
-      {popup && (
-        <div style={{
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-          background: "#22c55e",
-          color: "white",
-          padding: "15px",
-          borderRadius: "10px",
-          zIndex: 9999
-        }}>
-          <h4>{popup.title}</h4>
-          <p>{popup.message}</p>
-        </div>
-      )}
+        {popup && (
+          <div style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            background: "#22c55e",
+            color: "white",
+            padding: "15px",
+            borderRadius: "10px",
+            zIndex: 9999
+          }}>
+            <h4>{popup.title}</h4>
+            <p>{popup.message}</p>
+          </div>
+        )}
 
-      <Routes>
-        {/* 🏠 রুট ইউআরএল হুক (ডিফল্ট হোমপেজে নিয়ে যাবে) */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
+        <Routes>
+          {/* 🏠 রুট ইউআরএল হুক (ডিফল্ট হোমপেজে নিয়ে যাবে) */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 🔓 পাবলিক রুটস */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+
+          {/* 🔒 প্রটেক্টেড রুটস (ইউজারদের জন্য) */}
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute>
+                <Leaderboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route 
+            path="/about" 
+            element={
+              <ProtectedRoute>
+                <AboutCompany />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/invest-now"
+            element={
+              <ProtectedRoute>
+                <InvestNow />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route 
+            path="/bank-details" 
+            element={
+              <ProtectedRoute>
+                <BankDetails />
+              </ProtectedRoute>
+            } 
+          />
+
+          <Route 
+            path="/withdraw"
+            element={   
+              <ProtectedRoute>
+                <Withdraw />   
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/wallet"
+            element={
+              <ProtectedRoute>
+                <Wallet />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/refer"
+            element={
+              <ProtectedRoute>
+                <Refer />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/save-money"
+            element={
+              <ProtectedRoute>
+                <SaveMoney />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/one-time"
+            element={
+              <ProtectedRoute>
+                <OneTime />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/my-investment"
+            element={
+              <ProtectedRoute>
+                <MyInvestment />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/invest-history"
+            element={
+              <ProtectedRoute>
+                <InvestHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/bonus-history"
+            element={
+              <ProtectedRoute>
+                <BonusHistory />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/kyc"
+            element={
+              <ProtectedRoute>
+                <KYC />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/legal/:type"
+            element={
+              <ProtectedRoute>
+                <LegalPages />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/performance-bonus"
+            element={
+              <ProtectedRoute>
+                <PerformanceBonus />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/team-bonus"
+            element={
+              <ProtectedRoute>
+                <TeamBonus />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/royalty-bonus"
+            element={
+              <ProtectedRoute>
+                <RoyaltyBonus />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/referral-tree"
+            element={
+              <ProtectedRoute>
+                <ReferralTree />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute>
+                <UserAnalytics />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/daily-reward"
+            element={
+              <ProtectedRoute>
+                <DailyReward />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/investment-assistant"
+            element={
+              <ProtectedRoute>
+                <InvestmentAssistant />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
+
+          <Route
+            path="/support"
+            element={
+              <ProtectedRoute>
+                <Support />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 🛠️ অ্যাডমিন রুটস */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin-kyc"
+            element={
+              <AdminRoute>
+                <AdminKYC />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin-analytics"
+            element={
+              <AdminRoute>
+                <AdvancedAdminAnalytics />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin-user-control"
+            element={
+              <AdminRoute>
+                <AdminUserControl />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin-one-time"
+            element={
+              <AdminRoute>
+                <AdminOneTime />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin-support"
+            element={
+              <AdminRoute>
+                <AdminSupport />
+              </AdminRoute>
+            }
+          />
+
+          <Route
+            path="/admin-notify"
+            element={
+              <AdminRoute>
+                <AdminNotification />
+              </AdminRoute>
+            }
+          />
+
+          {/* 🔄 ফলব্যাক রুট */}
+          <Route path="*" element={<Login />} />
+
+        </Routes>
+
+        <ToastContainer
+          position="top-center"
+          autoClose={2500}
+          theme="dark"
         />
 
-        {/* 🔓 পাবলিক রুটস */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-
-        {/* 🔒 প্রটেক্টেড রুটস (ইউজারদের জন্য) */}
-        <Route
-          path="/leaderboard"
-          element={
-            <ProtectedRoute>
-              <Leaderboard />
-            </ProtectedRoute>
-          }
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
         />
 
-        <Route 
-          path="/about" 
-          element={
-            <ProtectedRoute>
-              <AboutCompany />
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/invest-now"
-          element={
-            <ProtectedRoute>
-              <InvestNow />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route 
-          path="/bank-details" 
-          element={
-            <ProtectedRoute>
-              <BankDetails />
-            </ProtectedRoute>
-          } 
-        />
-
-        <Route 
-          path="/withdraw"
-          element={   
-            <ProtectedRoute>
-              <Withdraw />   
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/wallet"
-          element={
-            <ProtectedRoute>
-              <Wallet />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/refer"
-          element={
-            <ProtectedRoute>
-              <Refer />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/save-money"
-          element={
-            <ProtectedRoute>
-              <SaveMoney />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/one-time"
-          element={
-            <ProtectedRoute>
-              <OneTime />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/my-investment"
-          element={
-            <ProtectedRoute>
-              <MyInvestment />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/invest-history"
-          element={
-            <ProtectedRoute>
-              <InvestHistory />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/bonus-history"
-          element={
-            <ProtectedRoute>
-              <BonusHistory />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/kyc"
-          element={
-            <ProtectedRoute>
-              <KYC />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/notifications"
-          element={
-            <ProtectedRoute>
-              <Notifications />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/legal/:type"
-          element={
-            <ProtectedRoute>
-              <LegalPages />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/performance-bonus"
-          element={
-            <ProtectedRoute>
-              <PerformanceBonus />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/team-bonus"
-          element={
-            <ProtectedRoute>
-              <TeamBonus />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/royalty-bonus"
-          element={
-            <ProtectedRoute>
-              <RoyaltyBonus />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/referral-tree"
-          element={
-            <ProtectedRoute>
-              <ReferralTree />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/analytics"
-          element={
-            <ProtectedRoute>
-              <UserAnalytics />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/daily-reward"
-          element={
-            <ProtectedRoute>
-              <DailyReward />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/investment-assistant"
-          element={
-            <ProtectedRoute>
-              <InvestmentAssistant />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
-
-        <Route
-          path="/support"
-          element={
-            <ProtectedRoute>
-              <Support />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* 🛠️ অ্যাডমিন রুটস */}
-        <Route
-          path="/admin"
-          element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-kyc"
-          element={
-            <AdminRoute>
-              <AdminKYC />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-analytics"
-          element={
-            <AdminRoute>
-              <AdvancedAdminAnalytics />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-user-control"
-          element={
-            <AdminRoute>
-              <AdminUserControl />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-one-time"
-          element={
-            <AdminRoute>
-              <AdminOneTime />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-support"
-          element={
-            <AdminRoute>
-              <AdminSupport />
-            </AdminRoute>
-          }
-        />
-
-        <Route
-          path="/admin-notify"
-          element={
-            <AdminRoute>
-              <AdminNotification />
-            </AdminRoute>
-          }
-        />
-
-        {/* 🔄 ফলব্যাক রুট */}
-        <Route path="*" element={<Login />} />
-
-      </Routes>
-
-      <ToastContainer
-        position="top-center"
-        autoClose={2500}
-        theme="dark"
-      />
-
-      <Toaster
-        position="top-center"
-        reverseOrder={false}
-      />
-
+      </div>
     </BrowserRouter>
   );
 }
