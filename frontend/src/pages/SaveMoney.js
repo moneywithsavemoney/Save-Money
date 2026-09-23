@@ -597,7 +597,7 @@ export default function SaveMoney() {
           <p style={styles.cyberBrandSubtextPara}>INTELLIGENT WEALTH GENERATION SYSTEM</p>
         </header>
 
-        {/* সেকিউরে ওয়ালেট ম্যানেজমেন্ট এবং অ্যাসেট ডিপ্লয়মেন্ট ক্যালিব্রেশন পাশাপাশি (Side-by-Side) */}
+        {/* দুটি বক্স পাশাপাশি (Side-by-Side) করার লেআউট */}
         <div style={styles.executiveTwinControlLayout}>
           
           {/* ZONE BLOCK 1: WALLET ASSET CONSOLE */}
@@ -680,7 +680,7 @@ export default function SaveMoney() {
             </section>
           </div>
 
-          {/* ZONE BLOCK 2: SIP CONFIGURATION */}
+          {/* ZONE BLOCK 2: SIP CONGREGATION INPUT METRICS CONFIGS */}
           <div style={styles.executivePanelZone}>
             <section 
               style={{...styles.cyberLuxuryCardUnit, ...(hoveredCard === 'config' ? styles.cyberLuxuryCardUnitHover : {})}}
@@ -824,7 +824,7 @@ export default function SaveMoney() {
           <div style={styles.separatorLineDecorativeRight}></div>
         </div>
 
-        {/* ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid Layout) */}
+        {/* ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) লেআউট */}
         <div style={styles.projectionGrid2x2Layout}>
           
           <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #00ffa3"}}>
@@ -932,16 +932,6 @@ export default function SaveMoney() {
               {loading ? "PROCESSING SECURE TRANSACTION..." : "COMMENCE SECURE SIP DEPLOYMENT"}
             </span>
           </button>
-        </div>
-
-        {/* পেজের একদম নিচের Save Money সম্পর্কিত এক্সট্রা ইনফো সেকশন */}
-        <div style={styles.pageBottomSaveMoneyInfoSection}>
-          <div style={styles.bottomSaveMoneyCard}>
-            <h4 style={styles.bottomSaveMoneyTitle}>💰 SAVE MONEY SYSTEM GUIDELINE & BENEFITS</h4>
-            <p style={styles.bottomSaveMoneyText}>
-              Save Money module is engineered to provide disciplined, long-term wealth growth through systematic investment plans (SIP). By consistently setting aside capital into secure pools, users benefit from algorithmic compounding, flexible tenures ranging from 1 to 20 years, and optimized high-yield returns. Ensure your wallet stays funded to enable automated monthly deductions seamlessly.
-            </p>
-          </div>
         </div>
 
       </div>
@@ -1425,7 +1415,7 @@ const styles = {
     fontWeight: "bold"
   },
 
-  // পাশাপাশি লেআউটের জন্য গ্রিড সিস্টেম
+  // পাশাপাশি লেআউট (Side-by-Side Grid)
   executiveTwinControlLayout: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
@@ -1820,7 +1810,7 @@ const styles = {
     background: "linear-gradient(90deg, #334155, transparent)"
   },
 
-  // ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid Layout)
+  // ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) লেআউট
   projectionGrid2x2Layout: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
@@ -1964,8 +1954,7 @@ const styles = {
 
   ultimateLaunchButtonCentralContainerFlex: {
     display: "flex",
-    justifyContent: "center",
-    marginBottom: "20px"
+    justifyContent: "center"
   },
   ultimateLaunchCoreActionBtnElement: {
     position: "relative",
@@ -2000,31 +1989,6 @@ const styles = {
     position: "relative",
     zIndex: 2,
     letterSpacing: "0.5px"
-  },
-
-  // পেজের একদম নিচের Save Money সেকশনের স্টাইল
-  pageBottomSaveMoneyInfoSection: {
-    marginTop: "30px"
-  },
-  bottomSaveMoneyCard: {
-    background: "rgba(15, 23, 42, 0.9)",
-    border: "1px solid rgba(0, 255, 163, 0.3)",
-    borderRadius: "16px",
-    padding: "20px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
-  },
-  bottomSaveMoneyTitle: {
-    margin: "0 0 10px 0",
-    fontSize: "13px",
-    fontWeight: "900",
-    color: "#00ffa3",
-    letterSpacing: "0.5px"
-  },
-  bottomSaveMoneyText: {
-    margin: 0,
-    fontSize: "11px",
-    color: "#94a3b8",
-    lineHeight: "1.6"
   },
 
   modalOverlay: {
