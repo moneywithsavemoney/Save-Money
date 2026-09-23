@@ -200,11 +200,6 @@ export default function Login() {
 
       <div style={styles.mainCard}>
 
-        <div style={styles.decorDotsLeft}>•••<br />•••<br />•••</div>
-        <div style={styles.decorDotsRight}>•••<br />•••<br />•••</div>
-        <div style={styles.floatingChart}>▂▅█</div>
-        <div style={styles.floatingShield}>✓</div>
-
         <div style={styles.logoArea}>
 
           <div style={styles.piggyBase}>
@@ -228,7 +223,7 @@ export default function Login() {
 
          <div style={styles.tagline}>
           <span style={styles.taglineLine}></span>
-          <p>Save Today, Secure Tomorrow</p>
+          <p style={{ margin: 0 }}>Save Today, Secure Tomorrow</p>
           <span style={styles.taglineLine}></span>
         </div>
 
@@ -326,7 +321,7 @@ export default function Login() {
                   style={styles.sendOtp}
                   onClick={sendOtp}
                 >
-                  {otpLoading ? "Sending..." : "Send OTP"}
+                  {otpLoading ? "..." : "Send OTP"}
                 </button>
               </div>
 
@@ -377,13 +372,13 @@ export default function Login() {
           </button>
 
           <div style={styles.orRow}>
-            <span></span>
-            <p>OR</p>
-            <span></span>
+            <span style={styles.orLine}></span>
+            <p style={{ margin: 0 }}>OR</p>
+            <span style={styles.orLine}></span>
           </div>
 
           <div style={styles.socialRow}>
-            <p>Login with</p>
+            <p style={{ margin: 0 }}>Login with</p>
             <button type="button" style={styles.googleBtn} onClick={handleGoogleLogin}>G</button>
             <button type="button" style={styles.facebookBtn} onClick={handleFacebookLogin}>f</button>
             <button type="button" style={styles.appleBtn} onClick={handleAppleLogin}></button>
@@ -395,8 +390,8 @@ export default function Login() {
           <div style={styles.registerIcon}>🪪</div>
 
           <div style={styles.registerContent}>
-            <h3>Don’t have an account?</h3>
-            <p>Create a new account and start saving with us.</p>
+            <h3 style={{ margin: "0 0 4px 0", fontSize: "16px" }}>Don’t have an account?</h3>
+            <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>Create a new account and start saving with us.</p>
           </div>
 
           <button
@@ -404,7 +399,7 @@ export default function Login() {
             style={styles.registerBtn}
             onClick={() => navigate("/register")}
           >
-            👤+ Register Now
+            👤+ Register
           </button>
         </div>
 
@@ -424,7 +419,7 @@ function Trust({ icon, title, text }) {
   return (
     <div style={styles.trustItem}>
       <div style={styles.trustIcon}>{icon}</div>
-      <p>
+      <p style={{ margin: 0 }}>
         {title}
         <br />
         {text}
@@ -436,113 +431,65 @@ function Trust({ icon, title, text }) {
 const styles = {
   page: {
     minHeight: "100vh",
-    background:
-      "linear-gradient(135deg,#e9f4ff 0%,#f7f1ff 45%,#ffeef8 100%)",
-    padding: "32px 16px",
+    width: "100%",
+    maxWidth: "100vw",
+    background: "linear-gradient(135deg,#e9f4ff 0%,#f7f1ff 45%,#ffeef8 100%)",
+    padding: "16px 12px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     fontFamily: "Arial, sans-serif",
     position: "relative",
-    overflow: "hidden"
+    overflowX: "hidden",
+    boxSizing: "border-box"
   },
 
   bgCircleOne: {
     position: "fixed",
     top: "-90px",
-    left: "18%",
-    width: "260px",
-    height: "260px",
-    border: "30px solid rgba(167,139,250,0.28)",
-    borderRadius: "50%"
+    left: "10%",
+    width: "200px",
+    height: "200px",
+    border: "20px solid rgba(167,139,250,0.18)",
+    borderRadius: "50%",
+    pointerEvents: "none"
   },
 
   bgCircleTwo: {
     position: "fixed",
-    right: "-80px",
+    right: "-40px",
     top: "42%",
-    width: "180px",
-    height: "95px",
-    background: "rgba(244,114,182,0.45)",
-    borderRadius: "90px"
+    width: "120px",
+    height: "80px",
+    background: "rgba(244,114,182,0.25)",
+    borderRadius: "90px",
+    pointerEvents: "none"
   },
 
   bgPill: {
     position: "fixed",
-    left: "-75px",
-    bottom: "110px",
-    width: "170px",
-    height: "230px",
-    background: "rgba(216,180,254,0.55)",
+    left: "-50px",
+    bottom: "50px",
+    width: "120px",
+    height: "160px",
+    background: "rgba(216,180,254,0.3)",
     borderRadius: "90px",
-    transform: "rotate(35deg)"
+    transform: "rotate(35deg)",
+    pointerEvents: "none"
   },
 
   mainCard: {
     width: "100%",
-    maxWidth: "920px",
-    background: "rgba(255,255,255,0.88)",
-    borderRadius: "46px",
-    padding: "32px 64px 38px",
-    boxShadow: "0 35px 90px rgba(99,102,241,0.22)",
+    maxWidth: "760px",
+    background: "rgba(255,255,255,0.92)",
+    borderRadius: "28px",
+    padding: "24px 16px",
+    boxShadow: "0 20px 50px rgba(99,102,241,0.15)",
     border: "1px solid rgba(255,255,255,0.9)",
     position: "relative",
     overflow: "hidden",
-    zIndex: 2
-  },
-
-  decorDotsLeft: {
-    position: "absolute",
-    left: "34px",
-    top: "275px",
-    color: "#c4b5fd",
-    lineHeight: "14px",
-    letterSpacing: "8px",
-    fontSize: "18px"
-  },
-
-  decorDotsRight: {
-    position: "absolute",
-    right: "28px",
-    bottom: "255px",
-    color: "#c4b5fd",
-    lineHeight: "14px",
-    letterSpacing: "8px",
-    fontSize: "18px"
-  },
-
-  floatingChart: {
-    position: "absolute",
-    top: "112px",
-    left: "80px",
-    width: "72px",
-    height: "72px",
-    background: "linear-gradient(135deg,#4f46e5,#d946ef)",
-    color: "white",
-    borderRadius: "50%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    fontWeight: "900",
-    fontSize: "25px",
-    boxShadow: "0 12px 26px rgba(79,70,229,0.35)"
-  },
-
-  floatingShield: {
-    position: "absolute",
-    top: "160px",
-    right: "120px",
-    width: "76px",
-    height: "76px",
-    background: "linear-gradient(135deg,#22c55e,#10b981)",
-    color: "white",
-    borderRadius: "50%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    fontSize: "42px",
-    fontWeight: "900",
-    boxShadow: "0 14px 28px rgba(34,197,94,0.35)"
+    zIndex: 2,
+    boxSizing: "border-box"
   },
 
   logoArea: {
@@ -552,12 +499,12 @@ const styles = {
   },
 
   piggyBase: {
-    width: "185px",
-    height: "140px",
+    width: "150px",
+    height: "115px",
     margin: "0 auto 10px",
     position: "relative",
     background: "linear-gradient(135deg,#7c3aed,#d946ef)",
-    borderRadius: "90px 90px 30px 30px",
+    borderRadius: "70px 70px 24px 24px",
     display: "flex",
     justifyContent: "center",
     alignItems: "flex-end"
@@ -565,83 +512,82 @@ const styles = {
 
   coin: {
     position: "absolute",
-    top: "-18px",
-    width: "52px",
-    height: "52px",
+    top: "-14px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#facc15,#f97316)",
     color: "#92400e",
     fontWeight: "900",
-    fontSize: "29px",
+    fontSize: "22px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    border: "4px solid #ffd166",
+    border: "3px solid #ffd166",
     zIndex: 4
   },
 
   piggy: {
-    width: "136px",
-    height: "88px",
+    width: "110px",
+    height: "70px",
     background: "linear-gradient(135deg,#ffc2d1,#ff8fab)",
-    borderRadius: "58px 62px 46px 46px",
+    borderRadius: "45px 50px 35px 35px",
     position: "relative",
-    marginBottom: "18px",
-    boxShadow: "inset -10px -8px 0 rgba(244,63,94,0.14)"
+    marginBottom: "14px"
   },
 
   earLeft: {
     position: "absolute",
-    top: "-16px",
-    left: "25px",
-    width: "30px",
-    height: "30px",
+    top: "-12px",
+    left: "20px",
+    width: "24px",
+    height: "24px",
     background: "#ff8fab",
-    borderRadius: "10px 22px 10px 22px",
+    borderRadius: "8px 18px 8px 18px",
     transform: "rotate(28deg)"
   },
 
   earRight: {
     position: "absolute",
-    top: "-12px",
-    right: "22px",
-    width: "25px",
-    height: "25px",
+    top: "-10px",
+    right: "18px",
+    width: "20px",
+    height: "20px",
     background: "#ff8fab",
-    borderRadius: "10px 20px 10px 20px",
+    borderRadius: "8px 16px 8px 16px",
     transform: "rotate(45deg)"
   },
 
   eyeLeft: {
     position: "absolute",
-    top: "28px",
-    left: "76px",
-    width: "7px",
-    height: "7px",
+    top: "22px",
+    left: "60px",
+    width: "6px",
+    height: "6px",
     background: "#111827",
     borderRadius: "50%"
   },
 
   eyeRight: {
     position: "absolute",
-    top: "28px",
-    left: "98px",
-    width: "7px",
-    height: "7px",
+    top: "22px",
+    left: "78px",
+    width: "6px",
+    height: "6px",
     background: "#111827",
     borderRadius: "50%"
   },
 
   nose: {
     position: "absolute",
-    right: "-8px",
-    top: "36px",
-    width: "36px",
-    height: "26px",
+    right: "-6px",
+    top: "28px",
+    width: "28px",
+    height: "20px",
     background: "#fb7185",
     borderRadius: "50%",
     color: "#7f1d1d",
-    fontSize: "9px",
+    fontSize: "8px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center"
@@ -649,30 +595,30 @@ const styles = {
 
   legLeft: {
     position: "absolute",
-    bottom: "-7px",
-    left: "35px",
-    width: "20px",
-    height: "16px",
+    bottom: "-5px",
+    left: "28px",
+    width: "16px",
+    height: "12px",
     background: "#fb7185",
-    borderRadius: "0 0 8px 8px"
+    borderRadius: "0 0 6px 6px"
   },
 
   legRight: {
     position: "absolute",
-    bottom: "-7px",
-    right: "34px",
-    width: "20px",
-    height: "16px",
+    bottom: "-5px",
+    right: "26px",
+    width: "16px",
+    height: "12px",
     background: "#fb7185",
-    borderRadius: "0 0 8px 8px"
+    borderRadius: "0 0 6px 6px"
   },
 
   logoText: {
     margin: 0,
-    fontSize: "58px",
-    lineHeight: "62px",
+    fontSize: "clamp(32px, 8vw, 48px)",
+    lineHeight: "1.1",
     fontWeight: "900",
-    letterSpacing: "-2px"
+    letterSpacing: "-1px"
   },
 
   logoSave: {
@@ -688,127 +634,132 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "14px",
+    gap: "10px",
     color: "#4b5563",
-    fontSize: "20px"
+    fontSize: "14px"
   },
 
   taglineLine: {
-    width: "60px",
-    height: "3px",
+    width: "30px",
+    height: "2px",
     borderRadius: "10px",
     background: "linear-gradient(135deg,#7c3aed,#ec4899)"
   },
 
   welcomeTitle: {
-    margin: "25px 0 6px",
-    fontSize: "42px",
+    margin: "18px 0 4px",
+    fontSize: "clamp(22px, 5vw, 32px)",
     color: "#071b4d",
     fontWeight: "900"
   },
 
   welcomeSub: {
     margin: 0,
-    fontSize: "18px",
+    fontSize: "14px",
     color: "#64748b",
     fontWeight: "600"
   },
 
   loginBox: {
-    margin: "25px auto 0",
-    maxWidth: "760px",
+    margin: "20px auto 0",
+    width: "100%",
     background: "white",
-    borderRadius: "24px",
-    padding: "32px",
-    boxShadow: "0 20px 50px rgba(15,23,42,0.10)",
+    borderRadius: "20px",
+    padding: "20px 14px",
+    boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
     border: "1px solid #edf0f7",
-    position: "relative",
-    zIndex: 2
+    boxSizing: "border-box"
   },
 
   switchTop: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "28px"
+    marginBottom: "20px",
+    gap: "8px"
   },
 
   switchBox: {
     display: "flex",
     background: "#f3f0fb",
-    borderRadius: "16px",
-    padding: "4px",
-    border: "1px solid #ddd6fe"
+    borderRadius: "14px",
+    padding: "3px",
+    border: "1px solid #ddd6fe",
+    flex: 1,
+    maxWidth: "280px"
   },
 
   switchBtn: {
-    minWidth: "155px",
-    height: "56px",
+    flex: 1,
+    height: "44px",
     border: "none",
-    borderRadius: "14px",
-    fontSize: "18px",
-    fontWeight: "900",
+    borderRadius: "12px",
+    fontSize: "14px",
+    fontWeight: "800",
     cursor: "pointer",
     background: "transparent",
-    color: "#64748b"
+    color: "#64748b",
+    padding: "0"
   },
 
   switchActive: {
     background: "linear-gradient(135deg,#5b21b6,#ec4899)",
     color: "white",
-    boxShadow: "0 12px 28px rgba(124,58,237,0.25)"
+    boxShadow: "0 6px 16px rgba(124,58,237,0.25)"
   },
 
   changeBtn: {
     background: "transparent",
     border: "none",
     color: "#6d28d9",
-    fontSize: "17px",
-    fontWeight: "900",
-    cursor: "pointer"
+    fontSize: "14px",
+    fontWeight: "800",
+    cursor: "pointer",
+    padding: "4px"
   },
 
   messageBox: {
     textAlign: "center",
     marginBottom: "14px",
     color: "#7c3aed",
-    fontWeight: "900",
+    fontWeight: "800",
+    fontSize: "13px",
     background: "#f5f3ff",
-    padding: "10px",
-    borderRadius: "14px"
+    padding: "8px",
+    borderRadius: "10px"
   },
 
   inputActive: {
-    height: "76px",
-    borderRadius: "18px",
+    height: "56px",
+    borderRadius: "14px",
     border: "1.8px solid #ec4899",
     display: "flex",
     alignItems: "center",
     overflow: "hidden",
-    marginTop: "18px",
+    marginTop: "14px",
     background: "white"
   },
 
   inputBox: {
-    height: "76px",
-    borderRadius: "18px",
+    height: "56px",
+    borderRadius: "14px",
     border: "1.5px solid #e5e7eb",
     display: "flex",
     alignItems: "center",
     overflow: "hidden",
-    marginTop: "18px",
+    marginTop: "14px",
     background: "white"
   },
 
   inputIcon: {
-    width: "82px",
+    width: "50px",
     height: "100%",
     background: "#f3f0fb",
     color: "#7c3aed",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "28px",
+    fontSize: "20px",
     flexShrink: 0
   },
 
@@ -817,50 +768,54 @@ const styles = {
     border: "none",
     outline: "none",
     height: "100%",
-    padding: "0 22px",
-    fontSize: "19px",
+    padding: "0 12px",
+    fontSize: "15px",
     color: "#111827",
-    background: "transparent"
+    background: "transparent",
+    minWidth: 0
   },
 
   sideIcon: {
-    width: "70px",
+    width: "44px",
     color: "#9ca3af",
-    fontSize: "26px",
+    fontSize: "18px",
     textAlign: "center"
   },
 
   eyeBtn: {
-    width: "70px",
+    width: "44px",
     border: "none",
     background: "transparent",
-    fontSize: "24px",
+    fontSize: "18px",
     cursor: "pointer"
   },
 
   sendOtp: {
-    marginRight: "10px",
+    marginRight: "6px",
     border: "none",
-    borderRadius: "13px",
-    padding: "12px 14px",
+    borderRadius: "10px",
+    padding: "8px 10px",
     background: "linear-gradient(135deg,#7c3aed,#ec4899)",
     color: "white",
-    fontWeight: "900",
-    cursor: "pointer"
+    fontWeight: "800",
+    fontSize: "12px",
+    cursor: "pointer",
+    whiteSpace: "nowrap"
   },
 
   optionsRow: {
-    marginTop: "22px",
+    marginTop: "16px",
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center"
+    alignItems: "center",
+    gap: "8px"
   },
 
   remember: {
     display: "flex",
-    gap: "12px",
+    gap: "6px",
     color: "#64748b",
-    fontSize: "16px",
+    fontSize: "13px",
     alignItems: "center",
     cursor: "pointer"
   },
@@ -869,164 +824,176 @@ const styles = {
     border: "none",
     background: "transparent",
     color: "#6d28d9",
-    fontSize: "16px",
+    fontSize: "13px",
     fontWeight: "800",
-    cursor: "pointer",
-    position: "relative",
-    zIndex: 50
+    cursor: "pointer"
   },
 
   loginBtn: {
-    marginTop: "30px",
+    marginTop: "22px",
     width: "100%",
-    height: "78px",
+    height: "58px",
     border: "none",
-    borderRadius: "25px",
+    borderRadius: "18px",
     background: "linear-gradient(135deg,#4f46e5,#7c3aed,#ec4899)",
     color: "white",
-    fontSize: "24px",
+    fontSize: "18px",
     fontWeight: "900",
     position: "relative",
     cursor: "pointer",
-    boxShadow: "0 15px 30px rgba(124,58,237,0.35)"
+    boxShadow: "0 10px 20px rgba(124,58,237,0.3)"
   },
 
   lockCircle: {
     position: "absolute",
-    left: "22px",
-    top: "14px",
-    width: "50px",
-    height: "50px",
+    left: "12px",
+    top: "10px",
+    width: "38px",
+    height: "38px",
     borderRadius: "50%",
     background: "rgba(255,255,255,0.18)",
     display: "flex",
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
+    fontSize: "16px"
   },
 
   arrowCircle: {
     position: "absolute",
-    right: "22px",
-    top: "14px",
-    width: "50px",
-    height: "50px",
+    right: "12px",
+    top: "10px",
+    width: "38px",
+    height: "38px",
     borderRadius: "50%",
     background: "white",
     color: "#ec4899",
-    fontSize: "42px",
+    fontSize: "28px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    lineHeight: "42px"
+    lineHeight: "28px"
   },
 
   orRow: {
-    marginTop: "32px",
-    display: "flex",
-    alignItems: "center",
-    gap: "18px",
-    justifyContent: "center",
-    color: "#64748b",
-    fontWeight: "800"
-  },
-
-  socialRow: {
     marginTop: "22px",
     display: "flex",
     alignItems: "center",
+    gap: "12px",
     justifyContent: "center",
-    gap: "22px"
+    color: "#64748b",
+    fontWeight: "800",
+    fontSize: "13px"
+  },
+
+  orLine: {
+    flex: 1,
+    height: "1px",
+    background: "#e2e8f0"
+  },
+
+  socialRow: {
+    marginTop: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "14px",
+    fontSize: "13px",
+    color: "#64748b"
   },
 
   googleBtn: {
-    width: "48px",
-    height: "48px",
+    width: "40px",
+    height: "40px",
     borderRadius: "50%",
     border: "1px solid #e5e7eb",
     background: "white",
     color: "#ef4444",
     fontWeight: "900",
-    fontSize: "20px",
+    fontSize: "16px",
     cursor: "pointer"
   },
 
   facebookBtn: {
-    width: "48px",
-    height: "48px",
+    width: "40px",
+    height: "40px",
     borderRadius: "50%",
     border: "1px solid #e5e7eb",
     background: "#2563eb",
     color: "white",
     fontWeight: "900",
-    fontSize: "22px",
+    fontSize: "18px",
     cursor: "pointer"
   },
 
   appleBtn: {
-    width: "48px",
-    height: "48px",
+    width: "40px",
+    height: "40px",
     borderRadius: "50%",
     border: "1px solid #e5e7eb",
     background: "#111827",
     color: "white",
     fontWeight: "900",
-    fontSize: "22px",
+    fontSize: "18px",
     cursor: "pointer"
   },
 
   registerCard: {
-    maxWidth: "760px",
-    margin: "22px auto 0",
+    width: "100%",
+    margin: "18px auto 0",
     background: "white",
-    borderRadius: "24px",
-    padding: "24px 30px",
+    borderRadius: "18px",
+    padding: "16px 14px",
     display: "flex",
     alignItems: "center",
-    gap: "22px",
-    boxShadow: "0 18px 45px rgba(15,23,42,0.08)",
+    gap: "12px",
+    boxShadow: "0 8px 25px rgba(15,23,42,0.05)",
     border: "1px solid #edf0f7",
-    position: "relative",
-    zIndex: 2
+    boxSizing: "border-box",
+    flexWrap: "wrap"
   },
 
   registerIcon: {
-    fontSize: "58px"
+    fontSize: "36px"
   },
 
   registerContent: {
-    flex: 1
+    flex: 1,
+    minWidth: "150px"
   },
 
   registerBtn: {
-    border: "1.8px solid #d946ef",
+    border: "1.5px solid #d946ef",
     background: "white",
     color: "#7c3aed",
-    padding: "15px 24px",
-    borderRadius: "22px",
-    fontWeight: "900",
-    fontSize: "15px",
-    cursor: "pointer"
+    padding: "10px 14px",
+    borderRadius: "14px",
+    fontWeight: "800",
+    fontSize: "13px",
+    cursor: "pointer",
+    whiteSpace: "nowrap"
   },
 
   trustRow: {
-    maxWidth: "760px",
-    margin: "28px auto 0",
+    width: "100%",
+    margin: "20px auto 0",
     display: "grid",
-    gridTemplateColumns: "repeat(4,1fr)",
-    gap: "16px",
-    position: "relative",
-    zIndex: 2
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "12px",
+    boxSizing: "border-box"
   },
 
   trustItem: {
     textAlign: "center",
     color: "#475569",
-    fontSize: "13px",
-    fontWeight: "700"
+    fontSize: "11px",
+    fontWeight: "700",
+    background: "rgba(255,255,255,0.6)",
+    padding: "8px",
+    borderRadius: "12px"
   },
 
   trustIcon: {
-    fontSize: "30px",
-    marginBottom: "6px"
+    fontSize: "22px",
+    marginBottom: "4px"
   }
 };
