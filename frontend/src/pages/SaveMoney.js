@@ -314,7 +314,7 @@ export default function SaveMoney() {
       <div style={styles.dynamicAuraSphere2}></div>
       <div style={styles.dynamicAuraSphere3}></div>
 
-      {/* হোম পেজের মতো সাইডবার ড্রয়ার (Side-by-Side Drawer with Tree Plant) */}
+      {/* সাইডবার ড্রয়ার */}
       <div style={{
         ...styles.drawerOverlay,
         opacity: sidebarOpen ? 1 : 0,
@@ -585,7 +585,6 @@ export default function SaveMoney() {
             <div style={styles.cyberLogoCoreElement}>
               <span style={styles.cyberLogoSymbolText}>₹</span>
             </div>
-            {/* স্ক্রিনশটে মার্ক করা অ্যানিমেশন ঠিক করা হলো (অরবিট লাইন সচল ও প্রোপার রোটেশন অ্যানিমেশন সহ) */}
             <div style={styles.cyberLogoOrbitLine1}></div>
             <div style={styles.cyberLogoOrbitLine2}></div>
           </div>
@@ -598,7 +597,7 @@ export default function SaveMoney() {
           <p style={styles.cyberBrandSubtextPara}>INTELLIGENT WEALTH GENERATION SYSTEM</p>
         </header>
 
-        {/* বক্স দুটোকে পাশাপাশি (Side-by-Side) করার লেআউট */}
+        {/* সেকিউরে ওয়ালেট ম্যানেজমেন্ট এবং অ্যাসেট ডিপ্লয়মেন্ট ক্যালিব্রেশন পাশাপাশি (Side-by-Side) */}
         <div style={styles.executiveTwinControlLayout}>
           
           {/* ZONE BLOCK 1: WALLET ASSET CONSOLE */}
@@ -681,7 +680,7 @@ export default function SaveMoney() {
             </section>
           </div>
 
-          {/* ZONE BLOCK 2: SIP CONGREGATION INPUT METRICS CONFIGS */}
+          {/* ZONE BLOCK 2: SIP CONFIGURATION */}
           <div style={styles.executivePanelZone}>
             <section 
               style={{...styles.cyberLuxuryCardUnit, ...(hoveredCard === 'config' ? styles.cyberLuxuryCardUnitHover : {})}}
@@ -825,7 +824,7 @@ export default function SaveMoney() {
           <div style={styles.separatorLineDecorativeRight}></div>
         </div>
 
-        {/* ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) করার লেআউট */}
+        {/* ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid Layout) */}
         <div style={styles.projectionGrid2x2Layout}>
           
           <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #00ffa3"}}>
@@ -935,6 +934,16 @@ export default function SaveMoney() {
           </button>
         </div>
 
+        {/* পেজের একদম নিচের Save Money সম্পর্কিত এক্সট্রা ইনফো সেকশন */}
+        <div style={styles.pageBottomSaveMoneyInfoSection}>
+          <div style={styles.bottomSaveMoneyCard}>
+            <h4 style={styles.bottomSaveMoneyTitle}>💰 SAVE MONEY SYSTEM GUIDELINE & BENEFITS</h4>
+            <p style={styles.bottomSaveMoneyText}>
+              Save Money module is engineered to provide disciplined, long-term wealth growth through systematic investment plans (SIP). By consistently setting aside capital into secure pools, users benefit from algorithmic compounding, flexible tenures ranging from 1 to 20 years, and optimized high-yield returns. Ensure your wallet stays funded to enable automated monthly deductions seamlessly.
+            </p>
+          </div>
+        </div>
+
       </div>
 
       {/* TERMS MODAL */}
@@ -1033,7 +1042,6 @@ const styles = {
     zIndex: 1
   },
 
-  // সাইডবার স্টাইলস (হোম পেজের সাথে হুবহু মিল রেখে)
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -1379,7 +1387,6 @@ const styles = {
     fontWeight: "900",
     color: "#020617"
   },
-  // অ্যানিমেশন ঠিক করা হলো যাতে লোগোর চারপাশের রিং সচলভাবে ঘুরতে থাকে
   cyberLogoOrbitLine1: {
     position: "absolute",
     inset: 0,
@@ -1418,7 +1425,7 @@ const styles = {
     fontWeight: "bold"
   },
 
-  // পাশাপাশি (Side-by-Side) লেআউট
+  // পাশাপাশি লেআউটের জন্য গ্রিড সিস্টেম
   executiveTwinControlLayout: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
@@ -1813,7 +1820,7 @@ const styles = {
     background: "linear-gradient(90deg, #334155, transparent)"
   },
 
-  // ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) করার লেআউট
+  // ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid Layout)
   projectionGrid2x2Layout: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
@@ -1957,7 +1964,8 @@ const styles = {
 
   ultimateLaunchButtonCentralContainerFlex: {
     display: "flex",
-    justifyContent: "center"
+    justifyContent: "center",
+    marginBottom: "20px"
   },
   ultimateLaunchCoreActionBtnElement: {
     position: "relative",
@@ -1994,6 +2002,31 @@ const styles = {
     letterSpacing: "0.5px"
   },
 
+  // পেজের একদম নিচের Save Money সেকশনের স্টাইল
+  pageBottomSaveMoneyInfoSection: {
+    marginTop: "30px"
+  },
+  bottomSaveMoneyCard: {
+    background: "rgba(15, 23, 42, 0.9)",
+    border: "1px solid rgba(0, 255, 163, 0.3)",
+    borderRadius: "16px",
+    padding: "20px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
+  },
+  bottomSaveMoneyTitle: {
+    margin: "0 0 10px 0",
+    fontSize: "13px",
+    fontWeight: "900",
+    color: "#00ffa3",
+    letterSpacing: "0.5px"
+  },
+  bottomSaveMoneyText: {
+    margin: 0,
+    fontSize: "11px",
+    color: "#94a3b8",
+    lineHeight: "1.6"
+  },
+
   modalOverlay: {
     position: "fixed",
     inset: 0,
@@ -2016,7 +2049,6 @@ const styles = {
   }
 };
 
-// গ্লোবাল অ্যানিমেশন স্টাইল শিট যুক্ত করা হলো (লোগোর অ্যানিমেশন ও পালস ইফেক্টের জন্য)
 const animationStyleSheet = document.createElement("style");
 animationStyleSheet.type = "text/css";
 animationStyleSheet.innerText = `
