@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API } from "../config";
 
-// Safe Date Parser for MM/DD/YYYY or any date format
+// Safe Date Parser
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date(0);
   if (dateVal instanceof Date) return isNaN(dateVal) ? new Date(0) : dateVal;
@@ -53,7 +53,6 @@ export default function OneTime() {
   // ----------------- DASHBOARD STATES -----------------
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
-  const [oneTimerNotifications, setOneTimerNotifications] = useState([]);
   const [history, setHistory] = useState([]);
 
   // Dynamic Dashboard Stats
@@ -218,7 +217,6 @@ export default function OneTime() {
       const data = await res.json();
       if (res.ok) {
         setUser(data.user || {});
-        setOneTimerNotifications(data.oneTimerNotifications || []);
 
         const rawHistory = Array.isArray(data.history)
           ? data.history
@@ -324,8 +322,8 @@ export default function OneTime() {
 
       const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
       const status = (item.status || "").toLowerCase();
-      const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
 
+      const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
       return itemDate === todayStr && isBlocked;
     });
   }, [history]);
@@ -538,7 +536,7 @@ export default function OneTime() {
       <div style={styles.loadingPage}>
         <div style={{ textAlign: "center" }}>
           <div style={styles.spinner}></div>
-          <h3 style={{ color: "#22c55e", marginTop: "14px", fontSize: "20px", fontWeight: "700" }}>Loading Dashboard...</h3>
+          <h3 style={{ color: "#22c55e", marginTop: "14px", fontSize: "18px", fontWeight: "700" }}>Loading Dashboard...</h3>
         </div>
       </div>
     );
@@ -548,7 +546,7 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
-      {/* 🏠 HOME.JS স্টাইলের আধুনিক সাইডবার (SIDEBAR DRAWER) */}
+      {/* SIDEBAR DRAWER (Exact copy from Home.js) */}
       <div 
         style={{
           ...styles.drawerOverlay,
@@ -581,193 +579,197 @@ export default function OneTime() {
             </div>
           </div>
 
-          <div style={styles.drawerNavList}>
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavDashboard,
-                ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/home"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🏠</span>
-              <span style={styles.drawerNavText}>Dashboard</span>
-            </button>
+          <div style={styles.drawerScrollArea}>
+            <div style={styles.drawerNavList}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDashboard,
+                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/home"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🏠</span>
+                <span style={styles.drawerNavText}>Dashboard</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavMyInvestment,
-                ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/my-investment"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>📈</span>
-              <span style={styles.drawerNavText}>My Investment</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavMyInvestment,
+                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/my-investment"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📈</span>
+                <span style={styles.drawerNavText}>My Investment</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavSaveMoney,
-                ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/save-money"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>💰</span>
-              <span style={styles.drawerNavText}>Save Money</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSaveMoney,
+                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/save-money"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>💰</span>
+                <span style={styles.drawerNavText}>Save Money</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavOneTime,
-                ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/one-time"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>⚡</span>
-              <span style={styles.drawerNavText}>One Time</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavOneTime,
+                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/one-time"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>⚡</span>
+                <span style={styles.drawerNavText}>One Time</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavPlan
-              }} 
-              onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
-              disabled={isDownloadingPlan}
-            >
-              <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
-              <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavPlan
+                }} 
+                onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
+                disabled={isDownloadingPlan}
+              >
+                <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
+                <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavAddFund,
-                ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/wallet"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🌐</span>
-              <span style={styles.drawerNavText}>Add Fund</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavAddFund,
+                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/wallet"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🌐</span>
+                <span style={styles.drawerNavText}>Add Fund</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavRefer,
-                ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/refer"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>👥</span>
-              <span style={styles.drawerNavText}>Refer & Earn</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavRefer,
+                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/refer"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👥</span>
+                <span style={styles.drawerNavText}>Refer & Earn</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavWithdraw,
-                ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/withdraw"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>➔</span>
-              <span style={styles.drawerNavText}>Withdraw</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavWithdraw,
+                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/withdraw"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>➔</span>
+                <span style={styles.drawerNavText}>Withdraw</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavDailyReward,
-                ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/daily-reward"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🎁</span>
-              <span style={styles.drawerNavText}>Daily Reward</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDailyReward,
+                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/daily-reward"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎁</span>
+                <span style={styles.drawerNavText}>Daily Reward</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavInvestmentAssistant,
-                ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/investment-assistant"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>📊</span>
-              <span style={styles.drawerNavText}>Investment Assistance</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavInvestmentAssistant,
+                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/investment-assistant"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📊</span>
+                <span style={styles.drawerNavText}>Investment Assistance</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavSupport,
-                ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/support"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🎧</span>
-              <span style={styles.drawerNavText}>Support</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSupport,
+                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/support"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎧</span>
+                <span style={styles.drawerNavText}>Support</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavProfile,
-                ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { navigate("/kyc"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>👤</span>
-              <span style={styles.drawerNavText}>Profile</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavProfile,
+                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/kyc"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👤</span>
+                <span style={styles.drawerNavText}>Profile</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavLogout
-              }} 
-              onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
-            >
-              <span style={styles.drawerNavIcon}>🚪</span>
-              <span style={styles.drawerNavText}>Logout</span>
-            </button>
-          </div>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavLogout
+                }} 
+                onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
+              >
+                <span style={styles.drawerNavIcon}>🚪</span>
+                <span style={styles.drawerNavText}>Logout</span>
+              </button>
+            </div>
 
-          <div style={styles.treePlantOnlyWrapper}>
-            <img 
-              src="/tree plant.png" 
-              alt="Tree Plant" 
-              style={styles.treePlantOnlyImg}
-              onError={(e) => {
-                if (e.target.src.includes('.png')) {
-                  e.target.src = '/tree plant.jpg';
-                }
-              }}
-            />
+            <div style={styles.treePlantOnlyWrapper}>
+              <img 
+                src="/tree plant.png" 
+                alt="Tree Plant" 
+                style={styles.treePlantOnlyImg}
+                onError={(e) => {
+                  if (e.target.src.includes('.png')) {
+                    e.target.src = '/tree plant.jpg';
+                  }
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>
 
       <div style={styles.container}>
-        {/* TOP-CENTER PREMIUM TOAST ALERT */}
+        {/* TOAST ALERT */}
         {toast.show && (
           <div style={{ ...styles.toast, background: toast.type === "error" ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" : "linear-gradient(135deg, #16a34a 0%, #15803d 100%)" }}>
-            <span style={{ fontSize: "18px" }}>{toast.type === "error" ? "⚠️" : "✅"}</span>
+            <span style={{ fontSize: "16px" }}>{toast.type === "error" ? "⚠️" : "✅"}</span>
             <span>{toast.msg}</span>
           </div>
         )}
 
-        {/* TOP HIGHLIGHTED NOTICE BANNER */}
+        {/* NOTICE BANNER */}
         <div style={styles.topNoticeBanner}>
-          <marquee behavior="scroll" direction="left" scrollamount="6" style={styles.marqueeText}>
-            <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
-            Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 15% flat bonus!</span> 🎉
-          </marquee>
+          <div style={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <div style={{ display: 'inline-block', animation: 'marquee 15s linear infinite' }}>
+              <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
+              Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 15% flat bonus!</span> 🎉
+            </div>
+          </div>
         </div>
 
         {/* HEADER */}
@@ -792,7 +794,7 @@ export default function OneTime() {
               <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
             ) : (
               <div style={styles.profileAvatarPlaceholder}>
-                <span style={{ fontSize: "18px", color: "#fff", fontWeight: "bold" }}>
+                <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
                   {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </span>
               </div>
@@ -800,13 +802,13 @@ export default function OneTime() {
           </div>
         </header>
 
-        {/* TOP HERO BANNER */}
+        {/* TOP HERO BANNER (FIXED RESPONSIVE FIT) */}
         <div style={styles.topHeroBanner}>
           <div style={styles.heroTextContent}>
             <h2 style={styles.heroTitle}>
               Chhote nivesh se <br />
               <span style={{ color: "#facc15" }}>badi kamai ka safar,</span> <br />
-              <span style={{ fontSize: "19px", fontWeight: "800", color: "#f1f5f9" }}>har mahine का plan, hamesha</span>
+              <span style={{ color: "#f1f5f9" }}>har mahine ka plan, hamesha</span>
             </h2>
             <p style={styles.heroDesc}>
               Invest small amounts monthly to get big returns together
@@ -817,73 +819,59 @@ export default function OneTime() {
               src="/chhote nivesh.png" 
               alt="Chhote Nivesh" 
               style={styles.heroBannerImage}
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
+              onError={(e) => { e.target.style.display = 'none'; }}
             />
           </div>
         </div>
 
-        {/* 4 STAT CARDS GRID */}
+        {/* STAT CARDS GRID */}
         <section style={styles.statsGridContainer}>
           <div style={styles.darkStatCard}>
             <div style={styles.statCardHeader}>
               <div style={{ ...styles.iconBox, background: "rgba(34, 197, 94, 0.15)" }}>
-                <span style={{ color: "#22c55e", fontSize: "20px" }}>💼</span>
+                <span style={{ color: "#22c55e", fontSize: "18px" }}>💼</span>
               </div>
               <span style={styles.statCardTitle}>Total Invested</span>
             </div>
             <strong style={styles.statCardValue}>
               ₹ {Number(stats.totalInvested || 0).toLocaleString("en-IN")}
             </strong>
-            <svg style={styles.sparkline} viewBox="0 0 100 25">
-              <path d="M0,20 Q25,5 50,15 T100,5" fill="none" stroke="#22c55e" strokeWidth="2" />
-            </svg>
           </div>
 
           <div style={styles.darkStatCard}>
             <div style={styles.statCardHeader}>
               <div style={{ ...styles.iconBox, background: "rgba(56, 189, 248, 0.15)" }}>
-                <span style={{ color: "#38bdf8", fontSize: "20px" }}>💵</span>
+                <span style={{ color: "#38bdf8", fontSize: "18px" }}>💵</span>
               </div>
               <span style={styles.statCardTitle}>Total Earnings</span>
             </div>
             <strong style={styles.statCardValue}>
               ₹ {Number(stats.totalEarnings || 0).toLocaleString("en-IN")}
             </strong>
-            <svg style={styles.sparkline} viewBox="0 0 100 25">
-              <path d="M0,18 Q30,22 60,8 T100,12" fill="none" stroke="#38bdf8" strokeWidth="2" />
-            </svg>
           </div>
 
           <div style={styles.darkStatCard}>
             <div style={styles.statCardHeader}>
               <div style={{ ...styles.iconBox, background: "rgba(168, 85, 247, 0.15)" }}>
-                <span style={{ color: "#a855f7", fontSize: "20px" }}>💸</span>
+                <span style={{ color: "#a855f7", fontSize: "18px" }}>💸</span>
               </div>
               <span style={styles.statCardTitle}>Total Withdraw</span>
             </div>
             <strong style={styles.statCardValue}>
               ₹ {Number(stats.totalWithdrawn || 0).toLocaleString("en-IN")}
             </strong>
-            <svg style={styles.sparkline} viewBox="0 0 100 25">
-              <path d="M0,10 Q20,20 50,12 T100,18" fill="none" stroke="#a855f7" strokeWidth="2" />
-            </svg>
           </div>
 
           <div style={styles.darkStatCard}>
             <div style={styles.statCardHeader}>
               <div style={{ ...styles.iconBox, background: "rgba(234, 179, 8, 0.15)" }}>
-                <span style={{ color: "#eab308", fontSize: "20px" }}>🪙</span>
+                <span style={{ color: "#eab308", fontSize: "18px" }}>🪙</span>
               </div>
               <span style={styles.statCardTitle}>Available Balance</span>
             </div>
             <strong style={styles.statCardValue}>
               ₹ {currentWalletBalance.toLocaleString("en-IN")}
             </strong>
-            <svg style={styles.sparkline} viewBox="0 0 100 25">
-              <path d="M0,22 Q35,8 65,18 T100,2" fill="none" stroke="#eab308" strokeWidth="2" />
-            </svg>
           </div>
         </section>
 
@@ -984,15 +972,12 @@ export default function OneTime() {
                 style={styles.amountInputWrapDark} 
                 onClick={() => !activeInvestment && setShowAmountModal(true)}
               >
-                <span style={{ fontSize: "20px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
+                <span style={{ fontSize: "18px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
                 <input style={styles.amountInputDark} type="text" readOnly value={amount.toLocaleString("en-IN")} />
                 <span style={activeInvestment ? styles.lockedBadgeDark : styles.changeBadgeDark}>
                   {activeInvestment ? "🔒 Locked" : "Change ⚙️"}
                 </span>
               </div>
-              <small style={styles.helpTextDark}>
-                {activeInvestment ? "Investment running - fields locked until maturity" : "Click to choose quick amount presets"}
-              </small>
             </div>
           </div>
 
@@ -1026,7 +1011,7 @@ export default function OneTime() {
               <span style={styles.breakLabelDark}>Total Return</span>
               <strong style={{ ...styles.breakValueDark, color: "#22c55e" }}>₹ {totalReturn.toLocaleString("en-IN")}</strong>
             </div>
-            <div style={{ ...styles.breakBoxDark, borderRight: "none" }}>
+            <div style={styles.breakBoxDark}>
               <span style={styles.breakLabelDark}>Total Payout</span>
               <strong style={{ ...styles.breakValueDark, color: "#38bdf8" }}>₹ {totalPayout.toLocaleString("en-IN")}</strong>
             </div>
@@ -1057,7 +1042,7 @@ export default function OneTime() {
         {/* HISTORY TABLE */}
         <section style={styles.darkHistoryCard}>
           <div style={styles.historyHeader}>
-            <h2 style={{ margin: 0, fontSize: "20px", color: "#f8fafc", fontWeight: "800" }}>Investment & Transaction History</h2>
+            <h2 style={{ margin: 0, fontSize: "16px", color: "#f8fafc", fontWeight: "800" }}>Transaction History</h2>
             <span style={styles.refreshBtnDark} onClick={loadDashboardData}>🔄 Refresh</span>
           </div>
 
@@ -1066,17 +1051,15 @@ export default function OneTime() {
               <thead>
                 <tr>
                   <th style={styles.thDark}>Date</th>
-                  <th style={styles.thDark}>Type / Description</th>
+                  <th style={styles.thDark}>Type</th>
                   <th style={styles.thDark}>Amount</th>
-                  <th style={styles.thDark}>Frequency / Txn</th>
                   <th style={styles.thDark}>Status</th>
-                  <th style={styles.thDark}>Maturity</th>
                 </tr>
               </thead>
               <tbody>
                 {displayedHistory.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={styles.emptyTdDark}>No history found</td>
+                    <td colSpan="4" style={styles.emptyTdDark}>No history found</td>
                   </tr>
                 ) : (
                   displayedHistory.map((item, idx) => {
@@ -1091,36 +1074,15 @@ export default function OneTime() {
 
                     return (
                       <tr key={item._id || idx} style={styles.trDark}>
-                        <td style={styles.tdDark}>
-                          {formatDate(item.createdAt || item.startDate)}
-                        </td>
+                        <td style={styles.tdDark}>{formatDate(item.createdAt || item.startDate)}</td>
                         <td style={styles.tdDark}>
                           {isDeposit ? "💳 Add Fund" : isWithdraw ? "💸 Withdrawal" : `🚀 ${item.duration || `${item.durationDays || tenure} Days`}`}
                         </td>
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
-                          {isDeposit ? (
-                            <span style={{ fontSize: "14px", color: "#94a3b8" }}>UTR: {item.transactionId || "N/A"}</span>
-                          ) : isWithdraw ? (
-                            <span style={{ fontSize: "14px", color: "#94a3b8" }}>Bank Request</span>
-                          ) : (
-                            <span style={styles.badgeDailyDark}>
-                              {item.frequency || "Daily"}
-                            </span>
-                          )}
-                        </td>
-                        <td style={styles.tdDark}>
                           <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
                             {displayStatus}
                           </span>
-                          {isRejected && (item.rejectReason || item.reason) && (
-                            <div style={{ fontSize: "13px", color: "#f87171", marginTop: "4px" }}>
-                              Reason: {item.rejectReason || item.reason}
-                            </div>
-                          )}
-                        </td>
-                        <td style={styles.tdDark}>
-                          {formatDate(item.maturityDate)}
                         </td>
                       </tr>
                     );
@@ -1137,176 +1099,46 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* WHY WE RAISE FUNDS */}
-        <section style={styles.darkMainCard}>
-          <h2 style={{ ...styles.darkCardTitle, color: "#22c55e", display: "flex", alignItems: "center", gap: "8px" }}>
-            <span>💡</span> Why We Accept Investments & How Your Funds Work
-          </h2>
-          <p style={{ fontSize: "16px", color: "#cbd5e1", lineHeight: "1.6", marginTop: "-6px", marginBottom: "18px" }}>
-            To generate stable, high-yield returns for our investors, we deploy capital into diversified, risk-managed financial channels:
-          </p>
-          <div style={styles.whyInvestGrid}>
-            <div style={styles.whyInvestCard}>
-              <div style={{ fontSize: "32px", marginBottom: "8px" }}>🏦</div>
-              <strong style={{ color: "#ffffff", fontSize: "17px", display: "block", marginBottom: "6px" }}>
-                Loan & Credit Services
-              </strong>
-              <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0, lineHeight: "1.5" }}>
-                We raise funds to provide secured & quick loan solutions including <strong>Personal Loans</strong>, <strong>Salary Advance Loans</strong>, and <strong>Home Loans</strong>.
-              </p>
-            </div>
-
-            <div style={styles.whyInvestCard}>
-              <div style={{ fontSize: "32px", marginBottom: "8px" }}>📊</div>
-              <strong style={{ color: "#ffffff", fontSize: "17px", display: "block", marginBottom: "6px" }}>
-                Strategic Market Investments
-              </strong>
-              <p style={{ color: "#94a3b8", fontSize: "14px", margin: 0, lineHeight: "1.5" }}>
-                We re-invest capital into high-growth financial instruments such as <strong>Stocks</strong>, <strong>Systematic Investment Plans (SIPs)</strong>, and top-performing <strong>Mutual Funds</strong>.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* TRUST BANNER */}
-        <section style={styles.trustBannerDark}>
-          <div style={styles.trustLeftContent}>
-            <h3 style={{ margin: "0 0 8px 0", fontSize: "22px", color: "#ffffff", fontWeight: "800" }}>
-              Invest Small, <br />
-              <span style={{ color: "#4ade80" }}>Earn Big Returns Together</span>
-            </h3>
-            <p style={{ margin: "0 0 14px 0", opacity: 0.9, fontSize: "15px", color: "#cbd5e1" }}>
-              Start investing today and secure your future.
-            </p>
-            <div style={styles.trustIllustrations}>
-              <img 
-                src="/small invest.png" 
-                alt="Small Invest" 
-                style={styles.trustImg}
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            </div>
-          </div>
-
-          <div style={styles.trustRightList}>
-            <div style={styles.trustItem}>
-              <span style={styles.trustIcon}>🛡</span>
-              <div>
-                <strong style={styles.trustTitle}>100% Secure</strong>
-                <span style={styles.trustSub}>Safe & Trusted Platform</span>
-              </div>
-            </div>
-
-            <div style={styles.trustItem}>
-              <span style={styles.trustIcon}>📈</span>
-              <div>
-                <strong style={styles.trustTitle}>High Returns</strong>
-                <span style={styles.trustSub}>Better returns on your investments</span>
-              </div>
-            </div>
-
-            <div style={styles.trustItem}>
-              <span style={styles.trustIcon}>🕒</span>
-              <div>
-                <strong style={styles.trustTitle}>Smart & Simple</strong>
-                <span style={styles.trustSub}>Easy invest, easy grow</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* FOOTER FEATURES GRID */}
-        <div style={styles.footerFeaturesGrid}>
-          <div style={styles.featureBoxDark}>
-            <span style={{ fontSize: "28px" }}>📈</span>
-            <div>
-              <strong style={{ fontSize: "16px", color: "#fff", display: "block" }}>High Returns</strong>
-              <span style={{ fontSize: "14px", color: "#94a3b8" }}>Better returns on your investments</span>
-            </div>
-          </div>
-
-          <div style={styles.featureBoxDark}>
-            <span style={{ fontSize: "28px" }}>🎧</span>
-            <div>
-              <strong style={{ fontSize: "16px", color: "#fff", display: "block" }}>24/7 Support</strong>
-              <span style={{ fontSize: "14px", color: "#94a3b8" }}>We are here to help you</span>
-            </div>
-          </div>
-
-          <div style={styles.featureBoxDark}>
-            <span style={{ fontSize: "28px" }}>👥</span>
-            <div>
-              <strong style={{ fontSize: "16px", color: "#fff", display: "block" }}>Trusted Platform</strong>
-              <span style={{ fontSize: "14px", color: "#94a3b8" }}>Thousands of users trust us</span>
-            </div>
-          </div>
-        </div>
-
-        {/* FOOTER BRAND BAR */}
+        {/* FOOTER */}
         <footer style={styles.footerBar}>
           <p style={styles.footerTagline}>
-            Chhote nivesh, badi kamai ka sapna, ab hoga sach! <strong style={{ color: "#22c55e" }}>SAVE MONEY</strong> ke saath! 💚
+            Chhote nivesh, badi kamai ka sapna, ab hoga sach! <strong style={{ color: "#22c55e" }}>SAVE MONEY</strong>! 💚
           </p>
           <div style={styles.footerCopyRow}>
             <span>© 2026 SAVE MONEY. All Rights Reserved.</span>
-            <span>Made with ❤️ for your better future</span>
           </div>
         </footer>
       </div>
 
-      {/* WELCOME OFFER POPUP MODAL */}
+      {/* POPUP & MODALS */}
       {showOfferPopup && (
         <div style={styles.modalOverlay}>
           <div style={styles.offerPopupCard}>
             <button style={styles.offerCloseBtn} onClick={() => setShowOfferPopup(false)}>✕</button>
-            
-            <div style={styles.offerHeaderBadge}>
-              🎁 EXCLUSIVE REFERRAL OFFER
-            </div>
-
-            <div style={styles.offerIconWrapper}>
-              🚀
-            </div>
-
-            <h2 style={styles.offerTitle}>
-              Thank you for choosing <span style={{ color: "#22c55e" }}>Save Money</span>!
-            </h2>
-
+            <div style={styles.offerHeaderBadge}>🎁 EXCLUSIVE REFERRAL OFFER</div>
+            <div style={styles.offerIconWrapper}>🚀</div>
+            <h2 style={styles.offerTitle}>Thank you for choosing <span style={{ color: "#22c55e" }}>Save Money</span>!</h2>
             <p style={styles.offerDescription}>
               Refer your friend to invest today and get <br />
               <strong style={styles.offerHighlightText}>upto 15% flat bonus</strong> instantly!
             </p>
-
             <div style={styles.offerActionGroup}>
-              <button 
-                style={styles.offerReferBtn} 
-                onClick={() => {
-                  setShowOfferPopup(false);
-                  navigate("/refer");
-                }}
-              >
+              <button style={styles.offerReferBtn} onClick={() => { setShowOfferPopup(false); navigate("/refer"); }}>
                 👥 Refer Friend Now
               </button>
-              <button style={styles.offerSkipBtn} onClick={() => setShowOfferPopup(false)}>
-                Maybe Later
-              </button>
+              <button style={styles.offerSkipBtn} onClick={() => setShowOfferPopup(false)}>Maybe Later</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* MODALS */}
       {showAmountModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Select Investment Amount</h3>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Select Amount</h3>
               <button style={styles.closeBtnDark} onClick={() => setShowAmountModal(false)}>✕</button>
             </div>
-            <p style={{ fontSize: "15px", color: "#94a3b8", marginTop: 0, marginBottom: "16px" }}>
-              Choose one of the plan presets below:
-            </p>
-
             <div style={styles.presetGrid}>
               {presetAmounts.map((p) => (
                 <div
@@ -1314,16 +1146,12 @@ export default function OneTime() {
                   style={{
                     ...styles.presetCard,
                     background: p.color,
-                    border: amount === p.value ? "3px solid #ffffff" : "none"
+                    border: amount === p.value ? "2px solid #ffffff" : "none"
                   }}
-                  onClick={() => {
-                    setAmount(p.value);
-                    setShowAmountModal(false);
-                  }}
+                  onClick={() => { setAmount(p.value); setShowAmountModal(false); }}
                 >
                   <span style={styles.presetBadge}>{p.desc}</span>
                   <div style={styles.presetVal}>₹{p.value.toLocaleString("en-IN")}</div>
-                  <span style={styles.presetLabel}>({p.label})</span>
                 </div>
               ))}
             </div>
@@ -1335,47 +1163,29 @@ export default function OneTime() {
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Investment Fund</h3>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Add Investment Fund</h3>
               <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
-
-            <p style={{ fontSize: "16px", color: "#cbd5e1", margin: "0 0 14px 0" }}>
-              Send <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong> to company wallet & upload payment proof:
+            <p style={{ fontSize: "14px", color: "#cbd5e1", margin: "0 0 12px 0" }}>
+              Send <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong> to company wallet:
             </p>
-
             <div style={styles.walletBoxDark}>
-              <small style={{ color: "#94a3b8", fontWeight: "bold", fontSize: "14px" }}>Company Wallet Address:</small>
               <div style={styles.walletAddrRow}>
                 <span style={styles.walletText}>{COMPANY_WALLET_ADDRESS}</span>
                 <button style={styles.copyBtn} onClick={handleCopyWallet}>Copy</button>
               </div>
             </div>
-
-            <form onSubmit={handleDepositSubmit} style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "14px" }}>
+            <form onSubmit={handleDepositSubmit} style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "12px" }}>
               <div>
                 <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
-                <input
-                  style={styles.inputModalDark}
-                  placeholder="Enter 12-digit UTR or Txn Hash"
-                  value={txnId}
-                  onChange={(e) => setTxnId(e.target.value)}
-                  required
-                />
+                <input style={styles.inputModalDark} placeholder="Enter UTR / Txn Hash" value={txnId} onChange={(e) => setTxnId(e.target.value)} required />
               </div>
-
               <div>
-                <label style={styles.labelDark}>Payment Screenshot Proof*</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  style={styles.fileInputDark}
-                  onChange={(e) => setScreenshot(e.target.files[0])}
-                  required
-                />
+                <label style={styles.labelDark}>Screenshot Proof*</label>
+                <input type="file" accept="image/*" style={styles.fileInputDark} onChange={(e) => setScreenshot(e.target.files[0])} required />
               </div>
-
               <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
-                {depositing ? "Uploading Proof..." : "Submit Deposit Proof"}
+                {depositing ? "Uploading..." : "Submit Deposit Proof"}
               </button>
             </form>
           </div>
@@ -1386,110 +1196,43 @@ export default function OneTime() {
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "22px", color: "#fff" }}>Add Bank Details</h3>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Add Bank Details</h3>
               <button style={styles.closeBtnDark} onClick={() => setShowBankModal(false)}>✕</button>
             </div>
-
-            <form onSubmit={handleSaveBankDetails} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              <input
-                style={styles.inputModalDark}
-                placeholder="Account Holder Name"
-                value={bankForm.holderName}
-                onChange={(e) => setBankForm({ ...bankForm, holderName: e.target.value })}
-                required
-              />
-              <input
-                style={styles.inputModalDark}
-                placeholder="Bank Name"
-                value={bankForm.bankName}
-                onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })}
-                required
-              />
-              <input
-                style={styles.inputModalDark}
-                placeholder="Account Number"
-                value={bankForm.accountNumber}
-                onChange={(e) => setBankForm({ ...bankForm, accountNumber: e.target.value })}
-                required
-              />
-              <input
-                style={styles.inputModalDark}
-                placeholder="IFSC Code"
-                value={bankForm.ifsc}
-                onChange={(e) => setBankForm({ ...bankForm, ifsc: e.target.value })}
-                required
-              />
-              <button type="submit" style={styles.submitBtnDark}>
-                Save Bank Account
-              </button>
+            <form onSubmit={handleSaveBankDetails} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <input style={styles.inputModalDark} placeholder="Holder Name" value={bankForm.holderName} onChange={(e) => setBankForm({ ...bankForm, holderName: e.target.value })} required />
+              <input style={styles.inputModalDark} placeholder="Bank Name" value={bankForm.bankName} onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })} required />
+              <input style={styles.inputModalDark} placeholder="Account Number" value={bankForm.accountNumber} onChange={(e) => setBankForm({ ...bankForm, accountNumber: e.target.value })} required />
+              <input style={styles.inputModalDark} placeholder="IFSC Code" value={bankForm.ifsc} onChange={(e) => setBankForm({ ...bankForm, ifsc: e.target.value })} required />
+              <button type="submit" style={styles.submitBtnDark}>Save Details</button>
             </form>
           </div>
         </div>
       )}
 
-      {/* WITHDRAW MODAL */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
             <div style={styles.modalHeader}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "24px" }}>💸</span>
-                <h3 style={{ margin: 0, fontSize: "22px", color: "#fff", fontWeight: "800" }}>Withdraw Funds</h3>
-              </div>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Withdraw Funds</h3>
               <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
             </div>
-
-            <div
-              style={{
-                ...styles.withdrawBalanceCard,
-                borderColor: currentWalletBalance < dailyReturn ? "rgba(239, 68, 68, 0.5)" : "rgba(34, 197, 94, 0.5)",
-                background: currentWalletBalance < dailyReturn ? "radial-gradient(circle, #2a0909 0%, #081628 100%)" : "radial-gradient(circle, #052317 0%, #081628 100%)"
-              }}
-            >
-              <span style={{ fontSize: "14px", color: "#94a3b8", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                Available Wallet Balance
-              </span>
-              <strong style={{ fontSize: "28px", color: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80", fontWeight: "900", display: "block", marginTop: "4px" }}>
-                ₹ {currentWalletBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80" }}>
+              <span style={{ fontSize: "12px", color: "#94a3b8" }}>Available Balance</span>
+              <strong style={{ fontSize: "22px", color: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80", display: "block" }}>
+                ₹ {currentWalletBalance.toLocaleString("en-IN")}
               </strong>
             </div>
-
-            <div style={styles.dailyReturnBox}>
-              <span style={{ fontSize: "14px", color: "#cbd5e1", fontWeight: "600" }}>Today's Daily Return Amount</span>
-              <strong style={{ fontSize: "26px", color: "#38bdf8", fontWeight: "900", display: "block", marginTop: "4px" }}>
-                ₹ {dailyReturn.toFixed(2)}
-              </strong>
-            </div>
-
-            <div style={styles.withdrawTimingNote}>
-              <span style={{ fontSize: "18px" }}>ℹ️</span>
-              <span style={{ fontSize: "14px", color: "#e2e8f0", lineHeight: "1.4" }}>
-                <strong>Note:</strong> Withdrawal request will be processed successfully only between <strong>10:00 AM and 6:00 PM</strong>.
-              </span>
-            </div>
-
-            {hasWithdrawnToday ? (
-              <div style={styles.balanceAlertBoxDark}>
-                ⏳ You have already submitted a withdrawal request today. Please wait until tomorrow!
-              </div>
-            ) : currentWalletBalance < dailyReturn ? (
-              <div style={styles.balanceAlertBoxDark}>
-                ⚠️ You don't have enough balance to withdraw ₹{dailyReturn.toFixed(2)}.
-              </div>
-            ) : null}
-
             <button
               style={{
                 ...styles.submitBtnDark,
-                marginTop: "20px",
-                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-                boxShadow: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "none" : "0 6px 20px rgba(34, 197, 94, 0.4)",
-                cursor: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "not-allowed" : "pointer"
+                marginTop: "16px",
+                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "#16a34a"
               }}
               onClick={handleWithdrawSubmit}
               disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
             >
-              {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested Today" : "Confirm Withdrawal"}
+              {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
             </button>
           </div>
         </div>
@@ -1501,15 +1244,12 @@ export default function OneTime() {
 const getStatusStyleDark = (status) => {
   const s = (status || "").toLowerCase();
   if (s === "success" || s === "active" || s === "approved" || s === "accepted") {
-    return { background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", border: "1px solid rgba(34, 197, 94, 0.4)" };
+    return { background: "rgba(34, 197, 94, 0.2)", color: "#4ade80" };
   }
   if (s === "pending") {
-    return { background: "rgba(234, 179, 8, 0.2)", color: "#facc15", border: "1px solid rgba(234, 179, 8, 0.4)" };
+    return { background: "rgba(234, 179, 8, 0.2)", color: "#facc15" };
   }
-  if (s === "rejected" || s === "cancelled" || s === "failed") {
-    return { background: "rgba(239, 68, 68, 0.2)", color: "#f87171", border: "1px solid rgba(239, 68, 68, 0.4)" };
-  }
-  return { background: "rgba(148, 163, 184, 0.2)", color: "#cbd5e1", border: "1px solid rgba(148, 163, 184, 0.4)" };
+  return { background: "rgba(239, 68, 68, 0.2)", color: "#f87171" };
 };
 
 // ----------------- STYLES -----------------
@@ -1518,8 +1258,8 @@ const styles = {
     minHeight: "100vh",
     width: "100%",
     background: "#030a16",
-    padding: "20px 16px",
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+    padding: "12px",
+    fontFamily: "system-ui, -apple-system, sans-serif",
     color: "#f8fafc",
     boxSizing: "border-box",
     display: "flex",
@@ -1527,10 +1267,10 @@ const styles = {
   },
   container: {
     width: "100%",
-    maxWidth: "1000px",
+    maxWidth: "480px", // Fixed layout width to prevent zooming issues on mobiles
     display: "flex",
     flexDirection: "column",
-    gap: "24px"
+    gap: "16px"
   },
   loadingPage: {
     minHeight: "100vh",
@@ -1540,99 +1280,81 @@ const styles = {
     justifyContent: "center"
   },
   spinner: {
-    width: "48px",
-    height: "48px",
-    border: "4px solid rgba(34, 197, 94, 0.2)",
-    borderTop: "4px solid #22c55e",
+    width: "36px",
+    height: "36px",
+    border: "3px solid rgba(34, 197, 94, 0.2)",
+    borderTop: "3px solid #22c55e",
     borderRadius: "50%",
     animation: "spin 1s linear infinite"
   },
   toast: {
     position: "fixed",
-    top: "24px",
+    top: "16px",
     left: "50%",
     transform: "translateX(-50%)",
     color: "white",
-    padding: "14px 28px",
-    borderRadius: "30px",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(34, 197, 94, 0.3)",
+    padding: "10px 20px",
+    borderRadius: "20px",
     zIndex: 999999,
-    fontWeight: "800",
-    fontSize: "16px",
+    fontWeight: "700",
+    fontSize: "13px",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    backdropFilter: "blur(8px)",
-    border: "1px solid rgba(255,255,255,0.2)",
-    textAlign: "center"
+    gap: "8px",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
   },
   topNoticeBanner: {
-    background: "linear-gradient(90deg, #052e16 0%, #064e3b 50%, #022c22 100%)",
+    background: "linear-gradient(90deg, #052e16 0%, #064e3b 100%)",
     border: "1px solid #22c55e",
-    borderRadius: "12px",
-    padding: "12px 16px",
-    overflow: "hidden",
-    whiteSpace: "nowrap",
-    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.2)"
-  },
-  marqueeText: {
-    fontSize: "17px",
-    fontWeight: "700",
-    color: "#e2e8f0",
-    display: "flex",
-    alignItems: "center"
+    borderRadius: "10px",
+    padding: "8px 12px",
+    overflow: "hidden"
   },
   noticeBadge: {
     background: "#f59e0b",
     color: "#000",
     fontWeight: "900",
-    fontSize: "13px",
-    padding: "4px 12px",
-    borderRadius: "6px",
-    letterSpacing: "0.5px",
-    marginRight: "12px",
-    display: "inline-block"
+    fontSize: "10px",
+    padding: "2px 6px",
+    borderRadius: "4px",
+    marginRight: "8px"
   },
   bonusHighlight: {
     color: "#facc15",
-    fontSize: "19px",
-    fontWeight: "900",
-    marginLeft: "6px",
-    marginRight: "6px"
+    fontWeight: "900"
   },
   header: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: "8px 0"
+    justifyContent: "space-between"
   },
   headerLeft: {
     display: "flex",
     alignItems: "center",
-    gap: "16px"
+    gap: "12px"
   },
   menuButton: {
     background: "transparent",
     border: "none",
     color: "white",
-    fontSize: "32px",
+    fontSize: "24px",
     cursor: "pointer",
     padding: "0"
   },
   welcomeTitle: {
     margin: 0,
-    fontSize: "24px",
+    fontSize: "16px",
     fontWeight: "800",
     color: "#ffffff"
   },
   welcomeSub: {
-    margin: "4px 0 0 0",
-    fontSize: "15px",
+    margin: 0,
+    fontSize: "11px",
     color: "#94a3b8"
   },
   profileCircle: {
-    width: "52px",
-    height: "52px",
+    width: "40px",
+    height: "40px",
     borderRadius: "50%",
     background: "#0c1f38",
     display: "flex",
@@ -1650,7 +1372,6 @@ const styles = {
   profileAvatarPlaceholder: {
     width: "100%",
     height: "100%",
-    borderRadius: "50%",
     background: "#10b981",
     display: "flex",
     alignItems: "center",
@@ -1658,36 +1379,32 @@ const styles = {
   },
   topHeroBanner: {
     background: "linear-gradient(135deg, #062319 0%, #06182e 100%)",
-    borderRadius: "18px",
-    padding: "26px 30px",
+    borderRadius: "14px",
+    padding: "14px",
     border: "1px solid rgba(34, 197, 94, 0.3)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    position: "relative",
-    overflow: "hidden",
-    minHeight: "160px",
-    gap: "20px"
+    gap: "10px"
   },
   heroTextContent: {
-    flex: 1,
-    zIndex: 2
+    flex: 1
   },
   heroTitle: {
     margin: 0,
-    fontSize: "26px",
-    fontWeight: "800",
+    fontSize: "13px",
+    fontWeight: "700",
     color: "#ffffff",
-    lineHeight: "1.4"
+    lineHeight: "1.3"
   },
   heroDesc: {
-    margin: "12px 0 0 0",
-    fontSize: "16px",
+    margin: "6px 0 0 0",
+    fontSize: "10px",
     color: "#cbd5e1"
   },
   heroImgWrapper: {
-    width: "220px",
-    height: "140px",
+    width: "80px",
+    height: "60px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1700,147 +1417,129 @@ const styles = {
   },
   statsGridContainer: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-    gap: "16px"
+    gridTemplateColumns: "1fr 1fr",
+    gap: "10px"
   },
   darkStatCard: {
     background: "#081628",
-    borderRadius: "16px",
-    padding: "18px 20px",
-    border: "1px solid rgba(255, 255, 255, 0.12)",
+    borderRadius: "12px",
+    padding: "12px",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
     display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    position: "relative",
-    overflow: "hidden",
-    minHeight: "115px"
+    flexDirection: "column"
   },
   statCardHeader: {
     display: "flex",
     alignItems: "center",
-    gap: "12px"
+    gap: "6px"
   },
   iconBox: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "10px",
+    width: "28px",
+    height: "28px",
+    borderRadius: "6px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   statCardTitle: {
-    fontSize: "16px",
+    fontSize: "11px",
     color: "#cbd5e1",
     fontWeight: "600"
   },
   statCardValue: {
-    fontSize: "26px",
-    fontWeight: "900",
+    fontSize: "16px",
+    fontWeight: "800",
     color: "#ffffff",
-    marginTop: "12px",
-    zIndex: 2
-  },
-  sparkline: {
-    width: "100%",
-    height: "30px",
     marginTop: "6px"
   },
   darkMainCard: {
     background: "#081628",
-    borderRadius: "18px",
-    padding: "26px",
+    borderRadius: "14px",
+    padding: "14px",
     border: "1px solid rgba(255, 255, 255, 0.1)"
   },
   darkCardTitle: {
-    margin: "0 0 22px 0",
-    fontSize: "22px",
+    margin: "0 0 12px 0",
+    fontSize: "15px",
     fontWeight: "800",
     color: "#ffffff"
   },
   activeInvestCardDark: {
     background: "#040d1a",
-    borderRadius: "16px",
-    padding: "20px",
-    marginBottom: "22px",
-    border: "1.5px solid #16a34a"
+    borderRadius: "10px",
+    padding: "10px",
+    marginBottom: "12px",
+    border: "1px solid #16a34a"
   },
   activeHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "16px",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-    paddingBottom: "12px"
+    marginBottom: "8px"
   },
   activeBadgeGroup: {
     display: "flex",
     alignItems: "center",
-    gap: "10px"
+    gap: "6px"
   },
   activePulse: {
-    width: "14px",
-    height: "14px",
+    width: "8px",
+    height: "8px",
     borderRadius: "50%",
-    background: "#22c55e",
-    boxShadow: "0 0 12px #22c55e"
+    background: "#22c55e"
   },
   activeTitle: {
-    fontSize: "16px",
-    letterSpacing: "0.5px",
+    fontSize: "10px",
     color: "#22c55e"
   },
   activeStatusTagDark: {
-    fontSize: "14px",
+    fontSize: "10px",
     background: "rgba(34, 197, 94, 0.2)",
     color: "#4ade80",
-    padding: "6px 14px",
-    borderRadius: "14px",
-    fontWeight: "bold"
+    padding: "2px 6px",
+    borderRadius: "8px"
   },
   activeStatsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-    gap: "16px"
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px"
   },
   activeStatItem: {
     display: "flex",
     flexDirection: "column"
   },
   activeLabel: {
-    fontSize: "14px",
+    fontSize: "10px",
     color: "#94a3b8"
   },
   activeValue: {
-    fontSize: "18px",
+    fontSize: "12px",
     fontWeight: "bold",
-    color: "#f8fafc",
-    marginTop: "4px"
+    color: "#f8fafc"
   },
   formGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-    gap: "18px",
-    marginBottom: "20px"
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
   },
   fieldGroup: {
     display: "flex",
     flexDirection: "column"
   },
   labelDark: {
-    fontSize: "16px",
+    fontSize: "11px",
     fontWeight: "700",
-    marginBottom: "8px",
+    marginBottom: "4px",
     color: "#e2e8f0"
   },
   selectDark: {
-    height: "52px",
-    borderRadius: "12px",
+    height: "40px",
+    borderRadius: "8px",
     border: "1px solid #334155",
     background: "#0f2138",
     color: "#ffffff",
-    padding: "0 16px",
-    fontSize: "16px",
-    fontWeight: "600"
+    padding: "0 10px",
+    fontSize: "13px"
   },
   lockedInputDark: {
     opacity: 0.6,
@@ -1848,18 +1547,17 @@ const styles = {
   },
   frequencyToggleDark: {
     display: "flex",
-    gap: "10px",
-    height: "52px"
+    gap: "8px",
+    height: "40px"
   },
   freqBtnDark: {
     flex: 1,
-    borderRadius: "12px",
+    borderRadius: "8px",
     border: "1px solid #334155",
     background: "#0f2138",
     color: "#cbd5e1",
-    fontSize: "16px",
-    fontWeight: "bold",
-    cursor: "pointer"
+    fontSize: "12px",
+    fontWeight: "bold"
   },
   freqBtnActiveDark: {
     background: "#16a34a",
@@ -1867,151 +1565,139 @@ const styles = {
     borderColor: "#16a34a"
   },
   amountInputWrapDark: {
-    height: "52px",
-    borderRadius: "12px",
+    height: "40px",
+    borderRadius: "8px",
     border: "1px solid #334155",
     background: "#0f2138",
-    padding: "0 16px",
+    padding: "0 10px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
-    cursor: "pointer"
+    justifyContent: "space-between"
   },
   amountInputDark: {
     border: "none",
     background: "transparent",
-    fontSize: "20px",
+    fontSize: "14px",
     fontWeight: "bold",
     color: "#ffffff",
     outline: "none",
     width: "60%"
   },
   changeBadgeDark: {
-    fontSize: "14px",
+    fontSize: "11px",
     color: "#38bdf8",
     fontWeight: "bold"
   },
   lockedBadgeDark: {
-    fontSize: "14px",
-    color: "#ef4444",
-    fontWeight: "bold"
-  },
-  helpTextDark: {
-    color: "#94a3b8",
-    fontSize: "13px",
-    marginTop: "6px"
+    fontSize: "11px",
+    color: "#ef4444"
   },
   returnContainerDark: {
     background: "#dcfce7",
-    borderRadius: "16px",
-    padding: "22px",
+    borderRadius: "10px",
+    padding: "12px",
     textAlign: "center",
-    margin: "20px 0",
+    margin: "12px 0",
     color: "#166534"
   },
   returnCardContent: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "18px"
+    gap: "10px"
   },
   returnBoxBagIcon: {
-    fontSize: "40px"
+    fontSize: "24px"
   },
   returnCardTitleDark: {
-    fontSize: "18px",
+    fontSize: "12px",
     fontWeight: "700"
   },
   returnCardValueDark: {
-    fontSize: "36px",
+    fontSize: "20px",
     fontWeight: "900",
     display: "block"
   },
   returnCardNoteDark: {
-    fontSize: "14px",
-    opacity: 0.95
+    fontSize: "10px"
   },
   breakdownGridDark: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px",
     background: "#040d1a",
-    borderRadius: "14px",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    margin: "20px 0",
-    overflow: "hidden"
+    borderRadius: "8px",
+    padding: "8px",
+    margin: "12px 0"
   },
   breakBoxDark: {
-    padding: "16px",
-    textAlign: "center",
-    borderRight: "1px solid rgba(255, 255, 255, 0.08)"
+    textAlign: "center"
   },
   breakLabelDark: {
     display: "block",
-    fontSize: "14px",
-    color: "#94a3b8",
-    marginBottom: "6px"
+    fontSize: "10px",
+    color: "#94a3b8"
   },
   breakValueDark: {
-    fontSize: "18px",
+    fontSize: "12px",
     fontWeight: "bold",
     color: "#ffffff"
   },
   actionGridTriple: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-    gap: "16px"
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "8px"
   },
   startInvestBtnDark: {
-    height: "54px",
-    borderRadius: "12px",
+    height: "40px",
+    borderRadius: "8px",
     border: "none",
-    background: "#86efac",
-    color: "#052e16",
-    fontSize: "17px",
+    background: "#22c55e",
+    color: "#ffffff",
+    fontSize: "11px",
     fontWeight: "bold",
     cursor: "pointer"
   },
   disabledBtnDark: {
-    background: "#dcfce7",
-    color: "#166534",
-    opacity: 0.8,
+    background: "#334155",
+    color: "#94a3b8",
     cursor: "not-allowed"
   },
   addInvestBtnDark: {
-    height: "54px",
-    borderRadius: "12px",
+    height: "40px",
+    borderRadius: "8px",
     border: "none",
     background: "#2563eb",
     color: "white",
-    fontSize: "17px",
+    fontSize: "11px",
     fontWeight: "bold",
     cursor: "pointer"
   },
   withdrawBtnDark: {
-    height: "54px",
-    borderRadius: "12px",
+    height: "40px",
+    borderRadius: "8px",
     background: "#0f172a",
-    border: "1.5px solid #334155",
+    border: "1px solid #334155",
     color: "white",
-    fontSize: "17px",
+    fontSize: "11px",
     fontWeight: "bold",
     cursor: "pointer"
   },
   darkHistoryCard: {
     background: "#081628",
-    borderRadius: "18px",
-    padding: "22px",
+    borderRadius: "14px",
+    padding: "12px",
     border: "1px solid rgba(255, 255, 255, 0.1)"
   },
   historyHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "18px"
+    marginBottom: "10px"
   },
   refreshBtnDark: {
     color: "#22c55e",
-    fontSize: "15px",
+    fontSize: "11px",
     fontWeight: "bold",
     cursor: "pointer"
   },
@@ -2021,146 +1707,58 @@ const styles = {
   tableDark: {
     width: "100%",
     borderCollapse: "collapse",
-    fontSize: "16px"
+    fontSize: "11px"
   },
   thDark: {
     background: "#040d1a",
-    padding: "16px 18px",
+    padding: "8px",
     color: "#cbd5e1",
-    textAlign: "left",
-    fontWeight: "700"
+    textAlign: "left"
   },
   trDark: {
     borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
   },
   tdDark: {
-    padding: "16px 18px",
+    padding: "8px",
     color: "#f8fafc"
   },
   emptyTdDark: {
     textAlign: "center",
-    padding: "32px",
-    color: "#94a3b8",
-    fontSize: "16px"
-  },
-  badgeDailyDark: {
-    background: "rgba(34, 197, 94, 0.15)",
-    color: "#4ade80",
-    padding: "5px 12px",
-    borderRadius: "6px",
-    fontSize: "14px",
-    fontWeight: "bold"
+    padding: "16px",
+    color: "#94a3b8"
   },
   statusBadgeDark: {
-    padding: "6px 14px",
-    borderRadius: "10px",
-    fontSize: "14px",
-    fontWeight: "bold",
-    display: "inline-block"
+    padding: "2px 6px",
+    borderRadius: "6px",
+    fontSize: "10px",
+    fontWeight: "bold"
   },
   viewAllFooter: {
     textAlign: "center",
-    marginTop: "18px",
-    paddingTop: "14px",
-    borderTop: "1px solid rgba(255,255,255,0.08)"
+    marginTop: "10px"
   },
   viewAllLink: {
     color: "#22c55e",
-    fontSize: "16px",
+    fontSize: "11px",
     fontWeight: "bold",
     cursor: "pointer"
   },
-  whyInvestGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "18px"
-  },
-  whyInvestCard: {
-    background: "#040d1a",
-    borderRadius: "14px",
-    padding: "20px",
-    border: "1px solid rgba(255, 255, 255, 0.1)"
-  },
-  trustBannerDark: {
-    background: "linear-gradient(135deg, #051a13 0%, #081728 100%)",
-    borderRadius: "18px",
-    padding: "26px 30px",
-    border: "1px solid rgba(34, 197, 94, 0.3)",
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-    gap: "24px",
-    alignItems: "center"
-  },
-  trustLeftContent: {
-    display: "flex",
-    flexDirection: "column"
-  },
-  trustIllustrations: {
-    width: "100%",
-    height: "140px",
-    marginTop: "10px"
-  },
-  trustImg: {
-    maxHeight: "100%",
-    maxWidth: "100%",
-    objectFit: "contain"
-  },
-  trustRightList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "18px"
-  },
-  trustItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "16px"
-  },
-  trustIcon: {
-    fontSize: "26px",
-    color: "#22c55e"
-  },
-  trustTitle: {
-    fontSize: "16px",
-    color: "#ffffff",
-    display: "block",
-    fontWeight: "700"
-  },
-  trustSub: {
-    fontSize: "14px",
-    color: "#94a3b8"
-  },
-  footerFeaturesGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-    gap: "16px"
-  },
-  featureBoxDark: {
-    background: "#081628",
-    borderRadius: "14px",
-    padding: "18px",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    display: "flex",
-    alignItems: "center",
-    gap: "16px"
-  },
   footerBar: {
     textAlign: "center",
-    padding: "22px 0",
-    borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-    marginTop: "14px"
+    padding: "12px 0",
+    borderTop: "1px solid rgba(255, 255, 255, 0.1)"
   },
   footerTagline: {
-    fontSize: "16px",
+    fontSize: "11px",
     color: "#cbd5e1",
-    margin: "0 0 12px 0"
+    margin: "0 0 4px 0"
   },
   footerCopyRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    fontSize: "14px",
+    fontSize: "10px",
     color: "#64748b"
   },
-  // সাইডবারের ডিজাইন হুবহু home.js-এর মতো করে তৈরি করা হয়েছে
+
+  // SIDEBAR STYLES (MATCHED EXACTLY WITH HOME.JS)
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -2180,9 +1778,9 @@ const styles = {
     bottom: 0,
     left: 0,
     background: "#08101e",
-    width: "270px",
+    width: "230px",
     height: "100vh",
-    padding: "18px 16px",
+    padding: "12px 8px",
     display: "flex",
     flexDirection: "column",
     boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
@@ -2197,8 +1795,8 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: "14px",
-    paddingBottom: "14px",
+    marginBottom: "10px",
+    paddingBottom: "8px",
     borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
     flexShrink: 0
   },
@@ -2206,377 +1804,296 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "8px"
+    gap: "4px"
   },
   drawerLogoWrapper: {
-    width: "56px",
-    height: "56px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
     background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
     border: "2px solid #22c55e",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 0 12px rgba(34, 197, 94, 0.35)"
+    justifyContent: "center"
   },
   drawerLogoImg: {
-    width: "36px",
-    height: "36px",
+    width: "26px",
+    height: "26px",
     objectFit: "contain"
   },
   drawerLogoText: {
     margin: 0,
-    fontSize: "20px",
+    fontSize: "15px",
     fontWeight: "900",
     color: "#ffffff",
-    letterSpacing: "0.8px",
+    letterSpacing: "0.6px",
     textAlign: "center"
   },
   drawerLogoSubtext: {
-    fontSize: "13px",
+    fontSize: "10px",
     color: "#a7f3d0",
     fontWeight: "600",
-    marginTop: "2px",
+    marginTop: "1px",
     textAlign: "center"
+  },
+  drawerScrollArea: {
+    flex: 1,
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    paddingRight: "2px"
   },
   drawerNavList: {
     display: "flex",
     flexDirection: "column",
-    gap: "10px",
-    flexShrink: 0,
-    overflowY: "auto",
-    maxHeight: "calc(100vh - 220px)"
+    gap: "6px",
+    flexShrink: 0
   },
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
-    gap: "14px",
-    padding: "13px 20px",
+    gap: "8px",
+    padding: "8px 12px",
     background: "rgba(255, 255, 255, 0.12)",
     backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
     border: "1px solid rgba(255, 255, 255, 0.25)",
-    clipPath: "polygon(12px 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0% 50%)",
+    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
     color: "#ffffff",
-    fontSize: "16px",
-    fontWeight: "700",
+    fontSize: "12px",
+    fontWeight: "800",
     cursor: "pointer",
-    textAlign: "left",
-    transition: "all 0.25s ease",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-    textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+    textAlign: "left"
   },
   drawerNavItemActive: {
-    background: "rgba(255, 255, 255, 0.25)",
+    background: "rgba(255, 255, 255, 0.3)",
     border: "1px solid #ffffff",
-    boxShadow: "0 0 16px rgba(255, 255, 255, 0.4)",
-    fontWeight: "800"
+    fontWeight: "900"
   },
   drawerNavIcon: {
-    fontSize: "22px",
-    width: "26px",
+    fontSize: "16px",
+    width: "20px",
     display: "inline-block",
     textAlign: "center"
   },
   drawerNavText: {
     flex: 1,
-    fontSize: "16px",
+    fontSize: "12px",
     letterSpacing: "0.3px"
   },
-  drawerNavDashboard: { background: "rgba(59, 130, 246, 0.2)", border: "1px solid rgba(59, 130, 246, 0.4)" },
-  drawerNavMyInvestment: { background: "rgba(16, 185, 129, 0.2)", border: "1px solid rgba(16, 185, 129, 0.4)" },
-  drawerNavSaveMoney: { background: "rgba(245, 158, 11, 0.2)", border: "1px solid rgba(245, 158, 11, 0.4)" },
-  drawerNavOneTime: { background: "rgba(168, 85, 247, 0.2)", border: "1px solid rgba(168, 85, 247, 0.4)" },
-  drawerNavPlan: { background: "rgba(6, 182, 212, 0.2)", border: "1px solid rgba(6, 182, 212, 0.4)" },
-  drawerNavAddFund: { background: "rgba(20, 184, 166, 0.2)", border: "1px solid rgba(20, 184, 166, 0.4)" },
-  drawerNavRefer: { background: "rgba(236, 72, 153, 0.2)", border: "1px solid rgba(236, 72, 153, 0.4)" },
-  drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.2)", border: "1px solid rgba(249, 115, 22, 0.4)" },
-  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.2)", border: "1px solid rgba(244, 63, 94, 0.4)" },
-  drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.2)", border: "1px solid rgba(2, 132, 199, 0.4)" },
-  drawerNavSupport: { background: "rgba(99, 102, 241, 0.2)", border: "1px solid rgba(99, 102, 241, 0.4)" },
-  drawerNavProfile: { background: "rgba(236, 72, 153, 0.2)", border: "1px solid rgba(236, 72, 153, 0.4)" },
-  drawerNavLogout: { background: "rgba(239, 68, 68, 0.2)", border: "1px solid rgba(239, 68, 68, 0.4)" },
+  drawerNavDashboard: { background: "rgba(59, 130, 246, 0.25)", border: "1px solid rgba(59, 130, 246, 0.5)" },
+  drawerNavMyInvestment: { background: "rgba(16, 185, 129, 0.25)", border: "1px solid rgba(16, 185, 129, 0.5)" },
+  drawerNavSaveMoney: { background: "rgba(245, 158, 11, 0.25)", border: "1px solid rgba(245, 158, 11, 0.5)" },
+  drawerNavOneTime: { background: "rgba(168, 85, 247, 0.25)", border: "1px solid rgba(168, 85, 247, 0.5)" },
+  drawerNavPlan: { background: "rgba(6, 182, 212, 0.25)", border: "1px solid rgba(6, 182, 212, 0.5)" },
+  drawerNavAddFund: { background: "rgba(20, 184, 166, 0.25)", border: "1px solid rgba(20, 184, 166, 0.5)" },
+  drawerNavRefer: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.25)", border: "1px solid rgba(249, 115, 22, 0.5)" },
+  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.25)", border: "1px solid rgba(244, 63, 94, 0.5)" },
+  drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.25)", border: "1px solid rgba(2, 132, 199, 0.5)" },
+  drawerNavSupport: { background: "rgba(99, 102, 241, 0.25)", border: "1px solid rgba(99, 102, 241, 0.5)" },
+  drawerNavProfile: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavLogout: { background: "rgba(239, 68, 68, 0.25)", border: "1px solid rgba(239, 68, 68, 0.5)" },
+
   treePlantOnlyWrapper: {
-    flex: 1,
-    minHeight: 0,
-    marginTop: "14px",
-    marginBottom: "4px",
     width: "100%",
+    paddingTop: "6px",
+    paddingBottom: "10px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    overflow: "hidden",
-    borderRadius: "16px",
-    boxShadow: "0 6px 18px rgba(0, 0, 0, 0.4)"
+    flexShrink: 0
   },
   treePlantOnlyImg: {
-    width: "90%",
-    height: "70%",
+    width: "100%",
+    maxHeight: "110px",
     objectFit: "cover",
-    borderRadius: "16px"
+    borderRadius: "12px"
   },
+
+  // MODALS
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0, 0, 0, 0.85)",
-    backdropFilter: "blur(8px)",
+    background: "rgba(0, 0, 0, 0.8)",
+    backdropFilter: "blur(4px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 99999,
-    padding: "16px"
+    padding: "12px"
   },
   modalCardDark: {
     background: "#081628",
-    borderRadius: "20px",
-    padding: "26px",
+    borderRadius: "16px",
+    padding: "16px",
     width: "100%",
-    maxWidth: "460px",
-    border: "1px solid rgba(255, 255, 255, 0.12)",
-    boxShadow: "0 25px 50px rgba(0,0,0,0.7)"
+    maxWidth: "360px",
+    border: "1px solid rgba(255, 255, 255, 0.1)"
   },
   withdrawModalCardDark: {
-    background: "linear-gradient(145deg, #09182b 0%, #040e1a 100%)",
-    borderRadius: "24px",
-    padding: "28px 24px",
+    background: "#09182b",
+    borderRadius: "16px",
+    padding: "16px",
     width: "100%",
-    maxWidth: "460px",
-    border: "1.5px solid rgba(56, 189, 248, 0.3)",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.8), 0 0 25px rgba(56, 189, 248, 0.15)"
+    maxWidth: "360px",
+    border: "1px solid rgba(56, 189, 248, 0.3)"
   },
   withdrawBalanceCard: {
-    marginTop: "16px",
-    padding: "18px",
-    borderRadius: "16px",
+    padding: "12px",
+    borderRadius: "10px",
     border: "1px solid",
-    textAlign: "center",
-    boxShadow: "inset 0 0 15px rgba(0,0,0,0.5)"
-  },
-  dailyReturnBox: {
-    marginTop: "16px",
-    padding: "18px",
-    background: "#040d1a",
-    borderRadius: "16px",
-    border: "1px solid #1e293b",
-    textAlign: "center",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
-  },
-  withdrawTimingNote: {
-    marginTop: "16px",
-    padding: "12px 16px",
-    background: "rgba(56, 189, 248, 0.1)",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
-    borderRadius: "12px",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px"
-  },
-  balanceAlertBoxDark: {
-    marginTop: "14px",
-    padding: "12px 16px",
-    background: "rgba(239, 68, 68, 0.15)",
-    border: "1px solid rgba(239, 68, 68, 0.4)",
-    borderRadius: "12px",
-    color: "#f87171",
-    fontSize: "14px",
-    fontWeight: "700",
     textAlign: "center"
-  },
-  submitBtnDark: {
-    width: "100%",
-    height: "52px",
-    borderRadius: "12px",
-    border: "none",
-    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-    color: "#ffffff",
-    fontSize: "16px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    boxShadow: "0 6px 20px rgba(34, 197, 94, 0.4)"
-  },
-  closeBtnDark: {
-    background: "transparent",
-    border: "none",
-    color: "#94a3b8",
-    fontSize: "20px",
-    cursor: "pointer"
   },
   modalHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "16px"
+    marginBottom: "12px"
   },
-  inputModalDark: {
-    width: "100%",
-    height: "48px",
-    borderRadius: "12px",
-    border: "1px solid #334155",
-    background: "#040d1a",
-    color: "#fff",
-    padding: "0 16px",
-    fontSize: "15px",
-    outline: "none",
-    boxSizing: "border-box"
-  },
-  fileInputDark: {
-    width: "100%",
-    padding: "10px",
-    background: "#040d1a",
-    border: "1px solid #334155",
-    borderRadius: "12px",
-    color: "#fff",
-    boxSizing: "border-box"
-  },
-  walletBoxDark: {
-    background: "#040d1a",
-    padding: "14px",
-    borderRadius: "12px",
-    border: "1px solid #1e293b",
-    marginBottom: "14px"
-  },
-  walletAddrRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: "6px",
-    gap: "10px"
-  },
-  walletText: {
-    fontSize: "13px",
-    color: "#38bdf8",
-    wordBreak: "break-all",
-    fontWeight: "600"
-  },
-  copyBtn: {
-    background: "#2563eb",
-    color: "#fff",
+  closeBtnDark: {
     border: "none",
-    padding: "6px 12px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: "13px",
-    flexShrink: 0
-  },
-  presetGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "12px"
-  },
-  presetCard: {
-    borderRadius: "14px",
-    padding: "16px",
-    textAlign: "center",
-    cursor: "pointer",
+    background: "#0f2138",
     color: "#fff",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-    transition: "transform 0.2s ease"
-  },
-  presetBadge: {
-    fontSize: "11px",
-    background: "rgba(0,0,0,0.2)",
-    padding: "2px 8px",
-    borderRadius: "6px",
-    fontWeight: "bold",
-    textTransform: "uppercase"
-  },
-  presetVal: {
-    fontSize: "22px",
-    fontWeight: "900",
-    marginTop: "8px"
-  },
-  presetLabel: {
-    fontSize: "12px",
-    opacity: 0.9
+    borderRadius: "50%",
+    width: "28px",
+    height: "28px",
+    cursor: "pointer",
+    fontSize: "14px"
   },
   offerPopupCard: {
-    background: "linear-gradient(145deg, #09182b 0%, #040e1a 100%)",
-    borderRadius: "24px",
-    padding: "30px 24px",
+    background: "#091a2e",
+    borderRadius: "16px",
+    padding: "20px",
     width: "100%",
-    maxWidth: "420px",
-    border: "1.5px solid rgba(34, 197, 94, 0.4)",
-    boxShadow: "0 25px 60px rgba(0,0,0,0.8), 0 0 30px rgba(34, 197, 94, 0.2)",
+    maxWidth: "340px",
+    border: "1px solid #22c55e",
     textAlign: "center",
     position: "relative"
   },
   offerCloseBtn: {
     position: "absolute",
-    top: "16px",
-    right: "16px",
-    background: "rgba(255,255,255,0.1)",
+    top: "10px",
+    right: "10px",
     border: "none",
+    background: "rgba(255,255,255,0.1)",
     color: "#fff",
-    width: "32px",
-    height: "32px",
     borderRadius: "50%",
-    cursor: "pointer",
-    fontSize: "16px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
+    width: "28px",
+    height: "28px",
+    cursor: "pointer"
   },
   offerHeaderBadge: {
     background: "rgba(34, 197, 94, 0.15)",
     color: "#4ade80",
-    border: "1px solid rgba(34, 197, 94, 0.3)",
-    padding: "6px 14px",
-    borderRadius: "20px",
-    fontSize: "13px",
-    fontWeight: "800",
-    display: "inline-block",
-    marginBottom: "16px",
-    letterSpacing: "0.5px"
+    padding: "4px 10px",
+    borderRadius: "12px",
+    fontSize: "10px",
+    fontWeight: "bold",
+    marginBottom: "10px",
+    display: "inline-block"
   },
   offerIconWrapper: {
-    fontSize: "48px",
-    marginBottom: "14px"
+    fontSize: "36px",
+    marginBottom: "8px"
   },
   offerTitle: {
-    margin: "0 0 10px 0",
-    fontSize: "22px",
+    margin: "0 0 8px 0",
+    fontSize: "16px",
     fontWeight: "800",
-    color: "#fff",
-    lineHeight: "1.3"
+    color: "#ffffff"
   },
   offerDescription: {
-    margin: "0 0 22px 0",
-    fontSize: "15px",
+    fontSize: "12px",
     color: "#cbd5e1",
-    lineHeight: "1.5"
+    margin: "0 0 14px 0"
   },
   offerHighlightText: {
     color: "#facc15",
-    fontSize: "18px",
-    fontWeight: "900"
+    fontSize: "14px"
   },
   offerActionGroup: {
     display: "flex",
     flexDirection: "column",
-    gap: "12px"
+    gap: "8px"
   },
   offerReferBtn: {
-    width: "100%",
-    height: "50px",
-    borderRadius: "12px",
+    height: "38px",
+    borderRadius: "8px",
     border: "none",
-    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-    color: "#fff",
-    fontSize: "16px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    boxShadow: "0 6px 20px rgba(34, 197, 94, 0.4)"
-  },
-  offerSkipBtn: {
-    width: "100%",
-    height: "44px",
-    borderRadius: "12px",
-    border: "1px solid #334155",
-    background: "transparent",
-    color: "#94a3b8",
-    fontSize: "15px",
+    background: "#22c55e",
+    color: "#ffffff",
+    fontSize: "12px",
     fontWeight: "bold",
     cursor: "pointer"
+  },
+  offerSkipBtn: {
+    height: "32px",
+    borderRadius: "8px",
+    border: "none",
+    background: "transparent",
+    color: "#94a3b8",
+    fontSize: "11px",
+    cursor: "pointer"
+  },
+  presetGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px"
+  },
+  presetCard: {
+    borderRadius: "8px",
+    padding: "10px",
+    color: "white",
+    cursor: "pointer",
+    textAlign: "center"
+  },
+  presetBadge: { fontSize: "10px", fontWeight: "bold" },
+  presetVal: { fontSize: "14px", fontWeight: "800" },
+  walletBoxDark: {
+    background: "#040d1a",
+    padding: "10px",
+    borderRadius: "8px",
+    border: "1px solid #1e293b"
+  },
+  walletAddrRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "6px"
+  },
+  walletText: { fontSize: "10px", wordBreak: "break-all", color: "#fff" },
+  copyBtn: {
+    background: "#16a34a",
+    color: "white",
+    border: "none",
+    padding: "4px 8px",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontSize: "10px",
+    fontWeight: "bold"
+  },
+  inputModalDark: {
+    width: "100%",
+    height: "38px",
+    borderRadius: "8px",
+    border: "1px solid #334155",
+    background: "#0f2138",
+    color: "#fff",
+    padding: "0 10px",
+    fontSize: "12px",
+    boxSizing: "border-box"
+  },
+  fileInputDark: { width: "100%", fontSize: "11px", color: "#cbd5e1" },
+  submitBtnDark: {
+    height: "38px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#16a34a",
+    color: "white",
+    fontWeight: "bold",
+    fontSize: "12px",
+    cursor: "pointer",
+    width: "100%"
   }
 };
