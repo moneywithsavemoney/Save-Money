@@ -15,15 +15,18 @@ export default function SaveMoney() {
   // =========================================================================
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
+  const localName = localStorage.getItem("name") || "User";
 
   // =========================================================================
   // SIDEBAR STATE
   // =========================================================================
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
 
   // =========================================================================
   // REACTOR CORE STATE CONFIGURATOR INDICES
   // =========================================================================
+  const [user, setUser] = useState({});
   const [balance, setBalance] = useState(0);
   const [amount, setAmount] = useState("");
   const [years, setYears] = useState(5);
@@ -92,9 +95,46 @@ export default function SaveMoney() {
       });
 
       const data = await res.json();
-      setBalance(Number(data.balance || data.wallet || 0));
+      setUser(data || {});
+      setBalance(Number(data.balance || data.wallet || data.totalWallet || 0));
     } catch (err) {
       console.log("CRITICAL WALLET BALANCE SYNC ERROR:", err);
+    }
+  };
+
+  const handleDownloadPlan = () => {
+    if (isDownloadingPlan) return;
+    setIsDownloadingPlan(true);
+
+    setTimeout(() => {
+      const link = document.createElement("a");
+      link.href = "/SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      link.download = "SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setIsDownloadingPlan(false);
+    }, 1200);
+  };
+
+  const handleLogout = async () => {
+    try {
+      if (email) {
+        await fetch(`${API}/logout`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email })
+        });
+      }
+    } catch (err) {
+      console.log("Logout backend error:", err);
+    } finally {
+      localStorage.clear();
+      navigate("/login");
+      window.location.reload();
     }
   };
 
@@ -197,12 +237,6 @@ export default function SaveMoney() {
     setTermsOpen(true);
   };
 
-  const acceptTerms = () => {
-    setAccepted(true);
-    setTermsOpen(false);
-    showStatusMsg("success", "Terms & Conditions Accepted!");
-  };
-
   // =========================================================================
   // TRANSACTION TRANSMISSION ARCHITECTURE COMMIT (API HANDLER)
   // =========================================================================
@@ -280,68 +314,208 @@ export default function SaveMoney() {
       <div style={styles.dynamicAuraSphere2}></div>
       <div style={styles.dynamicAuraSphere3}></div>
 
-      {/* 1st স্ক্রিনশট স্টাইলের সাইড বার (Navbar Sidebar) */}
-      {sidebarOpen && (
-        <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)}>
-          <div style={styles.sidebarContainer} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.sidebarBrandSection}>
-              <div style={styles.sidebarLogoBox}>
-                <span style={styles.sidebarLogoText}>💱</span>
+      {/* হোম পেজের মতো সাইডবার ড্রয়ার (Side-by-Side Drawer with Tree Plant) */}
+      <div style={{
+        ...styles.drawerOverlay,
+        opacity: sidebarOpen ? 1 : 0,
+        visibility: sidebarOpen ? "visible" : "hidden"
+      }} onClick={() => setSidebarOpen(false)}>
+        <div style={{
+          ...styles.drawerContainer,
+          transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)"
+        }} onClick={(e) => e.stopPropagation()}>
+          
+          <div style={styles.drawerHeader}>
+            <div style={styles.drawerBrand}>
+              <div style={styles.drawerLogoWrapper}>
+                <img 
+                  src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
+                  alt="SM Logo" 
+                  style={styles.drawerLogoImg} 
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
               </div>
-              <div style={styles.sidebarBrandTitleContainer}>
-                <h3 style={styles.sidebarBrandMainText}>SAVE MONEY</h3>
-                <span style={styles.sidebarBrandSubText}>Invest Small, Earn Big</span>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
+                <span style={styles.drawerLogoSubtext}>Invest Small, Earn Big</span>
               </div>
-            </div>
-
-            <div style={styles.sidebarMenu}>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/dashboard")}>
-                🏠 Dashboard
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/wallet")}>
-                📈 My Investment
-              </button>
-              <button style={{ ...styles.sidebarMenuItem, ...styles.sidebarMenuItemActive }}>
-                💰 Save Money
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/onetime")}>
-                ⚡ One Time
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/plan-pdf")}>
-                📋 Plan PDF
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/add-fund")}>
-                🌐 Add Fund
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/refer")}>
-                👥 Refer & Earn
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/withdraw")}>
-                ➡️ Withdraw
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/rewards")}>
-                🎁 Daily Reward
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/assistance")}>
-                📊 Investment Assistance
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/support")}>
-                🎧 Support
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/profile")}>
-                👤 Profile
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => { localStorage.clear(); navigate("/login"); }}>
-                🚪 Logout
-              </button>
-            </div>
-
-            <div style={styles.sidebarPlantCard}>
-              <div style={styles.sidebarPlantImagePlaceholder}>🌱</div>
             </div>
           </div>
+
+          <div style={styles.drawerScrollArea}>
+            <div style={styles.drawerNavList}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDashboard,
+                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/home"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🏠</span>
+                <span style={styles.drawerNavText}>Dashboard</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavMyInvestment,
+                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/my-investment"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📈</span>
+                <span style={styles.drawerNavText}>My Investment</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSaveMoney,
+                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/save-money"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>💰</span>
+                <span style={styles.drawerNavText}>Save Money</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavOneTime,
+                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/one-time"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>⚡</span>
+                <span style={styles.drawerNavText}>One Time</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavPlan
+                }} 
+                onClick={() => { handleDownloadPlan(); setSidebarOpen(false); }}
+                disabled={isDownloadingPlan}
+              >
+                <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
+                <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavAddFund,
+                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/wallet"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🌐</span>
+                <span style={styles.drawerNavText}>Add Fund</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavRefer,
+                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/refer"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👥</span>
+                <span style={styles.drawerNavText}>Refer & Earn</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavWithdraw,
+                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/withdraw"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>➔</span>
+                <span style={styles.drawerNavText}>Withdraw</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDailyReward,
+                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/daily-reward"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎁</span>
+                <span style={styles.drawerNavText}>Daily Reward</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavInvestmentAssistant,
+                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/investment-assistant"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📊</span>
+                <span style={styles.drawerNavText}>Investment Assistance</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSupport,
+                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/support"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎧</span>
+                <span style={styles.drawerNavText}>Support</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavProfile,
+                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/kyc"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👤</span>
+                <span style={styles.drawerNavText}>Profile</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavLogout
+                }} 
+                onClick={() => { setSidebarOpen(false); handleLogout(); }}
+              >
+                <span style={styles.drawerNavIcon}>🚪</span>
+                <span style={styles.drawerNavText}>Logout</span>
+              </button>
+            </div>
+
+            <div style={styles.treePlantOnlyWrapper}>
+              <img 
+                src="/tree plant.png" 
+                alt="Tree Plant" 
+                style={styles.treePlantOnlyImg}
+                onError={(e) => {
+                  if (e.target.src.includes('.png')) {
+                    e.target.src = '/tree plant.jpg';
+                  }
+                }}
+              />
+            </div>
+          </div>
+
         </div>
-      )}
+      </div>
 
       {/* TOP DEPLOYMENT LEDGER BAR MONITOR */}
       <div style={styles.vipStatusBar}>
@@ -411,6 +585,7 @@ export default function SaveMoney() {
             <div style={styles.cyberLogoCoreElement}>
               <span style={styles.cyberLogoSymbolText}>₹</span>
             </div>
+            {/* স্ক্রিনশটে মার্ক করা অ্যানিমেশন ঠিক করা হলো (অরবিট লাইন সচল ও প্রোপার রোটেশন অ্যানিমেশন সহ) */}
             <div style={styles.cyberLogoOrbitLine1}></div>
             <div style={styles.cyberLogoOrbitLine2}></div>
           </div>
@@ -423,7 +598,7 @@ export default function SaveMoney() {
           <p style={styles.cyberBrandSubtextPara}>INTELLIGENT WEALTH GENERATION SYSTEM</p>
         </header>
 
-        {/* 2nd স্ক্রিনশটের বক্স দুটোকে পাশাপাশি (Side-by-Side) করার লেআউট */}
+        {/* বক্স দুটোকে পাশাপাশি (Side-by-Side) করার লেআউট */}
         <div style={styles.executiveTwinControlLayout}>
           
           {/* ZONE BLOCK 1: WALLET ASSET CONSOLE */}
@@ -499,7 +674,7 @@ export default function SaveMoney() {
 
               <button 
                 style={styles.walletActionInjectFundsBtn}
-                onClick={() => (window.location.href = "/wallet")}
+                onClick={() => navigate("/wallet")}
               >
                 <span style={styles.btnAccentPlusSymbol}>+</span> DEPOSIT FRESH CAPITAL INTO POOL
               </button>
@@ -650,7 +825,7 @@ export default function SaveMoney() {
           <div style={styles.separatorLineDecorativeRight}></div>
         </div>
 
-        {/* 3rd স্ক্রিনশটের ৪টি বক্সকে উপরে দুটো নিচে দুটো (2x2 Grid) করার লেআউট */}
+        {/* ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) করার লেআউট */}
         <div style={styles.projectionGrid2x2Layout}>
           
           <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #00ffa3"}}>
@@ -753,1050 +928,1014 @@ export default function SaveMoney() {
             disabled={loading}
           >
             <div style={styles.ultimateLaunchBtnGlowBackingTrack}></div>
-            <span style={styles.ultimateLaunchBtnIconBadgeNode}>🛡️</span> 
-            <span style={styles.ultimateLaunchBtnMainStringLabelText}>
-              {loading ? "AUTHORIZING DIGITAL SECURE DEPOSIT..." : "INITIATE & LAUNCH ASSET CONFIGURATION PLAN"}
+            <span style={styles.ultimateLaunchBtnIconBadgeNode}>🛡️</span>
+            <span style={styles.ultimateLaunchBtnMainTitleText}>
+              {loading ? "PROCESSING SECURE TRANSACTION..." : "COMMENCE SECURE SIP DEPLOYMENT"}
             </span>
           </button>
         </div>
 
-        {/* TRIPLE DECK SUPPORT */}
-        <section style={styles.systemCapabilitiesTripleFooterGridColumnLayout}>
-          <div style={styles.capabilityCellBlockNodeCard}>
-            <div style={{...styles.capabilityIconCircleWrapContainer, color: "#3b82f6", backgroundColor: "rgba(59,130,246,0.15)"}}>🔒</div>
-            <div style={styles.capabilityTextInformationBlockWrap}>
-              <h4 style={styles.capabilityHeadingMainTextTitle}>VAULT-GRADE CYBER SECURITY</h4>
-              <p style={styles.capabilitySubtextBodyParagraph}>End-to-End encrypted cryptographic ledger vault safeguards absolute transactional safety limits.</p>
-            </div>
-          </div>
-
-          <div style={styles.capabilityCellBlockNodeCard}>
-            <div style={{...styles.capabilityIconCircleWrapContainer, color: "#10b981", backgroundColor: "rgba(16,185,129,0.15)"}}>📈</div>
-            <div style={styles.capabilityTextInformationBlockWrap}>
-              <h4 style={styles.capabilityHeadingMainTextTitle}>MAXIMIZED TIMELINE YIELD CURVE</h4>
-              <p style={styles.capabilitySubtextBodyParagraph}>Algorithmic compounding interest indexing structures optimized to generate enhanced fiscal performance assets.</p>
-            </div>
-          </div>
-
-          <div style={styles.capabilityCellBlockNodeCard}>
-            <div style={{...styles.capabilityIconCircleWrapContainer, color: "#a855f7", backgroundColor: "rgba(168,85,247,0.15)"}}>⚡</div>
-            <div style={styles.capabilityTextInformationBlockWrap}>
-              <h4 style={styles.capabilityHeadingMainTextTitle}>FLUID AUTO-PAYOUT INTERFACING</h4>
-              <p style={styles.capabilitySubtextBodyParagraph}>Seamless architectural design allows automated liquidity conversion options upon reaching target timelines.</p>
-            </div>
-          </div>
-        </section>
-
       </div>
 
-      {/* MODALS */}
+      {/* TERMS MODAL */}
       {termsOpen && (
-        <div style={styles.modalSystemFallbackOverlayBlurScreen}>
-          <div style={styles.modalSystemOuterBoxArchitecture}>
-            <div style={styles.modalSystemHeaderTitleFlexRow}>
-              <div style={styles.modalSystemHeaderIconBadge}>📋</div>
-              <h2 style={styles.modalSystemHeaderMainTitleHeadlineText}>Terms & Conditions</h2>
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCard}>
+            <h3 style={{color: "#00ffa3", marginTop: 0}}>Terms & Conditions</h3>
+            <p style={{fontSize: "13px", color: "#cbd5e1", lineHeight: "1.6"}}>
+              By commencing this automated SIP deployment, you agree to lock-in funds for the selected tenure. Early termination might be subject to system verification protocols. All returns are calculated based on algorithmic yield structures.
+            </p>
+            <div style={{display: "flex", gap: "10px", marginTop: "20px"}}>
+              <button 
+                style={{flex: 1, padding: "10px", background: "#00ffa3", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", color: "#000"}}
+                onClick={() => { setAccepted(true); setTermsOpen(false); }}
+              >
+                I Agree & Accept
+              </button>
+              <button 
+                style={{flex: 1, padding: "10px", background: "#334155", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", color: "#fff"}}
+                onClick={() => setTermsOpen(false)}
+              >
+                Cancel
+              </button>
             </div>
-            
-            <div style={styles.modalSystemInternalScrollableContentPanelBox}>
-              <p style={styles.modalSystemParagraphParaBlockText}>Save Money SIP is a disciplined monthly saving and investment plan. The minimum monthly SIP investment amount is ₹2000.</p>
-              <p style={styles.modalSystemParagraphParaBlockText}>User must select SIP duration and understand all estimated return values before confirming the investment from wallet balance.</p>
-              <p style={styles.modalSystemParagraphParaBlockText}>This SIP plan requires timely monthly renewal. If renewal is missed, investment benefits, bonuses, rewards or auto-withdrawal eligibility may be affected.</p>
-              <p style={styles.modalSystemParagraphParaBlockText}>Returns shown inside the application are estimated values only. Actual return may increase or decrease depending on company performance.</p>
-              <p style={styles.modalSystemParagraphParaBlockText}>Investment always involves financial risk. User confirms that they are investing voluntarily after understanding risk, reward and possible variation in ROI.</p>
-            </div>
-
-            <button style={styles.modalSystemAcceptActionButtonTriggerElement} onClick={acceptTerms}>
-              Accept & Commit Verification
-            </button>
           </div>
         </div>
       )}
 
+      {/* HELP ASSISTANT MODAL */}
       {helpOpen && (
-        <div style={styles.modalSystemFallbackOverlayBlurScreen}>
-          <div style={{...styles.modalSystemOuterBoxArchitecture, borderColor: "#3b82f6"}}>
-            <div style={styles.modalSystemHeaderTitleFlexRow}>
-              <div style={{...styles.modalSystemHeaderIconBadge, color: "#3b82f6"}}>🧠</div>
-              <h2 style={{...styles.modalSystemHeaderMainTitleHeadlineText, color: "#3b82f6"}}>Investment Assistant</h2>
-            </div>
-            
-            <div style={styles.modalSystemInternalScrollableContentPanelBox}>
-              <p style={styles.modalSystemParagraphParaBlockTextHelpTextBangla}>The Save Money SIP plan will help you save regularly every month.</p>
-              <p style={styles.modalSystemParagraphParaBlockTextHelpTextBangla}>The minimum monthly SIP amount is ₹2,000. Once you enter the amount and select the duration, you will see the estimated return below.</p>
-              <p style={styles.modalSystemParagraphParaBlockTextHelpTextBangla}>Estimated returns of 11% for 1 year, 14% for 3 years, and 20% to 30% for 5+ years will be displayed.</p>
-            </div>
-
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCard}>
+            <h3 style={{color: "#00d2ff", marginTop: 0}}>Assistant Core Support</h3>
+            <p style={{fontSize: "13px", color: "#cbd5e1", lineHeight: "1.6"}}>
+              Need help regarding Save Money plans? You can reach out to our 24/7 support team via the Support section in the sidebar or check our detailed Plan PDF.
+            </p>
             <button 
-              style={{...styles.modalSystemAcceptActionButtonTriggerElement, background: "linear-gradient(90deg, #3b82f6, #1d4ed8)"}} 
+              style={{width: "100%", padding: "10px", background: "#00d2ff", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", color: "#000", marginTop: "15px"}}
               onClick={() => setHelpOpen(false)}
             >
-              Acknowledge & Close Core
+              Close
             </button>
           </div>
         </div>
       )}
-
     </div>
   );
 }
 
-// =========================================================================
-// STYLES INCLUDING SIDEBAR & RESPONSIVE LAYOUT
-// =========================================================================
 const styles = {
   cyberPageWrapper: {
     minHeight: "100vh",
-    width: "100vw",
-    backgroundColor: "#02040a",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    fontFamily: "'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    background: "linear-gradient(180deg,#020617 0%,#031026 45%,#020617 100%)",
     color: "#ffffff",
-    overflowX: "hidden",
+    padding: "0 12px 100px",
+    fontFamily: "system-ui, -apple-system, sans-serif",
     position: "relative",
-    boxSizing: "border-box"
+    overflowX: "hidden"
   },
   neonMatrixGrid: {
     position: "absolute",
     inset: 0,
-    backgroundImage: `
-      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px)
-    `,
-    backgroundSize: "40px 40px",
-    maskImage: "linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,0.3))",
-    WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,0.3))",
+    backgroundImage: "radial-gradient(rgba(0,255,163,0.05) 1px, transparent 1px)",
+    backgroundSize: "24px 24px",
     pointerEvents: "none",
     zIndex: 1
   },
   dynamicAuraSphere1: {
     position: "absolute",
-    top: "-200px",
-    left: "5%",
-    width: "600px",
-    height: "600px",
-    background: "radial-gradient(circle, rgba(0, 255, 163, 0.08) 0%, rgba(0,0,0,0) 70%)",
-    filter: "blur(60px)",
-    borderRadius: "50%",
+    top: "5%",
+    left: "-10%",
+    width: "300px",
+    height: "300px",
+    background: "radial-gradient(circle, rgba(0,255,163,0.1) 0%, transparent 70%)",
     pointerEvents: "none",
-    zIndex: 2
+    zIndex: 1
   },
   dynamicAuraSphere2: {
     position: "absolute",
-    bottom: "10%",
-    right: "-100px",
-    width: "700px",
-    height: "700px",
-    background: "radial-gradient(circle, rgba(204, 0, 255, 0.06) 0%, rgba(0,0,0,0) 70%)",
-    filter: "blur(80px)",
-    borderRadius: "50%",
+    top: "40%",
+    right: "-10%",
+    width: "350px",
+    height: "350px",
+    background: "radial-gradient(circle, rgba(0,210,255,0.1) 0%, transparent 70%)",
     pointerEvents: "none",
-    zIndex: 2
+    zIndex: 1
   },
   dynamicAuraSphere3: {
     position: "absolute",
-    top: "40%",
-    left: "40%",
-    width: "500px",
-    height: "500px",
-    background: "radial-gradient(circle, rgba(0, 210, 255, 0.05) 0%, rgba(0,0,0,0) 70%)",
-    filter: "blur(50px)",
-    borderRadius: "50%",
+    bottom: "10%",
+    left: "20%",
+    width: "400px",
+    height: "400px",
+    background: "radial-gradient(circle, rgba(204,0,255,0.08) 0%, transparent 70%)",
     pointerEvents: "none",
-    zIndex: 2
+    zIndex: 1
   },
-  // 1st স্ক্রিনশটের স্টাইলে আপডেট করা সাইডবার স্টাইল
-  hamburgerBtn: {
-    padding: "10px 16px",
-    borderRadius: "14px",
-    border: "1px solid #334155",
-    backgroundColor: "rgba(15, 23, 42, 0.8)",
-    color: "#00ffa3",
-    fontSize: "20px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 0 15px rgba(0,255,163,0.1)"
-  },
-  sidebarOverlay: {
+
+  // সাইডবার স্টাইলস (হোম পেজের সাথে হুবহু মিল রেখে)
+  drawerOverlay: {
     position: "fixed",
-    inset: 0,
-    backgroundColor: "rgba(0,0,0,0.75)",
-    backdropFilter: "blur(5px)",
-    zIndex: 99999,
-    display: "flex"
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0, 0, 0, 0.75)",
+    backdropFilter: "blur(6px)",
+    zIndex: 100002,
+    display: "flex",
+    justifyContent: "flex-start",
+    transition: "opacity 0.3s ease, visibility 0.3s ease"
   },
-  sidebarContainer: {
-    width: "280px",
-    height: "100%",
-    backgroundColor: "#070b14",
-    borderRight: "1px solid #1e293b",
-    padding: "20px",
-    boxSizing: "border-box",
+  drawerContainer: {
+    position: "fixed",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    background: "#08101e",
+    width: "230px",
+    height: "100vh",
+    padding: "12px 8px",
     display: "flex",
     flexDirection: "column",
-    gap: "16px",
-    boxShadow: "10px 0 30px rgba(0,0,0,0.5)",
-    overflowY: "auto"
+    boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
+    borderRight: "1px solid #1e293b",
+    transform: "translateX(-100%)",
+    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    overflow: "hidden",
+    zIndex: 100003
   },
-  sidebarBrandSection: {
+  drawerHeader: {
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    gap: "12px",
-    borderBottom: "1px solid #1e293b",
-    paddingBottom: "16px",
-    marginBottom: "4px"
+    justifyContent: "center",
+    marginBottom: "10px",
+    paddingBottom: "8px",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+    flexShrink: 0
   },
-  sidebarLogoBox: {
+  drawerBrand: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px"
+  },
+  drawerLogoWrapper: {
     width: "42px",
     height: "42px",
     borderRadius: "50%",
-    backgroundColor: "rgba(0,255,163,0.15)",
-    border: "2px solid #00ffa3",
+    background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
+    border: "2px solid #22c55e",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px"
+    boxShadow: "0 0 10px rgba(34, 197, 94, 0.4)"
   },
-  sidebarBrandTitleContainer: {
-    display: "flex",
-    flexDirection: "column"
+  drawerLogoImg: {
+    width: "26px",
+    height: "26px",
+    objectFit: "contain"
   },
-  sidebarBrandMainText: {
+  drawerLogoText: {
     margin: 0,
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: "900",
     color: "#ffffff",
-    letterSpacing: "1px"
+    letterSpacing: "0.6px",
+    textAlign: "center"
   },
-  sidebarBrandSubText: {
+  drawerLogoSubtext: {
     fontSize: "10px",
-    color: "#94a3b8",
-    fontWeight: "600"
+    color: "#a7f3d0",
+    fontWeight: "600",
+    marginTop: "1px",
+    textAlign: "center"
   },
-  sidebarMenu: {
+  drawerScrollArea: {
+    flex: 1,
+    overflowY: "auto",
     display: "flex",
     flexDirection: "column",
-    gap: "8px"
+    gap: "10px",
+    paddingRight: "2px"
   },
-  sidebarMenuItem: {
-    width: "100%",
-    padding: "10px 14px",
-    borderRadius: "10px",
-    border: "none",
-    backgroundColor: "transparent",
-    color: "#cbd5e1",
-    fontSize: "13px",
-    fontWeight: "600",
-    textAlign: "left",
-    cursor: "pointer",
-    transition: "all 0.2s ease"
+  drawerNavList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    flexShrink: 0
   },
-  sidebarMenuItemActive: {
-    backgroundColor: "rgba(245, 158, 11, 0.15)",
-    color: "#f59e0b",
-    fontWeight: "bold",
-    borderLeft: "4px solid #f59e0b"
-  },
-  sidebarPlantCard: {
-    marginTop: "auto",
-    width: "100%",
-    height: "80px",
-    borderRadius: "12px",
-    backgroundColor: "#0f172a",
-    overflow: "hidden",
+  drawerNavItem: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    border: "1px solid #1e293b"
+    gap: "8px",
+    padding: "8px 12px",
+    background: "rgba(255, 255, 255, 0.12)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    border: "1px solid rgba(255, 255, 255, 0.25)",
+    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    color: "#ffffff",
+    fontSize: "12px",
+    fontWeight: "800",
+    cursor: "pointer",
+    textAlign: "left",
+    transition: "all 0.25s ease",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.5)"
   },
-  sidebarPlantImagePlaceholder: {
-    fontSize: "28px"
+  drawerNavItemActive: {
+    background: "rgba(255, 255, 255, 0.3)",
+    border: "1px solid #ffffff",
+    boxShadow: "0 0 12px rgba(255, 255, 255, 0.5)",
+    fontWeight: "900"
   },
-  vipStatusBar: {
+  drawerNavIcon: {
+    fontSize: "16px",
+    width: "20px",
+    display: "inline-block",
+    textAlign: "center"
+  },
+  drawerNavText: {
+    flex: 1,
+    fontSize: "12px",
+    letterSpacing: "0.3px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  },
+  drawerNavDashboard: { background: "rgba(59, 130, 246, 0.25)", border: "1px solid rgba(59, 130, 246, 0.5)" },
+  drawerNavMyInvestment: { background: "rgba(16, 185, 129, 0.25)", border: "1px solid rgba(16, 185, 129, 0.5)" },
+  drawerNavSaveMoney: { background: "rgba(245, 158, 11, 0.25)", border: "1px solid rgba(245, 158, 11, 0.5)" },
+  drawerNavOneTime: { background: "rgba(168, 85, 247, 0.25)", border: "1px solid rgba(168, 85, 247, 0.5)" },
+  drawerNavPlan: { background: "rgba(6, 182, 212, 0.25)", border: "1px solid rgba(6, 182, 212, 0.5)" },
+  drawerNavAddFund: { background: "rgba(20, 184, 166, 0.25)", border: "1px solid rgba(20, 184, 166, 0.5)" },
+  drawerNavRefer: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.25)", border: "1px solid rgba(249, 115, 22, 0.5)" },
+  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.25)", border: "1px solid rgba(244, 63, 94, 0.5)" },
+  drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.25)", border: "1px solid rgba(2, 132, 199, 0.5)" },
+  drawerNavSupport: { background: "rgba(99, 102, 241, 0.25)", border: "1px solid rgba(99, 102, 241, 0.5)" },
+  drawerNavProfile: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavLogout: { background: "rgba(239, 68, 68, 0.25)", border: "1px solid rgba(239, 68, 68, 0.5)" },
+
+  treePlantOnlyWrapper: {
     width: "100%",
-    height: "36px",
-    backgroundColor: "#090d16",
-    borderBottom: "1px solid #1e293b",
+    paddingTop: "6px",
+    paddingBottom: "10px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexShrink: 0
+  },
+  treePlantOnlyImg: {
+    width: "100%",
+    maxHeight: "110px",
+    objectFit: "cover",
+    borderRadius: "12px",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)"
+  },
+
+  vipStatusBar: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "0 20px",
-    boxSizing: "border-box",
-    zIndex: 10,
-    position: "relative"
+    padding: "8px 12px",
+    background: "rgba(15,23,42,0.8)",
+    borderBottom: "1px solid rgba(255,255,255,0.1)",
+    fontSize: "11px",
+    position: "relative",
+    zIndex: 2
   },
   vipStatusIndicator: {
-    fontSize: "11px",
-    fontWeight: "700",
-    color: "#00ffa3",
-    letterSpacing: "1.5px",
     display: "flex",
     alignItems: "center",
-    gap: "8px"
+    gap: "6px",
+    color: "#00ffa3",
+    fontWeight: "bold"
   },
   pulseNode: {
-    width: "7px",
-    height: "7px",
-    backgroundColor: "#00ffa3",
+    width: "8px",
+    height: "8px",
+    background: "#00ffa3",
     borderRadius: "50%",
-    display: "inline-block",
-    boxShadow: "0 0 10px #00ffa3"
+    boxShadow: "0 0 10px #00ffa3",
+    animation: "pulseAnim 1.5s infinite"
   },
   vipTimestamp: {
-    fontSize: "11px",
-    color: "#94a3b8",
-    fontWeight: "600",
-    letterSpacing: "1px"
+    color: "#94a3b8"
   },
+
   glassOverlayShield: {
     position: "fixed",
     inset: 0,
-    backgroundColor: "rgba(2, 4, 10, 0.85)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-    zIndex: 50000,
+    background: "rgba(2,6,23,0.7)",
+    backdropFilter: "blur(6px)",
+    zIndex: 99999,
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   glassOverlayContainer: {
-    backgroundColor: "#0d1321",
-    padding: "40px",
-    borderRadius: "24px",
-    textAlign: "center",
-    boxShadow: "0 30px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05)",
-    border: "1px solid #334155",
-    maxWidth: "460px",
-    width: "85%",
+    background: "#0f172a",
+    padding: "20px 30px",
+    borderRadius: "16px",
     display: "flex",
-    flexDirection: "column",
     alignItems: "center",
-    gap: "20px"
+    gap: "15px",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
+    border: "1px solid #1e293b",
+    maxWidth: "350px"
   },
   glassOverlayIconFrame: {
-    width: "70px",
-    height: "70px",
-    borderRadius: "20px",
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "30px",
+    fontSize: "18px",
     fontWeight: "bold",
-    boxShadow: "inset 0 2px 5px rgba(255,255,255,0.05)"
+    flexShrink: 0
   },
   glassOverlayMessageText: {
-    fontSize: "18px",
-    color: "#ffffff",
     margin: 0,
-    fontWeight: "700",
-    lineHeight: "1.5",
-    letterSpacing: "0.3px"
+    fontSize: "14px",
+    fontWeight: "bold",
+    color: "#fff"
   },
+
   ultimateMainCanvas: {
-    width: "100%",
-    maxWidth: "1200px",
-    padding: "20px",
-    boxSizing: "border-box",
-    zIndex: 5,
     position: "relative",
-    display: "flex",
-    flexDirection: "column"
+    zIndex: 2,
+    maxWidth: "1200px",
+    margin: "0 auto",
+    paddingTop: "15px"
   },
+
   controlHelmRow: {
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "30px",
-    width: "100%",
+    justifyContent: "space-between",
+    marginBottom: "20px",
     gap: "10px",
     flexWrap: "wrap"
   },
+  hamburgerBtn: {
+    background: "rgba(255,255,255,0.1)",
+    border: "1px solid rgba(255,255,255,0.2)",
+    color: "#fff",
+    fontSize: "20px",
+    padding: "6px 12px",
+    borderRadius: "8px",
+    cursor: "pointer"
+  },
   helmActionBtn: {
-    padding: "10px 18px",
-    borderRadius: "14px",
+    background: "rgba(15,23,42,0.9)",
     border: "1px solid #334155",
-    backgroundColor: "rgba(15, 23, 42, 0.8)",
-    backdropFilter: "blur(10px)",
-    color: "#cbd5e1",
+    color: "#fff",
+    padding: "8px 14px",
+    borderRadius: "10px",
     fontSize: "12px",
-    fontWeight: "700",
-    letterSpacing: "1px",
+    fontWeight: "bold",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+    gap: "6px",
+    transition: "all 0.2s"
   },
   helmActionBtnHover: {
     borderColor: "#00ffa3",
-    color: "#ffffff",
-    backgroundColor: "rgba(0, 255, 163, 0.15)",
-    boxShadow: "0 0 25px rgba(0, 255, 163, 0.2)"
+    boxShadow: "0 0 12px rgba(0,255,163,0.3)"
   },
   helmBtnIcon: {
-    fontSize: "11px",
-    color: "#94a3b8"
+    color: "#00ffa3"
   },
   helmCenterBadge: {
-    backgroundColor: "rgba(30, 41, 59, 0.6)",
-    border: "1px solid rgba(255, 215, 0, 0.3)",
-    padding: "6px 14px",
-    borderRadius: "30px",
-    backdropFilter: "blur(5px)"
+    display: "none"
   },
   goldTextBadge: {
-    fontSize: "10px",
-    fontWeight: "800",
     color: "#ffd700",
-    letterSpacing: "1.5px"
+    fontSize: "11px",
+    fontWeight: "bold",
+    letterSpacing: "1px"
   },
   helmHelpBtn: {
-    padding: "10px 18px",
-    borderRadius: "14px",
-    border: "1px solid #334155",
-    backgroundColor: "rgba(15, 23, 42, 0.8)",
-    backdropFilter: "blur(10px)",
-    color: "#60a5fa",
+    background: "rgba(0,210,255,0.1)",
+    border: "1px solid rgba(0,210,255,0.3)",
+    color: "#00d2ff",
+    padding: "8px 14px",
+    borderRadius: "10px",
     fontSize: "12px",
-    fontWeight: "700",
-    letterSpacing: "1px",
+    fontWeight: "bold",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+    gap: "6px"
   },
   helmHelpBtnHover: {
-    borderColor: "#60a5fa",
-    color: "#ffffff",
-    backgroundColor: "rgba(59, 130, 246, 0.15)",
-    boxShadow: "0 0 25px rgba(59, 130, 246, 0.2)"
+    background: "rgba(0,210,255,0.2)",
+    boxShadow: "0 0 12px rgba(0,210,255,0.3)"
   },
   helpQuestionMark: {
+    background: "#00d2ff",
+    color: "#020617",
     width: "16px",
     height: "16px",
     borderRadius: "50%",
-    backgroundColor: "rgba(59, 130, 246, 0.25)",
-    display: "flex",
+    display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: "10px",
-    color: "#ffffff"
+    fontWeight: "900"
   },
+
   cyberBrandHeaderSection: {
     textAlign: "center",
-    marginBottom: "40px",
-    width: "100%"
+    marginBottom: "25px"
   },
   cyberLogoHexagonWrap: {
-    width: "80px",
-    height: "80px",
-    margin: "0 auto 16px",
+    width: "70px",
+    height: "70px",
+    margin: "0 auto 12px",
     position: "relative",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   cyberLogoCoreElement: {
-    width: "50px",
-    height: "50px",
-    borderRadius: "16px",
-    background: "linear-gradient(135deg, #00ffa3 0%, #00d2ff 100%)",
+    width: "48px",
+    height: "48px",
+    background: "linear-gradient(135deg, #00ffa3, #00d2ff)",
+    borderRadius: "14px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    boxShadow: "0 0 20px rgba(0,255,163,0.4)",
+    zIndex: 2
+  },
+  cyberLogoSymbolText: {
     fontSize: "24px",
     fontWeight: "900",
-    color: "#020617",
-    boxShadow: "0 15px 35px rgba(0,255,163,0.4)",
-    zIndex: 5
+    color: "#020617"
   },
+  // অ্যানিমেশন ঠিক করা হলো যাতে লোগোর চারপাশের রিং সচলভাবে ঘুরতে থাকে
   cyberLogoOrbitLine1: {
     position: "absolute",
-    inset: "-5px",
-    borderRadius: "24px",
-    border: "2px dashed rgba(0, 255, 163, 0.4)"
+    inset: 0,
+    border: "2px dashed rgba(0,255,163,0.6)",
+    borderRadius: "50%",
+    animation: "spinSlow 8s linear infinite"
   },
   cyberLogoOrbitLine2: {
     position: "absolute",
-    inset: "5px",
-    borderRadius: "20px",
-    border: "1px solid rgba(0, 210, 255, 0.3)"
+    inset: "-6px",
+    border: "1px solid rgba(0,210,255,0.4)",
+    borderRadius: "50%",
+    animation: "spinReverse 12s linear infinite"
   },
   cyberMainTitleText: {
     margin: 0,
-    fontSize: "36px",
+    fontSize: "26px",
     fontWeight: "900",
-    letterSpacing: "3px",
-    color: "#ffffff"
+    letterSpacing: "1px"
   },
   cyberMainTitleHighlight: {
-    background: "linear-gradient(90deg, #00ffa3, #00d2ff)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent"
+    color: "#00ffa3",
+    textShadow: "0 0 15px rgba(0,255,163,0.4)"
   },
   cyberBrandDividerLine: {
-    width: "140px",
+    width: "120px",
     height: "2px",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    margin: "14px auto",
-    position: "relative"
-  },
-  cyberDividerCoreGlow: {
-    position: "absolute",
-    inset: "0 25%",
-    background: "linear-gradient(90deg, transparent, #00ffa3, transparent)"
+    background: "linear-gradient(90deg, transparent, #00ffa3, transparent)",
+    margin: "8px auto"
   },
   cyberBrandSubtextPara: {
+    margin: 0,
     fontSize: "11px",
-    letterSpacing: "3px",
-    color: "#cbd5e1",
-    fontWeight: "700",
-    textTransform: "uppercase",
-    margin: 0
+    color: "#94a3b8",
+    letterSpacing: "2px",
+    fontWeight: "bold"
   },
-  // 2nd স্ক্রিনশটের বক্স দুটোকে পাশাপাশি করার জন্য ফ্লেক্স/গ্রিড লেআউট
+
+  // পাশাপাশি (Side-by-Side) লেআউট
   executiveTwinControlLayout: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-    gap: "24px",
-    width: "100%",
-    marginBottom: "30px"
+    gap: "20px",
+    marginBottom: "25px"
   },
   executivePanelZone: {
-    width: "100%",
-    display: "flex"
+    display: "flex",
+    flexDirection: "column"
   },
+
   cyberLuxuryCardUnit: {
-    width: "100%",
-    backgroundColor: "rgba(13, 20, 35, 0.65)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    borderRadius: "24px",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    padding: "24px",
-    boxSizing: "border-box",
+    background: "rgba(15,23,42,0.85)",
+    border: "1px solid #1e293b",
+    borderRadius: "20px",
+    padding: "20px",
     position: "relative",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+    overflow: "hidden",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+    transition: "all 0.3s ease",
+    height: "100%",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-between",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+    justifyContent: "space-between"
   },
   cyberLuxuryCardUnitHover: {
-    borderColor: "rgba(255, 255, 255, 0.15)"
+    borderColor: "rgba(0,255,163,0.4)",
+    boxShadow: "0 15px 40px rgba(0,0,0,0.7), 0 0 20px rgba(0,255,163,0.15)"
   },
   cardGlowCornerTop: {
     position: "absolute",
     top: 0,
-    left: "10%",
+    right: 0,
     width: "80px",
-    height: "2px",
-    background: "linear-gradient(90deg, transparent, #00d2ff, transparent)"
+    height: "80px",
+    background: "radial-gradient(circle, rgba(0,255,163,0.15) 0%, transparent 70%)",
+    pointerEvents: "none"
   },
   cardGlowCornerTopAccent: {
     position: "absolute",
     top: 0,
-    left: "10%",
+    right: 0,
     width: "80px",
-    height: "2px",
-    background: "linear-gradient(90deg, transparent, #00ffa3, transparent)"
+    height: "80px",
+    background: "radial-gradient(circle, rgba(0,210,255,0.15) 0%, transparent 70%)",
+    pointerEvents: "none"
   },
   cardHeaderFlexBox: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
-    marginBottom: "20px"
+    marginBottom: "15px"
   },
   cardTitleBadgeRow: {
     display: "flex",
     alignItems: "center",
-    gap: "12px"
+    gap: "10px"
   },
   cardHeaderIconBoxContainer: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "12px",
-    backgroundColor: "rgba(0, 210, 255, 0.15)",
-    border: "1px solid rgba(0, 210, 255, 0.3)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "18px"
-  },
-  cardHeaderIconBoxContainerAccent: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "12px",
-    backgroundColor: "rgba(0, 255, 163, 0.15)",
-    border: "1px solid rgba(0, 255, 163, 0.3)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "18px"
-  },
-  cardHeaderMainTitleText: {
-    margin: 0,
-    fontSize: "13px",
-    fontWeight: "800",
-    color: "#ffffff",
-    letterSpacing: "1px"
-  },
-  onlinePulseStatusText: {
-    fontSize: "9px",
-    fontWeight: "700",
-    color: "#00d2ff",
-    backgroundColor: "rgba(0, 210, 255, 0.15)",
-    padding: "4px 10px",
-    borderRadius: "8px"
-  },
-  onlinePulseStatusTextAccent: {
-    fontSize: "9px",
-    fontWeight: "700",
-    color: "#00ffa3",
-    backgroundColor: "rgba(0, 255, 163, 0.15)",
-    padding: "4px 10px",
-    borderRadius: "8px"
-  },
-  walletBalanceDisplayBlock: {
-    backgroundColor: "rgba(2, 6, 12, 0.6)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: "16px",
-    padding: "20px",
-    width: "100%",
-    boxSizing: "border-box",
-    marginBottom: "16px"
-  },
-  walletMetaLabelRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: "10px"
-  },
-  walletMetaLabel: {
-    fontSize: "10px",
-    fontWeight: "700",
-    color: "#cbd5e1"
-  },
-  walletSecureShieldTag: {
-    fontSize: "9px",
-    fontWeight: "600",
-    color: "#94a3b8"
-  },
-  walletLargeNumericalSum: {
-    fontSize: "32px",
-    fontWeight: "900",
-    color: "#ffffff",
-    marginBottom: "14px"
-  },
-  walletProgressIndicatorTrack: {
-    width: "100%",
-    height: "5px",
-    backgroundColor: "#334155",
-    borderRadius: "10px",
-    overflow: "hidden",
-    marginBottom: "10px"
-  },
-  walletProgressIndicatorFillBar: {
-    width: "100%",
-    height: "100%",
-    background: "linear-gradient(90deg, #00d2ff, #00ffa3)"
-  },
-  walletBottomCapLabelFlex: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%"
-  },
-  walletCapSubtextText: {
-    fontSize: "10px",
-    color: "#cbd5e1"
-  },
-  walletCapPercentageText: {
-    fontSize: "10px",
-    fontWeight: "700",
-    color: "#00ffa3"
-  },
-  couponSectionContainer: {
-    width: "100%",
-    marginBottom: "16px"
-  },
-  couponAppliedBadge: {
-    fontSize: "9px",
-    fontWeight: "700",
-    color: "#00ffa3",
-    backgroundColor: "rgba(0,255,163,0.15)",
-    padding: "2px 6px",
-    borderRadius: "4px"
-  },
-  applyCouponBtnElement: {
-    padding: "0 16px",
-    height: "36px",
-    backgroundColor: "#00ffa3",
-    color: "#020617",
-    fontWeight: "800",
-    fontSize: "11px",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer"
-  },
-  appliedCouponInfoBox: {
-    width: "100%",
-    height: "46px",
-    backgroundColor: "rgba(0,255,163,0.08)",
-    border: "1px solid rgba(0,255,163,0.3)",
-    borderRadius: "14px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 12px",
-    boxSizing: "border-box"
-  },
-  appliedCouponSuccessText: {
-    fontSize: "12px",
-    fontWeight: "700",
-    color: "#00ffa3"
-  },
-  removeCouponBtn: {
-    backgroundColor: "transparent",
-    border: "none",
-    color: "#ff4a4a",
-    fontSize: "11px",
-    fontWeight: "700",
-    cursor: "pointer"
-  },
-  walletActionInjectFundsBtn: {
-    width: "100%",
-    height: "48px",
-    borderRadius: "14px",
-    background: "linear-gradient(90deg, #1e293b 0%, #0f172a 100%)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    color: "#ffffff",
-    fontSize: "12px",
-    fontWeight: "700",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px"
-  },
-  btnAccentPlusSymbol: {
-    color: "#00d2ff",
-    fontSize: "16px"
-  },
-  inputFieldComplexContainer: {
-    width: "100%",
-    marginBottom: "20px"
-  },
-  inputFieldLabelFlexHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: "8px"
-  },
-  inputFieldMainTitleLabel: {
-    fontSize: "10px",
-    fontWeight: "700",
-    color: "#cbd5e1"
-  },
-  inputFieldRightHandBadge: {
-    fontSize: "9px",
-    fontWeight: "700",
-    color: "#ff9c00",
-    backgroundColor: "rgba(255,156,0,0.15)",
-    padding: "3px 8px",
-    borderRadius: "5px"
-  },
-  inputFieldRightHandBadgeAccent: {
-    fontSize: "9px",
-    fontWeight: "700",
-    color: "#00ffa3",
-    backgroundColor: "rgba(0,255,163,0.15)",
-    padding: "3px 8px",
-    borderRadius: "5px"
-  },
-  cyberInputWrapperGlassBox: {
-    height: "50px",
-    width: "100%",
-    borderRadius: "14px",
-    border: "1px solid #475569",
-    backgroundColor: "rgba(2, 6, 12, 0.7)",
-    display: "flex",
-    alignItems: "center",
-    padding: "0 14px",
-    boxSizing: "border-box",
-    gap: "10px"
-  },
-  cyberInputPrependCurrencySymbol: {
-    fontSize: "18px",
-    fontWeight: "800",
-    color: "#00ffa3"
-  },
-  cyberInputActualInputElement: {
-    flex: 1,
-    border: "none",
-    outline: "none",
-    backgroundColor: "transparent",
-    fontSize: "15px",
-    fontWeight: "700",
-    color: "#ffffff"
-  },
-  cyberInputAppendBadgeUnit: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-    padding: "4px 8px",
-    borderRadius: "8px"
-  },
-  cyberInputAppendBadgeText: {
-    fontSize: "9px",
-    fontWeight: "700",
-    color: "#cbd5e1"
-  },
-  cyberValidationWarningAlertBox: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    marginTop: "8px",
-    backgroundColor: "rgba(239, 68, 68, 0.12)",
-    padding: "8px 12px",
-    borderRadius: "10px"
-  },
-  validationWarningIcon: {
-    fontSize: "12px"
-  },
-  validationWarningText: {
-    fontSize: "11px",
-    color: "#f87171",
-    fontWeight: "600"
-  },
-  tenureSelectionStructureBox: {
-    width: "100%",
-    marginBottom: "16px"
-  },
-  tenureGridSelectorLayoutMatrix: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "10px",
-    width: "100%"
-  },
-  tenureSelectorNodeItemButton: {
-    height: "60px",
-    borderRadius: "14px",
-    border: "1px solid",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    position: "relative",
-    gap: "2px",
-    padding: "4px"
-  },
-  tenureNodeYearLabelText: {
-    fontSize: "11px",
-    fontWeight: "800"
-  },
-  tenureNodePercentageSubBadge: {
-    fontSize: "10px",
-    fontWeight: "700"
-  },
-  tenureNodeSelectionCheckIndicatorCircle: {
-    position: "absolute",
-    top: "-4px",
-    right: "-4px",
-    width: "16px",
-    height: "16px",
-    borderRadius: "50%",
-    backgroundColor: "#ffffff",
-    color: "#020617",
-    fontSize: "10px",
-    fontWeight: "900",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  paymentSummaryBox: {
-    backgroundColor: "rgba(0, 210, 255, 0.04)",
-    border: "1px solid rgba(0, 210, 255, 0.2)",
-    borderRadius: "14px",
-    padding: "12px 14px",
-    marginBottom: "16px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px"
-  },
-  summaryRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    fontSize: "11px",
-    color: "#cbd5e1"
-  },
-  adviceSystemBarWrapperBox: {
-    backgroundColor: "rgba(0, 210, 255, 0.05)",
-    border: "1px dashed rgba(0, 210, 255, 0.3)",
-    borderRadius: "14px",
-    padding: "12px 14px",
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "10px"
-  },
-  adviceSystemLightBulbIcon: {
-    fontSize: "16px",
-    color: "#00d2ff"
-  },
-  adviceSystemTextBodyBlock: {
-    fontSize: "11px",
-    color: "#cbd5e1",
-    lineHeight: "1.5"
-  },
-  compoundingHeaderSeparatorBlock: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    margin: "20px 0 16px"
-  },
-  separatorLineDecorativeLeft: {
-    flex: 1,
-    height: "1px",
-    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15))"
-  },
-  separatorLineDecorativeRight: {
-    flex: 1,
-    height: "1px",
-    background: "linear-gradient(90deg, rgba(255,255,255,0.15), transparent)"
-  },
-  separatorCentralHeadlineTitleText: {
-    padding: "0 16px",
-    fontSize: "11px",
-    fontWeight: "800",
-    color: "#cbd5e1",
-    letterSpacing: "2px"
-  },
-  // 3rd স্ক্রিনশটের ৪টি বক্সকে উপরে দুটো নিচে দুটো (2x2 Grid) করার জন্য লেআউট
-  projectionGrid2x2Layout: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "16px",
-    width: "100%",
-    marginBottom: "24px"
-  },
-  projectionDataMetricsCardCellBlock: {
-    backgroundColor: "rgba(10, 16, 30, 0.85)",
-    borderRadius: "16px",
-    border: "1px solid rgba(255,255,255,0.06)",
-    padding: "20px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px"
-  },
-  projectionCellTopMetaLine: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px"
-  },
-  projectionCellIconCircleBox: {
     width: "32px",
     height: "32px",
+    background: "rgba(0,255,163,0.1)",
     borderRadius: "8px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: "16px"
   },
-  projectionCellMetaTitleLabelText: {
+  cardHeaderIconBoxContainerAccent: {
+    width: "32px",
+    height: "32px",
+    background: "rgba(0,210,255,0.1)",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "16px"
+  },
+  cardHeaderMainTitleText: {
+    margin: 0,
+    fontSize: "13px",
+    fontWeight: "900",
+    letterSpacing: "0.5px"
+  },
+  onlinePulseStatusText: {
+    fontSize: "10px",
+    color: "#00ffa3",
+    fontWeight: "bold",
+    background: "rgba(0,255,163,0.1)",
+    padding: "3px 8px",
+    borderRadius: "6px"
+  },
+  onlinePulseStatusTextAccent: {
+    fontSize: "10px",
+    color: "#00d2ff",
+    fontWeight: "bold",
+    background: "rgba(0,210,255,0.1)",
+    padding: "3px 8px",
+    borderRadius: "6px"
+  },
+
+  walletBalanceDisplayBlock: {
+    background: "rgba(2,6,23,0.5)",
+    border: "1px solid #334155",
+    borderRadius: "14px",
+    padding: "16px",
+    marginBottom: "15px"
+  },
+  walletMetaLabelRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "6px"
+  },
+  walletMetaLabel: {
+    fontSize: "10px",
+    color: "#94a3b8",
+    fontWeight: "bold"
+  },
+  walletSecureShieldTag: {
+    fontSize: "9px",
+    color: "#00ffa3"
+  },
+  walletLargeNumericalSum: {
+    fontSize: "24px",
+    fontWeight: "900",
+    color: "#00ffa3",
+    marginBottom: "10px"
+  },
+  walletProgressIndicatorTrack: {
+    width: "100%",
+    height: "6px",
+    background: "#1e293b",
+    borderRadius: "3px",
+    overflow: "hidden",
+    marginBottom: "8px"
+  },
+  walletProgressIndicatorFillBar: {
+    width: "100%",
+    height: "100%",
+    background: "linear-gradient(90deg, #00ffa3, #00d2ff)",
+    borderRadius: "3px"
+  },
+  walletBottomCapLabelFlex: {
+    display: "flex",
+    justifyContent: "space-between",
+    fontSize: "10px",
+    color: "#64748b"
+  },
+  walletCapSubtextText: {},
+  walletCapPercentageText: {
+    color: "#00ffa3",
+    fontWeight: "bold"
+  },
+
+  couponSectionContainer: {
+    marginBottom: "15px"
+  },
+  inputFieldLabelFlexHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "8px"
+  },
+  inputFieldMainTitleLabel: {
     fontSize: "11px",
-    fontWeight: "700",
-    color: "#ffffff"
+    fontWeight: "bold",
+    color: "#cbd5e1"
+  },
+  couponAppliedBadge: {
+    fontSize: "10px",
+    color: "#00ffa3",
+    background: "rgba(0,255,163,0.1)",
+    padding: "2px 6px",
+    borderRadius: "4px"
+  },
+  cyberInputWrapperGlassBox: {
+    display: "flex",
+    alignItems: "center",
+    background: "rgba(2,6,23,0.6)",
+    border: "1px solid #334155",
+    borderRadius: "12px",
+    overflow: "hidden",
+    transition: "all 0.2s"
+  },
+  cyberInputPrependCurrencySymbol: {
+    paddingLeft: "15px",
+    fontSize: "16px",
+    fontWeight: "bold",
+    color: "#00ffa3"
+  },
+  cyberInputActualInputElement: {
+    flex: 1,
+    background: "transparent",
+    border: "none",
+    color: "#fff",
+    padding: "12px 10px",
+    fontSize: "15px",
+    fontWeight: "bold",
+    outline: "none"
+  },
+  cyberInputAppendBadgeUnit: {
+    paddingRight: "12px"
+  },
+  cyberInputAppendBadgeText: {
+    fontSize: "10px",
+    color: "#64748b",
+    fontWeight: "bold"
+  },
+  applyCouponBtnElement: {
+    background: "#00ffa3",
+    color: "#020617",
+    border: "none",
+    padding: "0 16px",
+    height: "100%",
+    fontWeight: "900",
+    fontSize: "11px",
+    cursor: "pointer"
+  },
+  appliedCouponInfoBox: {
+    background: "rgba(0,255,163,0.1)",
+    border: "1px solid rgba(0,255,163,0.3)",
+    padding: "10px 14px",
+    borderRadius: "12px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  appliedCouponSuccessText: {
+    fontSize: "12px",
+    color: "#00ffa3",
+    fontWeight: "bold"
+  },
+  removeCouponBtn: {
+    background: "transparent",
+    border: "none",
+    color: "#ff4a4a",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+
+  walletActionInjectFundsBtn: {
+    width: "100%",
+    padding: "12px",
+    background: "linear-gradient(135deg, #00ffa3, #00d2ff)",
+    color: "#020617",
+    border: "none",
+    borderRadius: "12px",
+    fontWeight: "900",
+    fontSize: "12px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    boxShadow: "0 4px 15px rgba(0,255,163,0.3)"
+  },
+  btnAccentPlusSymbol: {
+    fontSize: "16px",
+    fontWeight: "900"
+  },
+
+  inputFieldComplexContainer: {
+    marginBottom: "15px"
+  },
+  inputFieldRightHandBadge: {
+    fontSize: "9px",
+    color: "#ffb800",
+    background: "rgba(255,184,0,0.1)",
+    padding: "2px 6px",
+    borderRadius: "4px"
+  },
+  inputFieldRightHandBadgeAccent: {
+    fontSize: "9px",
+    color: "#00d2ff",
+    background: "rgba(0,210,255,0.1)",
+    padding: "2px 6px",
+    borderRadius: "4px"
+  },
+  cyberValidationWarningAlertBox: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    marginTop: "6px",
+    color: "#ff4a4a",
+    fontSize: "10px",
+    fontWeight: "bold"
+  },
+  validationWarningIcon: {},
+  validationWarningText: {},
+
+  tenureSelectionStructureBox: {
+    marginBottom: "15px"
+  },
+  tenureGridSelectorLayoutMatrix: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: "8px",
+    marginTop: "8px"
+  },
+  tenureSelectorNodeItemButton: {
+    padding: "10px 6px",
+    borderRadius: "10px",
+    border: "1px solid",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    transition: "all 0.2s"
+  },
+  tenureNodeYearLabelText: {
+    fontSize: "11px",
+    fontWeight: "900",
+    marginBottom: "2px"
+  },
+  tenureNodePercentageSubBadge: {
+    fontSize: "9px",
+    fontWeight: "bold"
+  },
+  tenureNodeSelectionCheckIndicatorCircle: {
+    position: "absolute",
+    top: "-5px",
+    right: "-5px",
+    width: "16px",
+    height: "16px",
+    background: "#020617",
+    color: "#00ffa3",
+    border: "1px solid #00ffa3",
+    borderRadius: "50%",
+    fontSize: "9px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "bold"
+  },
+
+  paymentSummaryBox: {
+    background: "rgba(2,6,23,0.5)",
+    border: "1px solid #334155",
+    borderRadius: "12px",
+    padding: "12px",
+    marginBottom: "15px",
+    fontSize: "12px"
+  },
+  summaryRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginBottom: "6px"
+  },
+
+  adviceSystemBarWrapperBox: {
+    display: "flex",
+    gap: "10px",
+    background: "rgba(255,184,0,0.05)",
+    border: "1px solid rgba(255,184,0,0.2)",
+    padding: "10px 12px",
+    borderRadius: "10px",
+    fontSize: "10px",
+    color: "#cbd5e1"
+  },
+  adviceSystemLightBulbIcon: {
+    fontSize: "14px"
+  },
+  adviceSystemTextBodyBlock: {
+    lineHeight: "1.4"
+  },
+
+  compoundingHeaderSeparatorBlock: {
+    display: "flex",
+    alignItems: "center",
+    gap: "15px",
+    margin: "30px 0 20px"
+  },
+  separatorLineDecorativeLeft: {
+    flex: 1,
+    height: "1px",
+    background: "linear-gradient(90deg, transparent, #334155)"
+  },
+  separatorCentralHeadlineTitleText: {
+    fontSize: "12px",
+    fontWeight: "900",
+    color: "#00ffa3",
+    letterSpacing: "1px",
+    textAlign: "center"
+  },
+  separatorLineDecorativeRight: {
+    flex: 1,
+    height: "1px",
+    background: "linear-gradient(90deg, #334155, transparent)"
+  },
+
+  // ৪টি বক্স উপরে দুটো নিচে দুটো (2x2 Grid) করার লেআউট
+  projectionGrid2x2Layout: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: "15px",
+    marginBottom: "20px"
+  },
+  projectionDataMetricsCardCellBlock: {
+    background: "rgba(15,23,42,0.85)",
+    border: "1px solid #1e293b",
+    borderRadius: "16px",
+    padding: "16px",
+    position: "relative",
+    overflow: "hidden",
+    boxShadow: "0 8px 25px rgba(0,0,0,0.4)"
+  },
+  projectionCellTopMetaLine: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    marginBottom: "10px"
+  },
+  projectionCellIconCircleBox: {
+    width: "28px",
+    height: "28px",
+    borderRadius: "6px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    fontWeight: "bold"
+  },
+  projectionCellMetaTitleLabelText: {
+    fontSize: "10px",
+    fontWeight: "bold",
+    color: "#94a3b8"
   },
   projectionCellBigMetricValueText: {
-    fontSize: "24px",
-    fontWeight: "900"
+    fontSize: "20px",
+    fontWeight: "900",
+    marginBottom: "10px"
   },
   projectionCellBottomStatusBarTrack: {
     width: "100%",
     height: "4px",
-    backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: "4px"
+    background: "#1e293b",
+    borderRadius: "2px",
+    overflow: "hidden",
+    marginBottom: "8px"
   },
   projectionCellStatusFillColorBar: {
     height: "100%",
-    borderRadius: "4px"
+    borderRadius: "2px"
   },
   projectionCellFooterNarrativeText: {
     margin: 0,
-    fontSize: "11px",
-    color: "#cbd5e1"
+    fontSize: "10px",
+    color: "#64748b",
+    lineHeight: "1.3"
   },
+
   systemAnalyticalDisclaimerBox: {
-    width: "100%",
-    backgroundColor: "rgba(15, 23, 42, 0.5)",
-    border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: "14px",
-    padding: "14px 18px",
     display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    marginBottom: "24px"
+    gap: "10px",
+    background: "rgba(15,23,42,0.6)",
+    border: "1px solid #1e293b",
+    padding: "12px 15px",
+    borderRadius: "12px",
+    marginBottom: "20px",
+    alignItems: "center"
   },
   disclaimerIconInfoBadge: {
-    width: "16px",
-    height: "16px",
+    width: "20px",
+    height: "20px",
+    background: "#334155",
+    color: "#fff",
     borderRadius: "50%",
-    border: "1px solid #cbd5e1",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "10px",
-    color: "#ffffff",
-    fontWeight: "700",
+    fontSize: "11px",
+    fontWeight: "bold",
     flexShrink: 0
   },
   disclaimerTextMessagePara: {
-    fontSize: "11px",
-    color: "#ffffff",
-    lineHeight: "1.5",
+    fontSize: "10px",
+    color: "#94a3b8",
+    lineHeight: "1.4",
     margin: 0
   },
+
   legalComplianceActionShieldContainerBox: {
-    width: "100%",
-    marginBottom: "24px"
+    marginBottom: "25px"
   },
   legalInteractiveClickableRowBox: {
-    backgroundColor: "rgba(13, 20, 35, 0.6)",
-    border: "1px solid #475569",
-    borderRadius: "16px",
-    padding: "16px 20px",
     display: "flex",
-    alignItems: "center",
-    gap: "14px",
-    cursor: "pointer"
+    alignItems: "flex-start",
+    gap: "12px",
+    background: "rgba(15,23,42,0.7)",
+    border: "1px solid #334155",
+    padding: "15px",
+    borderRadius: "14px",
+    cursor: "pointer",
+    transition: "all 0.2s"
   },
   legalInteractiveClickableRowBoxActive: {
-    borderColor: "rgba(0, 255, 163, 0.5)",
-    backgroundColor: "rgba(0, 255, 163, 0.04)"
+    borderColor: "#00ffa3",
+    background: "rgba(0,255,163,0.03)"
   },
   legalCustomCheckboxSquareBox: {
-    width: "18px",
-    height: "18px",
-    borderRadius: "5px",
+    width: "20px",
+    height: "20px",
+    borderRadius: "6px",
     border: "2px solid",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    flexShrink: 0
+    flexShrink: 0,
+    marginTop: "2px"
   },
   legalCheckboxCheckMarkCheck: {
     color: "#020617",
-    fontSize: "11px",
+    fontSize: "12px",
     fontWeight: "900"
   },
   legalTextStatementColumnLabelBlock: {
@@ -1805,160 +1944,103 @@ const styles = {
   legalMainDeclarationSentenceText: {
     margin: 0,
     fontSize: "11px",
-    color: "#ffffff",
+    color: "#cbd5e1",
     lineHeight: "1.5"
   },
   legalHighLightHyperlinkText: {
-    color: "#00ffa3",
-    fontWeight: "700"
+    color: "#00ffa3"
   },
   legalPaperDocumentIconBadgeUnit: {
     fontSize: "18px",
     flexShrink: 0
   },
+
   ultimateLaunchButtonCentralContainerFlex: {
-    width: "100%",
     display: "flex",
-    justifyContent: "center",
-    marginBottom: "40px"
+    justifyContent: "center"
   },
   ultimateLaunchCoreActionBtnElement: {
-    width: "100%",
-    height: "56px",
-    borderRadius: "18px",
-    border: "none",
-    background: "linear-gradient(90deg, #00ffa3 0%, #00d2ff 50%, #3b82f6 100%)",
-    color: "#020617",
-    fontSize: "14px",
-    fontWeight: "900",
-    letterSpacing: "0.5px",
     position: "relative",
+    width: "100%",
+    maxWidth: "450px",
+    padding: "16px",
+    background: "linear-gradient(135deg, #00ffa3, #00d2ff)",
+    color: "#020617",
+    border: "none",
+    borderRadius: "16px",
+    fontWeight: "900",
+    fontSize: "14px",
+    cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "10px"
+    gap: "10px",
+    boxShadow: "0 10px 30px rgba(0,255,163,0.4)",
+    overflow: "hidden",
+    transition: "transform 0.2s"
   },
   ultimateLaunchBtnGlowBackingTrack: {
     position: "absolute",
     inset: 0,
-    borderRadius: "18px",
-    background: "linear-gradient(90deg, #00ffa3 0%, #00d2ff 50%, #3b82f6 100%)",
-    filter: "blur(8px)",
-    opacity: 0.6,
-    zIndex: -1
+    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
+    animation: "shimmer 2.5s infinite"
   },
   ultimateLaunchBtnIconBadgeNode: {
     fontSize: "18px"
   },
-  ultimateLaunchBtnMainStringLabelText: {
-    textShadow: "0 1px 1px rgba(255,255,255,0.3)"
+  ultimateLaunchBtnMainTitleText: {
+    position: "relative",
+    zIndex: 2,
+    letterSpacing: "0.5px"
   },
-  systemCapabilitiesTripleFooterGridColumnLayout: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "16px",
-    width: "100%"
-  },
-  capabilityCellBlockNodeCard: {
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
-    border: "1px solid rgba(255,255,255,0.04)",
-    borderRadius: "16px",
-    padding: "18px",
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "14px"
-  },
-  capabilityIconCircleWrapContainer: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "16px",
-    flexShrink: 0
-  },
-  capabilityTextInformationBlockWrap: {
-    flex: 1
-  },
-  capabilityHeadingMainTextTitle: {
-    margin: "0 0 4px",
-    fontSize: "12px",
-    fontWeight: "800",
-    color: "#ffffff"
-  },
-  capabilitySubtextBodyParagraph: {
-    margin: 0,
-    fontSize: "11px",
-    color: "#cbd5e1",
-    lineHeight: "1.4"
-  },
-  modalSystemFallbackOverlayBlurScreen: {
+
+  modalOverlay: {
     position: "fixed",
     inset: 0,
-    backgroundColor: "rgba(2,4,10,0.92)",
-    backdropFilter: "blur(10px)",
-    zIndex: 99999,
+    background: "rgba(2,6,23,0.8)",
+    backdropFilter: "blur(6px)",
+    zIndex: 100005,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     padding: "20px"
   },
-  modalSystemOuterBoxArchitecture: {
-    width: "100%",
-    maxWidth: "420px",
-    backgroundColor: "#0b111e",
-    border: "1px solid rgba(0, 255, 163, 0.3)",
-    borderRadius: "24px",
+  modalCard: {
+    background: "#0f172a",
+    border: "1px solid #1e293b",
+    borderRadius: "20px",
     padding: "24px",
-    boxShadow: "0 30px 80px rgba(0,0,0,0.8)"
-  },
-  modalSystemHeaderTitleFlexRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    marginBottom: "18px"
-  },
-  modalSystemHeaderIconBadge: {
-    fontSize: "22px",
-    color: "#00ffa3"
-  },
-  modalSystemHeaderMainTitleHeadlineText: {
-    margin: 0,
-    fontSize: "18px",
-    fontWeight: "800",
-    color: "#ffffff"
-  },
-  modalSystemInternalScrollableContentPanelBox: {
-    maxHeight: "220px",
-    overflowY: "auto",
-    paddingRight: "8px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px"
-  },
-  modalSystemParagraphParaBlockText: {
-    margin: 0,
-    fontSize: "12px",
-    color: "#cbd5e1",
-    lineHeight: "1.6"
-  },
-  modalSystemParagraphParaBlockTextHelpTextBangla: {
-    margin: 0,
-    fontSize: "13px",
-    color: "#ffffff",
-    lineHeight: "1.6"
-  },
-  modalSystemAcceptActionButtonTriggerElement: {
+    maxWidth: "400px",
     width: "100%",
-    height: "48px",
-    marginTop: "20px",
-    border: "none",
-    borderRadius: "14px",
-    background: "linear-gradient(90deg, #00ffa3, #00b876)",
-    color: "#020617",
-    fontWeight: "800",
-    fontSize: "13px",
-    cursor: "pointer"
+    boxShadow: "0 25px 50px rgba(0,0,0,0.7)"
   }
 };
+
+// গ্লোবাল অ্যানিমেশন স্টাইল শিট যুক্ত করা হলো (লোগোর অ্যানিমেশন ও পালস ইফেক্টের জন্য)
+const animationStyleSheet = document.createElement("style");
+animationStyleSheet.type = "text/css";
+animationStyleSheet.innerText = `
+  @keyframes spinSlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes spinReverse {
+    0% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  @keyframes pulseAnim {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,255,163,0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(0,255,163,0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0,255,163,0); }
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+`;
+if (typeof document !== "undefined") {
+  document.head.appendChild(animationStyleSheet);
+}
