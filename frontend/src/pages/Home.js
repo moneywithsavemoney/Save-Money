@@ -23,7 +23,7 @@ export default function Home() {
   // 👇 পপআপ মোডালের স্টেট
   const [showOfferPopup, setShowOfferPopup] = useState(false);
 
-  // 👇 স্বাইপ হ্যান্ডলার স্টেট (বাম দিক থেকে ডান দিকে সোয়াইপ করার জন্য)
+  // 👇 স্বাইপ হ্যান্ডলার স্টেট
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
 
@@ -40,7 +40,6 @@ export default function Home() {
     }, 2500);
   };
 
-  // 👇 নিখুঁত স্বাইপ জেশ্চার হ্যান্ডলার
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);
     setTouchStartY(e.touches[0].clientY);
@@ -58,10 +57,8 @@ export default function Home() {
     }
   };
 
-  // 👇 ব্রাউজার পুশ নোটিফিকেশন সাবস্ক্রাইব করার ফাংশন
   const registerPushNotification = async () => {
     if (!("serviceWorker" in navigator) && !("PushManager" in window)) {
-      console.log("Push notifications not supported by this browser.");
       return;
     }
     
@@ -69,19 +66,13 @@ export default function Home() {
       const registration = await navigator.serviceWorker.ready;
       
       const permissionResult = await Notification.requestPermission();
-      if (permissionResult !== "granted") {
-        console.log("Notification permission not granted.");
-        return;
-      }
+      if (permissionResult !== "granted") return;
 
       const keyRes = await fetch(`${API}/get-vapid-key`);
       const keyData = await keyRes.json();
       const publicVapidKey = keyData.publicKey;
 
-      if (!publicVapidKey) {
-        console.log("VAPID public key not found from server.");
-        return;
-      }
+      if (!publicVapidKey) return;
 
       const convertedVapidKey = urlBase64ToUint8Array(publicVapidKey);
 
@@ -98,7 +89,7 @@ export default function Home() {
 
       const subscriptionData = JSON.parse(JSON.stringify(subscription));
 
-      const subRes = await fetch(`${API}/save-push-subscription`, {
+      await fetch(`${API}/save-push-subscription`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -106,13 +97,6 @@ export default function Home() {
         },
         body: JSON.stringify({ email: currentEmail, subscription: subscriptionData })
       });
-
-      const subData = await subRes.json();
-      if (subRes.ok) {
-        console.log("Push Notification Subscribed Successfully!", subData);
-      } else {
-        console.error("Failed to save push subscription on server:", subData);
-      }
     } catch (error) {
       console.error("Push subscription error:", error);
     }
@@ -129,7 +113,6 @@ export default function Home() {
     return outputArray;
   }
 
-  // 👇 PLAN PDF ডাউনলোডের হ্যান্ডলার
   const handleDownloadPlan = () => {
     if (isDownloadingPlan) return;
     setIsDownloadingPlan(true);
@@ -146,7 +129,6 @@ export default function Home() {
     }, 1200);
   };
 
-  // 👇 Save Money APK ডাউনলোডের হ্যান্ডলার
   const handleDownloadApp = () => {
     const link = document.createElement("a");
     link.href = "/Save Money.apk";
@@ -169,7 +151,6 @@ export default function Home() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.log("Image download error:", error);
       window.open(imageUrl, "_blank");
     }
   };
@@ -343,9 +324,7 @@ export default function Home() {
             src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
             alt="Logo" 
             style={styles.loadingLogoImg} 
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
+            onError={(e) => { e.target.style.display = 'none'; }}
           />
           <h2 style={{ marginTop: "15px", fontSize: "20px", fontWeight: "800" }}>Save Money</h2>
           <p style={{ color: "#94a3b8", fontSize: "14px" }}>Loading your dashboard...</p>
@@ -361,7 +340,7 @@ export default function Home() {
       onTouchEnd={handleTouchEnd}
     >
 
-      {/* 👇 SIDEBAR DRAWER WITH INTERNAL SCROLLBAR */}
+      {/* 👇 SIDEBAR DRAWER (চওড়া ও বাটন সাইজ কমানো এবং সুন্দর নিট লেআউট) */}
       <div style={{
         ...styles.drawerOverlay,
         opacity: isDrawerOpen ? 1 : 0,
@@ -380,9 +359,7 @@ export default function Home() {
                   src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
                   alt="SM Logo" 
                   style={styles.drawerLogoImg} 
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
+                  onError={(e) => { e.target.style.display = 'none'; }}
                 />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -392,176 +369,178 @@ export default function Home() {
             </div>
           </div>
 
-          {/* SIDEBAR NAV BUTTONS (COMPACT) */}
-          <div style={styles.drawerNavList}>
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavDashboard,
-                ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/home"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🏠</span>
-              <span style={styles.drawerNavText}>Dashboard</span>
-            </button>
+          {/* SIDEBAR CONTENT (WITH SMOOTH SCROLL FOR BUTTONS & TREE) */}
+          <div style={styles.drawerScrollArea}>
+            <div style={styles.drawerNavList}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDashboard,
+                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/home"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🏠</span>
+                <span style={styles.drawerNavText}>Dashboard</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavMyInvestment,
-                ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>📈</span>
-              <span style={styles.drawerNavText}>My Investment</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavMyInvestment,
+                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📈</span>
+                <span style={styles.drawerNavText}>My Investment</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavSaveMoney,
-                ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>💰</span>
-              <span style={styles.drawerNavText}>Save Money</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSaveMoney,
+                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>💰</span>
+                <span style={styles.drawerNavText}>Save Money</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavOneTime,
-                ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>⚡</span>
-              <span style={styles.drawerNavText}>One Time</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavOneTime,
+                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>⚡</span>
+                <span style={styles.drawerNavText}>One Time</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavPlan
-              }} 
-              onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
-              disabled={isDownloadingPlan}
-            >
-              <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
-              <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavPlan
+                }} 
+                onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
+                disabled={isDownloadingPlan}
+              >
+                <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
+                <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavAddFund,
-                ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🌐</span>
-              <span style={styles.drawerNavText}>Add Fund</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavAddFund,
+                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🌐</span>
+                <span style={styles.drawerNavText}>Add Fund</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavRefer,
-                ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>👥</span>
-              <span style={styles.drawerNavText}>Refer & Earn</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavRefer,
+                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👥</span>
+                <span style={styles.drawerNavText}>Refer & Earn</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavWithdraw,
-                ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>➔</span>
-              <span style={styles.drawerNavText}>Withdraw</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavWithdraw,
+                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>➔</span>
+                <span style={styles.drawerNavText}>Withdraw</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavDailyReward,
-                ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🎁</span>
-              <span style={styles.drawerNavText}>Daily Reward</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDailyReward,
+                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎁</span>
+                <span style={styles.drawerNavText}>Daily Reward</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavInvestmentAssistant,
-                ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>📊</span>
-              <span style={styles.drawerNavText}>Investment Assistance</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavInvestmentAssistant,
+                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📊</span>
+                <span style={styles.drawerNavText}>Investment Assistance</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavSupport,
-                ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/support"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>🎧</span>
-              <span style={styles.drawerNavText}>Support</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSupport,
+                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/support"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎧</span>
+                <span style={styles.drawerNavText}>Support</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavProfile,
-                ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
-              }} 
-              onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
-            >
-              <span style={styles.drawerNavIcon}>👤</span>
-              <span style={styles.drawerNavText}>Profile</span>
-            </button>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavProfile,
+                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👤</span>
+                <span style={styles.drawerNavText}>Profile</span>
+              </button>
 
-            <button 
-              style={{
-                ...styles.drawerNavItem,
-                ...styles.drawerNavLogout
-              }} 
-              onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
-            >
-              <span style={styles.drawerNavIcon}>🚪</span>
-              <span style={styles.drawerNavText}>Logout</span>
-            </button>
-          </div>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavLogout
+                }} 
+                onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
+              >
+                <span style={styles.drawerNavIcon}>🚪</span>
+                <span style={styles.drawerNavText}>Logout</span>
+              </button>
+            </div>
 
-          {/* 👇 TREE PLANT IMAGE CONTAINER */}
-          <div style={styles.treePlantOnlyWrapper}>
-            <img 
-              src="/tree plant.png" 
-              alt="Tree Plant" 
-              style={styles.treePlantOnlyImg}
-              onError={(e) => {
-                if (e.target.src.includes('.png')) {
-                  e.target.src = '/tree plant.jpg';
-                }
-              }}
-            />
+            {/* FULL VISIBLE TREE PLANT SECTION */}
+            <div style={styles.treePlantOnlyWrapper}>
+              <img 
+                src="/tree plant.png" 
+                alt="Tree Plant" 
+                style={styles.treePlantOnlyImg}
+                onError={(e) => {
+                  if (e.target.src.includes('.png')) {
+                    e.target.src = '/tree plant.jpg';
+                  }
+                }}
+              />
+            </div>
           </div>
 
         </div>
@@ -700,7 +679,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* LIMITED OFFER ANNOUNCEMENT BAR (SPEED: 20s) */}
+      {/* LIMITED OFFER ANNOUNCEMENT BAR (20S SPEED & FULL SCROLL FIX) */}
       <div style={styles.limitedOfferBar}>
         <div style={styles.limitedOfferBadge}>LIMITED OFFER 🔥</div>
         <div style={styles.marqueeContainer}>
@@ -983,23 +962,18 @@ export default function Home() {
           <button style={styles.footerLinkBtn} onClick={() => go("/legal/privacy")}>
             Privacy Policy
           </button>
-
           <button style={styles.footerLinkBtn} onClick={() => go("/legal/terms")}>
             Terms
           </button>
-
           <button style={styles.footerLinkBtn} onClick={() => go("/legal/refund")}>
             Refund
           </button>
-
           <button style={styles.footerLinkBtn} onClick={() => go("/legal/risk")}>
             Risk Disclosure
           </button>
-
           <button style={styles.footerLinkBtn} onClick={() => go("/legal/aml")}>
             AML & KYC
           </button>
-
           <button style={styles.footerLinkBtn} onClick={() => go("/legal/disclaimer")}>
             Disclaimer
           </button>
@@ -1018,21 +992,18 @@ export default function Home() {
           active={location.pathname === "/home"}
           onClick={() => go("/home")}
         />
-
         <BottomNavItem
           icon="👛"
           title="Wallet"
           active={location.pathname === "/wallet"}
           onClick={() => go("/wallet")}
         />
-
         <BottomNavItem
           icon="👥"
           title="Refer"
           active={location.pathname === "/refer"}
           onClick={() => go("/refer")}
         />
-
         <BottomNavItem
           icon="🌲"
           title="tree"
@@ -1059,26 +1030,14 @@ function DashboardStatCard({ icon, title, value, gradient }) {
         <span style={styles.statIcon}>{icon}</span>
       </div>
 
-      <p style={styles.statTitle}>
-        {title}
-      </p>
-
-      <h2 style={styles.statValue}>
-        {value}
-      </h2>
-
+      <p style={styles.statTitle}>{title}</p>
+      <h2 style={styles.statValue}>{value}</h2>
       <div style={styles.statGlow}></div>
     </div>
   );
 }
 
-function PremiumActionButton({
-  icon,
-  title,
-  subtitle,
-  gradient,
-  onClick
-}) {
+function PremiumActionButton({ icon, title, subtitle, gradient, onClick }) {
   const gradientStyle = {
     invest: styles.actionInvest,
     myInvestment: styles.actionMyInvestment,
@@ -1102,20 +1061,11 @@ function PremiumActionButton({
       }}
       onClick={onClick}
     >
-      <div style={styles.actionIconCircle}>
-        {icon}
-      </div>
-
+      <div style={styles.actionIconCircle}>{icon}</div>
       <div style={styles.actionTextBox}>
-        <h3 style={styles.actionTitle}>
-          {title}
-        </h3>
-
-        <p style={styles.actionSubtitle}>
-          {subtitle}
-        </p>
+        <h3 style={styles.actionTitle}>{title}</h3>
+        <p style={styles.actionSubtitle}>{subtitle}</p>
       </div>
-
       <div style={styles.actionShine}></div>
     </button>
   );
@@ -1125,16 +1075,7 @@ function PremiumSectionTitle({ title, color }) {
   return (
     <div style={styles.sectionTitleWrap}>
       <div style={styles.sectionLine}></div>
-
-      <h2
-        style={{
-          ...styles.sectionTitleText,
-          color
-        }}
-      >
-        {title}
-      </h2>
-
+      <h2 style={{ ...styles.sectionTitleText, color }}>{title}</h2>
       <div style={styles.sectionLine}></div>
     </div>
   );
@@ -1143,18 +1084,10 @@ function PremiumSectionTitle({ title, color }) {
 function TrustMiniCard({ icon, title, subtitle }) {
   return (
     <div style={styles.trustMiniCard}>
-      <div style={styles.trustIconCircle}>
-        {icon}
-      </div>
-
+      <div style={styles.trustIconCircle}>{icon}</div>
       <div style={{ overflow: "hidden" }}>
-        <h3 style={styles.trustTitle}>
-          {title}
-        </h3>
-
-        <p style={styles.trustSubtitle}>
-          {subtitle}
-        </p>
+        <h3 style={styles.trustTitle}>{title}</h3>
+        <p style={styles.trustSubtitle}>{subtitle}</p>
       </div>
     </div>
   );
@@ -1191,12 +1124,14 @@ const styles = {
   marqueeContainer: {
     overflow: "hidden",
     whiteSpace: "nowrap",
-    flex: 1
+    flex: 1,
+    display: "flex",
+    alignItems: "center"
   },
   marqueeText: {
     display: "inline-block",
-    paddingLeft: "100%",
-    animation: "marquee 20s linear infinite" // 👈 অ্যানিমেশন স্পীড ২০ সেকেন্ড করা হয়েছে
+    whiteSpace: "nowrap",
+    animation: "marquee 20s linear infinite"
   },
   limitedOfferBadge: {
     background: "#f59e0b",
@@ -1229,23 +1164,23 @@ const styles = {
     justifyContent: "flex-start",
     transition: "opacity 0.3s ease, visibility 0.3s ease"
   },
-  // 👇 সাইডবারের চওড়া (Width) কমানো এবং স্ক্রোলবার তৈরি করা হয়েছে
+  // 🟢 সাইডবার চওড়া কম করা হয়েছে (230px)
   drawerContainer: {
     position: "fixed",
     top: 0,
     bottom: 0,
     left: 0,
     background: "#08101e",
-    width: "235px", // 👈 চওড়া কমানো হলো
+    width: "230px",
     height: "100vh",
-    padding: "14px 10px",
+    padding: "12px 8px",
     display: "flex",
     flexDirection: "column",
     boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
     borderRight: "1px solid #1e293b",
     transform: "translateX(-100%)",
     transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    overflowY: "auto", // 👈 সুন্দর স্ক্রোলবার তৈরি করা হয়েছে
+    overflow: "hidden",
     zIndex: 100003
   },
   drawerHeader: {
@@ -1265,19 +1200,19 @@ const styles = {
     gap: "4px"
   },
   drawerLogoWrapper: {
-    width: "44px",
-    height: "44px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
     background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
     border: "2px solid #22c55e",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 0 12px rgba(34, 197, 94, 0.4)"
+    boxShadow: "0 0 10px rgba(34, 197, 94, 0.4)"
   },
   drawerLogoImg: {
-    width: "28px",
-    height: "28px",
+    width: "26px",
+    height: "26px",
     objectFit: "contain"
   },
   drawerLogoText: {
@@ -1285,7 +1220,7 @@ const styles = {
     fontSize: "15px",
     fontWeight: "900",
     color: "#ffffff",
-    letterSpacing: "0.8px",
+    letterSpacing: "0.6px",
     textAlign: "center"
   },
   drawerLogoSubtext: {
@@ -1295,36 +1230,45 @@ const styles = {
     marginTop: "1px",
     textAlign: "center"
   },
+  // 🟢 সাইডবার বোতাম ও ট্রি প্ল্যান্টের স্ক্রোল এরিয়া
+  drawerScrollArea: {
+    flex: 1,
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    paddingRight: "2px"
+  },
   drawerNavList: {
     display: "flex",
     flexDirection: "column",
     gap: "6px",
     flexShrink: 0
   },
-  // 👇 বোতামগুলো ছোট ও আকর্ষণীয় করা হয়েছে
+  // 🟢 বোতাম সাইজ ছোট করা হয়েছে
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
     gap: "8px",
-    padding: "8px 12px", // 👈 সাইজ ছোট করা হয়েছে
+    padding: "8px 12px",
     background: "rgba(255, 255, 255, 0.12)",
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
     border: "1px solid rgba(255, 255, 255, 0.25)",
     clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
     color: "#ffffff",
-    fontSize: "12px", // 👈 টেক্সট সাইজ ছোট করা হয়েছে
+    fontSize: "12px",
     fontWeight: "800",
     cursor: "pointer",
     textAlign: "left",
     transition: "all 0.25s ease",
-    boxShadow: "0 3px 8px rgba(0,0,0,0.3)",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
     textShadow: "0 1px 2px rgba(0,0,0,0.5)"
   },
   drawerNavItemActive: {
     background: "rgba(255, 255, 255, 0.3)",
     border: "1px solid #ffffff",
-    boxShadow: "0 0 14px rgba(255, 255, 255, 0.5)",
+    boxShadow: "0 0 12px rgba(255, 255, 255, 0.5)",
     fontWeight: "900"
   },
   drawerNavIcon: {
@@ -1336,7 +1280,10 @@ const styles = {
   drawerNavText: {
     flex: 1,
     fontSize: "12px",
-    letterSpacing: "0.3px"
+    letterSpacing: "0.3px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
   },
 
   drawerNavDashboard: {
@@ -1392,26 +1339,22 @@ const styles = {
     border: "1px solid rgba(239, 68, 68, 0.5)"
   },
 
-  // 👇 ট্রি প্ল্যান্ট ফটোটি একদম পুরো ও সুন্দর করার ফ্রেম
+  // 🟢 পুরো সুন্দর ট্রি প্ল্যান্ট সেকশন
   treePlantOnlyWrapper: {
-    marginTop: "12px",
-    marginBottom: "10px",
     width: "100%",
-    height: "120px",
+    paddingTop: "6px",
+    paddingBottom: "10px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    overflow: "hidden",
-    borderRadius: "14px",
-    boxShadow: "0 4px 14px rgba(0, 0, 0, 0.5)",
-    border: "1px solid rgba(34, 197, 94, 0.4)",
     flexShrink: 0
   },
   treePlantOnlyImg: {
     width: "100%",
-    height: "100%",
+    maxHeight: "110px",
     objectFit: "cover",
-    borderRadius: "14px"
+    borderRadius: "12px",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)"
   },
 
   appDownloadCard: {
@@ -1683,8 +1626,7 @@ const styles = {
 
   page: {
     minHeight: "100vh",
-    background:
-      "linear-gradient(180deg,#020617 0%,#031026 45%,#020617 100%)",
+    background: "linear-gradient(180deg,#020617 0%,#031026 45%,#020617 100%)",
     color: "white",
     padding: "0 12px 140px",
     fontFamily: "system-ui, -apple-system, sans-serif"
@@ -1784,8 +1726,7 @@ const styles = {
     padding: "14px 12px",
     borderRadius: "20px",
     overflow: "hidden",
-    background:
-      "radial-gradient(circle at 90% 0%,#22ff88 0%,transparent 34%),linear-gradient(135deg,#06152d,#043858,#08c96b)",
+    background: "radial-gradient(circle at 90% 0%,#22ff88 0%,transparent 34%),linear-gradient(135deg,#06152d,#043858,#08c96b)",
     border: "1px solid rgba(34,255,136,0.55)",
     boxShadow: "0 0 38px rgba(34,255,136,0.23)"
   },
@@ -1793,8 +1734,7 @@ const styles = {
   heroGlow: {
     position: "absolute",
     inset: 0,
-    background:
-      "linear-gradient(90deg,rgba(255,255,255,0.08),transparent,rgba(255,255,255,0.08))",
+    background: "linear-gradient(90deg,rgba(255,255,255,0.08),transparent,rgba(255,255,255,0.08))",
     pointerEvents: "none"
   },
 
@@ -2118,8 +2058,7 @@ const styles = {
     marginTop: "16px",
     borderRadius: "18px",
     padding: "16px",
-    background:
-      "linear-gradient(135deg,#4c1d95,#8b00ff,#9d00ff)",
+    background: "linear-gradient(135deg,#4c1d95,#8b00ff,#9d00ff)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
@@ -2294,15 +2233,13 @@ const styles = {
   }
 };
 
-// -------------------------------------------------------------
-// 🟢 ISOLATED CUSTOM ANIMATION CODES (WITH 20s MARQUEE SPEED)
-// -------------------------------------------------------------
+// 🟢 অ্যানিমেশন স্টাইল আপডেট (সম্পূর্ণ স্মুথ 20s ফুল অ্যানিমেশন)
 const animationStyleSheet = document.createElement("style");
 animationStyleSheet.type = "text/css";
 animationStyleSheet.innerText = `
   @keyframes marquee {
-    0% { transform: translate3d(0, 0, 0); }
-    100% { transform: translate3d(-100%, 0, 0); }
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
   }
 
   @keyframes appPulse {
