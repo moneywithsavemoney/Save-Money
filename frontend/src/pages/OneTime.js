@@ -316,18 +316,14 @@ export default function OneTime() {
     return (Number(amount) * Number(rate)) / 100;
   }, [amount, rate, activeInvestment]);
 
-  // 🔥FIXED: আজকের উইথড্রয়াল চেক - Rejected, Cancelled বা Failed হলে আবার করতে দেবে
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
       const typeStr = (item.type || "").toLowerCase();
-      // শুধুমাত্র উইথড্রয়াল টাইপগুলো নির্বাচন করুন
       if (typeStr !== "withdrawal" && !typeStr.includes("withdraw")) return false;
 
       const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
       const status = (item.status || "").toLowerCase();
-
-      // আজকের দিনে পেমেন্ট Pending, Success, Approved বা Accepted অবস্থায় থাকলে নতুন রিকোয়েস্ট নেওয়া বন্ধ রাখবে
       const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
 
       return itemDate === todayStr && isBlocked;
@@ -552,7 +548,7 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
-      {/* SIDEBAR DRAWER */}
+      {/* 🏠 HOME.JS স্টাইলের আধুনিক সাইডবার (SIDEBAR DRAWER) */}
       <div 
         style={{
           ...styles.drawerOverlay,
@@ -810,7 +806,7 @@ export default function OneTime() {
             <h2 style={styles.heroTitle}>
               Chhote nivesh se <br />
               <span style={{ color: "#facc15" }}>badi kamai ka safar,</span> <br />
-              <span style={{ fontSize: "19px", fontWeight: "800", color: "#f1f5f9" }}>har mahine ka plan, hamesha</span>
+              <span style={{ fontSize: "19px", fontWeight: "800", color: "#f1f5f9" }}>har mahine का plan, hamesha</span>
             </h2>
             <p style={styles.heroDesc}>
               Invest small amounts monthly to get big returns together
@@ -1431,7 +1427,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* UPDATED WITHDRAW MODAL (ALL INFO INSIDE POPUP WITH PREMIUM LOOK) */}
+      {/* WITHDRAW MODAL */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1443,7 +1439,6 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
             </div>
 
-            {/* Wallet Balance Card */}
             <div
               style={{
                 ...styles.withdrawBalanceCard,
@@ -1459,7 +1454,6 @@ export default function OneTime() {
               </strong>
             </div>
 
-            {/* Daily Return Amount Box */}
             <div style={styles.dailyReturnBox}>
               <span style={{ fontSize: "14px", color: "#cbd5e1", fontWeight: "600" }}>Today's Daily Return Amount</span>
               <strong style={{ fontSize: "26px", color: "#38bdf8", fontWeight: "900", display: "block", marginTop: "4px" }}>
@@ -1467,7 +1461,6 @@ export default function OneTime() {
               </strong>
             </div>
 
-            {/* Note for Withdrawal Timing */}
             <div style={styles.withdrawTimingNote}>
               <span style={{ fontSize: "18px" }}>ℹ️</span>
               <span style={{ fontSize: "14px", color: "#e2e8f0", lineHeight: "1.4" }}>
@@ -1475,7 +1468,6 @@ export default function OneTime() {
               </span>
             </div>
 
-            {/* Alerts inside Popup */}
             {hasWithdrawnToday ? (
               <div style={styles.balanceAlertBoxDark}>
                 ⏳ You have already submitted a withdrawal request today. Please wait until tomorrow!
@@ -1486,7 +1478,6 @@ export default function OneTime() {
               </div>
             ) : null}
 
-            {/* Submit Button */}
             <button
               style={{
                 ...styles.submitBtnDark,
@@ -1556,8 +1547,6 @@ const styles = {
     borderRadius: "50%",
     animation: "spin 1s linear infinite"
   },
-
-  // TOP-CENTER PREMIUM TOAST STYLES
   toast: {
     position: "fixed",
     top: "24px",
@@ -1577,8 +1566,6 @@ const styles = {
     border: "1px solid rgba(255,255,255,0.2)",
     textAlign: "center"
   },
-
-  // TOP NOTICE BANNER STYLES
   topNoticeBanner: {
     background: "linear-gradient(90deg, #052e16 0%, #064e3b 50%, #022c22 100%)",
     border: "1px solid #22c55e",
@@ -1613,8 +1600,6 @@ const styles = {
     marginLeft: "6px",
     marginRight: "6px"
   },
-
-  // HEADER
   header: {
     display: "flex",
     alignItems: "center",
@@ -1671,8 +1656,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "center"
   },
-
-  // HERO BANNER
   topHeroBanner: {
     background: "linear-gradient(135deg, #062319 0%, #06182e 100%)",
     borderRadius: "18px",
@@ -1715,8 +1698,6 @@ const styles = {
     maxHeight: "100%",
     objectFit: "contain"
   },
-
-  // 4 STAT CARDS GRID
   statsGridContainer: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
@@ -1764,8 +1745,6 @@ const styles = {
     height: "30px",
     marginTop: "6px"
   },
-
-  // MAIN CARD
   darkMainCard: {
     background: "#081628",
     borderRadius: "18px",
@@ -1778,8 +1757,6 @@ const styles = {
     fontWeight: "800",
     color: "#ffffff"
   },
-
-  // ACTIVE CARD
   activeInvestCardDark: {
     background: "#040d1a",
     borderRadius: "16px",
@@ -1839,8 +1816,6 @@ const styles = {
     color: "#f8fafc",
     marginTop: "4px"
   },
-
-  // FORM FIELDS
   formGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
@@ -1926,8 +1901,6 @@ const styles = {
     fontSize: "13px",
     marginTop: "6px"
   },
-
-  // RETURN BOX
   returnContainerDark: {
     background: "#dcfce7",
     borderRadius: "16px",
@@ -1958,8 +1931,6 @@ const styles = {
     fontSize: "14px",
     opacity: 0.95
   },
-
-  // BREAKDOWN GRID
   breakdownGridDark: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
@@ -1985,8 +1956,6 @@ const styles = {
     fontWeight: "bold",
     color: "#ffffff"
   },
-
-  // ACTION BUTTONS
   actionGridTriple: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
@@ -2028,8 +1997,6 @@ const styles = {
     fontWeight: "bold",
     cursor: "pointer"
   },
-
-  // HISTORY SECTION
   darkHistoryCard: {
     background: "#081628",
     borderRadius: "18px",
@@ -2103,7 +2070,6 @@ const styles = {
     fontWeight: "bold",
     cursor: "pointer"
   },
-
   whyInvestGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
@@ -2115,8 +2081,6 @@ const styles = {
     padding: "20px",
     border: "1px solid rgba(255, 255, 255, 0.1)"
   },
-
-  // TRUST BANNER
   trustBannerDark: {
     background: "linear-gradient(135deg, #051a13 0%, #081728 100%)",
     borderRadius: "18px",
@@ -2165,8 +2129,6 @@ const styles = {
     fontSize: "14px",
     color: "#94a3b8"
   },
-
-  // FOOTER FEATURES GRID
   footerFeaturesGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -2181,8 +2143,6 @@ const styles = {
     alignItems: "center",
     gap: "16px"
   },
-
-  // FOOTER BAR
   footerBar: {
     textAlign: "center",
     padding: "22px 0",
@@ -2200,8 +2160,7 @@ const styles = {
     fontSize: "14px",
     color: "#64748b"
   },
-
-  // SIDEBAR DRAWER STYLES
+  // সাইডবারের ডিজাইন হুবহু home.js-এর মতো করে তৈরি করা হয়েছে
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -2337,7 +2296,6 @@ const styles = {
   drawerNavSupport: { background: "rgba(99, 102, 241, 0.2)", border: "1px solid rgba(99, 102, 241, 0.4)" },
   drawerNavProfile: { background: "rgba(236, 72, 153, 0.2)", border: "1px solid rgba(236, 72, 153, 0.4)" },
   drawerNavLogout: { background: "rgba(239, 68, 68, 0.2)", border: "1px solid rgba(239, 68, 68, 0.4)" },
-
   treePlantOnlyWrapper: {
     flex: 1,
     minHeight: 0,
@@ -2354,11 +2312,9 @@ const styles = {
   treePlantOnlyImg: {
     width: "90%",
     height: "70%",
-    objectFit: "95%",
+    objectFit: "cover",
     borderRadius: "16px"
   },
-
-  // MODAL STYLES
   modalOverlay: {
     position: "fixed",
     inset: 0,
@@ -2379,8 +2335,6 @@ const styles = {
     border: "1px solid rgba(255, 255, 255, 0.12)",
     boxShadow: "0 25px 50px rgba(0,0,0,0.7)"
   },
-
-  // PREMIUM WITHDRAW MODAL CARD
   withdrawModalCardDark: {
     background: "linear-gradient(145deg, #09182b 0%, #040e1a 100%)",
     borderRadius: "24px",
@@ -2410,94 +2364,192 @@ const styles = {
   withdrawTimingNote: {
     marginTop: "16px",
     padding: "12px 16px",
-    background: "rgba(56, 189, 248, 0.12)",
-    border: "1px solid rgba(56, 189, 248, 0.35)",
+    background: "rgba(56, 189, 248, 0.1)",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
     borderRadius: "12px",
     display: "flex",
     alignItems: "center",
-    gap: "12px"
+    gap: "10px"
   },
-
+  balanceAlertBoxDark: {
+    marginTop: "14px",
+    padding: "12px 16px",
+    background: "rgba(239, 68, 68, 0.15)",
+    border: "1px solid rgba(239, 68, 68, 0.4)",
+    borderRadius: "12px",
+    color: "#f87171",
+    fontSize: "14px",
+    fontWeight: "700",
+    textAlign: "center"
+  },
+  submitBtnDark: {
+    width: "100%",
+    height: "52px",
+    borderRadius: "12px",
+    border: "none",
+    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+    color: "#ffffff",
+    fontSize: "16px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    boxShadow: "0 6px 20px rgba(34, 197, 94, 0.4)"
+  },
+  closeBtnDark: {
+    background: "transparent",
+    border: "none",
+    color: "#94a3b8",
+    fontSize: "20px",
+    cursor: "pointer"
+  },
   modalHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "16px"
   },
-  closeBtnDark: {
-    border: "none",
-    background: "#0f2138",
+  inputModalDark: {
+    width: "100%",
+    height: "48px",
+    borderRadius: "12px",
+    border: "1px solid #334155",
+    background: "#040d1a",
     color: "#fff",
-    borderRadius: "50%",
-    width: "38px",
-    height: "38px",
-    cursor: "pointer",
-    fontSize: "18px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
+    padding: "0 16px",
+    fontSize: "15px",
+    outline: "none",
+    boxSizing: "border-box"
   },
-
-  // WELCOME OFFER POPUP STYLES
+  fileInputDark: {
+    width: "100%",
+    padding: "10px",
+    background: "#040d1a",
+    border: "1px solid #334155",
+    borderRadius: "12px",
+    color: "#fff",
+    boxSizing: "border-box"
+  },
+  walletBoxDark: {
+    background: "#040d1a",
+    padding: "14px",
+    borderRadius: "12px",
+    border: "1px solid #1e293b",
+    marginBottom: "14px"
+  },
+  walletAddrRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "6px",
+    gap: "10px"
+  },
+  walletText: {
+    fontSize: "13px",
+    color: "#38bdf8",
+    wordBreak: "break-all",
+    fontWeight: "600"
+  },
+  copyBtn: {
+    background: "#2563eb",
+    color: "#fff",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "13px",
+    flexShrink: 0
+  },
+  presetGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, 1fr)",
+    gap: "12px"
+  },
+  presetCard: {
+    borderRadius: "14px",
+    padding: "16px",
+    textAlign: "center",
+    cursor: "pointer",
+    color: "#fff",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+    transition: "transform 0.2s ease"
+  },
+  presetBadge: {
+    fontSize: "11px",
+    background: "rgba(0,0,0,0.2)",
+    padding: "2px 8px",
+    borderRadius: "6px",
+    fontWeight: "bold",
+    textTransform: "uppercase"
+  },
+  presetVal: {
+    fontSize: "22px",
+    fontWeight: "900",
+    marginTop: "8px"
+  },
+  presetLabel: {
+    fontSize: "12px",
+    opacity: 0.9
+  },
   offerPopupCard: {
-    background: "linear-gradient(145deg, #091a2e 0%, #031120 100%)",
+    background: "linear-gradient(145deg, #09182b 0%, #040e1a 100%)",
     borderRadius: "24px",
-    padding: "32px 24px 24px 24px",
+    padding: "30px 24px",
     width: "100%",
     maxWidth: "420px",
-    border: "2px solid #22c55e",
-    boxShadow: "0 0 35px rgba(34, 197, 94, 0.3)",
+    border: "1.5px solid rgba(34, 197, 94, 0.4)",
+    boxShadow: "0 25px 60px rgba(0,0,0,0.8), 0 0 30px rgba(34, 197, 94, 0.2)",
     textAlign: "center",
     position: "relative"
   },
   offerCloseBtn: {
     position: "absolute",
-    top: "14px",
-    right: "14px",
-    border: "none",
+    top: "16px",
+    right: "16px",
     background: "rgba(255,255,255,0.1)",
+    border: "none",
     color: "#fff",
+    width: "32px",
+    height: "32px",
     borderRadius: "50%",
-    width: "34px",
-    height: "34px",
     cursor: "pointer",
-    fontSize: "16px"
+    fontSize: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   },
   offerHeaderBadge: {
-    display: "inline-block",
     background: "rgba(34, 197, 94, 0.15)",
     color: "#4ade80",
     border: "1px solid rgba(34, 197, 94, 0.3)",
-    padding: "6px 16px",
+    padding: "6px 14px",
     borderRadius: "20px",
     fontSize: "13px",
-    fontWeight: "bold",
-    letterSpacing: "0.5px",
-    marginBottom: "16px"
+    fontWeight: "800",
+    display: "inline-block",
+    marginBottom: "16px",
+    letterSpacing: "0.5px"
   },
   offerIconWrapper: {
-    fontSize: "52px",
-    marginBottom: "12px"
+    fontSize: "48px",
+    marginBottom: "14px"
   },
   offerTitle: {
     margin: "0 0 10px 0",
     fontSize: "22px",
     fontWeight: "800",
-    color: "#ffffff",
+    color: "#fff",
     lineHeight: "1.3"
   },
   offerDescription: {
-    fontSize: "16px",
-    color: "#cbd5e1",
     margin: "0 0 22px 0",
+    fontSize: "15px",
+    color: "#cbd5e1",
     lineHeight: "1.5"
   },
   offerHighlightText: {
     color: "#facc15",
-    fontSize: "20px",
-    fontWeight: "900",
-    display: "inline-block",
-    marginTop: "4px"
+    fontSize: "18px",
+    fontWeight: "900"
   },
   offerActionGroup: {
     display: "flex",
@@ -2510,99 +2562,21 @@ const styles = {
     borderRadius: "12px",
     border: "none",
     background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-    color: "#ffffff",
-    fontSize: "17px",
-    fontWeight: "800",
+    color: "#fff",
+    fontSize: "16px",
+    fontWeight: "bold",
     cursor: "pointer",
-    boxShadow: "0 4px 15px rgba(34, 197, 94, 0.4)"
+    boxShadow: "0 6px 20px rgba(34, 197, 94, 0.4)"
   },
   offerSkipBtn: {
     width: "100%",
-    height: "42px",
-    borderRadius: "10px",
-    border: "none",
-    background: "transparent",
-    color: "#94a3b8",
-    fontSize: "14px",
-    fontWeight: "600",
-    cursor: "pointer"
-  },
-
-  presetGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "14px"
-  },
-  presetCard: {
-    borderRadius: "14px",
-    padding: "18px",
-    color: "white",
-    cursor: "pointer",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  presetBadge: { fontSize: "13px", textTransform: "uppercase", fontWeight: "bold" },
-  presetVal: { fontSize: "22px", fontWeight: "900", margin: "6px 0" },
-  presetLabel: { fontSize: "14px", opacity: 0.85 },
-
-  walletBoxDark: {
-    background: "#040d1a",
-    padding: "18px",
-    borderRadius: "12px",
-    border: "1px solid #1e293b"
-  },
-  walletAddrRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "10px",
-    marginTop: "8px"
-  },
-  walletText: { fontSize: "14px", wordBreak: "break-all", color: "#fff" },
-  copyBtn: {
-    background: "#16a34a",
-    color: "white",
-    border: "none",
-    padding: "8px 14px",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "bold"
-  },
-  inputModalDark: {
-    width: "100%",
-    height: "52px",
+    height: "44px",
     borderRadius: "12px",
     border: "1px solid #334155",
-    background: "#0f2138",
-    color: "#fff",
-    padding: "0 16px",
-    fontSize: "16px",
-    boxSizing: "border-box"
-  },
-  fileInputDark: { width: "100%", fontSize: "15px", color: "#cbd5e1" },
-  submitBtnDark: {
-    height: "52px",
-    borderRadius: "12px",
-    border: "none",
-    background: "#16a34a",
-    color: "white",
+    background: "transparent",
+    color: "#94a3b8",
+    fontSize: "15px",
     fontWeight: "bold",
-    fontSize: "17px",
-    cursor: "pointer",
-    width: "100%",
-    transition: "all 0.2s ease"
-  },
-  balanceAlertBoxDark: {
-    background: "rgba(239, 68, 68, 0.15)",
-    color: "#f87171",
-    fontSize: "14px",
-    padding: "14px",
-    borderRadius: "10px",
-    marginTop: "14px",
-    fontWeight: "600",
-    textAlign: "center"
+    cursor: "pointer"
   }
 };
