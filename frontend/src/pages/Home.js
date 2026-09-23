@@ -40,7 +40,7 @@ export default function Home() {
     }, 2500);
   };
 
-  // 👇 নিখুঁত স্বাইপ জেশ্চার হ্যান্ডলার (স্ক্রিনের বাম ৮০ পিক্সেলের ভেতর থেকে ডানে টান দিলে)
+  // 👇 নিখুঁত স্বাইপ জেশ্চার হ্যান্ডলার
   const handleTouchStart = (e) => {
     setTouchStartX(e.touches[0].clientX);
     setTouchStartY(e.touches[0].clientY);
@@ -361,7 +361,7 @@ export default function Home() {
       onTouchEnd={handleTouchEnd}
     >
 
-      {/* 👇 SIDEBAR DRAWER */}
+      {/* 👇 SIDEBAR DRAWER WITH INTERNAL SCROLLBAR */}
       <div style={{
         ...styles.drawerOverlay,
         opacity: isDrawerOpen ? 1 : 0,
@@ -392,7 +392,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* SIDEBAR NAV BUTTONS */}
+          {/* SIDEBAR NAV BUTTONS (COMPACT) */}
           <div style={styles.drawerNavList}>
             <button 
               style={{
@@ -550,6 +550,7 @@ export default function Home() {
             </button>
           </div>
 
+          {/* 👇 TREE PLANT IMAGE CONTAINER */}
           <div style={styles.treePlantOnlyWrapper}>
             <img 
               src="/tree plant.png" 
@@ -699,7 +700,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* LIMITED OFFER ANNOUNCEMENT BAR */}
+      {/* LIMITED OFFER ANNOUNCEMENT BAR (SPEED: 20s) */}
       <div style={styles.limitedOfferBar}>
         <div style={styles.limitedOfferBadge}>LIMITED OFFER 🔥</div>
         <div style={styles.marqueeContainer}>
@@ -920,17 +921,15 @@ export default function Home() {
         HELP OTHER FOR EARN MORE 💸
       </h1>
 
-      {/* 📱 PERFECTLY CENTER-ALIGNED ULTRA PREMIUM APP DOWNLOAD CARD */}
+      {/* APP DOWNLOAD CARD */}
       <div className="premium-download-card" style={styles.appDownloadCard}>
         <div style={styles.appGlowBackground}></div>
         
-        {/* Top Header Badge */}
         <div style={styles.appTopBadge}>
           <span style={styles.appBadgePulse}></span>
           <span>OFFICIAL MOBILE APP</span>
         </div>
 
-        {/* Branding Info (Center-Aligned) */}
         <div style={styles.appDownloadHeader}>
           <div style={styles.appLogoContainer}>
             <img 
@@ -951,7 +950,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Action Buttons (Center-Aligned) */}
         <div style={styles.appBtnGroup}>
           <button 
             className="premium-app-btn"
@@ -1198,7 +1196,7 @@ const styles = {
   marqueeText: {
     display: "inline-block",
     paddingLeft: "100%",
-    animation: "marquee 7s linear infinite" // 👈 স্পীড ৭ সেকেন্ডে আপডেট করা হলো
+    animation: "marquee 20s linear infinite" // 👈 অ্যানিমেশন স্পীড ২০ সেকেন্ড করা হয়েছে
   },
   limitedOfferBadge: {
     background: "#f59e0b",
@@ -1231,22 +1229,23 @@ const styles = {
     justifyContent: "flex-start",
     transition: "opacity 0.3s ease, visibility 0.3s ease"
   },
+  // 👇 সাইডবারের চওড়া (Width) কমানো এবং স্ক্রোলবার তৈরি করা হয়েছে
   drawerContainer: {
     position: "fixed",
     top: 0,
     bottom: 0,
     left: 0,
     background: "#08101e",
-    width: "240px", // 👈 সাইডবারের উইডথ একটু ছোট করা হয়েছে
+    width: "235px", // 👈 চওড়া কমানো হলো
     height: "100vh",
-    padding: "10px 10px",
+    padding: "14px 10px",
     display: "flex",
     flexDirection: "column",
     boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
     borderRight: "1px solid #1e293b",
     transform: "translateX(-100%)",
     transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    overflow: "hidden",
+    overflowY: "auto", // 👈 সুন্দর স্ক্রোলবার তৈরি করা হয়েছে
     zIndex: 100003
   },
   drawerHeader: {
@@ -1254,8 +1253,8 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: "6px",
-    paddingBottom: "6px",
+    marginBottom: "10px",
+    paddingBottom: "8px",
     borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
     flexShrink: 0
   },
@@ -1266,19 +1265,19 @@ const styles = {
     gap: "4px"
   },
   drawerLogoWrapper: {
-    width: "42px", // 👈 লোগো ধারকের আকার ছোট করা হয়েছে
-    height: "42px",
+    width: "44px",
+    height: "44px",
     borderRadius: "50%",
     background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
     border: "2px solid #22c55e",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 0 10px rgba(34, 197, 94, 0.4)"
+    boxShadow: "0 0 12px rgba(34, 197, 94, 0.4)"
   },
   drawerLogoImg: {
-    width: "26px",
-    height: "26px",
+    width: "28px",
+    height: "28px",
     objectFit: "contain"
   },
   drawerLogoText: {
@@ -1286,7 +1285,7 @@ const styles = {
     fontSize: "15px",
     fontWeight: "900",
     color: "#ffffff",
-    letterSpacing: "0.6px",
+    letterSpacing: "0.8px",
     textAlign: "center"
   },
   drawerLogoSubtext: {
@@ -1299,45 +1298,45 @@ const styles = {
   drawerNavList: {
     display: "flex",
     flexDirection: "column",
-    gap: "4px", // 👈 বোতামগুলোর মধ্যকার গ্যাপ ছোট করা হয়েছে
-    flexShrink: 0,
-    overflowY: "auto"
+    gap: "6px",
+    flexShrink: 0
   },
+  // 👇 বোতামগুলো ছোট ও আকর্ষণীয় করা হয়েছে
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
     gap: "8px",
-    padding: "6px 10px", // 👈 বোতামের প্যাডিং অনেক ছোট করা হয়েছে
+    padding: "8px 12px", // 👈 সাইজ ছোট করা হয়েছে
     background: "rgba(255, 255, 255, 0.12)",
     backdropFilter: "blur(10px)",
     WebkitBackdropFilter: "blur(10px)",
     border: "1px solid rgba(255, 255, 255, 0.25)",
     clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
     color: "#ffffff",
-    fontSize: "12px", // 👈 ফন্ট সাইজ ছোট করা হয়েছে
+    fontSize: "12px", // 👈 টেক্সট সাইজ ছোট করা হয়েছে
     fontWeight: "800",
     cursor: "pointer",
     textAlign: "left",
     transition: "all 0.25s ease",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+    boxShadow: "0 3px 8px rgba(0,0,0,0.3)",
     textShadow: "0 1px 2px rgba(0,0,0,0.5)"
   },
   drawerNavItemActive: {
     background: "rgba(255, 255, 255, 0.3)",
     border: "1px solid #ffffff",
-    boxShadow: "0 0 12px rgba(255, 255, 255, 0.5)",
+    boxShadow: "0 0 14px rgba(255, 255, 255, 0.5)",
     fontWeight: "900"
   },
   drawerNavIcon: {
-    fontSize: "15px",
-    width: "18px",
+    fontSize: "16px",
+    width: "20px",
     display: "inline-block",
     textAlign: "center"
   },
   drawerNavText: {
     flex: 1,
     fontSize: "12px",
-    letterSpacing: "0.2px"
+    letterSpacing: "0.3px"
   },
 
   drawerNavDashboard: {
@@ -1393,27 +1392,28 @@ const styles = {
     border: "1px solid rgba(239, 68, 68, 0.5)"
   },
 
+  // 👇 ট্রি প্ল্যান্ট ফটোটি একদম পুরো ও সুন্দর করার ফ্রেম
   treePlantOnlyWrapper: {
-    flex: 1,
-    minHeight: "70px",
-    marginTop: "8px",
-    marginBottom: "4px",
+    marginTop: "12px",
+    marginBottom: "10px",
     width: "100%",
+    height: "120px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)"
+    borderRadius: "14px",
+    boxShadow: "0 4px 14px rgba(0, 0, 0, 0.5)",
+    border: "1px solid rgba(34, 197, 94, 0.4)",
+    flexShrink: 0
   },
   treePlantOnlyImg: {
     width: "100%",
     height: "100%",
-    objectFit: "cover", // 👈 ছবি সম্পূর্ণ ও সুন্দর দৃশ্যমান করবে
-    borderRadius: "12px"
+    objectFit: "cover",
+    borderRadius: "14px"
   },
 
-  // 📱 CENTER-ALIGNED ULTRA PREMIUM APP DOWNLOAD CARD STYLES
   appDownloadCard: {
     position: "relative",
     marginTop: "28px",
@@ -2295,7 +2295,7 @@ const styles = {
 };
 
 // -------------------------------------------------------------
-// 🟢 ISOLATED CUSTOM ANIMATION CODES
+// 🟢 ISOLATED CUSTOM ANIMATION CODES (WITH 20s MARQUEE SPEED)
 // -------------------------------------------------------------
 const animationStyleSheet = document.createElement("style");
 animationStyleSheet.type = "text/css";
