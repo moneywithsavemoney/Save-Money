@@ -1,29 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { API } from "../config";
 
 export default function SaveMoney() {
-  // =========================================================================
-  // ROUTING & NAVIGATION FRAMEWORK INTERFACES
-  // =========================================================================
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // =========================================================================
-  // PERSISTENT MEMORY EXTRADITION SECURITY STORAGE KEYS
-  // =========================================================================
+  // persistent storage
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
-  // =========================================================================
-  // SIDEBAR STATE
-  // =========================================================================
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // =========================================================================
-  // REACTOR CORE STATE CONFIGURATOR INDICES
-  // =========================================================================
+  // states
   const [balance, setBalance] = useState(0);
   const [amount, setAmount] = useState("");
   const [years, setYears] = useState(5);
@@ -32,33 +19,24 @@ export default function SaveMoney() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // =========================================================================
-  // COUPON & DISCOUNT STATE CONFIGURATIONS
-  // =========================================================================
+  // coupon states
   const [couponCode, setCouponCode] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedCouponName, setAppliedCouponName] = useState("");
 
-  // =========================================================================
-  // VISUAL OVERLAY SHEATH NOTIFIER STATES
-  // =========================================================================
+  // overlay
   const [statusOverlay, setStatusOverlay] = useState({
     show: false,
     type: "info",
     message: ""
   });
 
-  // =========================================================================
-  // HOVER INTERACTIVE SELECTION MAP UNITS
-  // =========================================================================
+  // interactive focus states
   const [hoveredCard, setHoveredCard] = useState(null);
   const [activeInputFocus, setActiveInputFocus] = useState(false);
   const [activeCouponFocus, setActiveCouponFocus] = useState(false);
   const [hoveredTenureNode, setHoveredTenureNode] = useState(null);
 
-  // =========================================================================
-  // TRANSACTION FEEDBACK HUD EMITTER MODULE
-  // =========================================================================
   const showStatusMsg = (type, message) => {
     setStatusOverlay({ show: true, type, message });
     setTimeout(() => {
@@ -66,16 +44,10 @@ export default function SaveMoney() {
     }, 3000);
   };
 
-  // =========================================================================
-  // SCROLL TIMING CORRECTION RUNNER
-  // =========================================================================
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, []);
 
-  // =========================================================================
-  // CORE WALLET BALANCE API SYNCHRONIZER
-  // =========================================================================
   useEffect(() => {
     loadBalance();
   }, []);
@@ -98,9 +70,6 @@ export default function SaveMoney() {
     }
   };
 
-  // =========================================================================
-  // MATRIX RETRIEVAL DICTIONARY FOR YIELD PERCENTAGE INTEREST
-  // =========================================================================
   const getRate = (y) => {
     if (Number(y) === 1) return 11;
     if (Number(y) === 3) return 14;
@@ -112,9 +81,6 @@ export default function SaveMoney() {
 
   const rate = getRate(years);
 
-  // =========================================================================
-  // COUPON APPLICATION HANDLER LOGIC
-  // =========================================================================
   const handleApplyCoupon = () => {
     const code = couponCode.trim().toUpperCase();
     if (!code) {
@@ -143,9 +109,6 @@ export default function SaveMoney() {
     showStatusMsg("info", "Coupon removed");
   };
 
-  // =========================================================================
-  // MATHEMATICAL ACCELERATED COMPOUNDING CALCULATOR VECTOR ENGINE
-  // =========================================================================
   const calc = useMemo(() => {
     const monthly = Number(amount || 0);
     const annualRate = Number(rate || 0);
@@ -176,9 +139,6 @@ export default function SaveMoney() {
     };
   }, [amount, years, rate, discountAmount]);
 
-  // =========================================================================
-  // HIGH DEFINITION LOCAL CURRENCY CONVERTER FORMATTER (INR)
-  // =========================================================================
   const money = (n) => {
     return `₹ ${Number(n || 0).toLocaleString("en-IN", {
       minimumFractionDigits: 2,
@@ -186,9 +146,6 @@ export default function SaveMoney() {
     })}`;
   };
 
-  // =========================================================================
-  // MODAL TRIGGER HANDLERS AND DISPATCH CONTROLLERS
-  // =========================================================================
   const openTerms = () => {
     if (accepted) {
       setAccepted(false);
@@ -203,9 +160,6 @@ export default function SaveMoney() {
     showStatusMsg("success", "Terms & Conditions Accepted!");
   };
 
-  // =========================================================================
-  // TRANSACTION TRANSMISSION ARCHITECTURE COMMIT (API HANDLER)
-  // =========================================================================
   const confirmSip = async () => {
     if (Number(amount) < 2000) {
       showStatusMsg("error", "Minimum SIP amount ₹2000 required");
@@ -274,43 +228,9 @@ export default function SaveMoney() {
 
   return (
     <div style={styles.cyberPageWrapper}>
-      {/* VIRTUALIZED LAYER INFRASTRUCTURE CORES */}
       <div style={styles.neonMatrixGrid}></div>
       <div style={styles.dynamicAuraSphere1}></div>
       <div style={styles.dynamicAuraSphere2}></div>
-      <div style={styles.dynamicAuraSphere3}></div>
-
-      {/* NAVIGATION SIDEBAR */}
-      {sidebarOpen && (
-        <div style={styles.sidebarOverlay} onClick={() => setSidebarOpen(false)}>
-          <div style={styles.sidebarContainer} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.sidebarHeader}>
-              <h3 style={styles.sidebarTitle}>NAVIGATION</h3>
-              <button style={styles.sidebarCloseBtn} onClick={() => setSidebarOpen(false)}>✕</button>
-            </div>
-            <div style={styles.sidebarMenu}>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/dashboard")}>
-                🏠 Dashboard
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/wallet")}>
-                💳 Wallet & Funds
-              </button>
-              <button style={{ ...styles.sidebarMenuItem, backgroundColor: "rgba(0, 255, 163, 0.15)", color: "#00ffa3" }}>
-                🌱 Save Money (SIP)
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/transactions")}>
-                📊 Transaction History
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => navigate("/profile")}>
-                👤 User Profile
-              </button>
-              <button style={styles.sidebarMenuItem} onClick={() => { localStorage.clear(); navigate("/login"); }}>
-                🚪 Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* TOP DEPLOYMENT LEDGER BAR MONITOR */}
       <div style={styles.vipStatusBar}>
@@ -339,64 +259,108 @@ export default function SaveMoney() {
         </div>
       )}
 
-      {/* EXPANDED SYSTEM VIEW SCREEN ELEMENT CANVAS */}
-      <div style={styles.ultimateMainCanvas}>
+      {/* MAIN CONTAINER WITH SIDEBAR & CONTENT */}
+      <div style={styles.mainAppLayout}>
         
-        {/* HELM HEAD ROW ACTION PACK CONTROLLERS */}
-        <div style={styles.controlHelmRow}>
-          <button 
-            style={styles.hamburgerBtn}
-            onClick={() => setSidebarOpen(true)}
-          >
-            ☰
-          </button>
-
-          <button 
-            style={{...styles.helmActionBtn, ...(hoveredCard === 'back' ? styles.helmActionBtnHover : {})}}
-            onMouseEnter={() => setHoveredCard('back')}
-            onMouseLeave={() => setHoveredCard(null)}
-            onClick={() => window.history.back()}
-          >
-            <span style={styles.helmBtnIcon}>◀</span> RETURN DASHBOARD
-          </button>
-          
-          <div style={styles.helmCenterBadge}>
-            <span style={styles.goldTextBadge}>QUANTUM VIP NETWORK ACCESS</span>
+        {/* SIDEBAR AS IN 1ST SCREENSHOT (HOME.JS STYLED) */}
+        <div style={styles.homeStyleSidebar}>
+          <div style={styles.sidebarBrandSection}>
+            <div style={styles.sidebarLogoBox}>
+              <span style={{ fontSize: "20px" }}>🛡️</span>
+            </div>
+            <h2 style={styles.sidebarBrandTitle}>SAVE MONEY</h2>
+            <p style={styles.sidebarBrandSubtitle}>Invest Small, Earn Big</p>
           </div>
 
-          <button 
-            style={{...styles.helmHelpBtn, ...(hoveredCard === 'help' ? styles.helmHelpBtnHover : {})}}
-            onMouseEnter={() => setHoveredCard('help')}
-            onMouseLeave={() => setHoveredCard(null)}
-            onClick={() => setHelpOpen(true)}
-          >
-            ASSISTANT CORE <span style={styles.helpQuestionMark}>?</span>
-          </button>
+          <div style={styles.sidebarMenuContainer}>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#1d3557" }} onClick={() => navigate("/dashboard")}>
+              <span>🏠</span> Dashboard
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#065a60" }} onClick={() => navigate("/my-investment")}>
+              <span>📈</span> My Investment
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#7f5539", borderLeft: "4px solid #00ffa3" }}>
+              <span>💰</span> Save Money
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#4a154b" }} onClick={() => navigate("/one-time")}>
+              <span>⚡</span> One Time
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#1e3a8a" }} onClick={() => navigate("/plan-pdf")}>
+              <span>📋</span> Plan PDF
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#0f4c5c" }} onClick={() => navigate("/wallet")}>
+              <span>🌐</span> Add Fund
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#581845" }} onClick={() => navigate("/refer")}>
+              <span>👥</span> Refer & Earn
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#6b2d28" }} onClick={() => navigate("/withdraw")}>
+              <span>➔</span> Withdraw
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#4a154b" }} onClick={() => navigate("/daily-reward")}>
+              <span>🎁</span> Daily Reward
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#1e3a8a" }} onClick={() => navigate("/assistance")}>
+              <span>📊</span> Investment Assistance
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#2b2d42" }} onClick={() => navigate("/support")}>
+              <span>🎧</span> Support
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#4a154b" }} onClick={() => navigate("/profile")}>
+              <span>👤</span> Profile
+            </button>
+            <button style={{ ...styles.trapezoidMenuItem, backgroundColor: "#581845" }} onClick={() => { localStorage.clear(); navigate("/login"); }}>
+              <span>🚪</span> Logout
+            </button>
+          </div>
+
+          <div style={styles.sidebarBottomBanner}>
+            <img 
+              src="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=500&q=80" 
+              alt="Plant Growth" 
+              style={styles.sidebarBannerImage} 
+            />
+          </div>
         </div>
 
-        {/* MAXIMUM HIGH CONTRAST EXHILARATING HERO TITLE BRAND */}
-        <header style={styles.cyberBrandHeaderSection}>
-          <div style={styles.cyberLogoHexagonWrap}>
-            <div style={styles.cyberLogoCoreElement}>
-              <span style={styles.cyberLogoSymbolText}>₹</span>
-            </div>
-            <div style={styles.cyberLogoOrbitLine1}></div>
-            <div style={styles.cyberLogoOrbitLine2}></div>
-          </div>
-          <h1 style={styles.cyberMainTitleText}>
-            SAVE <span style={styles.cyberMainTitleHighlight}>MONEY</span>
-          </h1>
-          <div style={styles.cyberBrandDividerLine}>
-            <div style={styles.cyberDividerCoreGlow}></div>
-          </div>
-          <p style={styles.cyberBrandSubtextPara}>INTELLIGENT WEALTH GENERATION SYSTEM</p>
-        </header>
-
-        {/* SIDE-BY-SIDE EQUAL PARALLEL TOP CORE TRACK HOUSING MODULES */}
-        <div style={styles.executiveTwinControlLayout}>
+        {/* MAIN BODY DISPLAY CANVAS */}
+        <div style={styles.ultimateMainCanvas}>
           
-          {/* ZONE BLOCK 1: WALLET ASSET CONSOLE */}
-          <div style={styles.executivePanelZone}>
+          <div style={styles.controlHelmRow}>
+            <button 
+              style={{...styles.helmActionBtn, ...(hoveredCard === 'back' ? styles.helmActionBtnHover : {})}}
+              onMouseEnter={() => setHoveredCard('back')}
+              onMouseLeave={() => setHoveredCard(null)}
+              onClick={() => window.history.back()}
+            >
+              <span style={styles.helmBtnIcon}>◀</span> RETURN DASHBOARD
+            </button>
+            
+            <div style={styles.helmCenterBadge}>
+              <span style={styles.goldTextBadge}>QUANTUM VIP NETWORK ACCESS</span>
+            </div>
+
+            <button 
+              style={{...styles.helmHelpBtn, ...(hoveredCard === 'help' ? styles.helmHelpBtnHover : {})}}
+              onMouseEnter={() => setHoveredCard('help')}
+              onMouseLeave={() => setHoveredCard(null)}
+              onClick={() => setHelpOpen(true)}
+            >
+              ASSISTANT CORE <span style={styles.helpQuestionMark}>?</span>
+            </button>
+          </div>
+
+          <header style={styles.cyberBrandHeaderSection}>
+            <h1 style={styles.cyberMainTitleText}>
+              SAVE <span style={styles.cyberMainTitleHighlight}>MONEY</span>
+            </h1>
+            <p style={styles.cyberBrandSubtextPara}>INTELLIGENT WEALTH GENERATION SYSTEM</p>
+          </header>
+
+          {/* 2ND SCREENSHOT RESTRUCTURED: SIDE-BY-SIDE EQUAL PARALLEL BOXES */}
+          <div style={styles.executiveTwinControlGrid}>
+            
+            {/* BOX 1: WALLET ASSET CONSOLE */}
             <section 
               style={{...styles.cyberLuxuryCardUnit, ...(hoveredCard === 'wallet' ? styles.cyberLuxuryCardUnitHover : {})}}
               onMouseEnter={() => setHoveredCard('wallet')}
@@ -423,12 +387,11 @@ export default function SaveMoney() {
                   <div style={styles.walletProgressIndicatorFillBar}></div>
                 </div>
                 <div style={styles.walletBottomCapLabelFlex}>
-                  <span style={styles.walletCapSubtextText}>Status: Fully Eligible for Immediate Auto-Investment</span>
+                  <span style={styles.walletCapSubtextText}>Status: Fully Eligible for Auto-Investment</span>
                   <span style={styles.walletCapPercentageText}>100% Verified</span>
                 </div>
               </div>
 
-              {/* কুপন সেকশন */}
               <div style={styles.couponSectionContainer}>
                 <div style={styles.inputFieldLabelFlexHeader}>
                   <span style={styles.inputFieldMainTitleLabel}>HAVE A PROMO / COUPON CODE?</span>
@@ -439,8 +402,7 @@ export default function SaveMoney() {
                   <div style={{
                     ...styles.cyberInputWrapperGlassBox,
                     borderColor: activeCouponFocus ? "#00ffa3" : "#334155",
-                    boxShadow: activeCouponFocus ? "0 0 20px rgba(0,255,163,0.15)" : "none",
-                    height: "52px"
+                    height: "46px"
                   }}>
                     <input
                       style={styles.cyberInputActualInputElement}
@@ -460,7 +422,7 @@ export default function SaveMoney() {
                   </div>
                 ) : (
                   <div style={styles.appliedCouponInfoBox}>
-                    <span style={styles.appliedCouponSuccessText}>🎟️ {appliedCouponName} Applied (-₹{discountAmount} Off)</span>
+                    <span style={styles.appliedCouponSuccessText}>🎟️ {appliedCouponName} Applied (-₹{discountAmount})</span>
                     <button style={styles.removeCouponBtn} onClick={handleRemoveCoupon}>Remove</button>
                   </div>
                 )}
@@ -473,10 +435,8 @@ export default function SaveMoney() {
                 <span style={styles.btnAccentPlusSymbol}>+</span> DEPOSIT FRESH CAPITAL INTO POOL
               </button>
             </section>
-          </div>
 
-          {/* ZONE BLOCK 2: SIP CONGREGATION INPUT METRICS CONFIGS */}
-          <div style={styles.executivePanelZone}>
+            {/* BOX 2: SIP CONGREGATION INPUT METRICS CONFIGS */}
             <section 
               style={{...styles.cyberLuxuryCardUnit, ...(hoveredCard === 'config' ? styles.cyberLuxuryCardUnitHover : {})}}
               onMouseEnter={() => setHoveredCard('config')}
@@ -491,7 +451,6 @@ export default function SaveMoney() {
                 <span style={styles.onlinePulseStatusTextAccent}>CONFIG READY</span>
               </div>
 
-              {/* MONETARY MAGNITUDE CONTROLLER ENTRY */}
               <div style={styles.inputFieldComplexContainer}>
                 <div style={styles.inputFieldLabelFlexHeader}>
                   <span style={styles.inputFieldMainTitleLabel}>CHOOSE MONTHLY COMMITMENT AMOUNT</span>
@@ -499,8 +458,7 @@ export default function SaveMoney() {
                 </div>
                 <div style={{
                   ...styles.cyberInputWrapperGlassBox,
-                  borderColor: activeInputFocus ? "#00ffa3" : "#334155",
-                  boxShadow: activeInputFocus ? "0 0 20px rgba(0,255,163,0.15)" : "none"
+                  borderColor: activeInputFocus ? "#00ffa3" : "#334155"
                 }}>
                   <div style={styles.cyberInputPrependCurrencySymbol}>₹</div>
                   <input
@@ -520,16 +478,15 @@ export default function SaveMoney() {
                 {Number(amount || 0) > 0 && Number(amount) < 2000 && (
                   <div style={styles.cyberValidationWarningAlertBox}>
                     <span style={styles.validationWarningIcon}>⚠️</span> 
-                    <span style={styles.validationWarningText}>System Threshold Warning: Minimum required configuration is ₹2000</span>
+                    <span style={styles.validationWarningText}>System Warning: Minimum required config is ₹2000</span>
                   </div>
                 )}
               </div>
 
-              {/* TENURE SELECTION LAYOUT */}
               <div style={styles.tenureSelectionStructureBox}>
                 <div style={styles.inputFieldLabelFlexHeader}>
                   <span style={styles.inputFieldMainTitleLabel}>SELECT ASSET ACCUMULATION TIMEFRAME</span>
-                  <span style={styles.inputFieldRightHandBadgeAccent}>ROI SCALING SYSTEM ACTIVE</span>
+                  <span style={styles.inputFieldRightHandBadgeAccent}>ROI ACTIVE</span>
                 </div>
 
                 <div style={styles.tenureGridSelectorLayoutMatrix}>
@@ -551,10 +508,7 @@ export default function SaveMoney() {
                             ? "#ffffff" 
                             : isNodeHovered 
                               ? "#00ffa3" 
-                              : "#475569",
-                          boxShadow: isSelected 
-                            ? "0 0 20px rgba(0, 255, 163, 0.4)" 
-                            : "none"
+                              : "#475569"
                         }}
                         onMouseEnter={() => setHoveredTenureNode(y)}
                         onMouseLeave={() => setHoveredTenureNode(null)}
@@ -579,7 +533,6 @@ export default function SaveMoney() {
                 </div>
               </div>
 
-              {/* PAYMENT BREAKDOWN SUMMARY */}
               {Number(amount) > 0 && (
                 <div style={styles.paymentSummaryBox}>
                   <div style={styles.summaryRow}>
@@ -592,174 +545,145 @@ export default function SaveMoney() {
                       <span>- {money(discountAmount)}</span>
                     </div>
                   )}
-                  <div style={{...styles.summaryRow, borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "8px", fontWeight: "bold"}}>
-                    <span>Deducted from Wallet (This Time):</span>
+                  <div style={{...styles.summaryRow, borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "6px", fontWeight: "bold"}}>
+                    <span>Deducted from Wallet:</span>
                     <span style={{color: "#00d2ff"}}>{money(calc.finalPayableToday)}</span>
                   </div>
                 </div>
               )}
 
-              {/* SYSTEM INFORMATIONAL BAR */}
               <div style={styles.adviceSystemBarWrapperBox}>
                 <div style={styles.adviceSystemLightBulbIcon}>💡</div>
                 <div style={styles.adviceSystemTextBodyBlock}>
-                  <strong>Compounding Multiplier Alert:</strong> Selection of a tenure exceeding 5 Years triggers exponential growth modules, maximizing capital retention and interest yield loops.
+                  <strong>Compounding Alert:</strong> Tenure &gt; 5 Years triggers exponential growth modules.
                 </div>
               </div>
 
             </section>
+
           </div>
 
-        </div>
-
-        {/* BOTTOM SECTION SEPARATOR */}
-        <div style={styles.compoundingHeaderSeparatorBlock}>
-          <div style={styles.separatorLineDecorativeLeft}></div>
-          <span style={styles.separatorCentralHeadlineTitleText}>LIVE ASSET PROJECTION DATA SHEETS</span>
-          <div style={styles.separatorLineDecorativeRight}></div>
-        </div>
-
-        {/* PARALLEL GRAPH ROW TRACK 1 */}
-        <div style={styles.compoundingDataDisplayRowLineOneGrid}>
-          
-          <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #00ffa3"}}>
-            <div style={styles.projectionCellTopMetaLine}>
-              <div style={{...styles.projectionCellIconCircleBox, color: "#00ffa3", backgroundColor: "rgba(0,255,163,0.1)"}}>📈</div>
-              <span style={styles.projectionCellMetaTitleLabelText}>ESTIMATED COMPOUNDING RETURNS</span>
-            </div>
-            <div style={{...styles.projectionCellBigMetricValueText, color: "#00ffa3"}}>
-              {money(calc.estimatedReturn)}
-            </div>
-            <div style={styles.projectionCellBottomStatusBarTrack}>
-              <div style={{...styles.projectionCellStatusFillColorBar, backgroundColor: "#00ffa3", width: "85%"}}></div>
-            </div>
-            <p style={styles.projectionCellFooterNarrativeText}>Estimated return accrual across selected timeline framework matrix.</p>
+          {/* SEPARATOR */}
+          <div style={styles.compoundingHeaderSeparatorBlock}>
+            <div style={styles.separatorLineDecorativeLeft}></div>
+            <span style={styles.separatorCentralHeadlineTitleText}>LIVE ASSET PROJECTION DATA SHEETS</span>
+            <div style={styles.separatorLineDecorativeRight}></div>
           </div>
 
-          <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #00d2ff"}}>
-            <div style={styles.projectionCellTopMetaLine}>
-              <div style={{...styles.projectionCellIconCircleBox, color: "#00d2ff", backgroundColor: "rgba(0,210,255,0.1)"}}>👛</div>
-              <span style={styles.projectionCellMetaTitleLabelText}>TOTAL DEPLOYED PRINCIPAL CAPITAL</span>
+          {/* 3RD SCREENSHOT RESTRUCTURED: 2x2 BOXES GRID (2 TOP, 2 BOTTOM) */}
+          <div style={styles.projectionFourColumnGrid}>
+            
+            {/* BOX 1 */}
+            <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #00ffa3"}}>
+              <div style={styles.projectionCellTopMetaLine}>
+                <div style={{...styles.projectionCellIconCircleBox, color: "#00ffa3", backgroundColor: "rgba(0,255,163,0.1)"}}>📈</div>
+                <span style={styles.projectionCellMetaTitleLabelText}>ESTIMATED COMPOUNDING RETURNS</span>
+              </div>
+              <div style={{...styles.projectionCellBigMetricValueText, color: "#00ffa3"}}>
+                {money(calc.estimatedReturn)}
+              </div>
+              <div style={styles.projectionCellBottomStatusBarTrack}>
+                <div style={{...styles.projectionCellStatusFillColorBar, backgroundColor: "#00ffa3", width: "85%"}}></div>
+              </div>
+              <p style={styles.projectionCellFooterNarrativeText}>Estimated return accrual across selected timeline framework matrix.</p>
             </div>
-            <div style={{...styles.projectionCellBigMetricValueText, color: "#00d2ff"}}>
-              {money(calc.totalInvestment)}
+
+            {/* BOX 2 */}
+            <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #00d2ff"}}>
+              <div style={styles.projectionCellTopMetaLine}>
+                <div style={{...styles.projectionCellIconCircleBox, color: "#00d2ff", backgroundColor: "rgba(0,210,255,0.1)"}}>👛</div>
+                <span style={styles.projectionCellMetaTitleLabelText}>TOTAL DEPLOYED PRINCIPAL CAPITAL</span>
+              </div>
+              <div style={{...styles.projectionCellBigMetricValueText, color: "#00d2ff"}}>
+                {money(calc.totalInvestment)}
+              </div>
+              <div style={styles.projectionCellBottomStatusBarTrack}>
+                <div style={{...styles.projectionCellStatusFillColorBar, backgroundColor: "#00d2ff", width: "60%"}}></div>
+              </div>
+              <p style={styles.projectionCellFooterNarrativeText}>Total cumulative sum of sequential net monthly deposits performed.</p>
             </div>
-            <div style={styles.projectionCellBottomStatusBarTrack}>
-              <div style={{...styles.projectionCellStatusFillColorBar, backgroundColor: "#00d2ff", width: "60%"}}></div>
+
+            {/* BOX 3 */}
+            <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #ffb800"}}>
+              <div style={styles.projectionCellTopMetaLine}>
+                <div style={{...styles.projectionCellIconCircleBox, color: "#ffb800", backgroundColor: "rgba(255,184,0,0.1)"}}>🪙</div>
+                <span style={styles.projectionCellMetaTitleLabelText}>NET COMPREHENSIVE INTEREST EARNED</span>
+              </div>
+              <div style={{...styles.projectionCellBigMetricValueText, color: "#ffb800"}}>
+                {money(calc.totalInterest)}
+              </div>
+              <div style={styles.projectionCellBottomStatusBarTrack}>
+                <div style={{...styles.projectionCellStatusFillColorBar, backgroundColor: "#ffb800", width: "70%"}}></div>
+              </div>
+              <p style={styles.projectionCellFooterNarrativeText}>Pure asset yield generation extracted via algorithmic interest modules.</p>
             </div>
-            <p style={styles.projectionCellFooterNarrativeText}>Total cumulative sum of sequential net monthly deposits performed.</p>
+
+            {/* BOX 4 */}
+            <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #cc00ff"}}>
+              <div style={styles.projectionCellTopMetaLine}>
+                <div style={{...styles.projectionCellIconCircleBox, color: "#cc00ff", backgroundColor: "rgba(204,0,255,0.1)"}}>📊</div>
+                <span style={styles.projectionCellMetaTitleLabelText}>ESTIMATED MATURITY ASSET VALUE</span>
+              </div>
+              <div style={{...styles.projectionCellBigMetricValueText, color: "#cc00ff"}}>
+                {money(calc.totalReturn)}
+              </div>
+              <div style={styles.projectionCellBottomStatusBarTrack}>
+                <div style={{...styles.projectionCellStatusFillColorBar, backgroundColor: "#cc00ff", width: "95%"}}></div>
+              </div>
+              <p style={styles.projectionCellFooterNarrativeText}>Total forecasted terminal capital extraction sum upon maturity.</p>
+            </div>
+
           </div>
 
-        </div>
-
-        {/* PARALLEL GRAPH ROW TRACK 2 */}
-        <div style={styles.compoundingDataDisplayRowLineTwoGrid}>
-          
-          <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #ffb800"}}>
-            <div style={styles.projectionCellTopMetaLine}>
-              <div style={{...styles.projectionCellIconCircleBox, color: "#ffb800", backgroundColor: "rgba(255,184,0,0.1)"}}>🪙</div>
-              <span style={styles.projectionCellMetaTitleLabelText}>NET COMPREHENSIVE INTEREST EARNED</span>
-            </div>
-            <div style={{...styles.projectionCellBigMetricValueText, color: "#ffb800"}}>
-              {money(calc.totalInterest)}
-            </div>
-            <div style={styles.projectionCellBottomStatusBarTrack}>
-              <div style={{...styles.projectionCellStatusFillColorBar, backgroundColor: "#ffb800", width: "70%"}}></div>
-            </div>
-            <p style={styles.projectionCellFooterNarrativeText}>Pure asset yield generation extracted via algorithmic standard interest modules.</p>
-          </div>
-
-          <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "5px solid #cc00ff"}}>
-            <div style={styles.projectionCellTopMetaLine}>
-              <div style={{...styles.projectionCellIconCircleBox, color: "#cc00ff", backgroundColor: "rgba(204,0,255,0.1)"}}>📊</div>
-              <span style={styles.projectionCellMetaTitleLabelText}>ESTIMATED MATURITY ASSET VALUE</span>
-            </div>
-            <div style={{...styles.projectionCellBigMetricValueText, color: "#cc00ff"}}>
-              {money(calc.totalReturn)}
-            </div>
-            <div style={styles.projectionCellBottomStatusBarTrack}>
-              <div style={{...styles.projectionCellStatusFillColorBar, backgroundColor: "#cc00ff", width: "95%"}}></div>
-            </div>
-            <p style={styles.projectionCellFooterNarrativeText}>Total forecasted terminal capital extraction sum upon maturity event fulfillment.</p>
-          </div>
-
-        </div>
-
-        {/* DISCLAIMER */}
-        <div style={styles.systemAnalyticalDisclaimerBox}>
-          <span style={styles.disclaimerIconInfoBadge}>i</span>
-          <span style={styles.disclaimerTextMessagePara}>
-            Mathematical forecasting projection model operates under high-fidelity compounding interest matrix calculations. Historical performance criteria configurations represent standard index projections.
-          </span>
-        </div>
-
-        {/* LEGAL DECLARATION */}
-        <div style={styles.legalComplianceActionShieldContainerBox}>
-          <div 
-            style={{...styles.legalInteractiveClickableRowBox, ...(accepted ? styles.legalInteractiveClickableRowBoxActive : {})}}
-            onClick={openTerms}
-          >
-            <div style={{
-              ...styles.legalCustomCheckboxSquareBox,
-              backgroundColor: accepted ? "#00ffa3" : "#1e293b",
-              borderColor: accepted ? "#00ffa3" : "#94a3b8"
-            }}>
-              {accepted && <span style={styles.legalCheckboxCheckMarkCheck}>✓</span>}
-            </div>
-            <div style={styles.legalTextStatementColumnLabelBlock}>
-              <p style={styles.legalMainDeclarationSentenceText}>
-                I hereby declare, authorize and confirm that I have meticulously read, verified and mutually consented to be legally bound by the comprehensive system-wide <b style={styles.legalHighLightHyperlinkText}>Terms, Conditions, Asset Allocation Disclosures & Risk Protocols</b>.
-              </p>
-            </div>
-            <div style={{...styles.legalPaperDocumentIconBadgeUnit, color: accepted ? "#00ffa3" : "#cbd5e1"}}>📄</div>
-          </div>
-        </div>
-
-        {/* LAUNCH BUTTON */}
-        <div style={styles.ultimateLaunchButtonCentralContainerFlex}>
-          <button 
-            style={{
-              ...styles.ultimateLaunchCoreActionBtnElement,
-              opacity: loading ? 0.7 : 1,
-              cursor: loading ? "not-allowed" : "pointer"
-            }} 
-            onClick={confirmSip} 
-            disabled={loading}
-          >
-            <div style={styles.ultimateLaunchBtnGlowBackingTrack}></div>
-            <span style={styles.ultimateLaunchBtnIconBadgeNode}>🛡️</span> 
-            <span style={styles.ultimateLaunchBtnMainStringLabelText}>
-              {loading ? "AUTHORIZING DIGITAL SECURE DEPOSIT..." : "INITIATE & LAUNCH ASSET CONFIGURATION PLAN"}
+          {/* DISCLAIMER */}
+          <div style={styles.systemAnalyticalDisclaimerBox}>
+            <span style={styles.disclaimerIconInfoBadge}>i</span>
+            <span style={styles.disclaimerTextMessagePara}>
+              Mathematical forecasting projection model operates under high-fidelity compounding interest matrix calculations. Historical performance criteria configurations represent standard index projections.
             </span>
-          </button>
+          </div>
+
+          {/* LEGAL DECLARATION */}
+          <div style={styles.legalComplianceActionShieldContainerBox}>
+            <div 
+              style={{...styles.legalInteractiveClickableRowBox, ...(accepted ? styles.legalInteractiveClickableRowBoxActive : {})}}
+              onClick={openTerms}
+            >
+              <div style={{
+                ...styles.legalCustomCheckboxSquareBox,
+                backgroundColor: accepted ? "#00ffa3" : "#1e293b",
+                borderColor: accepted ? "#00ffa3" : "#94a3b8"
+              }}>
+                {accepted && <span style={styles.legalCheckboxCheckMarkCheck}>✓</span>}
+              </div>
+              <div style={styles.legalTextStatementColumnLabelBlock}>
+                <p style={styles.legalMainDeclarationSentenceText}>
+                  I hereby declare, authorize and confirm that I have meticulously read, verified and mutually consented to be legally bound by the comprehensive system-wide <b style={styles.legalHighLightHyperlinkText}>Terms, Conditions, Asset Allocation Disclosures & Risk Protocols</b>.
+                </p>
+              </div>
+              <div style={{...styles.legalPaperDocumentIconBadgeUnit, color: accepted ? "#00ffa3" : "#cbd5e1"}}>📄</div>
+            </div>
+          </div>
+
+          {/* LAUNCH BUTTON */}
+          <div style={styles.ultimateLaunchButtonCentralContainerFlex}>
+            <button 
+              style={{
+                ...styles.ultimateLaunchCoreActionBtnElement,
+                opacity: loading ? 0.7 : 1,
+                cursor: loading ? "not-allowed" : "pointer"
+              }} 
+              onClick={confirmSip} 
+              disabled={loading}
+            >
+              <span style={styles.ultimateLaunchBtnIconBadgeNode}>🛡️</span> 
+              <span style={styles.ultimateLaunchBtnMainStringLabelText}>
+                {loading ? "AUTHORIZING DIGITAL SECURE DEPOSIT..." : "INITIATE & LAUNCH ASSET CONFIGURATION PLAN"}
+              </span>
+            </button>
+          </div>
+
         </div>
-
-        {/* TRIPLE DECK SUPPORT */}
-        <section style={styles.systemCapabilitiesTripleFooterGridColumnLayout}>
-          <div style={styles.capabilityCellBlockNodeCard}>
-            <div style={{...styles.capabilityIconCircleWrapContainer, color: "#3b82f6", backgroundColor: "rgba(59,130,246,0.15)"}}>🔒</div>
-            <div style={styles.capabilityTextInformationBlockWrap}>
-              <h4 style={styles.capabilityHeadingMainTextTitle}>VAULT-GRADE CYBER SECURITY</h4>
-              <p style={styles.capabilitySubtextBodyParagraph}>End-to-End encrypted cryptographic ledger vault safeguards absolute transactional safety limits.</p>
-            </div>
-          </div>
-
-          <div style={styles.capabilityCellBlockNodeCard}>
-            <div style={{...styles.capabilityIconCircleWrapContainer, color: "#10b981", backgroundColor: "rgba(16,185,129,0.15)"}}>📈</div>
-            <div style={styles.capabilityTextInformationBlockWrap}>
-              <h4 style={styles.capabilityHeadingMainTextTitle}>MAXIMIZED TIMELINE YIELD CURVE</h4>
-              <p style={styles.capabilitySubtextBodyParagraph}>Algorithmic compounding interest indexing structures optimized to generate enhanced fiscal performance assets.</p>
-            </div>
-          </div>
-
-          <div style={styles.capabilityCellBlockNodeCard}>
-            <div style={{...styles.capabilityIconCircleWrapContainer, color: "#a855f7", backgroundColor: "rgba(168,85,247,0.15)"}}>⚡</div>
-            <div style={styles.capabilityTextInformationBlockWrap}>
-              <h4 style={styles.capabilityHeadingMainTextTitle}>FLUID AUTO-PAYOUT INTERFACING</h4>
-              <p style={styles.capabilitySubtextBodyParagraph}>Seamless architectural design allows automated liquidity conversion options upon reaching target timelines.</p>
-            </div>
-          </div>
-        </section>
 
       </div>
 
@@ -773,11 +697,9 @@ export default function SaveMoney() {
             </div>
             
             <div style={styles.modalSystemInternalScrollableContentPanelBox}>
-              <p style={styles.modalSystemParagraphParaBlockText}>Save Money SIP is a disciplined monthly saving and investment plan. The minimum monthly SIP investment amount is ₹2000.</p>
-              <p style={styles.modalSystemParagraphParaBlockText}>User must select SIP duration and understand all estimated return values before confirming the investment from wallet balance.</p>
-              <p style={styles.modalSystemParagraphParaBlockText}>This SIP plan requires timely monthly renewal. If renewal is missed, investment benefits, bonuses, rewards or auto-withdrawal eligibility may be affected.</p>
-              <p style={styles.modalSystemParagraphParaBlockText}>Returns shown inside the application are estimated values only. Actual return may increase or decrease depending on company performance.</p>
-              <p style={styles.modalSystemParagraphParaBlockText}>Investment always involves financial risk. User confirms that they are investing voluntarily after understanding risk, reward and possible variation in ROI.</p>
+              <p style={styles.modalSystemParagraphParaBlockText}>Save Money SIP is a disciplined monthly saving and investment plan. Minimum investment is ₹2000.</p>
+              <p style={styles.modalSystemParagraphParaBlockText}>User must select SIP duration and understand all estimated return values before confirming.</p>
+              <p style={styles.modalSystemParagraphParaBlockText}>Returns shown inside the application are estimated values only.</p>
             </div>
 
             <button style={styles.modalSystemAcceptActionButtonTriggerElement} onClick={acceptTerms}>
@@ -796,9 +718,8 @@ export default function SaveMoney() {
             </div>
             
             <div style={styles.modalSystemInternalScrollableContentPanelBox}>
-              <p style={styles.modalSystemParagraphParaBlockTextHelpTextBangla}>The Save Money SIP plan will help you save regularly every month.</p>
-              <p style={styles.modalSystemParagraphParaBlockTextHelpTextBangla}>The minimum monthly SIP amount is ₹2,000. Once you enter the amount and select the duration, you will see the estimated return below.</p>
-              <p style={styles.modalSystemParagraphParaBlockTextHelpTextBangla}>Estimated returns of 11% for 1 year, 14% for 3 years, and 20% to 30% for 5+ years will be displayed.</p>
+              <p style={styles.modalSystemParagraphParaBlockTextHelpTextBangla}>Save Money SIP প্ল্যান আপনাকে প্রতি মাসে নিয়মিত সঞ্চয় করতে সাহায্য করবে।</p>
+              <p style={styles.modalSystemParagraphParaBlockTextHelpTextBangla}>সর্বনিম্ন SIP পরিমাণ ২,০০০ টাকা। মেয়াদ নির্বাচন করলে আনুমানিক রিটার্ন দেখতে পাবেন।</p>
             </div>
 
             <button 
@@ -816,232 +737,168 @@ export default function SaveMoney() {
 }
 
 // =========================================================================
-// STYLES INCLUDING SIDEBAR & RESPONSIVE LAYOUT
+// STYLES
 // =========================================================================
 const styles = {
   cyberPageWrapper: {
     minHeight: "100vh",
     width: "100vw",
-    backgroundColor: "#02040a",
+    backgroundColor: "#060913",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "flex-start",
-    fontFamily: "'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    fontFamily: "'Inter', 'Segoe UI', Roboto, sans-serif",
     color: "#ffffff",
     overflowX: "hidden",
-    position: "relative",
-    boxSizing: "border-box"
+    position: "relative"
   },
   neonMatrixGrid: {
     position: "absolute",
     inset: 0,
-    backgroundImage: `
-      linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px)
-    `,
+    backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px)`,
     backgroundSize: "40px 40px",
-    maskImage: "linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,0.3))",
-    WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,0.3))",
-    pointerEvents: "none",
-    zIndex: 1
+    pointerEvents: "none"
   },
   dynamicAuraSphere1: {
     position: "absolute",
-    top: "-200px",
-    left: "5%",
-    width: "600px",
-    height: "600px",
-    background: "radial-gradient(circle, rgba(0, 255, 163, 0.08) 0%, rgba(0,0,0,0) 70%)",
-    filter: "blur(60px)",
-    borderRadius: "50%",
-    pointerEvents: "none",
-    zIndex: 2
+    top: "-100px",
+    left: "0",
+    width: "500px",
+    height: "500px",
+    background: "radial-gradient(circle, rgba(0, 255, 163, 0.06) 0%, transparent 70%)",
+    pointerEvents: "none"
   },
   dynamicAuraSphere2: {
     position: "absolute",
-    bottom: "10%",
-    right: "-100px",
-    width: "700px",
-    height: "700px",
-    background: "radial-gradient(circle, rgba(204, 0, 255, 0.06) 0%, rgba(0,0,0,0) 70%)",
-    filter: "blur(80px)",
-    borderRadius: "50%",
-    pointerEvents: "none",
-    zIndex: 2
-  },
-  dynamicAuraSphere3: {
-    position: "absolute",
-    top: "40%",
-    left: "40%",
-    width: "500px",
-    height: "500px",
-    background: "radial-gradient(circle, rgba(0, 210, 255, 0.05) 0%, rgba(0,0,0,0) 70%)",
-    filter: "blur(50px)",
-    borderRadius: "50%",
-    pointerEvents: "none",
-    zIndex: 2
-  },
-  // SIDEBAR STYLES
-  hamburgerBtn: {
-    padding: "10px 16px",
-    borderRadius: "14px",
-    border: "1px solid #334155",
-    backgroundColor: "rgba(15, 23, 42, 0.8)",
-    color: "#00ffa3",
-    fontSize: "20px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 0 15px rgba(0,255,163,0.1)"
-  },
-  sidebarOverlay: {
-    position: "fixed",
-    inset: 0,
-    backgroundColor: "rgba(0,0,0,0.75)",
-    backdropFilter: "blur(5px)",
-    zIndex: 99999,
-    display: "flex"
-  },
-  sidebarContainer: {
-    width: "280px",
-    height: "100%",
-    backgroundColor: "#0b111e",
-    borderRight: "1px solid #1e293b",
-    padding: "24px",
-    boxSizing: "border-box",
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-    boxShadow: "10px 0 30px rgba(0,0,0,0.5)"
-  },
-  sidebarHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottom: "1px solid #1e293b",
-    paddingBottom: "14px"
-  },
-  sidebarTitle: {
-    margin: 0,
-    fontSize: "14px",
-    fontWeight: "800",
-    color: "#00ffa3",
-    letterSpacing: "2px"
-  },
-  sidebarCloseBtn: {
-    backgroundColor: "transparent",
-    border: "none",
-    color: "#94a3b8",
-    fontSize: "18px",
-    cursor: "pointer"
-  },
-  sidebarMenu: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px"
-  },
-  sidebarMenuItem: {
-    width: "100%",
-    padding: "12px 16px",
-    borderRadius: "12px",
-    border: "1px solid transparent",
-    backgroundColor: "rgba(255,255,255,0.03)",
-    color: "#cbd5e1",
-    fontSize: "14px",
-    fontWeight: "600",
-    textAlign: "left",
-    cursor: "pointer",
-    transition: "all 0.2s ease"
+    bottom: "0",
+    right: "0",
+    width: "600px",
+    height: "600px",
+    background: "radial-gradient(circle, rgba(0, 210, 255, 0.05) 0%, transparent 70%)",
+    pointerEvents: "none"
   },
   vipStatusBar: {
     width: "100%",
-    height: "36px",
-    backgroundColor: "#090d16",
+    height: "32px",
+    backgroundColor: "#040711",
     borderBottom: "1px solid #1e293b",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     padding: "0 20px",
     boxSizing: "border-box",
-    zIndex: 10,
-    position: "relative"
+    zIndex: 10
   },
   vipStatusIndicator: {
     fontSize: "11px",
     fontWeight: "700",
     color: "#00ffa3",
-    letterSpacing: "1.5px",
     display: "flex",
     alignItems: "center",
     gap: "8px"
   },
   pulseNode: {
-    width: "7px",
-    height: "7px",
+    width: "6px",
+    height: "6px",
     backgroundColor: "#00ffa3",
-    borderRadius: "50%",
-    display: "inline-block",
-    boxShadow: "0 0 10px #00ffa3"
+    borderRadius: "50%"
   },
   vipTimestamp: {
-    fontSize: "11px",
+    fontSize: "10px",
     color: "#94a3b8",
-    fontWeight: "600",
-    letterSpacing: "1px"
+    fontWeight: "600"
   },
-  glassOverlayShield: {
-    position: "fixed",
-    inset: 0,
-    backgroundColor: "rgba(2, 4, 10, 0.85)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
-    zIndex: 50000,
+  mainAppLayout: {
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
+    width: "100%",
+    maxWidth: "1350px",
+    position: "relative",
+    zIndex: 5,
+    minHeight: "calc(100vh - 32px)"
   },
-  glassOverlayContainer: {
-    backgroundColor: "#0d1321",
-    padding: "40px",
-    borderRadius: "24px",
-    textAlign: "center",
-    boxShadow: "0 30px 80px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05)",
-    border: "1px solid #334155",
-    maxWidth: "460px",
-    width: "85%",
+
+  /* 1ST SCREENSHOT EXACT HOME.JS SIDEBAR STYLING */
+  homeStyleSidebar: {
+    width: "280px",
+    backgroundColor: "#090d16",
+    borderRight: "1px solid rgba(255,255,255,0.08)",
+    padding: "20px 14px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    boxSizing: "border-box",
+    flexShrink: 0
+  },
+  sidebarBrandSection: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "20px"
+    textAlign: "center",
+    marginBottom: "10px"
   },
-  glassOverlayIconFrame: {
-    width: "70px",
-    height: "70px",
-    borderRadius: "20px",
+  sidebarLogoBox: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "50%",
+    border: "2px solid #00ffa3",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "30px",
-    fontWeight: "bold",
-    boxShadow: "inset 0 2px 5px rgba(255,255,255,0.05)"
+    backgroundColor: "rgba(0, 255, 163, 0.1)",
+    marginBottom: "6px"
   },
-  glassOverlayMessageText: {
-    fontSize: "18px",
-    color: "#ffffff",
+  sidebarBrandTitle: {
     margin: 0,
-    fontWeight: "700",
-    lineHeight: "1.5",
-    letterSpacing: "0.3px"
+    fontSize: "16px",
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: "1px"
   },
-  ultimateMainCanvas: {
+  sidebarBrandSubtitle: {
+    margin: 0,
+    fontSize: "10px",
+    color: "#00ffa3",
+    fontWeight: "600"
+  },
+  sidebarMenuContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+    width: "100%"
+  },
+  trapezoidMenuItem: {
     width: "100%",
-    maxWidth: "1200px",
-    padding: "20px",
+    padding: "10px 16px",
+    clipPath: "polygon(0 0, 92% 0, 100% 50%, 92% 100%, 0 100%)",
+    border: "none",
+    color: "#ffffff",
+    fontSize: "13px",
+    fontWeight: "700",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    cursor: "pointer",
+    transition: "transform 0.2s ease"
+  },
+  sidebarBottomBanner: {
+    marginTop: "auto",
+    width: "100%",
+    borderRadius: "16px",
+    overflow: "hidden",
+    height: "120px",
+    border: "1px solid rgba(255,255,255,0.1)"
+  },
+  sidebarBannerImage: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  },
+
+  /* MAIN CANVAS AREA */
+  ultimateMainCanvas: {
+    flex: 1,
+    padding: "24px",
     boxSizing: "border-box",
-    zIndex: 5,
-    position: "relative",
     display: "flex",
     flexDirection: "column"
   },
@@ -1049,190 +906,116 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "30px",
-    width: "100%",
-    gap: "10px",
-    flexWrap: "wrap"
+    marginBottom: "20px",
+    width: "100%"
   },
   helmActionBtn: {
-    padding: "10px 18px",
-    borderRadius: "14px",
+    padding: "8px 16px",
+    borderRadius: "12px",
     border: "1px solid #334155",
     backgroundColor: "rgba(15, 23, 42, 0.8)",
-    backdropFilter: "blur(10px)",
     color: "#cbd5e1",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "700",
-    letterSpacing: "1px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+    gap: "6px"
   },
   helmActionBtnHover: {
     borderColor: "#00ffa3",
-    color: "#ffffff",
-    backgroundColor: "rgba(0, 255, 163, 0.15)",
-    boxShadow: "0 0 25px rgba(0, 255, 163, 0.2)"
+    color: "#ffffff"
   },
   helmBtnIcon: {
-    fontSize: "11px",
-    color: "#94a3b8"
+    fontSize: "10px"
   },
   helmCenterBadge: {
     backgroundColor: "rgba(30, 41, 59, 0.6)",
     border: "1px solid rgba(255, 215, 0, 0.3)",
-    padding: "6px 14px",
-    borderRadius: "30px",
-    backdropFilter: "blur(5px)"
+    padding: "4px 12px",
+    borderRadius: "20px"
   },
   goldTextBadge: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "800",
     color: "#ffd700",
-    letterSpacing: "1.5px"
+    letterSpacing: "1px"
   },
   helmHelpBtn: {
-    padding: "10px 18px",
-    borderRadius: "14px",
+    padding: "8px 16px",
+    borderRadius: "12px",
     border: "1px solid #334155",
     backgroundColor: "rgba(15, 23, 42, 0.8)",
-    backdropFilter: "blur(10px)",
     color: "#60a5fa",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "700",
-    letterSpacing: "1px",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    transition: "all 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
+    gap: "6px"
   },
   helmHelpBtnHover: {
-    borderColor: "#60a5fa",
-    color: "#ffffff",
-    backgroundColor: "rgba(59, 130, 246, 0.15)",
-    boxShadow: "0 0 25px rgba(59, 130, 246, 0.2)"
+    borderColor: "#60a5fa"
   },
   helpQuestionMark: {
-    width: "16px",
-    height: "16px",
+    width: "14px",
+    height: "14px",
     borderRadius: "50%",
     backgroundColor: "rgba(59, 130, 246, 0.25)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "10px",
-    color: "#ffffff"
+    fontSize: "9px"
   },
   cyberBrandHeaderSection: {
     textAlign: "center",
-    marginBottom: "40px",
-    width: "100%"
-  },
-  cyberLogoHexagonWrap: {
-    width: "80px",
-    height: "80px",
-    margin: "0 auto 16px",
-    position: "relative",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  cyberLogoCoreElement: {
-    width: "50px",
-    height: "50px",
-    borderRadius: "16px",
-    background: "linear-gradient(135deg, #00ffa3 0%, #00d2ff 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "24px",
-    fontWeight: "900",
-    color: "#020617",
-    boxShadow: "0 15px 35px rgba(0,255,163,0.4)",
-    zIndex: 5
-  },
-  cyberLogoOrbitLine1: {
-    position: "absolute",
-    inset: "-5px",
-    borderRadius: "24px",
-    border: "2px dashed rgba(0, 255, 163, 0.4)"
-  },
-  cyberLogoOrbitLine2: {
-    position: "absolute",
-    inset: "5px",
-    borderRadius: "20px",
-    border: "1px solid rgba(0, 210, 255, 0.3)"
+    marginBottom: "24px"
   },
   cyberMainTitleText: {
     margin: 0,
-    fontSize: "36px",
+    fontSize: "28px",
     fontWeight: "900",
-    letterSpacing: "3px",
-    color: "#ffffff"
+    letterSpacing: "2px"
   },
   cyberMainTitleHighlight: {
-    background: "linear-gradient(90deg, #00ffa3, #00d2ff)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent"
-  },
-  cyberBrandDividerLine: {
-    width: "140px",
-    height: "2px",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    margin: "14px auto",
-    position: "relative"
-  },
-  cyberDividerCoreGlow: {
-    position: "absolute",
-    inset: "0 25%",
-    background: "linear-gradient(90deg, transparent, #00ffa3, transparent)"
+    color: "#00ffa3"
   },
   cyberBrandSubtextPara: {
-    fontSize: "11px",
-    letterSpacing: "3px",
-    color: "#cbd5e1",
+    fontSize: "10px",
+    letterSpacing: "2px",
+    color: "#94a3b8",
     fontWeight: "700",
-    textTransform: "uppercase",
-    margin: 0
+    margin: "4px 0 0"
   },
-  executiveTwinControlLayout: {
+
+  /* 2ND SCREENSHOT RESTRUCTURED: SIDE-BY-SIDE EQUAL PARALLEL GRID */
+  executiveTwinControlGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-    gap: "24px",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "20px",
     width: "100%",
-    marginBottom: "30px"
-  },
-  executivePanelZone: {
-    width: "100%",
-    display: "flex"
+    marginBottom: "24px"
   },
   cyberLuxuryCardUnit: {
-    width: "100%",
-    backgroundColor: "rgba(13, 20, 35, 0.65)",
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    borderRadius: "24px",
+    backgroundColor: "rgba(13, 20, 35, 0.75)",
+    backdropFilter: "blur(12px)",
+    borderRadius: "20px",
     border: "1px solid rgba(255, 255, 255, 0.08)",
-    padding: "24px",
+    padding: "20px",
     boxSizing: "border-box",
     position: "relative",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
     display: "flex",
     flexDirection: "column",
-    justifyContent: "space-between",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+    justifyContent: "space-between"
   },
   cyberLuxuryCardUnitHover: {
-    borderColor: "rgba(255, 255, 255, 0.15)"
+    borderColor: "rgba(0, 255, 163, 0.3)"
   },
   cardGlowCornerTop: {
     position: "absolute",
     top: 0,
     left: "10%",
-    width: "80px",
+    width: "60px",
     height: "2px",
     background: "linear-gradient(90deg, transparent, #00d2ff, transparent)"
   },
@@ -1240,7 +1023,7 @@ const styles = {
     position: "absolute",
     top: 0,
     left: "10%",
-    width: "80px",
+    width: "60px",
     height: "2px",
     background: "linear-gradient(90deg, transparent, #00ffa3, transparent)"
   },
@@ -1248,98 +1031,90 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
-    marginBottom: "20px"
+    marginBottom: "16px"
   },
   cardTitleBadgeRow: {
     display: "flex",
     alignItems: "center",
-    gap: "12px"
+    gap: "10px"
   },
   cardHeaderIconBoxContainer: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "12px",
+    width: "32px",
+    height: "32px",
+    borderRadius: "10px",
     backgroundColor: "rgba(0, 210, 255, 0.15)",
-    border: "1px solid rgba(0, 210, 255, 0.3)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "18px"
+    fontSize: "14px"
   },
   cardHeaderIconBoxContainerAccent: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "12px",
+    width: "32px",
+    height: "32px",
+    borderRadius: "10px",
     backgroundColor: "rgba(0, 255, 163, 0.15)",
-    border: "1px solid rgba(0, 255, 163, 0.3)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "18px"
+    fontSize: "14px"
   },
   cardHeaderMainTitleText: {
     margin: 0,
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: "800",
-    color: "#ffffff",
-    letterSpacing: "1px"
+    color: "#ffffff"
   },
   onlinePulseStatusText: {
-    fontSize: "9px",
+    fontSize: "8px",
     fontWeight: "700",
     color: "#00d2ff",
     backgroundColor: "rgba(0, 210, 255, 0.15)",
-    padding: "4px 10px",
-    borderRadius: "8px"
+    padding: "3px 8px",
+    borderRadius: "6px"
   },
   onlinePulseStatusTextAccent: {
-    fontSize: "9px",
+    fontSize: "8px",
     fontWeight: "700",
     color: "#00ffa3",
     backgroundColor: "rgba(0, 255, 163, 0.15)",
-    padding: "4px 10px",
-    borderRadius: "8px"
+    padding: "3px 8px",
+    borderRadius: "6px"
   },
   walletBalanceDisplayBlock: {
     backgroundColor: "rgba(2, 6, 12, 0.6)",
     border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: "16px",
-    padding: "20px",
-    width: "100%",
-    boxSizing: "border-box",
-    marginBottom: "16px"
+    borderRadius: "14px",
+    padding: "16px",
+    marginBottom: "14px"
   },
   walletMetaLabelRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
-    marginBottom: "10px"
+    marginBottom: "8px"
   },
   walletMetaLabel: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "700",
     color: "#cbd5e1"
   },
   walletSecureShieldTag: {
-    fontSize: "9px",
-    fontWeight: "600",
+    fontSize: "8px",
     color: "#94a3b8"
   },
   walletLargeNumericalSum: {
-    fontSize: "32px",
+    fontSize: "26px",
     fontWeight: "900",
     color: "#ffffff",
-    marginBottom: "14px"
+    marginBottom: "10px"
   },
   walletProgressIndicatorTrack: {
     width: "100%",
-    height: "5px",
+    height: "4px",
     backgroundColor: "#334155",
     borderRadius: "10px",
     overflow: "hidden",
-    marginBottom: "10px"
+    marginBottom: "8px"
   },
   walletProgressIndicatorFillBar: {
     width: "100%",
@@ -1349,24 +1124,23 @@ const styles = {
   walletBottomCapLabelFlex: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%"
+    alignItems: "center"
   },
   walletCapSubtextText: {
-    fontSize: "10px",
+    fontSize: "9px",
     color: "#cbd5e1"
   },
   walletCapPercentageText: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "700",
     color: "#00ffa3"
   },
   couponSectionContainer: {
     width: "100%",
-    marginBottom: "16px"
+    marginBottom: "14px"
   },
   couponAppliedBadge: {
-    fontSize: "9px",
+    fontSize: "8px",
     fontWeight: "700",
     color: "#00ffa3",
     backgroundColor: "rgba(0,255,163,0.15)",
@@ -1374,30 +1148,29 @@ const styles = {
     borderRadius: "4px"
   },
   applyCouponBtnElement: {
-    padding: "0 16px",
-    height: "36px",
+    padding: "0 14px",
+    height: "32px",
     backgroundColor: "#00ffa3",
     color: "#020617",
     fontWeight: "800",
-    fontSize: "11px",
+    fontSize: "10px",
     border: "none",
-    borderRadius: "10px",
+    borderRadius: "8px",
     cursor: "pointer"
   },
   appliedCouponInfoBox: {
     width: "100%",
-    height: "46px",
+    height: "40px",
     backgroundColor: "rgba(0,255,163,0.08)",
     border: "1px solid rgba(0,255,163,0.3)",
-    borderRadius: "14px",
+    borderRadius: "10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "0 12px",
-    boxSizing: "border-box"
+    padding: "0 10px"
   },
   appliedCouponSuccessText: {
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "700",
     color: "#00ffa3"
   },
@@ -1405,75 +1178,74 @@ const styles = {
     backgroundColor: "transparent",
     border: "none",
     color: "#ff4a4a",
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "700",
     cursor: "pointer"
   },
   walletActionInjectFundsBtn: {
     width: "100%",
-    height: "48px",
-    borderRadius: "14px",
+    height: "42px",
+    borderRadius: "12px",
     background: "linear-gradient(90deg, #1e293b 0%, #0f172a 100%)",
     border: "1px solid rgba(255,255,255,0.08)",
     color: "#ffffff",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "700",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "8px"
+    gap: "6px"
   },
   btnAccentPlusSymbol: {
     color: "#00d2ff",
-    fontSize: "16px"
+    fontSize: "14px"
   },
   inputFieldComplexContainer: {
     width: "100%",
-    marginBottom: "20px"
+    marginBottom: "14px"
   },
   inputFieldLabelFlexHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    width: "100%",
-    marginBottom: "8px"
+    marginBottom: "6px"
   },
   inputFieldMainTitleLabel: {
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "700",
     color: "#cbd5e1"
   },
   inputFieldRightHandBadge: {
-    fontSize: "9px",
+    fontSize: "8px",
     fontWeight: "700",
     color: "#ff9c00",
     backgroundColor: "rgba(255,156,0,0.15)",
-    padding: "3px 8px",
-    borderRadius: "5px"
+    padding: "2px 6px",
+    borderRadius: "4px"
   },
   inputFieldRightHandBadgeAccent: {
-    fontSize: "9px",
+    fontSize: "8px",
     fontWeight: "700",
     color: "#00ffa3",
     backgroundColor: "rgba(0,255,163,0.15)",
-    padding: "3px 8px",
-    borderRadius: "5px"
+    padding: "2px 6px",
+    borderRadius: "4px"
   },
   cyberInputWrapperGlassBox: {
-    height: "50px",
+    height: "42px",
     width: "100%",
-    borderRadius: "14px",
+    borderRadius: "10px",
     border: "1px solid #475569",
     backgroundColor: "rgba(2, 6, 12, 0.7)",
     display: "flex",
     alignItems: "center",
-    padding: "0 14px",
+    padding: "0 10px",
     boxSizing: "border-box",
-    gap: "10px"
+    gap: "8px"
   },
   cyberInputPrependCurrencySymbol: {
-    fontSize: "18px",
+    fontSize: "15px",
     fontWeight: "800",
     color: "#00ffa3"
   },
@@ -1482,50 +1254,49 @@ const styles = {
     border: "none",
     outline: "none",
     backgroundColor: "transparent",
-    fontSize: "15px",
+    fontSize: "13px",
     fontWeight: "700",
     color: "#ffffff"
   },
   cyberInputAppendBadgeUnit: {
     backgroundColor: "rgba(255,255,255,0.06)",
-    padding: "4px 8px",
-    borderRadius: "8px"
+    padding: "3px 6px",
+    borderRadius: "6px"
   },
   cyberInputAppendBadgeText: {
-    fontSize: "9px",
+    fontSize: "8px",
     fontWeight: "700",
     color: "#cbd5e1"
   },
   cyberValidationWarningAlertBox: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    marginTop: "8px",
+    gap: "6px",
+    marginTop: "6px",
     backgroundColor: "rgba(239, 68, 68, 0.12)",
-    padding: "8px 12px",
-    borderRadius: "10px"
+    padding: "6px 10px",
+    borderRadius: "8px"
   },
   validationWarningIcon: {
-    fontSize: "12px"
+    fontSize: "10px"
   },
   validationWarningText: {
-    fontSize: "11px",
+    fontSize: "10px",
     color: "#f87171",
     fontWeight: "600"
   },
   tenureSelectionStructureBox: {
     width: "100%",
-    marginBottom: "16px"
+    marginBottom: "14px"
   },
   tenureGridSelectorLayoutMatrix: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "10px",
-    width: "100%"
+    gap: "8px"
   },
   tenureSelectorNodeItemButton: {
-    height: "60px",
-    borderRadius: "14px",
+    height: "50px",
+    borderRadius: "10px",
     border: "1px solid",
     display: "flex",
     flexDirection: "column",
@@ -1533,27 +1304,26 @@ const styles = {
     justifyContent: "center",
     cursor: "pointer",
     position: "relative",
-    gap: "2px",
-    padding: "4px"
+    padding: "2px"
   },
   tenureNodeYearLabelText: {
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "800"
   },
   tenureNodePercentageSubBadge: {
-    fontSize: "10px",
+    fontSize: "8px",
     fontWeight: "700"
   },
   tenureNodeSelectionCheckIndicatorCircle: {
     position: "absolute",
-    top: "-4px",
-    right: "-4px",
-    width: "16px",
-    height: "16px",
+    top: "-3px",
+    right: "-3px",
+    width: "14px",
+    height: "14px",
     borderRadius: "50%",
     backgroundColor: "#ffffff",
     color: "#020617",
-    fontSize: "10px",
+    fontSize: "8px",
     fontWeight: "900",
     display: "flex",
     alignItems: "center",
@@ -1562,44 +1332,45 @@ const styles = {
   paymentSummaryBox: {
     backgroundColor: "rgba(0, 210, 255, 0.04)",
     border: "1px solid rgba(0, 210, 255, 0.2)",
-    borderRadius: "14px",
-    padding: "12px 14px",
-    marginBottom: "16px",
+    borderRadius: "10px",
+    padding: "10px",
+    marginBottom: "12px",
     display: "flex",
     flexDirection: "column",
-    gap: "6px"
+    gap: "4px"
   },
   summaryRow: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    fontSize: "11px",
+    fontSize: "10px",
     color: "#cbd5e1"
   },
   adviceSystemBarWrapperBox: {
     backgroundColor: "rgba(0, 210, 255, 0.05)",
     border: "1px dashed rgba(0, 210, 255, 0.3)",
-    borderRadius: "14px",
-    padding: "12px 14px",
+    borderRadius: "10px",
+    padding: "10px",
     display: "flex",
-    alignItems: "flex-start",
-    gap: "10px"
+    alignItems: "center",
+    gap: "8px"
   },
   adviceSystemLightBulbIcon: {
-    fontSize: "16px",
+    fontSize: "14px",
     color: "#00d2ff"
   },
   adviceSystemTextBodyBlock: {
-    fontSize: "11px",
-    color: "#cbd5e1",
-    lineHeight: "1.5"
+    fontSize: "10px",
+    color: "#cbd5e1"
   },
+
+  /* SEPARATOR LINE */
   compoundingHeaderSeparatorBlock: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    margin: "20px 0 16px"
+    margin: "10px 0 16px"
   },
   separatorLineDecorativeLeft: {
     flex: 1,
@@ -1612,115 +1383,110 @@ const styles = {
     background: "linear-gradient(90deg, rgba(255,255,255,0.15), transparent)"
   },
   separatorCentralHeadlineTitleText: {
-    padding: "0 16px",
-    fontSize: "11px",
+    padding: "0 12px",
+    fontSize: "10px",
     fontWeight: "800",
-    color: "#cbd5e1",
-    letterSpacing: "2px"
+    color: "#94a3b8",
+    letterSpacing: "1.5px"
   },
-  compoundingDataDisplayRowLineOneGrid: {
+
+  /* 3RD SCREENSHOT RESTRUCTURED: 2x2 BOXES GRID (2 TOP, 2 BOTTOM) */
+  projectionFourColumnGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gridTemplateColumns: "1fr 1fr",
     gap: "16px",
     width: "100%",
-    marginBottom: "16px"
-  },
-  compoundingDataDisplayRowLineTwoGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "16px",
-    width: "100%",
-    marginBottom: "24px"
+    marginBottom: "20px"
   },
   projectionDataMetricsCardCellBlock: {
     backgroundColor: "rgba(10, 16, 30, 0.85)",
-    borderRadius: "16px",
+    borderRadius: "14px",
     border: "1px solid rgba(255,255,255,0.06)",
-    padding: "20px",
+    padding: "16px",
     display: "flex",
     flexDirection: "column",
-    gap: "10px"
+    gap: "8px"
   },
   projectionCellTopMetaLine: {
     display: "flex",
     alignItems: "center",
-    gap: "10px"
+    gap: "8px"
   },
   projectionCellIconCircleBox: {
-    width: "32px",
-    height: "32px",
-    borderRadius: "8px",
+    width: "28px",
+    height: "28px",
+    borderRadius: "6px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "16px"
+    fontSize: "14px"
   },
   projectionCellMetaTitleLabelText: {
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "700",
     color: "#ffffff"
   },
   projectionCellBigMetricValueText: {
-    fontSize: "24px",
+    fontSize: "20px",
     fontWeight: "900"
   },
   projectionCellBottomStatusBarTrack: {
     width: "100%",
-    height: "4px",
+    height: "3px",
     backgroundColor: "rgba(255,255,255,0.05)",
-    borderRadius: "4px"
+    borderRadius: "3px"
   },
   projectionCellStatusFillColorBar: {
     height: "100%",
-    borderRadius: "4px"
+    borderRadius: "3px"
   },
   projectionCellFooterNarrativeText: {
     margin: 0,
-    fontSize: "11px",
+    fontSize: "9px",
     color: "#cbd5e1"
   },
   systemAnalyticalDisclaimerBox: {
     width: "100%",
     backgroundColor: "rgba(15, 23, 42, 0.5)",
     border: "1px solid rgba(255,255,255,0.06)",
-    borderRadius: "14px",
-    padding: "14px 18px",
+    borderRadius: "12px",
+    padding: "12px",
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    marginBottom: "24px"
+    gap: "10px",
+    marginBottom: "16px"
   },
   disclaimerIconInfoBadge: {
-    width: "16px",
-    height: "16px",
+    width: "14px",
+    height: "14px",
     borderRadius: "50%",
     border: "1px solid #cbd5e1",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "10px",
+    fontSize: "9px",
     color: "#ffffff",
     fontWeight: "700",
     flexShrink: 0
   },
   disclaimerTextMessagePara: {
-    fontSize: "11px",
+    fontSize: "10px",
     color: "#ffffff",
-    lineHeight: "1.5",
+    lineHeight: "1.4",
     margin: 0
   },
   legalComplianceActionShieldContainerBox: {
     width: "100%",
-    marginBottom: "24px"
+    marginBottom: "20px"
   },
   legalInteractiveClickableRowBox: {
     backgroundColor: "rgba(13, 20, 35, 0.6)",
     border: "1px solid #475569",
-    borderRadius: "16px",
-    padding: "16px 20px",
+    borderRadius: "12px",
+    padding: "12px 16px",
     display: "flex",
     alignItems: "center",
-    gap: "14px",
+    gap: "12px",
     cursor: "pointer"
   },
   legalInteractiveClickableRowBoxActive: {
@@ -1728,9 +1494,9 @@ const styles = {
     backgroundColor: "rgba(0, 255, 163, 0.04)"
   },
   legalCustomCheckboxSquareBox: {
-    width: "18px",
-    height: "18px",
-    borderRadius: "5px",
+    width: "16px",
+    height: "16px",
+    borderRadius: "4px",
     border: "2px solid",
     display: "flex",
     alignItems: "center",
@@ -1739,7 +1505,7 @@ const styles = {
   },
   legalCheckboxCheckMarkCheck: {
     color: "#020617",
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "900"
   },
   legalTextStatementColumnLabelBlock: {
@@ -1747,94 +1513,44 @@ const styles = {
   },
   legalMainDeclarationSentenceText: {
     margin: 0,
-    fontSize: "11px",
+    fontSize: "10px",
     color: "#ffffff",
-    lineHeight: "1.5"
+    lineHeight: "1.4"
   },
   legalHighLightHyperlinkText: {
     color: "#00ffa3",
     fontWeight: "700"
   },
   legalPaperDocumentIconBadgeUnit: {
-    fontSize: "18px",
+    fontSize: "16px",
     flexShrink: 0
   },
   ultimateLaunchButtonCentralContainerFlex: {
     width: "100%",
     display: "flex",
     justifyContent: "center",
-    marginBottom: "40px"
+    marginBottom: "20px"
   },
   ultimateLaunchCoreActionBtnElement: {
     width: "100%",
-    height: "56px",
-    borderRadius: "18px",
+    height: "48px",
+    borderRadius: "14px",
     border: "none",
     background: "linear-gradient(90deg, #00ffa3 0%, #00d2ff 50%, #3b82f6 100%)",
     color: "#020617",
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: "900",
     letterSpacing: "0.5px",
-    position: "relative",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "10px"
-  },
-  ultimateLaunchBtnGlowBackingTrack: {
-    position: "absolute",
-    inset: 0,
-    borderRadius: "18px",
-    background: "linear-gradient(90deg, #00ffa3 0%, #00d2ff 50%, #3b82f6 100%)",
-    filter: "blur(8px)",
-    opacity: 0.6,
-    zIndex: -1
+    gap: "8px"
   },
   ultimateLaunchBtnIconBadgeNode: {
-    fontSize: "18px"
+    fontSize: "16px"
   },
   ultimateLaunchBtnMainStringLabelText: {
     textShadow: "0 1px 1px rgba(255,255,255,0.3)"
-  },
-  systemCapabilitiesTripleFooterGridColumnLayout: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "16px",
-    width: "100%"
-  },
-  capabilityCellBlockNodeCard: {
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
-    border: "1px solid rgba(255,255,255,0.04)",
-    borderRadius: "16px",
-    padding: "18px",
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "14px"
-  },
-  capabilityIconCircleWrapContainer: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "16px",
-    flexShrink: 0
-  },
-  capabilityTextInformationBlockWrap: {
-    flex: 1
-  },
-  capabilityHeadingMainTextTitle: {
-    margin: "0 0 4px",
-    fontSize: "12px",
-    fontWeight: "800",
-    color: "#ffffff"
-  },
-  capabilitySubtextBodyParagraph: {
-    margin: 0,
-    fontSize: "11px",
-    color: "#cbd5e1",
-    lineHeight: "1.4"
   },
   modalSystemFallbackOverlayBlurScreen: {
     position: "fixed",
@@ -1849,59 +1565,96 @@ const styles = {
   },
   modalSystemOuterBoxArchitecture: {
     width: "100%",
-    maxWidth: "420px",
+    maxWidth: "400px",
     backgroundColor: "#0b111e",
     border: "1px solid rgba(0, 255, 163, 0.3)",
-    borderRadius: "24px",
-    padding: "24px",
-    boxShadow: "0 30px 80px rgba(0,0,0,0.8)"
+    borderRadius: "20px",
+    padding: "20px"
   },
   modalSystemHeaderTitleFlexRow: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    marginBottom: "18px"
+    gap: "10px",
+    marginBottom: "14px"
   },
   modalSystemHeaderIconBadge: {
-    fontSize: "22px",
+    fontSize: "20px",
     color: "#00ffa3"
   },
   modalSystemHeaderMainTitleHeadlineText: {
     margin: 0,
-    fontSize: "18px",
+    fontSize: "16px",
     fontWeight: "800",
     color: "#ffffff"
   },
   modalSystemInternalScrollableContentPanelBox: {
-    maxHeight: "220px",
+    maxHeight: "200px",
     overflowY: "auto",
-    paddingRight: "8px",
     display: "flex",
     flexDirection: "column",
-    gap: "12px"
+    gap: "10px"
   },
   modalSystemParagraphParaBlockText: {
     margin: 0,
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#cbd5e1",
-    lineHeight: "1.6"
+    lineHeight: "1.5"
   },
   modalSystemParagraphParaBlockTextHelpTextBangla: {
     margin: 0,
-    fontSize: "13px",
+    fontSize: "12px",
     color: "#ffffff",
-    lineHeight: "1.6"
+    lineHeight: "1.5"
   },
   modalSystemAcceptActionButtonTriggerElement: {
     width: "100%",
-    height: "48px",
-    marginTop: "20px",
+    height: "42px",
+    marginTop: "16px",
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "12px",
     background: "linear-gradient(90deg, #00ffa3, #00b876)",
     color: "#020617",
     fontWeight: "800",
-    fontSize: "13px",
+    fontSize: "12px",
     cursor: "pointer"
+  },
+  glassOverlayShield: {
+    position: "fixed",
+    inset: 0,
+    backgroundColor: "rgba(2, 4, 10, 0.85)",
+    backdropFilter: "blur(12px)",
+    zIndex: 50000,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  glassOverlayContainer: {
+    backgroundColor: "#0d1321",
+    padding: "30px",
+    borderRadius: "20px",
+    textAlign: "center",
+    border: "1px solid #334155",
+    maxWidth: "400px",
+    width: "85%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "16px"
+  },
+  glassOverlayIconFrame: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "26px",
+    fontWeight: "bold"
+  },
+  glassOverlayMessageText: {
+    fontSize: "15px",
+    color: "#ffffff",
+    margin: 0,
+    fontWeight: "700"
   }
 };
