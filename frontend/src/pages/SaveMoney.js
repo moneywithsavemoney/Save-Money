@@ -4,19 +4,28 @@ import { toast } from "react-toastify";
 import { API } from "../config";
 
 export default function SaveMoney() {
-  // ROUTING & NAVIGATION
+  // =========================================================================
+  // ROUTING & NAVIGATION FRAMEWORK INTERFACES
+  // =========================================================================
   const navigate = useNavigate();
   const location = useLocation();
 
-  // LOCAL STORAGE
+  // =========================================================================
+  // PERSISTENT MEMORY EXTRADITION SECURITY STORAGE KEYS
+  // =========================================================================
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
   const localName = localStorage.getItem("name") || "User";
 
-  // STATES
+  // =========================================================================
+  // SIDEBAR STATE
+  // =========================================================================
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
 
+  // =========================================================================
+  // REACTOR CORE STATE CONFIGURATOR INDICES
+  // =========================================================================
   const [user, setUser] = useState({});
   const [balance, setBalance] = useState(0);
   const [amount, setAmount] = useState("");
@@ -26,22 +35,33 @@ export default function SaveMoney() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // COUPON
+  // =========================================================================
+  // COUPON & DISCOUNT STATE CONFIGURATIONS
+  // =========================================================================
   const [couponCode, setCouponCode] = useState("");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [appliedCouponName, setAppliedCouponName] = useState("");
 
-  // OVERLAY & INTERACTION
+  // =========================================================================
+  // VISUAL OVERLAY SHEATH NOTIFIER STATES
+  // =========================================================================
   const [statusOverlay, setStatusOverlay] = useState({
     show: false,
     type: "info",
     message: ""
   });
+
+  // =========================================================================
+  // HOVER INTERACTIVE SELECTION MAP UNITS
+  // =========================================================================
   const [hoveredCard, setHoveredCard] = useState(null);
   const [activeInputFocus, setActiveInputFocus] = useState(false);
   const [activeCouponFocus, setActiveCouponFocus] = useState(false);
   const [hoveredTenureNode, setHoveredTenureNode] = useState(null);
 
+  // =========================================================================
+  // TRANSACTION FEEDBACK HUD EMITTER MODULE
+  // =========================================================================
   const showStatusMsg = (type, message) => {
     setStatusOverlay({ show: true, type, message });
     setTimeout(() => {
@@ -49,10 +69,16 @@ export default function SaveMoney() {
     }, 3000);
   };
 
+  // =========================================================================
+  // SCROLL TIMING CORRECTION RUNNER
+  // =========================================================================
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, []);
 
+  // =========================================================================
+  // CORE WALLET BALANCE API SYNCHRONIZER
+  // =========================================================================
   useEffect(() => {
     loadBalance();
   }, []);
@@ -70,9 +96,9 @@ export default function SaveMoney() {
 
       const data = await res.json();
       setUser(data || {});
-      setBalance(Number(data.balance || data.wallet || data.totalWallet || 4.00));
+      setBalance(Number(data.balance || data.wallet || data.totalWallet || 0));
     } catch (err) {
-      console.log("WALLETS SYNC ERROR:", err);
+      console.log("CRITICAL WALLET BALANCE SYNC ERROR:", err);
     }
   };
 
@@ -97,12 +123,14 @@ export default function SaveMoney() {
       if (email) {
         await fetch(`${API}/logout`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email })
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email: email })
         });
       }
     } catch (err) {
-      console.log("Logout error:", err);
+      console.log("Logout backend error:", err);
     } finally {
       localStorage.clear();
       navigate("/login");
@@ -110,6 +138,9 @@ export default function SaveMoney() {
     }
   };
 
+  // =========================================================================
+  // MATRIX RETRIEVAL DICTIONARY FOR YIELD PERCENTAGE INTEREST
+  // =========================================================================
   const getRate = (y) => {
     if (Number(y) === 1) return 11;
     if (Number(y) === 3) return 15;
@@ -121,6 +152,9 @@ export default function SaveMoney() {
 
   const rate = getRate(years);
 
+  // =========================================================================
+  // COUPON APPLICATION HANDLER LOGIC
+  // =========================================================================
   const handleApplyCoupon = () => {
     const code = couponCode.trim().toUpperCase();
     if (!code) {
@@ -149,6 +183,9 @@ export default function SaveMoney() {
     showStatusMsg("info", "Coupon removed");
   };
 
+  // =========================================================================
+  // MATHEMATICAL ACCELERATED COMPOUNDING CALCULATOR VECTOR ENGINE
+  // =========================================================================
   const calc = useMemo(() => {
     const monthly = Number(amount || 0);
     const annualRate = Number(rate || 0);
@@ -179,6 +216,9 @@ export default function SaveMoney() {
     };
   }, [amount, years, rate, discountAmount]);
 
+  // =========================================================================
+  // HIGH DEFINITION LOCAL CURRENCY CONVERTER FORMATTER (INR)
+  // =========================================================================
   const money = (n) => {
     return `₹ ${Number(n || 0).toLocaleString("en-IN", {
       minimumFractionDigits: 2,
@@ -186,6 +226,9 @@ export default function SaveMoney() {
     })}`;
   };
 
+  // =========================================================================
+  // MODAL TRIGGER HANDLERS AND DISPATCH CONTROLLERS
+  // =========================================================================
   const openTerms = () => {
     if (accepted) {
       setAccepted(false);
@@ -194,10 +237,13 @@ export default function SaveMoney() {
     setTermsOpen(true);
   };
 
+  // =========================================================================
+  // TRANSACTION TRANSMISSION ARCHITECTURE COMMIT (API HANDLER)
+  // =========================================================================
   const confirmSip = async () => {
-    if (Number(amount) < 500) {
-      showStatusMsg("error", "Minimum SIP amount ₹500 required");
-      return toast.info("Minimum SIP amount ₹500 required");
+    if (Number(amount) < 2000) {
+      showStatusMsg("error", "Minimum SIP amount ₹2000 required");
+      return toast.info("Minimum SIP amount ₹2000 required");
     }
 
     if (!accepted) {
@@ -206,7 +252,7 @@ export default function SaveMoney() {
     }
 
     if (Number(balance) < calc.finalPayableToday) {
-      showStatusMsg("error", "Insufficient wallet balance");
+      showStatusMsg("error", "Insufficient wallet balance for discounted SIP");
       return toast.error("Insufficient wallet balance");
     }
 
@@ -253,7 +299,7 @@ export default function SaveMoney() {
         showStatusMsg("info", data.msg || "Could not complete transaction");
       }
     } catch (err) {
-      console.log("TRANSACTION ERROR:", err);
+      console.log("START SIP SYSTEM REJECTION DISPATCH ERROR:", err);
       showStatusMsg("error", "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -262,7 +308,7 @@ export default function SaveMoney() {
 
   return (
     <div style={styles.cyberPageWrapper}>
-      {/* VIRTUALIZED LAYER */}
+      {/* VIRTUALIZED LAYER INFRASTRUCTURE CORES */}
       <div style={styles.neonMatrixGrid}></div>
 
       {/* SIDEBAR DRAWER */}
@@ -280,7 +326,7 @@ export default function SaveMoney() {
             <div style={styles.drawerBrand}>
               <div style={styles.drawerLogoWrapper}>
                 <img 
-                  src="/logo512.png" 
+                  src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
                   alt="SM Logo" 
                   style={styles.drawerLogoImg} 
                   onError={(e) => { e.target.style.display = 'none'; }}
@@ -295,40 +341,224 @@ export default function SaveMoney() {
 
           <div style={styles.drawerScrollArea}>
             <div style={styles.drawerNavList}>
-              <button style={styles.drawerNavItem} onClick={() => { navigate("/home"); setSidebarOpen(false); }}>
-                <span>🏠</span> Dashboard
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDashboard,
+                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/home"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🏠</span>
+                <span style={styles.drawerNavText}>Dashboard</span>
               </button>
-              <button style={styles.drawerNavItem} onClick={() => { navigate("/my-investment"); setSidebarOpen(false); }}>
-                <span>📈</span> My Investment
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavMyInvestment,
+                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/my-investment"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📈</span>
+                <span style={styles.drawerNavText}>My Investment</span>
               </button>
-              <button style={{...styles.drawerNavItem, ...styles.drawerNavItemActive}} onClick={() => { navigate("/save-money"); setSidebarOpen(false); }}>
-                <span>💰</span> Save Money
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSaveMoney,
+                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/save-money"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>💰</span>
+                <span style={styles.drawerNavText}>Save Money</span>
               </button>
-              <button style={styles.drawerNavItem} onClick={() => { navigate("/one-time"); setSidebarOpen(false); }}>
-                <span>⚡</span> One Time
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavOneTime,
+                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/one-time"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>⚡</span>
+                <span style={styles.drawerNavText}>One Time</span>
               </button>
-              <button style={styles.drawerNavItem} onClick={() => { handleDownloadPlan(); setSidebarOpen(false); }}>
-                <span>📋</span> Plan PDF
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavPlan
+                }} 
+                onClick={() => { handleDownloadPlan(); setSidebarOpen(false); }}
+                disabled={isDownloadingPlan}
+              >
+                <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
+                <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
               </button>
-              <button style={styles.drawerNavItem} onClick={() => { navigate("/wallet"); setSidebarOpen(false); }}>
-                <span>🌐</span> Add Fund
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavAddFund,
+                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/wallet"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🌐</span>
+                <span style={styles.drawerNavText}>Add Fund</span>
               </button>
-              <button style={styles.drawerNavItem} onClick={() => { navigate("/refer"); setSidebarOpen(false); }}>
-                <span>👥</span> Refer & Earn
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavRefer,
+                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/refer"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👥</span>
+                <span style={styles.drawerNavText}>Refer & Earn</span>
               </button>
-              <button style={styles.drawerNavItem} onClick={() => { navigate("/withdraw"); setSidebarOpen(false); }}>
-                <span>➔</span> Withdraw
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavWithdraw,
+                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/withdraw"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>➔</span>
+                <span style={styles.drawerNavText}>Withdraw</span>
               </button>
-              <button style={styles.drawerNavItem} onClick={() => { navigate("/support"); setSidebarOpen(false); }}>
-                <span>🎧</span> Support
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDailyReward,
+                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/daily-reward"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎁</span>
+                <span style={styles.drawerNavText}>Daily Reward</span>
               </button>
-              <button style={styles.drawerNavItem} onClick={() => { setSidebarOpen(false); handleLogout(); }}>
-                <span>🚪</span> Logout
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavInvestmentAssistant,
+                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/investment-assistant"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>📊</span>
+                <span style={styles.drawerNavText}>Investment Assistance</span>
               </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSupport,
+                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/support"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🎧</span>
+                <span style={styles.drawerNavText}>Support</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavProfile,
+                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/kyc"); setSidebarOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>👤</span>
+                <span style={styles.drawerNavText}>Profile</span>
+              </button>
+
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavLogout
+                }} 
+                onClick={() => { setSidebarOpen(false); handleLogout(); }}
+              >
+                <span style={styles.drawerNavIcon}>🚪</span>
+                <span style={styles.drawerNavText}>Logout</span>
+              </button>
+            </div>
+
+            <div style={styles.treePlantOnlyWrapper}>
+              <img 
+                src="/tree plant.png" 
+                alt="Tree Plant" 
+                style={styles.treePlantOnlyImg}
+                onError={(e) => {
+                  if (e.target.src.includes('.png')) {
+                    e.target.src = '/tree plant.jpg';
+                  }
+                }}
+              />
             </div>
           </div>
 
         </div>
+      </div>
+
+      {/* TOP STATUS HEADER BAR (SCREENSHOT 1 MATCHED) */}
+      <div style={styles.topHeaderNavRow}>
+        <div style={styles.topNavLeftGroup}>
+          <button 
+            style={styles.hamburgerBtn}
+            onClick={() => setSidebarOpen(true)}
+          >
+            ☰
+          </button>
+          <div style={styles.statusPillBadge}>
+            <span style={styles.shieldIcon}>🛡️</span>
+            <div>
+              <div style={styles.pillTitleText}>SECURE CONNECTION</div>
+              <div style={styles.pillSubtextGreen}>SECURE</div>
+            </div>
+          </div>
+          <div style={styles.statusPillBadge}>
+            <div>
+              <div style={styles.pillTitleText}>HEALTHY - AUTO-COMPOUNDING SYSTEM</div>
+              <div style={styles.pillSubtextGreenFlex}>
+                <span style={styles.dotGreen}></span> ACTIVE
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.topNavRightGroup}>
+          <div style={styles.userProfilePill}>
+            <div style={styles.userAvatarCircle}>👤</div>
+            <div>
+              <div style={styles.userWelcomeLabel}>Welcome Back</div>
+              <div style={styles.userNameText}>{localName || "User"} ▾</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ASSISTANT CORE BANNER BUTTON */}
+      <div style={styles.assistantCoreBannerRow}>
+        <button 
+          style={styles.assistantCoreBtn}
+          onClick={() => setHelpOpen(true)}
+        >
+          <span style={styles.robotIcon}>🤖</span> ASSISTANT CORE
+        </button>
       </div>
 
       {/* STATUS OVERLAY */}
@@ -336,8 +566,15 @@ export default function SaveMoney() {
         <div style={styles.glassOverlayShield}>
           <div style={{
             ...styles.glassOverlayContainer,
-            borderBottom: statusOverlay.type === "success" ? "4px solid #00ffa3" : "4px solid #ff4a4a"
+            borderBottom: statusOverlay.type === "success" ? "4px solid #00ffa3" : statusOverlay.type === "error" ? "4px solid #ff4a4a" : "4px solid #00d2ff"
           }}>
+            <div style={{
+              ...styles.glassOverlayIconFrame,
+              backgroundColor: statusOverlay.type === "success" ? "rgba(0,255,163,0.1)" : statusOverlay.type === "error" ? "rgba(255,74,74,0.1)" : "rgba(0,210,255,0.1)",
+              color: statusOverlay.type === "success" ? "#00ffa3" : statusOverlay.type === "error" ? "#ff4a4a" : "#00d2ff"
+            }}>
+              {statusOverlay.type === "success" ? "✓" : statusOverlay.type === "error" ? "✕" : "⚡"}
+            </div>
             <p style={styles.glassOverlayMessageText}>{statusOverlay.message}</p>
           </div>
         </div>
@@ -346,75 +583,47 @@ export default function SaveMoney() {
       {/* MAIN CANVAS */}
       <div style={styles.ultimateMainCanvas}>
         
-        {/* TOP USER PROFILE HEADER */}
-        <div style={styles.topUserHeaderRow}>
-          <button style={styles.hamburgerBtn} onClick={() => setSidebarOpen(true)}>☰</button>
-          
-          <div style={styles.statusBadgeCapsule}>
-            <span style={styles.greenDot}></span>
-            <span style={styles.statusBadgeText}>SECURE CONNECTION<br/><b>SECURE</b></span>
-          </div>
-
-          <div style={styles.systemStatusTextCenter}>
-            HEALTHY - AUTO-COMPOUNDING SYSTEM<br/>
-            <span style={{color: '#00ffa3', fontWeight: 'bold'}}>● ACTIVE</span>
-          </div>
-
-          <div style={styles.userProfilePill}>
-            <div style={styles.userAvatarCircle}>👤</div>
-            <div style={styles.userInfoText}>
-              <span style={styles.welcomeText}>Welcome Back</span>
-              <span style={styles.userNameText}>{localName} ▾</span>
-            </div>
-          </div>
-        </div>
-
-        {/* HELM BUTTONS ROW */}
-        <div style={styles.controlHelmRow}>
-          <button style={styles.helmActionBtn} onClick={() => window.history.back()}>
-            <span>💼</span> RETURN DASHBOARD
-          </button>
-          
-          <button style={styles.helmHelpBtn} onClick={() => setHelpOpen(true)}>
-            <span>🤖</span> ASSISTANT CORE
-          </button>
-        </div>
-
-        {/* BRAND HEADER BANNER */}
+        {/* BRAND HEADER BANNER CARD (SCREENSHOT 1 MATCHED WITH ROTATING ANIMATION) */}
         <header style={styles.cyberBrandHeaderSection}>
-          <div style={styles.brandLeftGroup}>
+          <div style={styles.cyberHeaderLeftPart}>
+            {/* RED MARKED ANIMATED LOGO CONTAINER */}
             <div style={styles.cyberLogoHexagonWrap}>
               <div style={styles.cyberLogoCoreElement}>
                 <span style={styles.cyberLogoSymbolText}>₹</span>
               </div>
+              <div style={styles.cyberLogoOrbitLine1}></div>
+              <div style={styles.cyberLogoOrbitLine2}></div>
             </div>
-            <div style={styles.brandTitleTextGroup}>
+            <div style={styles.cyberTitleTextGroup}>
               <h1 style={styles.cyberMainTitleText}>
                 SAVE <span style={styles.cyberMainTitleHighlight}>MONEY</span>
               </h1>
               <p style={styles.cyberBrandSubtextPara}>INTELLIGENT WEALTH GENERATION SYSTEM</p>
             </div>
           </div>
-
-          <div style={styles.brandRightBannerTag}>
-            <span style={styles.planTodayText}>Plan Today 📈</span>
+          <div style={styles.cyberHeaderRightTag}>
+            <span style={styles.planTodayText}>Plan Today 🌱</span>
             <span style={styles.secureTomorrowText}>Secure Tomorrow</span>
           </div>
         </header>
 
-        {/* 1. SECURE WALLET MANAGEMENT & WALLET ACTIONS */}
-        <div style={styles.singleColumnStackedLayout}>
-          <section style={styles.cyberLuxuryCardUnit}>
-            <div style={styles.cardHeaderFlexBox}>
-              <div style={styles.cardTitleBadgeRow}>
-                <div style={styles.cardHeaderIconBoxContainer}>💳</div>
-                <h3 style={styles.cardHeaderMainTitleText}>SECURE WALLET MANAGEMENT</h3>
+        {/* SECURE WALLET MANAGEMENT CARD */}
+        <section 
+          style={{...styles.cyberLuxuryCardUnit, ...(hoveredCard === 'wallet' ? styles.cyberLuxuryCardUnitHover : {})}}
+          onMouseEnter={() => setHoveredCard('wallet')}
+          onMouseLeave={() => setHoveredCard(null)}
+        >
+          <div style={styles.walletManagementGrid}>
+            {/* LEFT SIDE: BALANCE */}
+            <div style={styles.walletLeftColumn}>
+              <div style={styles.cardHeaderFlexBox}>
+                <div style={styles.cardTitleBadgeRow}>
+                  <div style={styles.cardHeaderIconBoxContainer}>💳</div>
+                  <h3 style={styles.cardHeaderMainTitleText}>SECURE WALLET MANAGEMENT</h3>
+                </div>
+                <span style={styles.onlinePulseStatusText}>ONLINE POOL</span>
               </div>
-              <span style={styles.onlinePulseStatusText}>ONLINE POOL</span>
-            </div>
 
-            <div style={styles.walletAndActionsSplitGrid}>
-              {/* Left: Wallet Info */}
               <div style={styles.walletBalanceDisplayBlock}>
                 <div style={styles.walletMetaLabelRow}>
                   <span style={styles.walletMetaLabel}>LIQUID CAPITAL AVAILABILITY</span>
@@ -430,122 +639,177 @@ export default function SaveMoney() {
                   <span style={styles.walletCapSubtextText}>Total Capital in Pool</span>
                   <span style={styles.walletCapPercentageText}>100% Active</span>
                 </div>
-
-                {/* Promo Code Inside Left Panel as 1st Screenshot */}
-                <div style={styles.innerPromoRow}>
-                  <div style={styles.innerPromoIcon}>🪙</div>
-                  <input
-                    style={styles.innerPromoInput}
-                    type="text"
-                    value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    placeholder="Have a Promo / Coupon Code? e.g. SAVE300"
-                  />
-                  <button style={styles.innerApplyBtn} onClick={handleApplyCoupon}>APPLY</button>
-                </div>
-              </div>
-
-              {/* Right: Wallet Actions */}
-              <div style={styles.walletActionsBlock}>
-                <div style={styles.walletActionsHeader}>
-                  <span>👛 WALLET ACTIONS</span>
-                </div>
-                <p style={styles.promoActionLabel}>Enter a Promo / Coupon Code?</p>
-                <input
-                  style={styles.walletActionInput}
-                  type="text"
-                  placeholder="Enter Code Here"
-                />
-                <button style={styles.walletActionApplyBtn}>APPLY</button>
               </div>
             </div>
 
-            <button style={styles.walletActionInjectFundsBtn} onClick={() => navigate("/wallet")}>
-              📥 DEPOSIT FRESH CAPITAL INTO POOL
-            </button>
-          </section>
-
-          {/* 2. ASSET DEPLOYMENT CALIBRATION */}
-          <section style={styles.cyberLuxuryCardUnit}>
-            <div style={styles.cardHeaderFlexBox}>
-              <div style={styles.cardTitleBadgeRow}>
-                <div style={styles.cardHeaderIconBoxContainerAccent}>📈</div>
-                <h3 style={styles.cardHeaderMainTitleText}>ASSET DEPLOYMENT CALIBRATION</h3>
+            {/* RIGHT SIDE: COUPON */}
+            <div style={styles.walletRightColumn}>
+              <div style={styles.walletActionsTitle}>
+                <span style={styles.walletActionsIcon}>💼</span> WALLET ACTIONS
               </div>
-              <span style={styles.onlinePulseStatusTextAccent}>ONLINE READY</span>
+
+              <div style={styles.couponSectionContainer}>
+                <span style={styles.inputFieldMainTitleLabel}>Enter a Promo / Coupon Code?</span>
+
+                {!appliedCouponName ? (
+                  <div style={{
+                    ...styles.cyberInputWrapperGlassBox,
+                    borderColor: activeCouponFocus ? "#00ffa3" : "#1e293b"
+                  }}>
+                    <input
+                      style={styles.cyberInputActualInputElement}
+                      type="text"
+                      value={couponCode}
+                      onFocus={() => setActiveCouponFocus(true)}
+                      onBlur={() => setActiveCouponFocus(false)}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      placeholder="Enter Code Here"
+                    />
+                  </div>
+                ) : (
+                  <div style={styles.appliedCouponInfoBox}>
+                    <span style={styles.appliedCouponSuccessText}>🎟️ {appliedCouponName} (-₹{discountAmount})</span>
+                    <button style={styles.removeCouponBtn} onClick={handleRemoveCoupon}>Remove</button>
+                  </div>
+                )}
+
+                <button 
+                  style={styles.applyCouponBtnElement}
+                  onClick={handleApplyCoupon}
+                >
+                  APPLY
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* DEPOSIT BUTTON */}
+          <button 
+            style={styles.walletActionInjectFundsBtn}
+            onClick={() => navigate("/wallet")}
+          >
+            <span style={styles.btnAccentPlusSymbol}>📥</span> DEPOSIT FRESH CAPITAL INTO POOL
+          </button>
+        </section>
+
+        {/* ASSET DEPLOYMENT CALIBRATION */}
+        <section 
+          style={{...styles.cyberLuxuryCardUnit, ...(hoveredCard === 'config' ? styles.cyberLuxuryCardUnitHover : {})}}
+          onMouseEnter={() => setHoveredCard('config')}
+          onMouseLeave={() => setHoveredCard(null)}
+        >
+          <div style={styles.cardHeaderFlexBox}>
+            <div style={styles.cardTitleBadgeRow}>
+              <div style={styles.cardHeaderIconBoxContainerAccent}>📈</div>
+              <h3 style={styles.cardHeaderMainTitleText}>ASSET DEPLOYMENT CALIBRATION</h3>
+            </div>
+            <span style={styles.onlinePulseStatusTextAccent}>ONLINE READY</span>
+          </div>
+
+          <div style={styles.inputFieldComplexContainer}>
+            <div style={styles.inputFieldLabelFlexHeader}>
+              <span style={styles.inputFieldMainTitleLabel}>CHOOSE MONTHLY COMMITMENT AMOUNT</span>
+            </div>
+            <div style={{
+              ...styles.cyberInputWrapperGlassBox,
+              borderColor: activeInputFocus ? "#00ffa3" : "#1e293b"
+            }}>
+              <div style={styles.cyberInputPrependCurrencySymbol}>₹</div>
+              <input
+                style={styles.cyberInputActualInputElement}
+                type="number"
+                value={amount}
+                onFocus={() => setActiveInputFocus(true)}
+                onBlur={() => setActiveInputFocus(false)}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="Enter Custom Investment Capital"
+              />
             </div>
 
-            <div style={styles.inputFieldComplexContainer}>
-              <div style={styles.inputFieldLabelFlexHeader}>
-                <span style={styles.inputFieldMainTitleLabel}>CHOOSE MONTHLY COMMITMENT AMOUNT</span>
-                <div style={styles.bondLimitsPill}>
-                  MINIMUM BOND: ₹500<br/>MAXIMUM BOND: ₹50,000
-                </div>
+            {Number(amount || 0) > 0 && Number(amount) < 2000 && (
+              <div style={styles.cyberValidationWarningAlertBox}>
+                <span style={styles.validationWarningIcon}>⚠️</span> 
+                <span style={styles.validationWarningText}>System Threshold Warning: Minimum required configuration is ₹2000</span>
               </div>
-              
-              <div style={styles.inputWithInvestBtnRow}>
-                <div style={styles.cyberInputWrapperGlassBox}>
-                  <div style={styles.cyberInputPrependCurrencySymbol}>₹</div>
-                  <input
-                    style={styles.cyberInputActualInputElement}
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="Enter Custom Investment Capital"
-                  />
-                </div>
-                <button style={styles.investNowSideBtn} onClick={confirmSip}>INVEST NOW</button>
-              </div>
-            </div>
+            )}
+          </div>
 
-            <div style={styles.tenureSelectionStructureBox}>
+          <div style={styles.tenureSelectionStructureBox}>
+            <div style={styles.inputFieldLabelFlexHeader}>
               <span style={styles.inputFieldMainTitleLabel}>SELECT ASSET ACCUMULATION TIMEFRAME</span>
-
-              <div style={styles.tenureGridSelectorLayoutMatrix}>
-                {[1, 3, 5, 10, 15, 20].map((y) => {
-                  const isSelected = years === y;
-                  return (
-                    <button
-                      key={y}
-                      style={{
-                        ...styles.tenureSelectorNodeItemButton,
-                        border: isSelected ? "2px solid #00ffa3" : "1px solid #1e293b",
-                        background: isSelected ? "rgba(0,255,163,0.15)" : "#0b1329",
-                        color: isSelected ? "#00ffa3" : "#fff"
-                      }}
-                      onClick={() => setYears(y)}
-                    >
-                      <div style={styles.tenureNodeYearLabelText}>{y} {y === 1 ? "YEAR PLAN" : "YEARS PLAN"}</div>
-                      <div style={styles.tenureNodePercentageSubBadge}>Total Return</div>
-                      <div style={styles.tenureRateText}>{getRate(y)}%</div>
-                      {isSelected && <div style={styles.selectedCheckBadge}>✓</div>}
-                    </button>
-                  );
-                })}
-              </div>
             </div>
 
-            <div style={styles.adviceSystemBarWrapperBox}>
-              <div style={styles.adviceSystemLightBulbIcon}>💡</div>
-              <div style={styles.adviceSystemTextBodyBlock}>
-                <strong>Compounding Multiplier Area:</strong> Selection of a higher duration increases your return through compounding. Longer timeframes maximize capital growth, stability and historical performance.
-              </div>
+            <div style={styles.tenureGridSelectorLayoutMatrix}>
+              {[1, 3, 5, 10, 15, 20].map((y) => {
+                const isSelected = years === y;
+                const isNodeHovered = hoveredTenureNode === y;
+                
+                return (
+                  <button
+                    key={y}
+                    style={{
+                      ...styles.tenureSelectorNodeItemButton,
+                      backgroundColor: isSelected 
+                        ? "rgba(0, 255, 163, 0.2)" 
+                        : isNodeHovered 
+                          ? "rgba(255, 255, 255, 0.1)" 
+                          : "rgba(15, 23, 42, 0.8)",
+                      borderColor: isSelected 
+                        ? "#00ffa3" 
+                        : isNodeHovered 
+                          ? "#00d2ff" 
+                          : "#1e293b",
+                      boxShadow: isSelected 
+                        ? "0 0 15px rgba(0, 255, 163, 0.3)" 
+                        : "none"
+                    }}
+                    onMouseEnter={() => setHoveredTenureNode(y)}
+                    onMouseLeave={() => setHoveredTenureNode(null)}
+                    onClick={() => setYears(y)}
+                  >
+                    <div style={{
+                      ...styles.tenureNodeYearLabelText,
+                      color: isSelected ? "#00ffa3" : "#ffffff"
+                    }}>
+                      {y} {y === 1 ? "YEAR PLAN" : "YEARS PLAN"}
+                    </div>
+                    <div style={styles.tenureNodeReturnText}>
+                      Total Return
+                    </div>
+                    <div style={{
+                      ...styles.tenureNodePercentageSubBadge,
+                      color: isSelected ? "#00ffa3" : "#00d2ff"
+                    }}>
+                      {getRate(y)}%
+                    </div>
+                    {isSelected && <div style={styles.tenureNodeSelectionCheckIndicatorCircle}>✓</div>}
+                  </button>
+                );
+              })}
             </div>
-          </section>
-        </div>
+          </div>
 
-        {/* SECTION SEPARATOR */}
+          <div style={styles.adviceSystemBarWrapperBox}>
+            <div style={styles.adviceSystemLightBulbIcon}>💡</div>
+            <div style={styles.adviceSystemTextBodyBlock}>
+              <strong>Compounding Multiplier Area:</strong> Selection of a higher duration increases your return through compounding. Longer timeframes maximize capital growth, stability and historical performance.
+            </div>
+          </div>
+        </section>
+
+        {/* BOTTOM SECTION SEPARATOR */}
         <div style={styles.compoundingHeaderSeparatorBlock}>
           <div style={styles.separatorLineDecorativeLeft}></div>
           <span style={styles.separatorCentralHeadlineTitleText}>LIVE ASSET PROJECTION DATA SHEETS</span>
           <div style={styles.separatorLineDecorativeRight}></div>
         </div>
 
-        {/* 3. PROJECTION CARDS (1st Screenshot Layout - 2x2 Grid) */}
+        {/* 2x2 PROJECTION GRID (SCREENSHOT 1 MATCHED) */}
         <div style={styles.projectionGrid2x2Layout}>
+          
           <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "4px solid #00ffa3"}}>
             <div style={styles.projectionCellTopMetaLine}>
-              <div style={{...styles.projectionCellIconCircleBox, background: "rgba(0,255,163,0.2)", color: "#00ffa3"}}>📈</div>
+              <div style={{...styles.projectionCellIconCircleBox, color: "#00ffa3", backgroundColor: "rgba(0,255,163,0.1)"}}>📈</div>
               <span style={styles.projectionCellMetaTitleLabelText}>ESTIMATED COMPOUNDING RETURNS</span>
             </div>
             <div style={{...styles.projectionCellBigMetricValueText, color: "#00ffa3"}}>
@@ -559,7 +823,7 @@ export default function SaveMoney() {
 
           <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "4px solid #00d2ff"}}>
             <div style={styles.projectionCellTopMetaLine}>
-              <div style={{...styles.projectionCellIconCircleBox, background: "rgba(0,210,255,0.2)", color: "#00d2ff"}}>🪙</div>
+              <div style={{...styles.projectionCellIconCircleBox, color: "#00d2ff", backgroundColor: "rgba(0,210,255,0.1)"}}>👛</div>
               <span style={styles.projectionCellMetaTitleLabelText}>TOTAL REPLIED PRINCIPAL CAPITAL</span>
             </div>
             <div style={{...styles.projectionCellBigMetricValueText, color: "#00d2ff"}}>
@@ -573,7 +837,7 @@ export default function SaveMoney() {
 
           <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "4px solid #ffb800"}}>
             <div style={styles.projectionCellTopMetaLine}>
-              <div style={{...styles.projectionCellIconCircleBox, background: "rgba(255,184,0,0.2)", color: "#ffb800"}}>🏆</div>
+              <div style={{...styles.projectionCellIconCircleBox, color: "#ffb800", backgroundColor: "rgba(255,184,0,0.1)"}}>🏆</div>
               <span style={styles.projectionCellMetaTitleLabelText}>NET COMPREHENSIVE INTEREST EARNED</span>
             </div>
             <div style={{...styles.projectionCellBigMetricValueText, color: "#ffb800"}}>
@@ -587,7 +851,7 @@ export default function SaveMoney() {
 
           <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "4px solid #cc00ff"}}>
             <div style={styles.projectionCellTopMetaLine}>
-              <div style={{...styles.projectionCellIconCircleBox, background: "rgba(204,0,255,0.2)", color: "#cc00ff"}}>💎</div>
+              <div style={{...styles.projectionCellIconCircleBox, color: "#cc00ff", backgroundColor: "rgba(204,0,255,0.1)"}}>💎</div>
               <span style={styles.projectionCellMetaTitleLabelText}>ESTIMATED MATURITY ASSET VALUE</span>
             </div>
             <div style={{...styles.projectionCellBigMetricValueText, color: "#cc00ff"}}>
@@ -598,46 +862,54 @@ export default function SaveMoney() {
             </div>
             <p style={styles.projectionCellFooterNarrativeText}>Projected value at the end of the selected plan period.</p>
           </div>
+
         </div>
 
-        {/* 4. LEGAL DECLARATION */}
+        {/* LEGAL DECLARATION CARD */}
         <div style={styles.legalComplianceActionShieldContainerBox}>
           <div 
             style={{...styles.legalInteractiveClickableRowBox, ...(accepted ? styles.legalInteractiveClickableRowBoxActive : {})}}
             onClick={openTerms}
           >
-            <div style={styles.legalPaperDocumentIconBadgeUnit}>📄</div>
+            <div style={{...styles.legalPaperDocumentIconBadgeUnit}}>📄</div>
             <div style={styles.legalTextStatementColumnLabelBlock}>
               <p style={styles.legalMainDeclarationSentenceText}>
                 I hereby declare, advance and confirm that I have meticulously read, verified and mutually consented to the legally bound for this company's <span style={styles.legalHighLightHyperlinkText}>Terms & Conditions</span>, <span style={styles.legalHighLightHyperlinkText}>Asset Allocation Disclosure</span> & <span style={styles.legalHighLightHyperlinkText}>Risk Protocols</span>.
               </p>
-              <div style={styles.termsLinksFlexRow}>
-                <span style={styles.termsLinkItem}>Terms & Conditions</span> | 
-                <span style={styles.termsLinkItem}> Asset Allocation Disclosure</span> | 
-                <span style={styles.termsLinkItem}> Risk Protocols</span>
+              <div style={styles.legalSubLinksRow}>
+                <span style={styles.legalSubLink}>Terms & Conditions</span> | <span style={styles.legalSubLink}>Asset Allocation Disclosure</span> | <span style={styles.legalSubLink}>Risk Protocols</span>
               </div>
             </div>
             <div style={{
               ...styles.legalCustomCheckboxSquareBox,
               backgroundColor: accepted ? "#00ffa3" : "transparent",
-              borderColor: accepted ? "#00ffa3" : "#475569"
+              borderColor: accepted ? "#00ffa3" : "#64748b"
             }}>
               {accepted && <span style={styles.legalCheckboxCheckMarkCheck}>✓</span>}
             </div>
           </div>
         </div>
 
-        {/* LAUNCH BUTTON */}
+        {/* LAUNCH BUTTON (SCREENSHOT 1 MATCHED) */}
         <div style={styles.ultimateLaunchButtonCentralContainerFlex}>
-          <button style={styles.ultimateLaunchCoreActionBtnElement} onClick={confirmSip} disabled={loading}>
-            <span>🛡️</span>
-            <span>{loading ? "PROCESSING..." : "COMMENCE SECURE SIP DEPLOYMENT"}</span>
-            <span>➔</span>
+          <button 
+            style={{
+              ...styles.ultimateLaunchCoreActionBtnElement,
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? "not-allowed" : "pointer"
+            }} 
+            onClick={confirmSip} 
+            disabled={loading}
+          >
+            <span style={styles.ultimateLaunchBtnIconBadgeNode}>🛡️</span>
+            <span style={styles.ultimateLaunchBtnMainTitleText}>
+              {loading ? "PROCESSING..." : "COMMENCE SECURE SIP DEPLOYMENT →"}
+            </span>
           </button>
         </div>
 
-        {/* FOOTER BADGES */}
-        <div style={styles.footerSecurityBadgesRow}>
+        {/* FOOTER BAR */}
+        <div style={styles.bottomFooterInfoBar}>
           <span>🛡️ SAFE</span> | <span>TRANSPARENT</span> | <span>SUSTAINABLE</span> | <span>YOUR WEALTH, OUR PRIORITY</span>
         </div>
 
@@ -648,18 +920,18 @@ export default function SaveMoney() {
         <div style={styles.modalOverlay}>
           <div style={styles.modalCard}>
             <h3 style={{color: "#00ffa3", marginTop: 0}}>Terms & Conditions</h3>
-            <p style={{fontSize: "13px", color: "#cbd5e1", lineHeight: "1.6"}}>
-              By commencing this automated SIP deployment, you agree to lock-in funds for the selected tenure. All returns are calculated based on compounding interest rates.
+            <p style={{fontSize: "12px", color: "#cbd5e1", lineHeight: "1.5"}}>
+              By commencing this automated SIP deployment, you agree to lock-in funds for the selected tenure. Early termination might be subject to system verification protocols. All returns are calculated based on algorithmic yield structures.
             </p>
-            <div style={{display: "flex", gap: "10px", marginTop: "20px"}}>
+            <div style={{display: "flex", gap: "10px", marginTop: "15px"}}>
               <button 
-                style={{flex: 1, padding: "10px", background: "#00ffa3", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", color: "#000"}}
+                style={{flex: 1, padding: "8px", background: "#00ffa3", border: "none", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", color: "#000", fontSize: "12px"}}
                 onClick={() => { setAccepted(true); setTermsOpen(false); }}
               >
                 I Agree & Accept
               </button>
               <button 
-                style={{flex: 1, padding: "10px", background: "#334155", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", color: "#fff"}}
+                style={{flex: 1, padding: "8px", background: "#334155", border: "none", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", color: "#fff", fontSize: "12px"}}
                 onClick={() => setTermsOpen(false)}
               >
                 Cancel
@@ -674,11 +946,11 @@ export default function SaveMoney() {
         <div style={styles.modalOverlay}>
           <div style={styles.modalCard}>
             <h3 style={{color: "#00d2ff", marginTop: 0}}>Assistant Core Support</h3>
-            <p style={{fontSize: "13px", color: "#cbd5e1", lineHeight: "1.6"}}>
-              Need help regarding Save Money plans? You can reach out to our 24/7 support team via the Support section in the sidebar.
+            <p style={{fontSize: "12px", color: "#cbd5e1", lineHeight: "1.5"}}>
+              Need help regarding Save Money plans? You can reach out to our 24/7 support team via the Support section in the sidebar or check our detailed Plan PDF.
             </p>
             <button 
-              style={{width: "100%", padding: "10px", background: "#00d2ff", border: "none", borderRadius: "8px", fontWeight: "bold", cursor: "pointer", color: "#000", marginTop: "15px"}}
+              style={{width: "100%", padding: "8px", background: "#00d2ff", border: "none", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", color: "#000", marginTop: "12px", fontSize: "12px"}}
               onClick={() => setHelpOpen(false)}
             >
               Close
@@ -693,26 +965,34 @@ export default function SaveMoney() {
 const styles = {
   cyberPageWrapper: {
     minHeight: "100vh",
-    background: "#030814",
+    background: "#020712",
     color: "#ffffff",
-    padding: "10px 12px 60px",
+    padding: "10px 12px 20px",
     fontFamily: "system-ui, -apple-system, sans-serif",
-    position: "relative"
+    position: "relative",
+    overflowX: "hidden"
   },
   neonMatrixGrid: {
     position: "absolute",
     inset: 0,
     backgroundImage: "radial-gradient(rgba(0,255,163,0.03) 1px, transparent 1px)",
     backgroundSize: "20px 20px",
-    pointerEvents: "none"
+    pointerEvents: "none",
+    zIndex: 1
   },
+
   drawerOverlay: {
     position: "fixed",
-    inset: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     background: "rgba(0, 0, 0, 0.75)",
-    backdropFilter: "blur(4px)",
+    backdropFilter: "blur(6px)",
     zIndex: 100002,
-    transition: "all 0.3s"
+    display: "flex",
+    justifyContent: "flex-start",
+    transition: "opacity 0.3s ease, visibility 0.3s ease"
   },
   drawerContainer: {
     position: "fixed",
@@ -721,73 +1001,270 @@ const styles = {
     left: 0,
     background: "#08101e",
     width: "230px",
+    height: "100vh",
     padding: "12px 8px",
     display: "flex",
     flexDirection: "column",
-    zIndex: 100003,
-    transition: "transform 0.3s"
+    boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
+    borderRight: "1px solid #1e293b",
+    transform: "translateX(-100%)",
+    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    overflow: "hidden",
+    zIndex: 100003
   },
   drawerHeader: {
-    paddingBottom: "10px",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-    marginBottom: "10px"
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "10px",
+    paddingBottom: "8px",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+    flexShrink: 0
   },
   drawerBrand: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center"
+    alignItems: "center",
+    gap: "4px"
   },
   drawerLogoWrapper: {
-    width: "40px",
-    height: "40px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
-    background: "#064e3b",
+    background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
+    border: "2px solid #22c55e",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    boxShadow: "0 0 10px rgba(34, 197, 94, 0.4)"
   },
   drawerLogoImg: {
-    width: "24px",
-    height: "24px"
+    width: "26px",
+    height: "26px",
+    objectFit: "contain"
   },
   drawerLogoText: {
     margin: 0,
-    fontSize: "14px",
-    color: "#fff"
+    fontSize: "15px",
+    fontWeight: "900",
+    color: "#ffffff",
+    letterSpacing: "0.6px",
+    textAlign: "center"
   },
   drawerLogoSubtext: {
     fontSize: "10px",
-    color: "#a7f3d0"
+    color: "#a7f3d0",
+    fontWeight: "600",
+    marginTop: "1px",
+    textAlign: "center"
   },
   drawerScrollArea: {
     flex: 1,
-    overflowY: "auto"
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    paddingRight: "2px"
   },
   drawerNavList: {
     display: "flex",
     flexDirection: "column",
-    gap: "6px"
+    gap: "6px",
+    flexShrink: 0
   },
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    padding: "8px 10px",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: "6px",
-    color: "#fff",
+    gap: "8px",
+    padding: "8px 12px",
+    background: "rgba(255, 255, 255, 0.12)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    border: "1px solid rgba(255, 255, 255, 0.25)",
+    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    color: "#ffffff",
     fontSize: "12px",
-    cursor: "pointer"
+    fontWeight: "800",
+    cursor: "pointer",
+    textAlign: "left",
+    transition: "all 0.25s ease",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.5)"
   },
   drawerNavItemActive: {
-    background: "rgba(0,255,163,0.2)",
-    borderColor: "#00ffa3"
+    background: "rgba(255, 255, 255, 0.3)",
+    border: "1px solid #ffffff",
+    boxShadow: "0 0 12px rgba(255, 255, 255, 0.5)",
+    fontWeight: "900"
   },
+  drawerNavIcon: {
+    fontSize: "16px",
+    width: "20px",
+    display: "inline-block",
+    textAlign: "center"
+  },
+  drawerNavText: {
+    flex: 1,
+    fontSize: "12px",
+    letterSpacing: "0.3px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis"
+  },
+  drawerNavDashboard: { background: "rgba(59, 130, 246, 0.25)", border: "1px solid rgba(59, 130, 246, 0.5)" },
+  drawerNavMyInvestment: { background: "rgba(16, 185, 129, 0.25)", border: "1px solid rgba(16, 185, 129, 0.5)" },
+  drawerNavSaveMoney: { background: "rgba(245, 158, 11, 0.25)", border: "1px solid rgba(245, 158, 11, 0.5)" },
+  drawerNavOneTime: { background: "rgba(168, 85, 247, 0.25)", border: "1px solid rgba(168, 85, 247, 0.5)" },
+  drawerNavPlan: { background: "rgba(6, 182, 212, 0.25)", border: "1px solid rgba(6, 182, 212, 0.5)" },
+  drawerNavAddFund: { background: "rgba(20, 184, 166, 0.25)", border: "1px solid rgba(20, 184, 166, 0.5)" },
+  drawerNavRefer: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.25)", border: "1px solid rgba(249, 115, 22, 0.5)" },
+  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.25)", border: "1px solid rgba(244, 63, 94, 0.5)" },
+  drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.25)", border: "1px solid rgba(2, 132, 199, 0.5)" },
+  drawerNavSupport: { background: "rgba(99, 102, 241, 0.25)", border: "1px solid rgba(99, 102, 241, 0.5)" },
+  drawerNavProfile: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavLogout: { background: "rgba(239, 68, 68, 0.25)", border: "1px solid rgba(239, 68, 68, 0.5)" },
+
+  treePlantOnlyWrapper: {
+    width: "100%",
+    paddingTop: "6px",
+    paddingBottom: "10px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexShrink: 0
+  },
+  treePlantOnlyImg: {
+    width: "100%",
+    maxHeight: "110px",
+    objectFit: "cover",
+    borderRadius: "12px",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)"
+  },
+
+  // TOP HEADER BAR (MATCHED SCREENSHOT 1)
+  topHeaderNavRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "10px",
+    position: "relative",
+    zIndex: 2,
+    flexWrap: "wrap",
+    gap: "8px"
+  },
+  topNavLeftGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px"
+  },
+  hamburgerBtn: {
+    background: "rgba(15,23,42,0.8)",
+    border: "1px solid #1e293b",
+    color: "#fff",
+    fontSize: "16px",
+    padding: "6px 10px",
+    borderRadius: "6px",
+    cursor: "pointer"
+  },
+  statusPillBadge: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    background: "rgba(15,23,42,0.8)",
+    border: "1px solid #1e293b",
+    padding: "4px 10px",
+    borderRadius: "6px"
+  },
+  shieldIcon: {
+    fontSize: "12px"
+  },
+  pillTitleText: {
+    fontSize: "8px",
+    color: "#64748b",
+    fontWeight: "bold",
+    textTransform: "uppercase"
+  },
+  pillSubtextGreen: {
+    fontSize: "9px",
+    color: "#00ffa3",
+    fontWeight: "bold"
+  },
+  pillSubtextGreenFlex: {
+    fontSize: "9px",
+    color: "#00ffa3",
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    gap: "4px"
+  },
+  dotGreen: {
+    width: "6px",
+    height: "6px",
+    borderRadius: "50%",
+    background: "#00ffa3"
+  },
+  topNavRightGroup: {},
+  userProfilePill: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    background: "rgba(15,23,42,0.8)",
+    border: "1px solid #1e293b",
+    padding: "4px 10px",
+    borderRadius: "20px"
+  },
+  userAvatarCircle: {
+    width: "24px",
+    height: "24px",
+    borderRadius: "50%",
+    background: "#ffb800",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "12px",
+    color: "#000"
+  },
+  userWelcomeLabel: {
+    fontSize: "8px",
+    color: "#64748b"
+  },
+  userNameText: {
+    fontSize: "10px",
+    color: "#fff",
+    fontWeight: "bold"
+  },
+
+  assistantCoreBannerRow: {
+    display: "flex",
+    justifyContent: "flex-end",
+    marginBottom: "10px",
+    position: "relative",
+    zIndex: 2
+  },
+  assistantCoreBtn: {
+    background: "linear-gradient(90deg, #00d2ff, #00ffa3)",
+    border: "none",
+    color: "#000",
+    fontWeight: "900",
+    fontSize: "11px",
+    padding: "6px 20px",
+    borderRadius: "20px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  },
+  robotIcon: {
+    fontSize: "12px"
+  },
+
   glassOverlayShield: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.6)",
+    background: "rgba(2,6,23,0.7)",
+    backdropFilter: "blur(6px)",
     zIndex: 99999,
     display: "flex",
     alignItems: "center",
@@ -795,209 +1272,143 @@ const styles = {
   },
   glassOverlayContainer: {
     background: "#0f172a",
-    padding: "16px 24px",
-    borderRadius: "12px"
+    padding: "15px 25px",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.5)",
+    border: "1px solid #1e293b",
+    maxWidth: "320px"
+  },
+  glassOverlayIconFrame: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "16px",
+    fontWeight: "bold",
+    flexShrink: 0
   },
   glassOverlayMessageText: {
     margin: 0,
-    color: "#fff",
-    fontSize: "14px"
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "#fff"
   },
+
   ultimateMainCanvas: {
-    maxWidth: "800px",
-    margin: "0 auto",
     position: "relative",
-    zIndex: 2
+    zIndex: 2,
+    maxWidth: "1100px",
+    margin: "0 auto"
   },
 
-  // Top profile header
-  topUserHeaderRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "12px",
-    gap: "8px"
-  },
-  hamburgerBtn: {
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.2)",
-    color: "#fff",
-    padding: "6px 10px",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "16px"
-  },
-  statusBadgeCapsule: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    background: "rgba(0,255,163,0.08)",
-    border: "1px solid rgba(0,255,163,0.3)",
-    padding: "4px 8px",
-    borderRadius: "20px"
-  },
-  greenDot: {
-    width: "6px",
-    height: "6px",
-    borderRadius: "50%",
-    background: "#00ffa3"
-  },
-  statusBadgeText: {
-    fontSize: "9px",
-    color: "#00ffa3",
-    lineHeight: "1"
-  },
-  systemStatusTextCenter: {
-    fontSize: "9px",
-    color: "#cbd5e1",
-    textAlign: "center"
-  },
-  userProfilePill: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px"
-  },
-  userAvatarCircle: {
-    width: "28px",
-    height: "28px",
-    borderRadius: "50%",
-    background: "#1e293b",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "12px"
-  },
-  userInfoText: {
-    display: "flex",
-    flexDirection: "column"
-  },
-  welcomeText: {
-    fontSize: "8px",
-    color: "#94a3b8"
-  },
-  userNameText: {
-    fontSize: "11px",
-    fontWeight: "bold"
-  },
-
-  controlHelmRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "10px",
-    marginBottom: "15px"
-  },
-  helmActionBtn: {
-    flex: 1,
-    background: "#08152c",
-    border: "1px solid #1e3a8a",
-    color: "#fff",
-    padding: "8px 12px",
-    borderRadius: "20px",
-    fontSize: "11px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "6px"
-  },
-  helmHelpBtn: {
-    flex: 1,
-    background: "linear-gradient(90deg, #0284c7, #06b6d4)",
-    border: "none",
-    color: "#fff",
-    padding: "8px 12px",
-    borderRadius: "20px",
-    fontSize: "11px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "6px"
-  },
-
+  // SCREENSHOT 1 BRAND HEADER BANNER
   cyberBrandHeaderSection: {
-    background: "linear-gradient(135deg, #051923 0%, #032b30 100%)",
-    border: "1px solid #0f4c5c",
-    borderRadius: "14px",
-    padding: "12px 16px",
+    background: "linear-gradient(90deg, rgba(3,25,26,0.9), rgba(2,15,28,0.9))",
+    border: "1px solid rgba(0,255,163,0.2)",
+    borderRadius: "12px",
+    padding: "12px 18px",
     display: "flex",
-    alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "15px"
+    alignItems: "center",
+    marginBottom: "12px"
   },
-  brandLeftGroup: {
+  cyberHeaderLeftPart: {
     display: "flex",
     alignItems: "center",
     gap: "12px"
   },
   cyberLogoHexagonWrap: {
-    width: "42px",
-    height: "42px",
-    background: "#00ffa3",
-    borderRadius: "50%",
+    width: "48px",
+    height: "48px",
+    position: "relative",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   cyberLogoCoreElement: {
-    color: "#000"
+    width: "32px",
+    height: "32px",
+    background: "#00ffa3",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2
   },
   cyberLogoSymbolText: {
-    fontSize: "22px",
-    fontWeight: "900"
+    fontSize: "18px",
+    fontWeight: "900",
+    color: "#000"
   },
-  brandTitleTextGroup: {},
+  cyberLogoOrbitLine1: {
+    position: "absolute",
+    inset: 0,
+    border: "2px dashed #00ffa3",
+    borderRadius: "50%",
+    animation: "spinSlow 8s linear infinite"
+  },
+  cyberLogoOrbitLine2: {
+    position: "absolute",
+    inset: "-4px",
+    border: "1px solid #00d2ff",
+    borderRadius: "50%",
+    animation: "spinReverse 12s linear infinite"
+  },
+  cyberTitleTextGroup: {},
   cyberMainTitleText: {
     margin: 0,
     fontSize: "20px",
     fontWeight: "900",
-    letterSpacing: "1px"
+    letterSpacing: "1px",
+    color: "#fff"
   },
   cyberMainTitleHighlight: {
     color: "#00ffa3"
   },
   cyberBrandSubtextPara: {
     margin: 0,
-    fontSize: "9px",
-    color: "#94a3b8",
-    letterSpacing: "0.5px"
-  },
-  brandRightBannerTag: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
-    borderLeft: "2px solid #00ffa3",
-    paddingLeft: "8px"
-  },
-  planTodayText: {
-    fontSize: "10px",
-    color: "#fff",
+    fontSize: "8px",
+    color: "#64748b",
+    letterSpacing: "1px",
     fontWeight: "bold"
   },
-  secureTomorrowText: {
+  cyberHeaderRightTag: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end"
+  },
+  planTodayText: {
     fontSize: "10px",
     color: "#00ffa3",
     fontWeight: "bold"
   },
-
-  singleColumnStackedLayout: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px"
+  secureTomorrowText: {
+    fontSize: "9px",
+    color: "#fff",
+    fontWeight: "bold"
   },
+
   cyberLuxuryCardUnit: {
-    background: "#060d1f",
-    border: "1px solid #132247",
-    borderRadius: "14px",
-    padding: "14px"
+    background: "rgba(10,18,32,0.85)",
+    border: "1px solid #1e293b",
+    borderRadius: "12px",
+    padding: "14px",
+    position: "relative",
+    marginBottom: "12px"
+  },
+  cyberLuxuryCardUnitHover: {
+    borderColor: "rgba(0,255,163,0.3)"
   },
   cardHeaderFlexBox: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "12px"
+    marginBottom: "10px"
   },
   cardTitleBadgeRow: {
     display: "flex",
@@ -1011,7 +1422,8 @@ const styles = {
     borderRadius: "6px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    fontSize: "12px"
   },
   cardHeaderIconBoxContainerAccent: {
     width: "24px",
@@ -1020,59 +1432,72 @@ const styles = {
     borderRadius: "6px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    fontSize: "12px"
   },
   cardHeaderMainTitleText: {
     margin: 0,
-    fontSize: "12px",
-    fontWeight: "bold",
-    letterSpacing: "0.5px"
+    fontSize: "11px",
+    fontWeight: "900",
+    letterSpacing: "0.5px",
+    color: "#fff"
   },
   onlinePulseStatusText: {
-    fontSize: "9px",
+    fontSize: "8px",
     color: "#00ffa3",
+    fontWeight: "bold",
     background: "rgba(0,255,163,0.1)",
     padding: "2px 6px",
-    borderRadius: "10px"
+    borderRadius: "4px"
   },
   onlinePulseStatusTextAccent: {
-    fontSize: "9px",
+    fontSize: "8px",
     color: "#00d2ff",
+    fontWeight: "bold",
     background: "rgba(0,210,255,0.1)",
     padding: "2px 6px",
-    borderRadius: "10px"
+    borderRadius: "4px"
   },
 
-  walletAndActionsSplitGrid: {
+  walletManagementGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "12px",
-    marginBottom: "12px"
+    gap: "14px",
+    marginBottom: "10px"
   },
+  walletLeftColumn: {},
+  walletRightColumn: {},
+
   walletBalanceDisplayBlock: {
-    background: "#030814",
-    border: "1px solid #132247",
-    borderRadius: "10px",
+    background: "rgba(2,6,23,0.5)",
+    border: "1px solid #1e293b",
+    borderRadius: "8px",
     padding: "10px"
   },
   walletMetaLabelRow: {
     display: "flex",
     justifyContent: "space-between",
-    fontSize: "8px",
-    color: "#94a3b8",
+    alignItems: "center",
     marginBottom: "4px"
   },
-  walletMetaLabel: {},
+  walletMetaLabel: {
+    fontSize: "8px",
+    color: "#64748b",
+    fontWeight: "bold"
+  },
   walletSecureShieldTag: {
-    color: "#00ffa3"
+    fontSize: "8px",
+    color: "#00ffa3",
+    fontWeight: "bold"
   },
   walletLargeNumericalSum: {
     fontSize: "18px",
-    fontWeight: "bold",
+    fontWeight: "900",
     color: "#00ffa3",
     marginBottom: "6px"
   },
   walletProgressIndicatorTrack: {
+    width: "100%",
     height: "4px",
     background: "#1e293b",
     borderRadius: "2px",
@@ -1082,103 +1507,122 @@ const styles = {
   walletProgressIndicatorFillBar: {
     width: "100%",
     height: "100%",
-    background: "#00ffa3"
+    background: "#00ffa3",
+    borderRadius: "2px"
   },
   walletBottomCapLabelFlex: {
     display: "flex",
     justifyContent: "space-between",
     fontSize: "8px",
-    color: "#64748b",
-    marginBottom: "8px"
+    color: "#64748b"
   },
   walletCapSubtextText: {},
-  walletCapPercentageText: {},
+  walletCapPercentageText: {
+    color: "#00ffa3",
+    fontWeight: "bold"
+  },
 
-  innerPromoRow: {
+  walletActionsTitle: {
+    fontSize: "10px",
+    fontWeight: "bold",
+    color: "#00d2ff",
+    marginBottom: "8px",
     display: "flex",
     alignItems: "center",
-    background: "#091428",
+    gap: "4px"
+  },
+  walletActionsIcon: {
+    fontSize: "12px"
+  },
+  couponSectionContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px"
+  },
+  inputFieldMainTitleLabel: {
+    fontSize: "9px",
+    fontWeight: "bold",
+    color: "#cbd5e1"
+  },
+  cyberInputWrapperGlassBox: {
+    display: "flex",
+    alignItems: "center",
+    background: "rgba(2,6,23,0.6)",
     border: "1px solid #1e293b",
     borderRadius: "6px",
-    padding: "2px 6px"
+    overflow: "hidden"
   },
-  innerPromoIcon: {
+  cyberInputPrependCurrencySymbol: {
+    paddingLeft: "10px",
     fontSize: "12px",
-    marginRight: "4px"
+    fontWeight: "bold",
+    color: "#00ffa3"
   },
-  innerPromoInput: {
+  cyberInputActualInputElement: {
     flex: 1,
     background: "transparent",
     border: "none",
     color: "#fff",
-    fontSize: "9px",
+    padding: "8px 10px",
+    fontSize: "11px",
+    fontWeight: "bold",
     outline: "none"
   },
-  innerApplyBtn: {
-    background: "#00ffa3",
+  applyCouponBtnElement: {
+    background: "linear-gradient(90deg, #00ffa3, #00d2ff)",
     color: "#000",
     border: "none",
-    borderRadius: "4px",
-    fontSize: "9px",
-    fontWeight: "bold",
-    padding: "3px 8px",
-    cursor: "pointer"
+    padding: "6px 0",
+    borderRadius: "6px",
+    fontWeight: "900",
+    fontSize: "10px",
+    cursor: "pointer",
+    textAlign: "center"
   },
-
-  walletActionsBlock: {
-    background: "#030814",
-    border: "1px solid #132247",
-    borderRadius: "10px",
-    padding: "10px",
+  appliedCouponInfoBox: {
+    background: "rgba(0,255,163,0.1)",
+    border: "1px solid rgba(0,255,163,0.3)",
+    padding: "6px 10px",
+    borderRadius: "6px",
     display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    alignItems: "center"
   },
-  walletActionsHeader: {
+  appliedCouponSuccessText: {
     fontSize: "10px",
-    fontWeight: "bold",
-    color: "#00d2ff"
+    color: "#00ffa3",
+    fontWeight: "bold"
   },
-  promoActionLabel: {
-    margin: "4px 0",
-    fontSize: "9px",
-    color: "#94a3b8"
-  },
-  walletActionInput: {
-    background: "#091428",
-    border: "1px solid #1e293b",
-    borderRadius: "6px",
-    padding: "6px 8px",
-    color: "#fff",
-    fontSize: "10px",
-    outline: "none",
-    marginBottom: "6px"
-  },
-  walletActionApplyBtn: {
-    background: "#00ffa3",
+  removeCouponBtn: {
+    background: "transparent",
     border: "none",
-    borderRadius: "6px",
-    padding: "6px",
-    fontWeight: "bold",
+    color: "#ff4a4a",
     fontSize: "10px",
-    color: "#000",
+    fontWeight: "bold",
     cursor: "pointer"
   },
 
   walletActionInjectFundsBtn: {
     width: "100%",
-    background: "linear-gradient(90deg, #0284c7, #06b6d4)",
+    padding: "8px",
+    background: "linear-gradient(90deg, #00d2ff, #00ffa3)",
+    color: "#000",
     border: "none",
-    borderRadius: "20px",
-    padding: "10px",
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: "11px",
-    cursor: "pointer"
+    borderRadius: "6px",
+    fontWeight: "900",
+    fontSize: "10px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "6px"
+  },
+  btnAccentPlusSymbol: {
+    fontSize: "12px"
   },
 
   inputFieldComplexContainer: {
-    marginBottom: "12px"
+    marginBottom: "10px"
   },
   inputFieldLabelFlexHeader: {
     display: "flex",
@@ -1186,59 +1630,20 @@ const styles = {
     alignItems: "center",
     marginBottom: "6px"
   },
-  inputFieldMainTitleLabel: {
-    fontSize: "10px",
-    fontWeight: "bold",
-    color: "#cbd5e1"
-  },
-  bondLimitsPill: {
-    fontSize: "8px",
-    color: "#ffb800",
-    background: "rgba(255,184,0,0.1)",
-    padding: "2px 6px",
-    borderRadius: "4px",
-    textAlign: "right"
-  },
-  inputWithInvestBtnRow: {
-    display: "flex",
-    gap: "8px"
-  },
-  cyberInputWrapperGlassBox: {
-    flex: 1,
+  cyberValidationWarningAlertBox: {
     display: "flex",
     alignItems: "center",
-    background: "#030814",
-    border: "1px solid #132247",
-    borderRadius: "6px",
-    padding: "0 8px"
+    gap: "4px",
+    marginTop: "4px",
+    color: "#ff4a4a",
+    fontSize: "9px",
+    fontWeight: "bold"
   },
-  cyberInputPrependCurrencySymbol: {
-    color: "#00ffa3",
-    fontWeight: "bold",
-    marginRight: "6px"
-  },
-  cyberInputActualInputElement: {
-    flex: 1,
-    background: "transparent",
-    border: "none",
-    color: "#fff",
-    padding: "8px 0",
-    outline: "none",
-    fontSize: "12px"
-  },
-  investNowSideBtn: {
-    background: "#00ffa3",
-    border: "none",
-    borderRadius: "6px",
-    padding: "0 14px",
-    fontWeight: "bold",
-    fontSize: "10px",
-    color: "#000",
-    cursor: "pointer"
-  },
+  validationWarningIcon: {},
+  validationWarningText: {},
 
   tenureSelectionStructureBox: {
-    marginBottom: "12px"
+    marginBottom: "10px"
   },
   tenureGridSelectorLayoutMatrix: {
     display: "grid",
@@ -1247,37 +1652,39 @@ const styles = {
     marginTop: "6px"
   },
   tenureSelectorNodeItemButton: {
-    borderRadius: "6px",
     padding: "8px 4px",
+    borderRadius: "6px",
+    border: "1px solid",
+    cursor: "pointer",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    cursor: "pointer",
     position: "relative"
   },
   tenureNodeYearLabelText: {
+    fontSize: "8px",
+    fontWeight: "900",
+    marginBottom: "2px"
+  },
+  tenureNodeReturnText: {
+    fontSize: "7px",
+    color: "#64748b"
+  },
+  tenureNodePercentageSubBadge: {
     fontSize: "9px",
     fontWeight: "bold"
   },
-  tenureNodePercentageSubBadge: {
-    fontSize: "7px",
-    color: "#94a3b8"
-  },
-  tenureRateText: {
-    fontSize: "11px",
-    fontWeight: "bold",
-    color: "#00ffa3"
-  },
-  selectedCheckBadge: {
+  tenureNodeSelectionCheckIndicatorCircle: {
     position: "absolute",
     top: "-4px",
     right: "-4px",
-    background: "#00ffa3",
-    color: "#000",
-    borderRadius: "50%",
     width: "12px",
     height: "12px",
+    background: "#020617",
+    color: "#00ffa3",
+    border: "1px solid #00ffa3",
+    borderRadius: "50%",
     fontSize: "8px",
     display: "flex",
     alignItems: "center",
@@ -1288,15 +1695,16 @@ const styles = {
   adviceSystemBarWrapperBox: {
     display: "flex",
     gap: "8px",
-    background: "#030814",
-    border: "1px solid #132247",
-    padding: "8px",
+    background: "rgba(2,6,23,0.5)",
+    border: "1px solid #1e293b",
+    padding: "8px 10px",
     borderRadius: "6px",
     fontSize: "9px",
-    color: "#cbd5e1"
+    color: "#94a3b8"
   },
   adviceSystemLightBulbIcon: {
-    fontSize: "12px"
+    fontSize: "12px",
+    color: "#ffb800"
   },
   adviceSystemTextBodyBlock: {
     lineHeight: "1.3"
@@ -1306,35 +1714,38 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    margin: "18px 0 12px"
+    margin: "15px 0 10px"
   },
   separatorLineDecorativeLeft: {
     flex: 1,
     height: "1px",
-    background: "#132247"
+    background: "#1e293b"
   },
   separatorCentralHeadlineTitleText: {
-    fontSize: "11px",
-    fontWeight: "bold",
-    color: "#00ffa3"
+    fontSize: "10px",
+    fontWeight: "900",
+    color: "#00ffa3",
+    letterSpacing: "0.5px",
+    textAlign: "center"
   },
   separatorLineDecorativeRight: {
     flex: 1,
     height: "1px",
-    background: "#132247"
+    background: "#1e293b"
   },
 
   projectionGrid2x2Layout: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "10px",
-    marginBottom: "15px"
+    gap: "8px",
+    marginBottom: "10px"
   },
   projectionDataMetricsCardCellBlock: {
-    background: "#060d1f",
-    border: "1px solid #132247",
-    borderRadius: "10px",
-    padding: "10px"
+    background: "rgba(10,18,32,0.85)",
+    border: "1px solid #1e293b",
+    borderRadius: "8px",
+    padding: "10px",
+    position: "relative"
   },
   projectionCellTopMetaLine: {
     display: "flex",
@@ -1353,68 +1764,73 @@ const styles = {
   },
   projectionCellMetaTitleLabelText: {
     fontSize: "8px",
-    color: "#94a3b8",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    color: "#64748b",
+    textTransform: "uppercase"
   },
   projectionCellBigMetricValueText: {
-    fontSize: "16px",
-    fontWeight: "bold",
+    fontSize: "14px",
+    fontWeight: "900",
     marginBottom: "6px"
   },
   projectionCellBottomStatusBarTrack: {
+    width: "100%",
     height: "3px",
     background: "#1e293b",
     borderRadius: "2px",
     overflow: "hidden",
-    marginBottom: "6px"
+    marginBottom: "4px"
   },
   projectionCellStatusFillColorBar: {
-    height: "100%"
+    height: "100%",
+    borderRadius: "2px"
   },
   projectionCellFooterNarrativeText: {
     margin: 0,
     fontSize: "8px",
-    color: "#64748b"
+    color: "#64748b",
+    lineHeight: "1.2"
   },
 
   legalComplianceActionShieldContainerBox: {
-    marginBottom: "15px"
+    marginBottom: "10px"
   },
   legalInteractiveClickableRowBox: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    background: "#060d1f",
-    border: "1px solid #132247",
-    padding: "10px",
-    borderRadius: "10px",
+    gap: "8px",
+    background: "rgba(10,18,32,0.85)",
+    border: "1px solid #1e293b",
+    padding: "8px 10px",
+    borderRadius: "8px",
     cursor: "pointer"
   },
   legalInteractiveClickableRowBoxActive: {
     borderColor: "#00ffa3"
   },
   legalPaperDocumentIconBadgeUnit: {
-    fontSize: "16px"
+    fontSize: "14px",
+    color: "#00d2ff"
   },
   legalTextStatementColumnLabelBlock: {
     flex: 1
   },
   legalMainDeclarationSentenceText: {
     margin: 0,
-    fontSize: "9px",
+    fontSize: "8px",
     color: "#cbd5e1",
     lineHeight: "1.3"
   },
   legalHighLightHyperlinkText: {
+    color: "#00d2ff"
+  },
+  legalSubLinksRow: {
+    marginTop: "2px",
+    fontSize: "8px",
     color: "#00ffa3"
   },
-  termsLinksFlexRow: {
-    fontSize: "8px",
-    color: "#00ffa3",
-    marginTop: "4px"
-  },
-  termsLinkItem: {
-    cursor: "pointer"
+  legalSubLink: {
+    textDecoration: "underline"
   },
   legalCustomCheckboxSquareBox: {
     width: "16px",
@@ -1423,47 +1839,55 @@ const styles = {
     border: "1px solid",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    flexShrink: 0
   },
   legalCheckboxCheckMarkCheck: {
-    fontSize: "10px",
     color: "#000",
-    fontWeight: "bold"
+    fontSize: "10px",
+    fontWeight: "900"
   },
 
   ultimateLaunchButtonCentralContainerFlex: {
-    display: "flex",
-    justifyContent: "center",
-    marginBottom: "12px"
+    marginBottom: "10px"
   },
   ultimateLaunchCoreActionBtnElement: {
     width: "100%",
+    padding: "10px",
     background: "linear-gradient(90deg, #00ffa3, #00d2ff)",
-    border: "none",
-    borderRadius: "20px",
-    padding: "12px",
     color: "#000",
+    border: "none",
+    borderRadius: "8px",
     fontWeight: "900",
-    fontSize: "12px",
-    cursor: "pointer",
+    fontSize: "11px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "8px"
+    gap: "6px",
+    boxShadow: "0 4px 15px rgba(0,255,163,0.3)"
+  },
+  ultimateLaunchBtnIconBadgeNode: {
+    fontSize: "12px"
+  },
+  ultimateLaunchBtnMainTitleText: {
+    letterSpacing: "0.5px"
   },
 
-  footerSecurityBadgesRow: {
-    textAlign: "center",
-    fontSize: "9px",
+  bottomFooterInfoBar: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "6px",
+    fontSize: "8px",
     color: "#64748b",
-    letterSpacing: "0.5px"
+    fontWeight: "bold",
+    textAlign: "center"
   },
 
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.8)",
-    backdropFilter: "blur(4px)",
+    background: "rgba(2,6,23,0.8)",
+    backdropFilter: "blur(6px)",
     zIndex: 100005,
     display: "flex",
     alignItems: "center",
@@ -1473,9 +1897,27 @@ const styles = {
   modalCard: {
     background: "#0f172a",
     border: "1px solid #1e293b",
-    borderRadius: "16px",
-    padding: "20px",
-    maxWidth: "360px",
-    width: "100%"
+    borderRadius: "12px",
+    padding: "18px",
+    maxWidth: "350px",
+    width: "100%",
+    boxShadow: "0 25px 50px rgba(0,0,0,0.7)"
   }
 };
+
+const animationStyleSheet = document.createElement("style");
+animationStyleSheet.type = "text/css";
+animationStyleSheet.innerText = `
+  @keyframes spinSlow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes spinReverse {
+    0% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+  }
+`;
+if (typeof document !== "undefined") {
+  document.head.appendChild(animationStyleSheet);
+}
