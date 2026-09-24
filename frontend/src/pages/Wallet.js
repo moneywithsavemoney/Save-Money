@@ -526,7 +526,7 @@ export default function Wallet() {
       <style>{mobileResponsiveCSS}</style>
       <div style={styles.app}>
 
-        {/* SIDEBAR DRAWER (Exact copy from Home.js) */}
+        {/* SIDEBAR DRAWER */}
         <div style={{
           ...styles.drawerOverlay,
           opacity: isDrawerOpen ? 1 : 0,
@@ -858,15 +858,18 @@ export default function Wallet() {
             </div>
 
             <div style={styles.inviteCard} className="card-box-mobile">
-              <div style={styles.inviteTop}>Grow More</div>
-              <h2 style={styles.inviteTitle}>Invite Your Friends</h2>
-              <h3 style={styles.inviteTitle2}>& Earn Unlimited Rewards</h3>
-              <div style={styles.giftBox} className="gift-box-mobile">🎁</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={styles.inviteTop}>Grow More</div>
+                  <h2 style={styles.inviteTitle}>Invite Your Friends</h2>
+                  <h3 style={styles.inviteTitle2}>& Earn Unlimited Rewards</h3>
+                </div>
+                <div style={styles.giftBox} className="gift-box-mobile">🎁</div>
+              </div>
               <button style={styles.inviteBtn} className="invite-btn-mobile" onClick={openInvite}>Invite Now</button>
             </div>
           </section>
 
-          {/* WALLET HISTORY - 4th SCREENSHOT DESIGN MATCH (100% Matching image 4) */}
           <section style={styles.historyCard} className="card-box-mobile">
             <div style={styles.historyHeader} className="history-header-mobile">
               <div>
@@ -916,57 +919,38 @@ export default function Wallet() {
                 item.type ||
                 "Wallet Transaction";
 
-              const formattedDate = item.createdAt || item.date
-                ? new Date(item.createdAt || item.date).toLocaleString("en-IN", {
-                    month: "numeric",
-                    day: "numeric",
-                    year: "numeric",
-                    hour: "numeric",
-                    minute: "numeric",
-                    second: "numeric",
-                    hour12: true
-                  })
-                : "N/A";
-
               return (
                 <div
                   key={index}
-                  style={styles.historyTableRow}
+                  style={styles.clickableHistoryRow}
                   className="history-row-responsive"
                   onClick={() => setSelectedTxn({ ...item, isCredit, desc })}
                 >
-                  {/* Column 1: TYPE Badge */}
-                  <div>
-                    <span style={{
-                      ...styles.typeBadge,
-                      background: isCredit ? "#dcfce7" : "#fee2e2",
-                      color: isCredit ? "#16a34a" : "#dc2626"
-                    }}>
-                      {isCredit ? "Credit" : "Debit"}
-                    </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div
+                      style={{
+                        ...styles.typeCircle,
+                        background: isCredit ? "#dcfce7" : "#fee2e2",
+                        color: isCredit ? "#16a34a" : "#dc2626"
+                      }}
+                    >
+                      {isCredit ? "↓" : "↑"}
+                    </div>
+                    <div>
+                      <div style={styles.rowTitle}>{desc}</div>
+                      <div style={styles.rowSub}>
+                        {item.createdAt || item.date
+                          ? new Date(item.createdAt || item.date).toLocaleDateString("en-IN")
+                          : "N/A"}
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Column 2: DESCRIPTION */}
-                  <div style={styles.colDescription}>
-                    {desc}
-                  </div>
-
-                  {/* Column 3: AMOUNT */}
-                  <div style={{
-                    ...styles.colAmount,
-                    color: isCredit ? "#16a34a" : "#dc2626"
-                  }}>
-                    {isCredit ? "+" : "-"} ₹{Number(item.amount).toLocaleString("en-IN")}.00
-                  </div>
-
-                  {/* Column 4: STATUS */}
-                  <div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ color: isCredit ? "#16a34a" : "#dc2626", fontWeight: "700", fontSize: "15px" }}>
+                      {isCredit ? "+" : "-"} ₹{Number(item.amount).toLocaleString()}
+                    </div>
                     <span style={styles.successBadge}>Success</span>
-                  </div>
-
-                  {/* Column 5: DATE & TIME */}
-                  <div style={styles.colDateTime}>
-                    {formattedDate}
                   </div>
                 </div>
               );
@@ -1428,7 +1412,7 @@ const mobileResponsiveCSS = `
     .invite-btn-mobile {
       position: static !important;
       width: 100% !important;
-      margin-top: 10px;
+      margin-top: 15px !important;
     }
     .table-head-desktop {
       display: none !important;
@@ -1666,13 +1650,13 @@ const styles = {
   },
   p2pMainBtn: {
     minWidth: "100px",
-    height: "50px",
+    height: "46px",
     border: "none",
-    borderRadius: "16px",
+    borderRadius: "14px",
     background: "linear-gradient(135deg,#06b6d4,#2563eb)",
     color: "white",
     fontWeight: "900",
-    fontSize: "15px",
+    fontSize: "14px",
     boxShadow: "0 8px 20px rgba(6,182,212,.3)",
     cursor: "pointer"
   },
@@ -1725,35 +1709,14 @@ const styles = {
     fontSize: "14px",
     cursor: "pointer"
   },
-  historyTableRow: {
+  clickableHistoryRow: {
     display: "grid",
-    gridTemplateColumns: "100px 1fr 140px 100px 180px",
+    gridTemplateColumns: "1fr 1fr",
     alignItems: "center",
-    padding: "14px 12px",
-    borderBottom: "1px solid #e2e8f0",
+    justifyContent: "space-between",
+    padding: "12px 8px",
+    borderBottom: "1px solid #eef2ff",
     cursor: "pointer"
-  },
-  typeBadge: {
-    display: "inline-block",
-    padding: "4px 12px",
-    borderRadius: "12px",
-    fontSize: "13px",
-    fontWeight: "700",
-    textAlign: "center"
-  },
-  colDescription: {
-    fontSize: "14px",
-    fontWeight: "700",
-    color: "#1e293b"
-  },
-  colAmount: {
-    fontSize: "14px",
-    fontWeight: "800"
-  },
-  colDateTime: {
-    fontSize: "13px",
-    color: "#64748b",
-    fontWeight: "500"
   },
   typeCircle: {
     width: "36px",
@@ -1776,11 +1739,11 @@ const styles = {
   },
   successBadge: {
     background: "#dcfce7",
-    color: "#16a34a",
-    fontSize: "12px",
+    color: "#15803d",
+    fontSize: "10px",
     fontWeight: "800",
-    padding: "4px 10px",
-    borderRadius: "12px",
+    padding: "2px 8px",
+    borderRadius: "10px",
     display: "inline-block"
   },
   receiptContainer: {
@@ -2301,6 +2264,9 @@ const styles = {
     background: "linear-gradient(135deg,#fff4d9,#ffffff)",
     borderRadius: "20px",
     padding: "20px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
     position: "relative",
     overflow: "hidden"
   },
@@ -2319,19 +2285,20 @@ const styles = {
     margin: "4px 0"
   },
   giftBox: {
-    fontSize: "80px",
-    textAlign: "right"
+    fontSize: "70px",
+    lineHeight: "1"
   },
   inviteBtn: {
     height: "44px",
-    minWidth: "120px",
+    width: "100%",
     border: "none",
     borderRadius: "14px",
     background: "linear-gradient(135deg,#6d28d9,#ec4899)",
     color: "white",
     fontWeight: "900",
     fontSize: "14px",
-    cursor: "pointer"
+    cursor: "pointer",
+    marginTop: "15px"
   },
   historyCard: {
     background: "white",
@@ -2364,7 +2331,7 @@ const styles = {
   },
   tableHead: {
     display: "grid",
-    gridTemplateColumns: "100px 1fr 140px 100px 180px",
+    gridTemplateColumns: "70px 1.6fr 1fr 1fr 1.2fr",
     fontSize: "11px",
     fontWeight: "800",
     color: "#94a3b8",
