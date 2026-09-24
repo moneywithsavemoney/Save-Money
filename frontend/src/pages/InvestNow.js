@@ -16,7 +16,7 @@ export default function InvestNow() {
     totalInvestment: 0,
     monthlyInvestment: 0,
     totalReturn: 0,
-    returnRate: 0,
+    returnRate: 17,
     activePlan: 0
   });
 
@@ -50,7 +50,7 @@ export default function InvestNow() {
           totalInvestment: Number(data.totalInvestment || 0),
           monthlyInvestment: Number(data.monthlyInvestment || 0),
           totalReturn: Number(data.totalReturn || 0),
-          returnRate: Number(data.returnRate || 0),
+          returnRate: Number(data.returnRate || 17),
           activePlan: Number(data.activePlan || 0)
         });
       }
@@ -124,43 +124,12 @@ export default function InvestNow() {
     }
   ];
 
-  const statCards = [
-    {
-      title: "Total Invested",
-      value: money(summary.totalInvestment),
-      icon: "trend",
-      color: "#10b981"
-    },
-    {
-      title: "Total Return",
-      value: money(summary.totalReturn),
-      icon: "return",
-      color: "#3b82f6"
-    },
-    {
-      title: "Return Rate",
-      value: `${summary.returnRate}%`,
-      icon: "percent",
-      color: "#8b5cf6"
-    },
-    {
-      title: "Active Plan",
-      value: summary.activePlan,
-      icon: "calendar",
-      color: "#f59e0b"
-    }
-  ];
-
   if (loading) {
     return (
       <div style={styles.loadingPage}>
         <div style={styles.loadingCard}>
-          <div style={styles.loadingPiggy}>
-            <PiggyArt small />
-          </div>
-
-          <h2 style={{ color: "#ffffff", margin: "10px 0 5px 0" }}>Loading Investment</h2>
-          <p style={{ color: "#9ca3af", margin: 0 }}>Please wait...</p>
+          <h2 style={{ color: "#1e293b", margin: "10px 0 5px 0" }}>Loading Investment</h2>
+          <p style={{ color: "#64748b", margin: 0 }}>Please wait...</p>
         </div>
       </div>
     );
@@ -170,292 +139,158 @@ export default function InvestNow() {
     <div style={styles.page}>
       <div style={styles.appWrap}>
 
-        {/* HERO */}
+        {/* HERO CARD */}
         <section style={styles.heroCard}>
-          <HeroNetwork />
-
           <div style={styles.heroLeft}>
             <div style={styles.heroLabelRow}>
               <p style={styles.heroLabel}>Total Investment Value</p>
-              <button
-                style={styles.eyeBtn}
-                onClick={() => setShowInvestment(!showInvestment)}
-              >
-                {showInvestment ? "👁" : "🙈"}
-              </button>
+              <span style={styles.crownBadge}>👑</span>
             </div>
 
             <h1 style={styles.heroAmount}>
               {showMoney(summary.totalInvestment)}
+              <button
+                style={styles.eyeBtn}
+                onClick={() => setShowInvestment(!showInvestment)}
+              >
+                ›
+              </button>
             </h1>
 
-            <p style={styles.heroGain}>
-              +{showInvestment ? money(summary.monthlyInvestment) : "₹ •••••"}{" "}
-              <span style={{ color: "#a7f3d0", fontSize: "14px" }}>
-                (▲ {summary.returnRate}%)
-              </span>
-            </p>
-
+            <div style={styles.heroGainRow}>
+              <span style={styles.greenTag}>📈 {summary.returnRate}%</span>
+            </div>
             <p style={styles.heroSub}>This Month Added</p>
           </div>
 
           <div style={styles.heroRight}>
-            <PiggyArt />
+            <div style={styles.piggyContainer}>
+              <div style={styles.piggyCoin}>₹</div>
+              <div style={styles.piggyIllustration}>🐷</div>
+            </div>
           </div>
         </section>
 
         {/* QUICK ACTIONS */}
         <section style={styles.quickPanel}>
-          <QuickAction
-            icon="wallet"
-            title="Add Money"
-            subtitle="Top up balance"
-            color="purple"
-            onClick={() => navigate("/wallet")}
-          />
+          <button style={styles.quickAction} onClick={() => navigate("/wallet")}>
+            <div style={styles.quickIconPurple}>👛</div>
+            <div>
+              <h3 style={styles.quickTitle}>Add Money</h3>
+              <p style={styles.quickSub}>Top up balance</p>
+            </div>
+            <span style={styles.arrowRight}>›</span>
+          </button>
 
-          <div style={styles.quickDivider}></div>
-
-          <QuickAction
-            icon="paper"
-            title="My Investments"
-            subtitle="View all plans"
-            color="green"
-            onClick={() => navigate("/my-investment")}
-          />
+          <button style={styles.quickAction} onClick={() => navigate("/my-investment")}>
+            <div style={styles.quickIconGreen}>📋</div>
+            <div>
+              <h3 style={styles.quickTitle}>My Investments</h3>
+              <p style={styles.quickSub}>View all plans</p>
+            </div>
+            <span style={styles.arrowRight}>›</span>
+          </button>
         </section>
 
-        <SectionTitle title="Active Investment" />
+        {/* ACTIVE INVESTMENT TITLE */}
+        <div style={styles.sectionHeader}>
+          <span style={styles.line}></span>
+          <span style={styles.activeIcon}>📊</span>
+          <h2 style={styles.sectionTitleText}>Active Investment</h2>
+          <span style={styles.line}></span>
+        </div>
 
-        {/* ACTIVE INVESTMENT */}
+        {/* ACTIVE INVESTMENT CARDS */}
         <section style={styles.activeGrid}>
           {plans.map((plan) => (
-            <PlanCard key={plan.title} plan={plan} />
+            <div
+              key={plan.title}
+              style={plan.type === "save" ? styles.saveCard : styles.oneCard}
+            >
+              <div>
+                <div style={styles.cardHeaderIcon}>
+                  {plan.type === "save" ? "🌱" : "🚀"}
+                </div>
+                <h3 style={styles.planTitle}>{plan.title}</h3>
+                <span style={styles.planBadge}>{plan.subtitle}</span>
+
+                <h2 style={styles.planHeading}>{plan.heading}</h2>
+                <p style={styles.planDesc}>{plan.description}</p>
+              </div>
+
+              <button style={styles.actionBtn} onClick={plan.onClick}>
+                <span>{plan.button}</span>
+                <span style={styles.circleArrow}>›</span>
+              </button>
+            </div>
           ))}
         </section>
 
-        <SectionTitle title="Coming Soon 🕒" />
+        {/* COMING SOON TITLE */}
+        <div style={styles.sectionHeader}>
+          <span style={styles.line}></span>
+          <span style={styles.activeIcon}>🕒</span>
+          <h2 style={styles.sectionTitleText}>Coming Soon</h2>
+          <span style={styles.line}></span>
+        </div>
 
-        {/* COMING SOON */}
+        {/* COMING SOON CARDS */}
         <section style={styles.comingGrid}>
           {comingCards.map((item) => (
-            <ComingCard key={item.title} item={item} onClick={comingSoon} />
+            <div key={item.title} style={styles.comingCard} onClick={comingSoon}>
+              <span style={styles.pinkRibbon}>Coming Soon</span>
+              <div style={styles.comingIconCircle}>
+                {item.icon === "gold" ? "🪙" : item.icon === "silver" ? "🧱" : "🔄"}
+              </div>
+              <h4 style={styles.comingTitle}>{item.title}</h4>
+              <p style={styles.comingDesc}>{item.text}</p>
+
+              <div style={styles.comingBtnWrapper}>
+                <button style={styles.comingPillBtn}>
+                  🕒 Coming Soon
+                </button>
+              </div>
+            </div>
           ))}
         </section>
 
-        {/* MOTIVATION */}
-        <section style={styles.motivationCard}>
-          <div style={styles.trophyIcon}>🏆</div>
-          <div style={styles.motivationText}>
-            <h2 style={{ margin: "0 0 5px 0", fontSize: "18px", fontWeight: "bold" }}>
-              Discipline Today, Wealth Tomorrow.
-            </h2>
-            <p style={{ margin: 0, opacity: 0.8, fontSize: "13px" }}>
-              Small steps now, big freedom later.
-            </p>
+        {/* MOTIVATION BANNER */}
+        <section style={styles.motivationBanner}>
+          <span style={styles.trophy}>🏆</span>
+          <div>
+            <h3 style={styles.motivationHeading}>Discipline Today, Wealth Tomorrow.</h3>
+            <p style={styles.motivationSub}>Small steps now, big freedom later.</p>
+          </div>
+          <span style={styles.bannerArrow}>›</span>
+        </section>
+
+        {/* BOTTOM STATS */}
+        <section style={styles.bottomStats}>
+          <div style={styles.statBox}>
+            <div style={{ ...styles.statIcon, background: "#10b981" }}>📈</div>
+            <div>
+              <p style={styles.statLabel}>Total Invested</p>
+              <p style={styles.statValue}>{money(summary.totalInvestment)}</p>
+            </div>
+          </div>
+
+          <div style={styles.statBox}>
+            <div style={{ ...styles.statIcon, background: "#3b82f6" }}>₹</div>
+            <div>
+              <p style={styles.statLabel}>Total Return</p>
+              <p style={styles.statValue}>{money(summary.totalReturn)}</p>
+            </div>
+          </div>
+
+          <div style={styles.statBox}>
+            <div style={{ ...styles.statIcon, background: "#8b5cf6" }}>%</div>
+            <div>
+              <p style={styles.statLabel}>Return Rate</p>
+              <p style={styles.statValue}>{summary.returnRate}%</p>
+            </div>
           </div>
         </section>
 
-        {/* STATS */}
-        <section style={styles.statsPanel}>
-          {statCards.map((stat) => (
-            <MiniStat key={stat.title} stat={stat} />
-          ))}
-        </section>
-
-      </div>
-    </div>
-  );
-}
-
-function HeroNetwork() {
-  return (
-    <div style={styles.networkLayer}>
-      <span style={styles.netDotA}></span>
-      <span style={styles.netDotB}></span>
-      <span style={styles.netCircleA}></span>
-    </div>
-  );
-}
-
-function PiggyArt({ small }) {
-  return (
-    <div style={small ? styles.piggySmallStage : styles.piggyStage}>
-      <div style={styles.pigCoin}>₹</div>
-      <div style={small ? styles.pigBodySmall : styles.pigBody}>
-        <span style={styles.pigEarLeft}></span>
-        <span style={styles.pigEarRight}></span>
-        <span style={styles.pigEyeLeft}></span>
-        <span style={styles.pigEyeRight}></span>
-        <span style={styles.pigNose}>••</span>
-        <span style={styles.pigLegLeft}></span>
-        <span style={styles.pigLegRight}></span>
-        <span style={styles.pigTail}>↺</span>
-      </div>
-    </div>
-  );
-}
-
-function QuickAction({ icon, title, subtitle, color, onClick }) {
-  const iconStyle =
-    color === "purple" ? styles.quickIconPurple : styles.quickIconGreen;
-
-  return (
-    <button style={styles.quickAction} onClick={onClick}>
-      <div style={iconStyle}>{icon === "wallet" ? "💳" : "📋"}</div>
-      <div>
-        <h3 style={{ margin: "0 0 2px 0", fontSize: "15px", color: "#ffffff", fontWeight: "bold" }}>{title}</h3>
-        <p style={{ margin: 0, fontSize: "12px", color: "#9ca3af" }}>{subtitle}</p>
-      </div>
-    </button>
-  );
-}
-
-function SectionTitle({ title }) {
-  return (
-    <div style={styles.sectionTitle}>
-      <div style={styles.sectionLineLeft}></div>
-      <h2 style={{ color: "#ffffff", margin: 0, fontSize: "18px", fontWeight: "bold" }}>{title}</h2>
-      <div style={styles.sectionLineRight}></div>
-    </div>
-  );
-}
-
-function PlanCard({ plan }) {
-  const isSave = plan.type === "save";
-
-  return (
-    <div style={isSave ? styles.savePlanCard : styles.onePlanCard}>
-      <div style={styles.planGlow}></div>
-
-      <div style={styles.planTop}>
-        <div style={styles.planImageCircle}>
-          {plan.icon === "plant" ? (
-            <div style={styles.plantArt}>
-              <span style={styles.plantStem}></span>
-              <span style={styles.plantLeafLeft}></span>
-              <span style={styles.plantLeafRight}></span>
-              <span style={styles.plantPot}></span>
-              <span style={styles.plantCoin}>₹</span>
-            </div>
-          ) : (
-            <div style={styles.rocketArt}>
-              <span style={styles.rocketBody}></span>
-              <span style={styles.rocketWindow}></span>
-              <span style={styles.rocketFinLeft}></span>
-              <span style={styles.rocketFinRight}></span>
-              <span style={styles.rocketFire}></span>
-            </div>
-          )}
-        </div>
-
-        <div style={styles.planHeadingBox}>
-          <h1 style={{ margin: 0, fontSize: "16px", fontWeight: "bold", color: "#ffffff" }}>{plan.title}</h1>
-          <span style={styles.planSubtitleYellow}>{plan.subtitle}</span>
-        </div>
-      </div>
-
-      <div style={styles.planContent}>
-        <h2 style={styles.planContent_h2}>{plan.heading}</h2>
-        <p style={styles.planContent_p}>{plan.description}</p>
-      </div>
-
-      <button
-        style={{
-          ...styles.planButton,
-          color: isSave ? "#059669" : "#2563eb",
-          background: "#1f2937"
-        }}
-        onClick={plan.onClick}
-      >
-        <span style={{ color: "#ffffff" }}>{plan.button}</span>
-        <b
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "24px",
-            height: "24px",
-            borderRadius: "50%",
-            color: "#ffffff",
-            background: isSave
-              ? "linear-gradient(135deg,#10b981,#059669)"
-              : "linear-gradient(135deg,#3b82f6,#2563eb)"
-          }}
-        >
-          ›
-        </b>
-      </button>
-    </div>
-  );
-}
-
-function ComingCard({ item, onClick }) {
-  const cardStyle =
-    item.theme === "gold"
-      ? styles.comingGold
-      : item.theme === "silver"
-      ? styles.comingSilver
-      : styles.comingRd;
-
-  return (
-    <button style={{ ...styles.comingCard, ...cardStyle }} onClick={onClick}>
-      <div style={styles.comingRibbon}>Coming Soon</div>
-
-      <div style={styles.comingIconCircle}>
-        {item.icon === "gold" && <GoldIcon />}
-        {item.icon === "silver" && <SilverIcon />}
-        {item.icon === "piggy" && <MiniPiggy />}
-      </div>
-
-      <h3 style={{ margin: "10px 0 4px 0", fontSize: "15px", color: "#ffffff", fontWeight: "bold" }}>{item.title}</h3>
-      <p style={{ margin: "0 0 35px 0", fontSize: "12px", color: "#9ca3af", lineHeight: "1.3" }}>{item.text}</p>
-
-      <div style={styles.comingButton}>🕒 Coming Soon</div>
-    </button>
-  );
-}
-
-function GoldIcon() {
-  return (
-    <div style={styles.goldIcon}>
-      <span>₹</span>
-    </div>
-  );
-}
-
-function SilverIcon() {
-  return (
-    <div style={styles.silverIcon}>
-      <span>₹</span>
-    </div>
-  );
-}
-
-function MiniPiggy() {
-  return (
-    <div style={styles.miniPiggy}>
-      <div style={styles.miniPigBody}>
-        <span style={styles.miniPigEye}></span>
-        <span style={styles.miniPigNose}>•</span>
-      </div>
-    </div>
-  );
-}
-
-function MiniStat({ stat }) {
-  return (
-    <div style={styles.miniStat}>
-      <div style={{ ...styles.miniIcon, background: stat.color }}>
-        {stat.icon === "trend" && "↗"}
-        {stat.icon === "return" && "₹"}
-        {stat.icon === "percent" && "%"}
-        {stat.icon === "calendar" && "▣"}
-      </div>
-
-      <div>
-        <p style={{ margin: "0 0 2px 0", fontSize: "11px", color: "#9ca3af" }}>{stat.title}</p>
-        <h3 style={{ margin: 0, fontSize: "14px", color: "#ffffff", fontWeight: "bold" }}>{stat.value}</h3>
       </div>
     </div>
   );
@@ -464,10 +299,9 @@ function MiniStat({ stat }) {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(180deg, #0f172a, #020617)",
+    background: "#f0f4f9", // Light clean background like 1st image
     padding: "12px",
-    fontFamily: "Arial, sans-serif",
-    color: "#f8fafc"
+    fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
   },
 
   appWrap: {
@@ -478,760 +312,468 @@ const styles = {
 
   loadingPage: {
     minHeight: "100vh",
-    background: "#0f172a",
+    background: "#f0f4f9",
     display: "flex",
     justifyContent: "center",
     alignItems: "center"
   },
 
   loadingCard: {
-    background: "#1e293b",
+    background: "#ffffff",
     padding: "24px",
     borderRadius: "20px",
-    textAlign: "center",
-    boxShadow: "0 18px 45px rgba(0,0,0,.4)"
+    textAlign: "center"
   },
 
-  loadingPiggy: {
-    display: "flex",
-    justifyContent: "center",
-    marginBottom: "12px"
-  },
-
+  /* HERO CARD */
   heroCard: {
     borderRadius: "24px",
-    background: "linear-gradient(135deg,#31108f,#5b21b6,#db2777)",
-    position: "relative",
-    overflow: "hidden",
+    background: "linear-gradient(135deg, #2563eb, #7c3aed, #ec4899)", // Vibrant gradient as image 1
     padding: "20px",
-    color: "white",
-    boxShadow: "0 15px 30px rgba(0,0,0,.4)",
+    color: "#ffffff",
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center"
-  },
-
-  networkLayer: {
-    position: "absolute",
-    inset: 0,
-    opacity: 0.2
-  },
-
-  netDotA: {
-    position: "absolute",
-    top: "20px",
-    right: "100px",
-    width: "8px",
-    height: "8px",
-    borderRadius: "50%",
-    background: "white"
-  },
-
-  netDotB: {
-    position: "absolute",
-    bottom: "20px",
-    left: "40px",
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%",
-    background: "#facc15"
-  },
-
-  netCircleA: {
-    position: "absolute",
-    right: "-20px",
-    top: "-20px",
-    width: "120px",
-    height: "120px",
-    border: "1px solid rgba(255,255,255,0.2)",
-    borderRadius: "50%"
+    alignItems: "center",
+    boxShadow: "0 10px 25px rgba(37, 99, 235, 0.2)"
   },
 
   heroLeft: {
-    position: "relative",
-    zIndex: 5,
     flex: 1
   },
 
   heroLabelRow: {
     display: "flex",
     alignItems: "center",
-    gap: "8px"
+    gap: "6px"
   },
 
   heroLabel: {
     margin: 0,
+    fontSize: "15px",
+    fontWeight: "600",
+    opacity: 0.95
+  },
+
+  crownBadge: {
     fontSize: "14px",
-    opacity: 0.9,
-    fontWeight: "600"
+    background: "rgba(255, 255, 255, 0.2)",
+    borderRadius: "50%",
+    padding: "2px 4px"
   },
 
   heroAmount: {
-    margin: "8px 0 4px",
-    fontSize: "28px",
-    fontWeight: "900",
-    letterSpacing: "0.5px"
+    margin: "6px 0",
+    fontSize: "26px",
+    fontWeight: "800",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px"
   },
 
-  heroGain: {
-    margin: 0,
-    color: "#34d399",
-    fontSize: "15px",
+  eyeBtn: {
+    background: "none",
+    border: "none",
+    color: "#ffffff",
+    fontSize: "20px",
+    cursor: "pointer",
+    padding: 0
+  },
+
+  heroGainRow: {
+    marginTop: "4px"
+  },
+
+  greenTag: {
+    background: "rgba(16, 185, 129, 0.25)",
+    color: "#a7f3d0",
+    padding: "3px 8px",
+    borderRadius: "12px",
+    fontSize: "13px",
     fontWeight: "700"
   },
 
   heroSub: {
-    marginTop: "4px",
+    marginTop: "6px",
     fontSize: "12px",
-    opacity: 0.8
+    opacity: 0.8,
+    margin: "4px 0 0 0"
   },
 
   heroRight: {
-    position: "relative",
-    zIndex: 5,
     width: "90px",
     display: "flex",
     justifyContent: "center"
   },
 
-  piggyStage: {
-    position: "relative",
-    width: "85px",
-    height: "70px"
+  piggyContainer: {
+    position: "relative"
   },
 
-  piggySmallStage: {
-    position: "relative",
-    width: "85px",
-    height: "70px",
-    margin: "0 auto"
-  },
-
-  pigCoin: {
-    position: "absolute",
-    top: "-6px",
-    left: "30px",
-    width: "24px",
-    height: "24px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg,#fde047,#f59e0b)",
-    color: "#92400e",
-    border: "2px solid #fef3c7",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    fontWeight: "900",
-    fontSize: "13px",
-    zIndex: 8
-  },
-
-  pigBody: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    width: "80px",
-    height: "52px",
-    background: "linear-gradient(135deg,#ffb3c6,#f43f5e)",
-    borderRadius: "35px 38px 28px 28px",
-    boxShadow: "inset -5px -4px 0 rgba(0,0,0,.2)"
-  },
-
-  pigBodySmall: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    width: "80px",
-    height: "52px",
-    background: "linear-gradient(135deg,#ffb3c6,#f43f5e)",
-    borderRadius: "35px 38px 28px 28px",
-    boxShadow: "inset -5px -4px 0 rgba(0,0,0,.2)"
-  },
-
-  pigEarLeft: {
+  piggyCoin: {
     position: "absolute",
     top: "-10px",
-    left: "15px",
-    width: "18px",
-    height: "18px",
-    background: "#ff758f",
-    borderRadius: "6px 14px 6px 14px",
-    transform: "rotate(28deg)"
-  },
-
-  pigEarRight: {
-    position: "absolute",
-    top: "-8px",
-    right: "14px",
-    width: "15px",
-    height: "15px",
-    background: "#ff758f",
-    borderRadius: "6px 12px 6px 12px",
-    transform: "rotate(45deg)"
-  },
-
-  pigEyeLeft: {
-    position: "absolute",
-    top: "16px",
-    left: "45px",
-    width: "4px",
-    height: "4px",
-    background: "#111827",
-    borderRadius: "50%"
-  },
-
-  pigEyeRight: {
-    position: "absolute",
-    top: "16px",
-    left: "58px",
-    width: "4px",
-    height: "4px",
-    background: "#111827",
-    borderRadius: "50%"
-  },
-
-  pigNose: {
-    position: "absolute",
-    right: "-5px",
-    top: "22px",
-    width: "22px",
-    height: "16px",
-    background: "#f43f5e",
+    right: "15px",
+    background: "#facc15",
+    color: "#854d0e",
     borderRadius: "50%",
-    color: "#7f1d1d",
-    fontSize: "7px",
+    width: "22px",
+    height: "22px",
     display: "flex",
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "center"
+    fontWeight: "bold",
+    fontSize: "12px",
+    border: "2px solid #ffffff"
   },
 
-  pigLegLeft: {
-    position: "absolute",
-    bottom: "-4px",
-    left: "20px",
-    width: "12px",
-    height: "10px",
-    background: "#f43f5e",
-    borderRadius: "0 0 5px 5px"
+  piggyIllustration: {
+    fontSize: "60px"
   },
 
-  pigLegRight: {
-    position: "absolute",
-    bottom: "-4px",
-    right: "20px",
-    width: "12px",
-    height: "10px",
-    background: "#f43f5e",
-    borderRadius: "0 0 5px 5px"
-  },
-
-  pigTail: {
-    position: "absolute",
-    left: "-8px",
-    top: "20px",
-    color: "#f43f5e",
-    fontSize: "14px",
-    fontWeight: "900"
-  },
-
+  /* QUICK ACTIONS */
   quickPanel: {
-    padding: "16px",
-    background: "#1e293b",
-    borderRadius: "20px",
+    background: "#ffffff",
+    borderRadius: "18px",
+    padding: "12px 16px",
     margin: "14px 0",
     display: "grid",
-    gridTemplateColumns: "1fr 1px 1fr",
-    alignItems: "center",
-    gap: "10px",
-    boxShadow: "0 8px 20px rgba(0,0,0,.2)"
-  },
-
-  quickDivider: {
-    height: "36px",
-    background: "#334155"
+    gridTemplateColumns: "1fr 1fr",
+    gap: "12px",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.03)"
   },
 
   quickAction: {
+    background: "#none",
     border: "none",
-    background: "transparent",
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    color: "#ffffff",
-    textAlign: "left",
     cursor: "pointer",
-    padding: 0
+    textAlign: "left",
+    padding: "4px"
   },
 
   quickIconPurple: {
-    width: 40,
-    height: 40,
+    width: "38px",
+    height: "38px",
     borderRadius: "12px",
-    background: "linear-gradient(135deg,#6d28d9,#8b5cf6)",
-    color: "white",
+    background: "#8b5cf6",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 18
+    color: "#ffffff",
+    fontSize: "18px"
   },
 
   quickIconGreen: {
-    width: 40,
-    height: 40,
+    width: "38px",
+    height: "38px",
     borderRadius: "12px",
-    background: "linear-gradient(135deg,#059669,#10b981)",
-    color: "white",
+    background: "#10b981",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: 18
+    color: "#ffffff",
+    fontSize: "18px"
   },
 
-  sectionTitle: {
-    margin: "20px 0 14px",
+  quickTitle: {
+    margin: 0,
+    fontSize: "14px",
+    fontWeight: "700",
+    color: "#0f172a"
+  },
+
+  quickSub: {
+    margin: 0,
+    fontSize: "11px",
+    color: "#64748b"
+  },
+
+  arrowRight: {
+    marginLeft: "auto",
+    color: "#94a3b8",
+    fontSize: "18px"
+  },
+
+  /* SECTION HEADERS */
+  sectionHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "12px"
+    gap: "8px",
+    margin: "18px 0 12px 0"
   },
 
-  sectionLineLeft: {
+  line: {
     flex: 1,
-    height: "2px",
-    borderRadius: "10px",
-    background: "linear-gradient(90deg,transparent,#6d28d9)"
+    height: "1px",
+    background: "#cbd5e1"
   },
 
-  sectionLineRight: {
-    flex: 1,
-    height: "2px",
-    borderRadius: "10px",
-    background: "linear-gradient(90deg,#6d28d9,transparent)"
+  activeIcon: {
+    fontSize: "16px"
   },
 
+  sectionTitleText: {
+    fontSize: "16px",
+    fontWeight: "800",
+    color: "#0f172a",
+    margin: 0
+  },
+
+  /* ACTIVE INVESTMENT CARDS */
   activeGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gridTemplateColumns: "1fr 1fr",
     gap: "12px"
   },
 
-  savePlanCard: {
-    background: "linear-gradient(135deg,#065f46,#047857)",
+  saveCard: {
+    background: "linear-gradient(180deg, #10b981, #047857)",
     borderRadius: "20px",
     padding: "16px",
-    position: "relative",
-    overflow: "hidden",
+    color: "#ffffff",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    minHeight: "220px"
+    minHeight: "240px"
   },
 
-  onePlanCard: {
-    background: "linear-gradient(135deg,#1e3a8a,#1d4ed8)",
+  oneCard: {
+    background: "linear-gradient(180deg, #3b82f6, #1d4ed8)",
     borderRadius: "20px",
     padding: "16px",
-    position: "relative",
-    overflow: "hidden",
+    color: "#ffffff",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    minHeight: "220px"
+    minHeight: "240px"
   },
 
-  planGlow: {
-    position: "absolute",
-    right: "-30px",
-    top: "-30px",
-    width: "100px",
-    height: "100px",
-    background: "rgba(255,255,255,.08)",
-    borderRadius: "50%"
-  },
-
-  planTop: {
-    position: "relative",
-    zIndex: 2,
+  cardHeaderIcon: {
+    width: "42px",
+    height: "42px",
+    background: "rgba(255,255,255,0.2)",
+    borderRadius: "50%",
     display: "flex",
-    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "20px",
+    marginBottom: "8px"
+  },
+
+  planTitle: {
+    margin: 0,
+    fontSize: "15px",
+    fontWeight: "800",
+    letterSpacing: "0.5px"
+  },
+
+  planBadge: {
+    display: "inline-block",
+    background: "#fef08a",
+    color: "#854d0e",
+    fontSize: "10px",
+    fontWeight: "800",
+    padding: "2px 8px",
+    borderRadius: "10px",
+    marginTop: "4px"
+  },
+
+  planHeading: {
+    fontSize: "15px",
+    fontWeight: "800",
+    marginTop: "12px",
+    marginBottom: "4px",
+    lineHeight: "1.2"
+  },
+
+  planDesc: {
+    fontSize: "11px",
+    opacity: 0.9,
+    margin: 0,
+    lineHeight: "1.3"
+  },
+
+  actionBtn: {
+    background: "#0f172a",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "20px",
+    padding: "8px 12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    fontWeight: "700",
+    fontSize: "12px",
+    cursor: "pointer",
+    marginTop: "12px"
+  },
+
+  circleArrow: {
+    background: "rgba(255,255,255,0.2)",
+    borderRadius: "50%",
+    width: "18px",
+    height: "18px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "12px"
+  },
+
+  /* COMING SOON CARDS */
+  comingGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
     gap: "8px"
   },
 
-  planImageCircle: {
-    width: "60px",
-    height: "60px",
-    borderRadius: "50%",
-    background: "#1f2937",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-
-  planHeadingBox: {
-    textAlign: "left",
-    color: "white"
-  },
-
-  plantArt: {
-    position: "relative",
-    width: "40px",
-    height: "40px"
-  },
-
-  plantStem: {
-    position: "absolute",
-    left: "19px",
-    top: "10px",
-    width: "3px",
-    height: "18px",
-    background: "#059669"
-  },
-
-  plantLeafLeft: {
-    position: "absolute",
-    left: "8px",
-    top: "12px",
-    width: "14px",
-    height: "9px",
-    background: "#10b981",
-    borderRadius: "100% 0 100% 0",
-    transform: "rotate(-20deg)"
-  },
-
-  plantLeafRight: {
-    position: "absolute",
-    right: "6px",
-    top: "8px",
-    width: "15px",
-    height: "10px",
-    background: "#34d399",
-    borderRadius: "0 100% 0 100%",
-    transform: "rotate(20deg)"
-  },
-
-  plantPot: {
-    position: "absolute",
-    bottom: "4px",
-    left: "11px",
-    width: "19px",
-    height: "12px",
-    background: "#ea580c",
-    borderRadius: "0 0 6px 6px"
-  },
-
-  plantCoin: {
-    position: "absolute",
-    right: "0px",
-    bottom: "3px",
-    width: "14px",
-    height: "14px",
-    borderRadius: "50%",
-    background: "#facc15",
-    color: "#92400e",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    fontWeight: "900",
-    fontSize: "9px"
-  },
-
-  rocketArt: {
-    position: "relative",
-    width: "40px",
-    height: "40px"
-  },
-
-  rocketBody: {
-    position: "absolute",
-    left: "14px",
-    top: "4px",
-    width: "14px",
-    height: "26px",
-    background: "linear-gradient(180deg,#f0f9ff,#7dd3fc)",
-    borderRadius: "50% 50% 8px 8px",
-    transform: "rotate(25deg)"
-  },
-
-  rocketWindow: {
-    position: "absolute",
-    left: "20px",
-    top: "12px",
-    width: "6px",
-    height: "6px",
-    background: "#1d4ed8",
-    borderRadius: "50%"
-  },
-
-  rocketFinLeft: {
-    position: "absolute",
-    left: "10px",
-    bottom: "10px",
-    width: "8px",
-    height: "8px",
-    background: "#dc2626",
-    clipPath: "polygon(100% 0,0 100%,100% 100%)"
-  },
-
-  rocketFinRight: {
-    position: "absolute",
-    right: "8px",
-    bottom: "8px",
-    width: "8px",
-    height: "8px",
-    background: "#dc2626",
-    clipPath: "polygon(0 0,0 100%,100% 100%)"
-  },
-
-  rocketFire: {
-    position: "absolute",
-    left: "8px",
-    bottom: "2px",
-    width: "14px",
-    height: "14px",
-    background: "linear-gradient(180deg,#facc15,#ea580c)",
-    borderRadius: "50% 50% 50% 0",
-    transform: "rotate(30deg)"
-  },
-
-  planContent: {
-    position: "relative",
-    zIndex: 2,
-    color: "white",
-    margin: "10px 0"
-  },
-
-  planContent_h2: {
-    margin: "0 0 6px 0",
-    fontSize: "18px",
-    lineHeight: "1.2",
-    fontWeight: "800"
-  },
-
-  planContent_p: {
-    margin: 0,
-    fontSize: "12px",
-    lineHeight: "1.3",
-    opacity: 0.8
-  },
-
-  planButton: {
-    width: "100%",
-    height: "40px",
-    border: "none",
-    borderRadius: "12px",
-    fontSize: "14px",
-    fontWeight: "800",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "0 12px",
-    cursor: "pointer",
-    boxShadow: "0 4px 12px rgba(0,0,0,.2)"
-  },
-
-  comingGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
-    gap: "10px"
-  },
-
   comingCard: {
-    border: "none",
-    borderRadius: "18px",
-    padding: "14px",
+    background: "#ffffff",
+    borderRadius: "16px",
+    padding: "12px 8px",
     position: "relative",
-    textAlign: "left",
-    boxShadow: "0 8px 20px rgba(0,0,0,.2)",
-    overflow: "hidden",
-    cursor: "pointer"
+    border: "1px solid #e2e8f0",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    minHeight: "180px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.02)"
   },
 
-  comingGold: {
-    background: "linear-gradient(135deg,#2e2509,#1e1805)"
-  },
-
-  comingSilver: {
-    background: "linear-gradient(135deg,#1e293b,#0f172a)"
-  },
-
-  comingRd: {
-    background: "linear-gradient(135deg,#2d1510,#1c0d0a)"
-  },
-
-  comingRibbon: {
+  pinkRibbon: {
     position: "absolute",
     top: 0,
-    left: 12,
-    background: "linear-gradient(135deg,#7c3aed,#9f1239)",
-    color: "white",
-    padding: "4px 10px",
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
-    fontSize: "10px",
-    fontWeight: "900"
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#ec4899",
+    color: "#ffffff",
+    fontSize: "8px",
+    fontWeight: "800",
+    padding: "2px 6px",
+    borderRadius: "0 0 6px 6px",
+    whiteSpace: "nowrap"
   },
 
   comingIconCircle: {
-    marginTop: "24px",
-    width: "42px",
-    height: "42px",
-    borderRadius: "12px",
-    background: "#334155",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-
-  goldIcon: {
-    width: "28px",
-    height: "28px",
+    width: "36px",
+    height: "36px",
+    background: "#f1f5f9",
     borderRadius: "50%",
-    background: "linear-gradient(135deg,#eab308,#ca8a04)",
-    color: "#451a03",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: "900",
-    fontSize: "14px"
+    fontSize: "18px",
+    margin: "16px auto 6px auto"
   },
 
-  silverIcon: {
-    width: "28px",
-    height: "28px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg,#94a3b8,#64748b)",
-    color: "#0f172a",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900",
-    fontSize: "14px"
-  },
-
-  miniPiggy: {
-    position: "relative",
-    width: "30px",
-    height: "24px"
-  },
-
-  miniPigBody: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    width: "28px",
-    height: "20px",
-    borderRadius: "12px",
-    background: "#e11d48"
-  },
-
-  miniPigEye: {
-    position: "absolute",
-    top: "5px",
-    right: "8px",
-    width: "3px",
-    height: "3px",
-    borderRadius: "50%",
-    background: "#111827"
-  },
-
-  miniPigNose: {
-    position: "absolute",
-    right: "-4px",
-    top: "7px",
-    width: "10px",
-    height: "8px",
-    borderRadius: "50%",
-    background: "#fda4af",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "6px"
-  },
-
-  comingButton: {
-    marginTop: "10px",
-    background: "rgba(124,58,237,.15)",
-    borderRadius: "10px",
-    padding: "6px",
-    color: "#a78bfa",
-    textAlign: "center",
+  comingTitle: {
+    margin: "0 0 4px 0",
+    fontSize: "11px",
     fontWeight: "800",
-    fontSize: "11px"
+    color: "#1e293b",
+    textAlign: "center"
   },
 
-  motivationCard: {
-    marginTop: "16px",
-    borderRadius: "20px",
-    background: "linear-gradient(135deg,#1e1b4b,#311042,#0f172a)",
-    color: "white",
+  comingDesc: {
+    margin: 0,
+    fontSize: "9px",
+    color: "#64748b",
+    textAlign: "center",
+    lineHeight: "1.2"
+  },
+
+  comingBtnWrapper: {
+    marginTop: "8px",
+    textAlign: "center"
+  },
+
+  comingPillBtn: {
+    background: "#cbd5e1",
+    color: "#334155",
+    border: "none",
+    borderRadius: "12px",
+    padding: "4px 8px",
+    fontSize: "9px",
+    fontWeight: "700",
+    width: "100%"
+  },
+
+  /* MOTIVATION BANNER */
+  motivationBanner: {
+    background: "linear-gradient(90deg, #1e1b4b, #312e81)",
+    borderRadius: "16px",
+    padding: "12px 16px",
+    color: "#ffffff",
     display: "flex",
     alignItems: "center",
     gap: "12px",
-    boxShadow: "0 10px 20px rgba(0,0,0,.3)",
-    padding: "14px"
+    marginTop: "16px"
   },
 
-  trophyIcon: {
-    fontSize: "36px"
+  trophy: {
+    fontSize: "24px"
   },
 
-  motivationText: {
-    textAlign: "left"
+  motivationHeading: {
+    margin: 0,
+    fontSize: "13px",
+    fontWeight: "700"
   },
 
-  statsPanel: {
-    background: "#1e293b",
-    marginTop: "16px",
-    borderRadius: "20px",
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "10px",
+  motivationSub: {
+    margin: 0,
+    fontSize: "11px",
+    opacity: 0.8
+  },
+
+  bannerArrow: {
+    marginLeft: "auto",
+    fontSize: "18px",
+    opacity: 0.8
+  },
+
+  /* BOTTOM STATS */
+  bottomStats: {
+    background: "#ffffff",
+    borderRadius: "16px",
     padding: "12px",
-    boxShadow: "0 8px 20px rgba(0,0,0,.2)"
+    marginTop: "12px",
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "8px",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.03)"
   },
 
-  miniStat: {
+  statBox: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    background: "#0f172a",
-    padding: "10px",
-    borderRadius: "14px"
+    gap: "6px"
   },
 
-  miniIcon: {
-    width: "32px",
-    height: "32px",
-    borderRadius: "10px",
-    color: "white",
+  statIcon: {
+    width: "28px",
+    height: "28px",
+    borderRadius: "8px",
+    color: "#ffffff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontWeight: "900",
-    fontSize: "14px"
-  },
-
-  eyeBtn: {
-    border: "1px solid rgba(255,255,255,.4)",
-    background: "rgba(255,255,255,.08)",
-    color: "white",
-    width: "32px",
-    height: "24px",
-    borderRadius: "8px",
-    cursor: "pointer",
     fontSize: "12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
+    fontWeight: "bold"
   },
 
-  planSubtitleYellow: {
-    display: "inline-block",
-    marginTop: "4px",
-    background: "#eab308",
-    color: "#0f172a",
-    padding: "3px 8px",
-    borderRadius: "8px",
+  statLabel: {
+    margin: 0,
+    fontSize: "9px",
+    color: "#64748b"
+  },
+
+  statValue: {
+    margin: 0,
+    fontSize: "11px",
     fontWeight: "800",
-    fontSize: "11px"
+    color: "#0f172a"
   }
 };
