@@ -295,9 +295,23 @@ export default function Refer() {
     }
   };
 
+  // 🟢 আপডেট করা হোয়াটসঅ্যাপ শেয়ার হ্যান্ডলার (অ্যাপ সাপোর্ট সহ)
   const shareWhatsapp = () => {
     const text = `Join SAVE MONEY using my refer link: ${referLink}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+    const encodedText = encodeURIComponent(text);
+    
+    // অ্যাপ ও ওয়েব উভয় ক্ষেত্রেই ডাইরেক্ট হোয়াটসঅ্যাপ খোলার জন্য
+    const whatsappUrl = `whatsapp://send?text=${encodedText}`;
+    const webUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+
+    try {
+      window.location.href = whatsappUrl;
+      setTimeout(() => {
+        window.open(webUrl, "_blank");
+      }, 500);
+    } catch (e) {
+      window.open(webUrl, "_blank");
+    }
   };
 
   const shareTelegram = () => {
@@ -1194,7 +1208,7 @@ export default function Refer() {
               </div>
 
               <div style={styles.referPendingActionFlexCenterBlock}>
-                <button style={styles.referOrangePendingArrowActionBtn} onClick={() => setShowPendingModal(true)}>
+                <button style={styles.referOrangePendingArrowActionBtn} onClick={() => setShowPendingModal(false)}>
                   <span style={{marginRight:8}}>⏳</span> View Pending Refers ({pendingRefers.length}) <span style={{marginLeft:"auto", fontWeight:"bold"}}>˃</span>
                 </button>
               </div>
@@ -1496,7 +1510,7 @@ const styles = {
     justifyContent: "center"
   },
 
-  /* SIDEBAR / DRAWER STYLES (MATCHES HOME.JS PERFECTLY) */
+  /* SIDEBAR / DRAWER STYLES */
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -1679,8 +1693,17 @@ const styles = {
     marginBottom: "16px"
   },
   heroLeft: { display: "flex", alignItems: "center", gap: "14px" },
-  avatarWrap: { position: "relative" },
-  avatar: { width: "52px", height: "52px", borderRadius: "50%", objectFit: "cover", border: "2px solid #a855f7" },
+  avatarWrap: { position: "relative", flexShrink: 0 },
+  // 🟢 চাপটা ঠিক করার সিএসএস (objectFit, width/height, borderRadius)
+  avatar: { 
+    width: "56px", 
+    height: "56px", 
+    borderRadius: "50%", 
+    objectFit: "cover", 
+    border: "2px solid #a855f7",
+    aspectRatio: "1/1",
+    display: "block"
+  },
   crown: { position: "absolute", top: "-10px", right: "-4px", fontSize: "14px", color: "#fbbf24" },
   activeMember: { display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(255,255,255,0.1)", padding: "2px 8px", borderRadius: "10px", fontSize: "11px" },
   greenDot: { width: "6px", height: "6px", borderRadius: "50%" },
@@ -1707,8 +1730,8 @@ const styles = {
   referLinkText: { flex: 1, fontSize: "12px", color: "#334155", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   copyLinkBtn: { background: "#2563eb", color: "#fff", border: "none", padding: "6px 12px", borderRadius: "8px", fontSize: "11px", fontWeight: "bold", cursor: "pointer" },
   shareBox: { textAlign: "right" },
-  whatsapp: { background: "#25d366", border: "none", width: "32px", height: "32px", borderRadius: "50%", color: "#fff", cursor: "pointer", fontSize: "14px" },
-  telegram: { background: "#0088cc", border: "none", width: "32px", height: "32px", borderRadius: "50%", color: "#fff", cursor: "pointer", fontSize: "14px" },
+  whatsapp: { background: "#25d366", border: "none", width: "36px", height: "36px", borderRadius: "50%", color: "#fff", cursor: "pointer", fontSize: "16px", display: "inline-flex", alignItems: "center", justifyContent: "center" },
+  telegram: { background: "#0088cc", border: "none", width: "36px", height: "36px", borderRadius: "50%", color: "#fff", cursor: "pointer", fontSize: "16px", display: "inline-flex", alignItems: "center", justifyContent: "center" },
 
   bonusGrid: {
     display: "grid",
@@ -1736,8 +1759,16 @@ const styles = {
   txListWrapper: { display: "flex", flexDirection: "column" },
   txItemRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #f1f5f9", cursor: "pointer" },
   txLeftSection: { display: "flex", alignItems: "center", gap: "10px" },
-  txUserAvatarImage: { width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" },
-  txAvatarCircle: { width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "14px" },
+  // 🟢 ট্রানজাকশনের জন্য ইমেজের চাপটা ঠিক করার সিএসএস
+  txUserAvatarImage: { 
+    width: "40px", 
+    height: "40px", 
+    borderRadius: "50%", 
+    objectFit: "cover", 
+    aspectRatio: "1/1",
+    flexShrink: 0
+  },
+  txAvatarCircle: { width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "14px", flexShrink: 0 },
   txMetaDetails: { display: "flex", flexDirection: "column" },
   txSenderName: { margin: 0, fontSize: "14px", fontWeight: "600", color: "#1e293b" },
   txTimeStamp: { margin: "2px 0 0 0", fontSize: "11px", color: "#64748b" },
@@ -1775,8 +1806,16 @@ const styles = {
   blueTick: { color: "#0284c7" },
   sectionSubValue: { margin: 0, fontSize: "11px", color: "#64748b" },
   bankNameFooter: { margin: "2px 0 0 0", fontSize: "10px", color: "#94a3b8" },
-  detailAvatarCircle: { width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "13px" },
-  detailUserImage: { width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover" },
+  detailAvatarCircle: { width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "13px", flexShrink: 0 },
+  // 🟢 ডিটেইল পপআপ এর ছবির জন্য সিএসএস
+  detailUserImage: { 
+    width: "36px", 
+    height: "36px", 
+    borderRadius: "50%", 
+    objectFit: "cover", 
+    aspectRatio: "1/1",
+    flexShrink: 0 
+  },
   txFooterMetaDetails: { background: "#f8fafc", padding: "10px", borderRadius: "10px", marginTop: "10px", fontSize: "11px", color: "#64748b" },
   imgCloseBtn: { width: "100%", padding: "10px", background: "#f1f5f9", border: "none", borderRadius: "10px", fontWeight: "bold", color: "#475569", cursor: "pointer", marginTop: "10px" },
 
@@ -1858,6 +1897,29 @@ const styles = {
   tableDataCellText: { padding: "8px 10px", fontSize: "12px", color: "#0f172a" },
   tableLevelBadgeTag: { background: "#f1f5f9", padding: "2px 6px", borderRadius: "6px", fontSize: "10px", fontWeight: "bold" },
 
+  // 🟢 টেবিলের ভিতরের অবতোরের জন্য অবজেক্ট ফিট সিএসএস
+  tableAvatarIconRoundPhoto: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    aspectRatio: "1/1",
+    flexShrink: 0
+  },
+  tableInitialPlaceholderBadgeCircle: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    background: "#e0e7ff",
+    color: "#4338ca",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "bold",
+    fontSize: "12px",
+    flexShrink: 0
+  },
+
   referSuccessCalloutAlertBanner: { background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "12px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" },
   alertSuccessCheckIcon: { width: "18px", height: "18px", borderRadius: "50%", background: "#16a34a", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: "bold" },
   alertSuccessBannerInlineMessageText: { margin: 0, fontSize: "12px", fontWeight: "600", color: "#15803d" },
@@ -1884,26 +1946,18 @@ const styles = {
   squareIconTrackGreen: { width: "24px", height: "24px", borderRadius: "50%", background: "#f0fdf4", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: "12px" },
   squareIconTrackRed: { width: "24px", height: "24px", borderRadius: "50%", background: "#fef2f2", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 4px", fontSize: "12px" },
   squareBadgeLabelCaption: { margin: 0, fontSize: "10px", color: "#64748b" },
-  squareBadgeValueNumberHeading: { margin: "2px 0 0 0", fontSize: "14px", fontWeight: "800" },
-  
-  tableAvatarIconRoundPhoto: { width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" },
-  tableInitialPlaceholderBadgeCircle: { width: "28px", height: "28px", borderRadius: "50%", background: "#fff7ed", color: "#c2410c", display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "12px" },
-  referModalFooterCloseButton: { width: "100%", padding: "12px", background: "#fff3eb", color: "#ea580c", border: "none", borderRadius: "12px", fontSize: "14px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" },
+  squareBadgeValueNumberHeading: { margin: "2px 0 0 0", fontSize: "14px", fontWeight: "800", color: "#0f172a" },
+  referModalFooterCloseButton: { width: "100%", padding: "12px", background: "#ffedd5", color: "#c2410c", border: "none", borderRadius: "12px", fontSize: "14px", fontWeight: "bold", cursor: "pointer" },
 
-  historyItemRowCard: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: "1px solid #f1f5f9" },
-  logUserNameText: { margin: 0, fontSize: "13px", fontWeight: "600" },
-  logDateSubText: { margin: "2px 0 0 0", fontSize: "11px", color: "#64748b" },
-  logIncomeValueGreen: { margin: 0, fontSize: "13px", fontWeight: "700", color: "#16a34a" },
+  loadingPage: { display: "flex", height: "100vh", justifyContent: "center", alignItems: "center", background: "#f8fafc" },
+  loadingBox: { textAlign: "center" },
+  loadingIcon: { fontSize: "40px" },
 
-  infoBox: { background: "#fff7ed", border: "1px solid #ffedd5", padding: "10px", borderRadius: "10px", fontSize: "12px", color: "#c2410c", marginTop: "12px" },
-  closeBtn: { width: "100%", padding: "10px", background: "#f1f5f9", border: "none", borderRadius: "10px", fontWeight: "bold", color: "#475569", cursor: "pointer", marginTop: "12px" },
+  statusOverlayBg: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(4px)", zIndex: 100005, display: "flex", alignItems: "center", justifyContent: "center" },
+  statusOverlayCard: { background: "#fff", padding: "20px 30px", borderRadius: "16px", textAlign: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.2)" },
+  statusOverlayIcon: { width: "48px", height: "48px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", fontSize: "20px", fontWeight: "bold" },
+  statusOverlayText: { margin: 0, fontSize: "15px", fontWeight: "700", color: "#1e293b" },
 
-  statusOverlayBg: { position: "fixed", inset: 0, background: "rgba(10, 15, 30, 0.45)", backdropFilter: "blur(6px)", zIndex: 100000, display: "flex", alignItems: "center", justifyContent: "center" },
-  statusOverlayCard: { background: "rgba(255, 255, 255, 0.95)", padding: "20px 30px", borderRadius: "16px", textAlign: "center", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)", maxWidth: "320px", width: "85%", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" },
-  statusOverlayIcon: { width: "48px", height: "48px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px", fontWeight: "bold" },
-  statusOverlayText: { fontSize: "15px", color: "#1e293b", margin: 0, fontWeight: "700" },
-
-  loadingPage: { minHeight: "100vh", background: "#fff7ff", display: "flex", alignItems: "center", justifyContent: "center" },
-  loadingBox: { background: "white", padding: 30, borderRadius: 20, textAlign: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" },
-  loadingIcon: { fontSize: 50 }
+  infoBox: { background: "#fff7ed", border: "1px solid #ffedd5", color: "#c2410c", padding: "10px", borderRadius: "10px", fontSize: "12px", marginTop: "10px" },
+  closeBtn: { width: "100%", padding: "10px", background: "#f1f5f9", border: "none", borderRadius: "10px", fontWeight: "bold", color: "#475569", cursor: "pointer", marginTop: "15px" }
 };
