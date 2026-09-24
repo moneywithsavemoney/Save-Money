@@ -514,7 +514,7 @@ export default function SaveMoney() {
         </div>
       </div>
 
-      {/* TOP STATUS HEADER BAR (SCREENSHOT 1 MATCHED) */}
+      {/* TOP STATUS HEADER BAR */}
       <div style={styles.topHeaderNavRow}>
         <div style={styles.topNavLeftGroup}>
           <button 
@@ -539,26 +539,24 @@ export default function SaveMoney() {
             </div>
           </div>
         </div>
-
-        <div style={styles.topNavRightGroup}>
-          <div style={styles.userProfilePill}>
-            <div style={styles.userAvatarCircle}>👤</div>
-            <div>
-              <div style={styles.userWelcomeLabel}>Welcome Back</div>
-              <div style={styles.userNameText}>{localName || "User"} ▾</div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* ASSISTANT CORE BANNER BUTTON */}
-      <div style={styles.assistantCoreBannerRow}>
+      {/* ASSISTANT CORE (LEFT) & USER NAME (RIGHT) IN THE SAME ROW */}
+      <div style={styles.assistantAndUserSameRow}>
         <button 
           style={styles.assistantCoreBtn}
           onClick={() => setHelpOpen(true)}
         >
           <span style={styles.robotIcon}>🤖</span> ASSISTANT CORE
         </button>
+
+        <div style={styles.userProfilePill}>
+          <div style={styles.userAvatarCircle}>👤</div>
+          <div>
+            <div style={styles.userWelcomeLabel}>Welcome Back</div>
+            <div style={styles.userNameText}>{localName || "User"} ▾</div>
+          </div>
+        </div>
       </div>
 
       {/* STATUS OVERLAY */}
@@ -583,7 +581,7 @@ export default function SaveMoney() {
       {/* MAIN CANVAS */}
       <div style={styles.ultimateMainCanvas}>
         
-        {/* BRAND HEADER BANNER CARD (SCREENSHOT 1 MATCHED WITH ROTATING ANIMATION) */}
+        {/* BRAND HEADER BANNER CARD */}
         <header style={styles.cyberBrandHeaderSection}>
           <div style={styles.cyberHeaderLeftPart}>
             {/* RED MARKED ANIMATED LOGO CONTAINER */}
@@ -804,7 +802,7 @@ export default function SaveMoney() {
           <div style={styles.separatorLineDecorativeRight}></div>
         </div>
 
-        {/* 2x2 PROJECTION GRID (SCREENSHOT 1 MATCHED) */}
+        {/* 2x2 PROJECTION GRID */}
         <div style={styles.projectionGrid2x2Layout}>
           
           <div style={{...styles.projectionDataMetricsCardCellBlock, borderLeft: "4px solid #00ffa3"}}>
@@ -890,7 +888,7 @@ export default function SaveMoney() {
           </div>
         </div>
 
-        {/* LAUNCH BUTTON (SCREENSHOT 1 MATCHED) */}
+        {/* LAUNCH BUTTON */}
         <div style={styles.ultimateLaunchButtonCentralContainerFlex}>
           <button 
             style={{
@@ -1143,7 +1141,7 @@ const styles = {
     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)"
   },
 
-  // TOP HEADER BAR (MATCHED SCREENSHOT 1)
+  // TOP HEADER BAR
   topHeaderNavRow: {
     display: "flex",
     justifyContent: "space-between",
@@ -1205,7 +1203,33 @@ const styles = {
     borderRadius: "50%",
     background: "#00ffa3"
   },
-  topNavRightGroup: {},
+
+  // NEW ROW: ASSISTANT CORE (LEFT) & USER NAME (RIGHT)
+  assistantAndUserSameRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "12px",
+    position: "relative",
+    zIndex: 2,
+    width: "100%"
+  },
+  assistantCoreBtn: {
+    background: "linear-gradient(90deg, #00d2ff, #00ffa3)",
+    border: "none",
+    color: "#000",
+    fontWeight: "900",
+    fontSize: "11px",
+    padding: "6px 18px",
+    borderRadius: "20px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  },
+  robotIcon: {
+    fontSize: "12px"
+  },
   userProfilePill: {
     display: "flex",
     alignItems: "center",
@@ -1234,30 +1258,6 @@ const styles = {
     fontSize: "10px",
     color: "#fff",
     fontWeight: "bold"
-  },
-
-  assistantCoreBannerRow: {
-    display: "flex",
-    justifyContent: "flex-end",
-    marginBottom: "10px",
-    position: "relative",
-    zIndex: 2
-  },
-  assistantCoreBtn: {
-    background: "linear-gradient(90deg, #00d2ff, #00ffa3)",
-    border: "none",
-    color: "#000",
-    fontWeight: "900",
-    fontSize: "11px",
-    padding: "6px 20px",
-    borderRadius: "20px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "6px"
-  },
-  robotIcon: {
-    fontSize: "12px"
   },
 
   glassOverlayShield: {
@@ -1306,7 +1306,7 @@ const styles = {
     margin: "0 auto"
   },
 
-  // SCREENSHOT 1 BRAND HEADER BANNER
+  // BRAND HEADER BANNER
   cyberBrandHeaderSection: {
     background: "linear-gradient(90deg, rgba(3,25,26,0.9), rgba(2,15,28,0.9))",
     border: "1px solid rgba(0,255,163,0.2)",
