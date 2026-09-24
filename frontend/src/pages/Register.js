@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // 🎯 useLocation ইম্পোর্ট করা হলো
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { API } from "../config";
 
 export default function Register() {
   const navigate = useNavigate();
-  const location = useLocation(); // 🎯 ইউআরএল ট্র্যাকিংয়ের জন্য ইনিশিয়েট করা হলো
+  const location = useLocation();
 
-  // 🔗 ইউআরএল (URL) থেকে 'ref' প্যারামিটারটি খুঁজে বের করার লজিক
   const queryParams = new URLSearchParams(location.search);
   const urlReferCode = queryParams.get("ref") || ""; 
 
@@ -15,7 +14,7 @@ export default function Register() {
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [referCode, setReferCode] = useState(urlReferCode); // 🎯 ডিফল্ট ভ্যালু হিসেবে লিংকের কোড সেট করা হলো
+  const [referCode, setReferCode] = useState(urlReferCode);
   const [terms, setTerms] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,12 +23,11 @@ export default function Register() {
   // Email Verification States
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isOtpVerified, setIsOtpVerified] = useState(false); // ওটিপি ভেরিফাই স্টেট
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
   const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false); // ভেরিফিকেশন লোডিং
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
-  // OTP Countdown Timer Effect
   useEffect(() => {
     let interval = null;
     if (otpTimer > 0) {
@@ -42,7 +40,6 @@ export default function Register() {
     return () => clearInterval(interval);
   }, [otpTimer]);
 
-  // Send OTP Function
   const sendOtpCode = async () => {
     if (!email) {
       toast.warning("Please enter your email address first");
@@ -60,8 +57,8 @@ export default function Register() {
       const data = await res.json();
       if (res.ok || data.success) {
         setIsOtpSent(true);
-        setIsOtpVerified(false); // নতুন করে ওটিপি পাঠালে আগের ভেরিফিকেশন রিসেট হবে
-        setOtpTimer(120); // 2 minutes countdown
+        setIsOtpVerified(false);
+        setOtpTimer(120);
         toast.success("Verification code sent to your email!");
       } else {
         toast.error(data.msg || "Failed to send OTP");
@@ -74,7 +71,6 @@ export default function Register() {
     }
   };
 
-  // Verify OTP Function (নতুন ট্যাব/বাটনের লজিক)
   const verifyOtpCode = async () => {
     if (!otp || otp.trim().length !== 6) {
       toast.warning("Please enter a valid 6-digit OTP");
@@ -83,7 +79,7 @@ export default function Register() {
 
     try {
       setVerifyingOtp(true);
-      const res = await fetch(`${API}/verify-email-otp`, { // আপনার এপিআই এন্ডপয়েন্ট অনুযায়ী নাম পরিবর্তন করতে পারেন
+      const res = await fetch(`${API}/verify-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -165,9 +161,38 @@ export default function Register() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.card}>
+      {/* মোবাইল রেসপন্সিভ স্টাইল ইনজেক্ট করা হচ্ছে */}
+      <style>{`
+        @media (max-width: 768px) {
+          .register-card {
+            flex-direction: column !important;
+            border-radius: 24px !important;
+          }
+          .register-left-panel {
+            width: 100% !important;
+            border-radius: 24px 24px 0 0 !important;
+            padding: 24px 16px !important;
+          }
+          .register-right-panel {
+            padding: 24px 16px !important;
+          }
+          .account-heading {
+            font-size: 42px !important;
+          }
+          .brand-heading {
+            font-size: 40px !important;
+            line-height: 40px !important;
+          }
+          .bottom-features {
+            grid-template-columns: repeat(2, 1fr) !important;
+            display: grid !important;
+          }
+        }
+      `}</style>
 
-        <div style={styles.leftPanel}>
+      <div style={styles.card} className="register-card">
+
+        <div style={styles.leftPanel} className="register-left-panel">
           <div style={styles.piggyWrap}>
             <div style={styles.coin}>₹</div>
             <div style={styles.piggy}>
@@ -181,7 +206,7 @@ export default function Register() {
             </div>
           </div>
 
-          <h1 style={styles.brand}>
+          <h1 style={styles.brand} className="brand-heading">
             save<br />
             money
           </h1>
@@ -196,15 +221,11 @@ export default function Register() {
           <Benefit icon="👛" title="Save More" text="Smart saving for a better future" />
           <Benefit icon="📈" title="Grow Faster" text="Achieve your financial goals" />
           <Benefit icon="🎁" title="Exciting Rewards" text="Earn rewards and benefits" />
-
-          <div style={styles.smallSteps}>
-            Small Steps<br />Big Savings!
-          </div>
         </div>
 
-        <div style={styles.rightPanel}>
+        <div style={styles.rightPanel} className="register-right-panel">
           <h2 style={styles.create}>Create Your</h2>
-          <h1 style={styles.account}>Account</h1>
+          <h1 style={styles.account} className="account-heading">Account</h1>
 
           <p style={styles.join}>
             Join <b>Save Money</b> and start your journey to financial freedom.
@@ -213,7 +234,6 @@ export default function Register() {
           <InputBox color="#ff4cc4" icon="👤" placeholder="Full Name" value={name} setValue={setName} />
           <InputBox color="#7c3aed" icon="📱" placeholder="Mobile Number" value={mobile} setValue={setMobile} />
           
-          {/* Email input with inline OTP dispatch button */}
           <div style={{ ...styles.inputWrap, borderColor: isOtpVerified ? "#22c55e" : "#0ea5e9" }}>
             <div style={{ ...styles.iconBox, background: isOtpVerified ? "linear-gradient(135deg,#22c55e,#10b981)" : "linear-gradient(135deg,#0ea5e9,#7c3aed)" }}>
               {isOtpVerified ? "✓" : "✉️"}
@@ -239,7 +259,6 @@ export default function Register() {
             </button>
           </div>
 
-          {/* Conditional Input Box for Email OTP verification with NEW Verify Tab */}
           {isOtpSent && (
             <div style={{ ...styles.inputWrap, borderColor: isOtpVerified ? "#22c55e" : "#f43f5e" }}>
               <div style={{ ...styles.iconBox, background: isOtpVerified ? "linear-gradient(135deg,#22c55e,#10b981)" : "linear-gradient(135deg,#f43f5e,#7c3aed)" }}>
@@ -290,7 +309,6 @@ export default function Register() {
             </button>
           </div>
 
-          {/* 🎁 রেফার কোড ইনপুট বক্স (অটো-পেস্ট এবং রিড-অনলি মোড লক লজিক সহ) */}
           <div style={{ ...styles.inputWrap, borderColor: "#f59e0b", background: urlReferCode ? "#f8fafc" : "transparent" }}>
             <div style={{ ...styles.iconBox, background: "linear-gradient(135deg,#f59e0b,#7c3aed)" }}>
               🎁
@@ -304,11 +322,10 @@ export default function Register() {
               placeholder="Refer Code Optional"
               value={referCode}
               onChange={(e) => !urlReferCode && setReferCode(e.target.value)}
-              readOnly={!!urlReferCode} // যদি লিংক থেকে কোড আসে তবে ফিল্ড লক হয়ে যাবে
+              readOnly={!!urlReferCode}
             />
           </div>
 
-          {/* Checkbox triggers T&C verification explicitly */}
           <label style={styles.checkRow}>
             <input
               type="checkbox"
@@ -376,7 +393,7 @@ export default function Register() {
             </div>
           </div>
 
-          <div style={styles.bottomFeatures}>
+          <div style={styles.bottomFeatures} className="bottom-features">
             <div style={styles.bottomItem}>
               <div style={{ ...styles.bottomIcon, background: "linear-gradient(135deg,#22c55e,#86efac)" }}>🛡</div>
               <div>
@@ -510,7 +527,6 @@ export default function Register() {
   );
 }
 
-// InputBox কম্পোনেন্টটি আগের মতোই থাকবে
 function InputBox({ color, icon, placeholder, value, setValue }) {
   return (
     <div style={{ ...styles.inputWrap, borderColor: color }}>
@@ -534,58 +550,56 @@ function Benefit({ icon, title, text }) {
       <div style={styles.benefitIcon}>{icon}</div>
 
       <div>
-        <h3>{title}</h3>
-        <p>{text}</p>
+        <h3 style={{ margin: 0, fontSize: "16px" }}>{title}</h3>
+        <p style={{ margin: 0, fontSize: "13px", opacity: 0.9 }}>{text}</p>
       </div>
     </div>
   );
 }
 
-// স্টাইল অবজেক্ট সম্পূর্ণ অপরিবর্তিত রাখা হয়েছে
 const styles = {
   page: {
     minHeight: "100vh",
     background: "linear-gradient(135deg,#ffd18a,#eef3ff,#dff7ff)",
-    padding: "25px",
+    padding: "15px",
     display: "flex",
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
+    boxSizing: "border-box"
   },
 
   card: {
     width: "100%",
     maxWidth: "980px",
-    minHeight: "92vh",
     background: "#fff",
-    borderRadius: "46px",
+    borderRadius: "36px",
     display: "flex",
     overflow: "hidden",
     boxShadow: "0 25px 70px rgba(0,0,0,.18)"
   },
 
   leftPanel: {
-    width: "33%",
+    width: "35%",
     background: "linear-gradient(180deg,#7c2cff,#4f20d8,#631bd9)",
     color: "white",
-    padding: "38px 32px",
-    borderTopRightRadius: "60px",
-    borderBottomRightRadius: "60px",
-    position: "relative"
+    padding: "32px 24px",
+    position: "relative",
+    boxSizing: "border-box"
   },
 
   piggyWrap: {
     position: "relative",
-    width: "145px",
-    height: "125px",
-    marginBottom: "25px"
+    width: "120px",
+    height: "100px",
+    marginBottom: "15px"
   },
 
   coin: {
     position: "absolute",
     top: "-8px",
-    left: "52px",
-    width: "42px",
-    height: "42px",
+    left: "42px",
+    width: "36px",
+    height: "36px",
     borderRadius: "50%",
     background: "#ffd43b",
     color: "#7c3aed",
@@ -593,7 +607,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "25px",
+    fontSize: "20px",
     zIndex: 3,
     boxShadow: "0 8px 15px rgba(0,0,0,.2)"
   },
@@ -602,19 +616,19 @@ const styles = {
     position: "absolute",
     bottom: 0,
     left: 0,
-    width: "135px",
-    height: "92px",
-    borderRadius: "55px 60px 45px 45px",
+    width: "115px",
+    height: "80px",
+    borderRadius: "45px 50px 35px 35px",
     background: "linear-gradient(135deg,#ffb3c7,#ff6aa2)",
     boxShadow: "inset -10px -8px 0 rgba(255,0,100,.16)"
   },
 
   earLeft: {
     position: "absolute",
-    top: "-18px",
-    left: "25px",
-    width: "32px",
-    height: "32px",
+    top: "-14px",
+    left: "20px",
+    width: "26px",
+    height: "26px",
     background: "#ff8ab8",
     borderRadius: "8px 20px 8px 20px",
     transform: "rotate(25deg)"
@@ -622,10 +636,10 @@ const styles = {
 
   earRight: {
     position: "absolute",
-    top: "-14px",
-    right: "20px",
-    width: "26px",
-    height: "26px",
+    top: "-10px",
+    right: "16px",
+    width: "22px",
+    height: "22px",
     background: "#ff8ab8",
     borderRadius: "8px 18px 8px 18px",
     transform: "rotate(45deg)"
@@ -633,34 +647,34 @@ const styles = {
 
   eyeLeft: {
     position: "absolute",
-    top: "28px",
-    left: "78px",
-    width: "7px",
-    height: "7px",
+    top: "24px",
+    left: "68px",
+    width: "6px",
+    height: "6px",
     borderRadius: "50%",
     background: "#1e293b"
   },
 
   eyeRight: {
     position: "absolute",
-    top: "28px",
-    left: "100px",
-    width: "7px",
-    height: "7px",
+    top: "24px",
+    left: "88px",
+    width: "6px",
+    height: "6px",
     borderRadius: "50%",
     background: "#1e293b"
   },
 
   nose: {
     position: "absolute",
-    right: "-8px",
-    top: "36px",
-    width: "36px",
-    height: "26px",
+    right: "-6px",
+    top: "30px",
+    width: "30px",
+    height: "22px",
     borderRadius: "50%",
     background: "#ff8ab8",
     color: "#7c2d12",
-    fontSize: "8px",
+    fontSize: "7px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
@@ -668,87 +682,78 @@ const styles = {
 
   legOne: {
     position: "absolute",
-    bottom: "-8px",
-    left: "32px",
-    width: "20px",
-    height: "18px",
+    bottom: "-6px",
+    left: "28px",
+    width: "16px",
+    height: "14px",
     background: "#ff6aa2",
-    borderRadius: "0 0 8px 8px"
+    borderRadius: "0 0 6px 6px"
   },
 
   legTwo: {
     position: "absolute",
-    bottom: "-8px",
-    right: "34px",
-    width: "20px",
-    height: "18px",
+    bottom: "-6px",
+    right: "30px",
+    width: "16px",
+    height: "14px",
     background: "#ff6aa2",
-    borderRadius: "0 0 8px 8px"
+    borderRadius: "0 0 6px 6px"
   },
 
   brand: {
-    fontSize: "58px",
-    lineHeight: "52px",
+    fontSize: "48px",
+    lineHeight: "44px",
     margin: 0,
     fontWeight: "900",
-    letterSpacing: "-2px"
+    letterSpacing: "-1px"
   },
 
   brandSub: {
-    marginTop: "20px",
-    fontSize: "17px"
+    marginTop: "12px",
+    fontSize: "15px"
   },
 
   why: {
     color: "#ffde3b",
-    marginTop: "70px",
-    fontSize: "24px"
+    marginTop: "30px",
+    fontSize: "20px"
   },
 
   benefit: {
     display: "flex",
-    gap: "14px",
+    gap: "12px",
     alignItems: "center",
-    marginTop: "18px"
+    marginTop: "14px"
   },
 
   benefitIcon: {
-    width: "50px",
-    height: "50px",
-    borderRadius: "15px",
+    width: "42px",
+    height: "42px",
+    borderRadius: "12px",
     background: "linear-gradient(135deg,#38bdf8,#2563eb)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "24px",
+    fontSize: "20px",
     flexShrink: 0
-  },
-
-  smallSteps: {
-    position: "absolute",
-    bottom: "28px",
-    left: "35px",
-    fontSize: "24px",
-    color: "#efe7ff",
-    fontStyle: "italic",
-    lineHeight: "34px"
   },
 
   rightPanel: {
     flex: 1,
-    padding: "48px 42px"
+    padding: "32px 28px",
+    boxSizing: "border-box"
   },
 
   create: {
     textAlign: "center",
-    fontSize: "34px",
+    fontSize: "26px",
     color: "#0f172a",
     margin: 0
   },
 
   account: {
     textAlign: "center",
-    fontSize: "68px",
+    fontSize: "52px",
     margin: "-5px 0 10px",
     background: "linear-gradient(135deg,#ff2ebd,#8b2cff,#118cff)",
     WebkitBackgroundClip: "text",
@@ -758,50 +763,53 @@ const styles = {
 
   join: {
     textAlign: "center",
-    fontSize: "17px",
+    fontSize: "15px",
     color: "#475569",
-    marginBottom: "28px"
+    marginBottom: "20px"
   },
 
   inputWrap: {
-    height: "70px",
+    minHeight: "56px",
     border: "1.8px solid",
-    borderRadius: "24px",
+    borderRadius: "18px",
     display: "flex",
     alignItems: "center",
-    padding: "0 14px",
-    gap: "18px",
-    marginTop: "15px"
+    padding: "0 12px",
+    gap: "12px",
+    marginTop: "12px",
+    boxSizing: "border-box"
   },
 
   iconBox: {
-    width: "52px",
-    height: "52px",
-    borderRadius: "17px",
+    width: "40px",
+    height: "40px",
+    borderRadius: "12px",
     color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "25px",
+    fontSize: "20px",
     flexShrink: 0
   },
 
   input: {
     flex: 1,
+    width: "100%",
+    minWidth: 0,
     border: "none",
     outline: "none",
-    fontSize: "18px",
+    fontSize: "16px",
     color: "#0f172a",
     background: "transparent"
   },
 
   otpInlineBtn: {
-    padding: "8px 16px",
+    padding: "8px 12px",
     background: "linear-gradient(135deg,#0ea5e9,#7c3aed)",
     color: "white",
     border: "none",
-    borderRadius: "12px",
-    fontSize: "14px",
+    borderRadius: "10px",
+    fontSize: "13px",
     fontWeight: "bold",
     cursor: "pointer",
     whiteSpace: "nowrap"
@@ -810,22 +818,22 @@ const styles = {
   eye: {
     border: "none",
     background: "transparent",
-    fontSize: "22px",
+    fontSize: "20px",
     cursor: "pointer"
   },
 
   checkRow: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    marginTop: "22px",
-    fontSize: "16px",
+    gap: "10px",
+    marginTop: "18px",
+    fontSize: "14px",
     color: "#334155"
   },
 
   checkbox: {
-    width: "22px",
-    height: "22px"
+    width: "18px",
+    height: "18px"
   },
 
   termsLink: {
@@ -835,37 +843,37 @@ const styles = {
 
   registerBtn: {
     width: "100%",
-    height: "74px",
+    height: "58px",
     border: "none",
-    borderRadius: "26px",
-    marginTop: "26px",
+    borderRadius: "18px",
+    marginTop: "20px",
     background: "linear-gradient(135deg,#ff2ebd,#8b2cff,#412cff)",
     color: "white",
-    fontSize: "24px",
+    fontSize: "20px",
     fontWeight: "900",
     position: "relative",
-    boxShadow: "0 14px 25px rgba(124,58,237,.35)",
+    boxShadow: "0 10px 20px rgba(124,58,237,.35)",
     cursor: "pointer"
   },
 
   arrow: {
     position: "absolute",
-    right: "20px",
-    top: "12px",
-    width: "50px",
-    height: "50px",
+    right: "12px",
+    top: "9px",
+    width: "40px",
+    height: "40px",
     borderRadius: "50%",
     background: "white",
     color: "#4f46e5",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "42px"
+    fontSize: "30px"
   },
 
   loginText: {
     textAlign: "center",
-    marginTop: "20px",
+    marginTop: "16px",
     color: "#475569"
   },
 
@@ -877,36 +885,38 @@ const styles = {
   },
 
   disclaimer: {
-    marginTop: "26px",
+    marginTop: "20px",
     background: "#f0fdf4",
     border: "1px solid #bbf7d0",
-    borderRadius: "24px",
-    padding: "18px",
+    borderRadius: "18px",
+    padding: "14px",
     display: "flex",
-    gap: "16px"
+    gap: "12px"
   },
 
   disIcon: {
-    width: "55px",
-    height: "55px",
-    borderRadius: "18px",
+    width: "42px",
+    height: "42px",
+    borderRadius: "12px",
     background: "linear-gradient(135deg,#22c55e,#16a34a)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "28px",
+    fontSize: "22px",
     flexShrink: 0
   },
 
   disclaimerTitle: {
     margin: 0,
-    color: "#16a34a"
+    color: "#16a34a",
+    fontSize: "15px"
   },
 
   disclaimerText: {
     color: "#334155",
-    lineHeight: "24px",
-    fontSize: "14px"
+    lineHeight: "20px",
+    fontSize: "12px",
+    marginTop: "4px"
   },
 
   modalOverlay: {
@@ -917,40 +927,42 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     zIndex: 9999,
-    padding: "20px"
+    padding: "15px"
   },
 
   modal: {
     width: "100%",
-    maxWidth: "520px",
-    maxHeight: "82vh",
+    maxWidth: "480px",
+    maxHeight: "85vh",
     background: "white",
-    borderRadius: "28px",
-    padding: "24px",
-    boxShadow: "0 25px 70px rgba(0,0,0,.35)"
+    borderRadius: "24px",
+    padding: "20px",
+    boxShadow: "0 25px 70px rgba(0,0,0,.35)",
+    boxSizing: "border-box"
   },
 
   modalTitle: {
     margin: 0,
     color: "#7c3aed",
-    textAlign: "center"
+    textAlign: "center",
+    fontSize: "20px"
   },
 
   modalBody: {
-    marginTop: "18px",
-    maxHeight: "52vh",
+    marginTop: "14px",
+    maxHeight: "50vh",
     overflowY: "auto",
     color: "#334155",
-    lineHeight: "25px",
-    fontSize: "14px"
+    lineHeight: "22px",
+    fontSize: "13px"
   },
 
   modalBtn: {
     width: "100%",
-    marginTop: "18px",
-    padding: "14px",
+    marginTop: "16px",
+    padding: "12px",
     border: "none",
-    borderRadius: "16px",
+    borderRadius: "12px",
     background: "linear-gradient(135deg,#7c3aed,#2563eb)",
     color: "white",
     fontWeight: "900",
@@ -959,10 +971,10 @@ const styles = {
 
   closeBtn: {
     width: "100%",
-    marginTop: "10px",
-    padding: "12px",
+    marginTop: "8px",
+    padding: "10px",
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "12px",
     background: "#e2e8f0",
     color: "#334155",
     fontWeight: "800",
@@ -974,40 +986,39 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center",
     gap: "10px",
-    marginTop: "28px",
-    flexWrap: "wrap"
+    marginTop: "24px"
   },
 
   bottomItem: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    minWidth: "140px"
+    gap: "8px"
   },
 
   bottomIcon: {
-    width: "48px",
-    height: "48px",
+    width: "36px",
+    height: "36px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     color: "white",
-    fontSize: "15px",
-    boxShadow: "0 8px 15px rgba(0,0,0,0.12)"
+    fontSize: "13px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
+    flexShrink: 0
   },
 
   bottomTitle: {
-    fontSize: "14px",
+    fontSize: "11px",
     fontWeight: "700",
     color: "#111827",
-    lineHeight: "18px"
+    lineHeight: "14px"
   },
 
   bottomText: {
-    fontSize: "14px",
+    fontSize: "11px",
     fontWeight: "700",
     color: "#111827",
-    lineHeight: "18px"
+    lineHeight: "14px"
   }
 };
