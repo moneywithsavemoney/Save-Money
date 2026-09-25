@@ -129,15 +129,16 @@ export default function Home() {
     }, 1200);
   };
 
-  const handleDownloadApp = () => {
-  const link = document.createElement("a");
-  // স্পেস ছাড়া সঠিক ফাইলের পাথ দিন
-  link.href = process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/save-money.apk` : "/save-money.apk";
-  link.download = "save-money.apk";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+const handleDownloadApp = () => {
+  // ফাইল পাথ (ফাইলটির নাম স্পেস ছাড়া save-money.apk রাখুন)
+  const apkUrl = process.env.PUBLIC_URL 
+    ? `${process.env.PUBLIC_URL}/save-money.apk` 
+    : "/save-money.apk";
+  
+  // সরাসরি ডাউনলোডের জন্য উইন্ডো রিডাইরেক্ট ব্যবহার করুন
+  window.location.href = apkUrl;
 };
+
 
 
   const handleDownloadImage = async (imageUrl) => {
