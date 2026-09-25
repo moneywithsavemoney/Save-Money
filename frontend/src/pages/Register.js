@@ -10,6 +10,9 @@ export default function Register() {
   const queryParams = new URLSearchParams(location.search);
   const urlReferCode = queryParams.get("ref") || ""; 
 
+  // 🔹 আপনার অ্যাপ লোগোর URL বা লোকাল পাবলিক ফাইল পাথ এখানে দিন
+  const appLogoUrl = "/logo.png"; // অথবা যেমন: "https://your-domain.com/logo.png"
+
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [email, setEmail] = useState("");
@@ -170,7 +173,6 @@ export default function Register() {
 
   return (
     <div style={styles.page}>
-      {/* মোবাইল রেসপন্সিভ স্টাইল ইনজেক্ট করা হচ্ছে */}
       <style>{`
         @media (max-width: 768px) {
           .register-card {
@@ -534,7 +536,7 @@ export default function Register() {
         </div>
       )}
 
-      {/* High-Premium Quality Investment Pop-up Modal */}
+      {/* High-Premium Quality Investment Pop-up Modal with Logo */}
       {showDownloadModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.premiumModal}>
@@ -544,8 +546,19 @@ export default function Register() {
               <span style={styles.goldBadge}>🎉 REGISTRATION SUCCESSFUL</span>
             </div>
 
+            {/* 🔹 অরিজিনাল অ্যাপ লোগো সেকশন */}
             <div style={styles.appIconWrapper}>
-              <div style={styles.appIconInner}>💰</div>
+              <img 
+                src={appLogoUrl} 
+                alt="App Logo" 
+                style={styles.appLogoImg} 
+                onError={(e) => {
+                  // পিকচার ব্যাকআপ ট্রাই যদি ইমেজ লোড না হয়
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+              <span style={{ display: 'none', fontSize: '36px' }}>💰</span>
             </div>
 
             <h2 style={styles.premiumTitle}>
@@ -1083,20 +1096,24 @@ const styles = {
   },
 
   appIconWrapper: {
-    width: "72px",
-    height: "72px",
-    borderRadius: "24px",
+    width: "76px",
+    height: "76px",
+    borderRadius: "22px",
     background: "linear-gradient(135deg, #a855f7, #6366f1)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     margin: "0 auto 16px",
     boxShadow: "0 10px 25px rgba(168, 85, 247, 0.4)",
-    border: "2px solid rgba(255, 255, 255, 0.2)"
+    border: "2px solid rgba(255, 255, 255, 0.2)",
+    overflow: "hidden"
   },
 
-  appIconInner: {
-    fontSize: "36px"
+  appLogoImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    borderRadius: "20px"
   },
 
   premiumTitle: {
