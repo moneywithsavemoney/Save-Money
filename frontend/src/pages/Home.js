@@ -130,13 +130,15 @@ export default function Home() {
   };
 
   const handleDownloadApp = () => {
-    const link = document.createElement("a");
-    link.href = "/Save Money.apk";
-    link.download = "Save Money.apk";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const link = document.createElement("a");
+  // স্পেস ছাড়া সঠিক ফাইলের পাথ দিন
+  link.href = process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/save-money.apk` : "/save-money.apk";
+  link.download = "save-money.apk";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 
   const handleDownloadImage = async (imageUrl) => {
     try {
