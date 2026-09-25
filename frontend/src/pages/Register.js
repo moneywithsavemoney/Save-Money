@@ -11,7 +11,7 @@ export default function Register() {
   const urlReferCode = queryParams.get("ref") || ""; 
 
   // 🔹 আপনার অ্যাপ লোগোর URL বা লোকাল পাবলিক ফাইল পাথ এখানে দিন
-  const appLogoUrl = "/logo.png"; // অথবা যেমন: "https://your-domain.com/logo.png"
+  const appLogoUrl = "/logo512.png"; // অথবা যেমন: "https://your-domain.com/logo.png"
 
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
