@@ -20,6 +20,9 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
 
+  // App Download Modal State
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+
   // Email Verification States
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
@@ -147,7 +150,7 @@ export default function Register() {
 
       if (res.ok || data.success === true) {
         toast.success(data.msg || "Registered Successfully");
-        navigate("/login");
+        setShowDownloadModal(true); // রেজিষ্ট্রেশন সফল হলে ডাউনলোড পপআপ দেখাবে
       } else {
         toast.error(data.msg || "Registration failed");
       }
@@ -157,6 +160,15 @@ export default function Register() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownloadApk = () => {
+    const link = document.createElement("a");
+    link.href = "/save-money.apk";
+    link.setAttribute("download", "save-money.apk");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -430,6 +442,7 @@ export default function Register() {
         </div>
       </div>
 
+      {/* Terms & Conditions Modal */}
       {showTerms && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
@@ -519,6 +532,38 @@ export default function Register() {
               }}
             >
               Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* APK Download Pop-up Modal */}
+      {showDownloadModal && (
+        <div style={styles.modalOverlay}>
+          <div style={{ ...styles.modal, textAlign: "center" }}>
+            <div style={styles.downloadIconWrap}>📱</div>
+            <h2 style={styles.downloadModalTitle}>
+              download our mobile application
+            </h2>
+            <p style={{ color: "#475569", fontSize: "14px", marginTop: "8px" }}>
+              Get the best experience on our mobile app!
+            </p>
+
+            <button
+              style={styles.downloadBtn}
+              onClick={handleDownloadApk}
+            >
+              📥 Download
+            </button>
+
+            <button
+              style={styles.closeBtn}
+              onClick={() => {
+                setShowDownloadModal(false);
+                navigate("/login");
+              }}
+            >
+              Continue to Login
             </button>
           </div>
         </div>
@@ -967,6 +1012,41 @@ const styles = {
     color: "white",
     fontWeight: "900",
     cursor: "pointer"
+  },
+
+  downloadIconWrap: {
+    width: "60px",
+    height: "60px",
+    borderRadius: "20px",
+    background: "linear-gradient(135deg,#7c3aed,#2563eb)",
+    color: "white",
+    fontSize: "30px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 10px"
+  },
+
+  downloadModalTitle: {
+    margin: 0,
+    color: "#0f172a",
+    fontSize: "22px",
+    fontWeight: "800",
+    textTransform: "lowercase"
+  },
+
+  downloadBtn: {
+    width: "100%",
+    marginTop: "20px",
+    padding: "14px",
+    border: "none",
+    borderRadius: "14px",
+    background: "linear-gradient(135deg,#22c55e,#16a34a)",
+    color: "white",
+    fontSize: "18px",
+    fontWeight: "800",
+    cursor: "pointer",
+    boxShadow: "0 8px 20px rgba(34,197,94,0.3)"
   },
 
   closeBtn: {
