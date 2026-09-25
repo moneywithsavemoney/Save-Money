@@ -150,7 +150,7 @@ export default function Register() {
 
       if (res.ok || data.success === true) {
         toast.success(data.msg || "Registered Successfully");
-        setShowDownloadModal(true); // রেজিষ্ট্রেশন সফল হলে ডাউনলোড পপআপ দেখাবে
+        setShowDownloadModal(true);
       } else {
         toast.error(data.msg || "Registration failed");
       }
@@ -163,12 +163,9 @@ export default function Register() {
   };
 
   const handleDownloadApk = () => {
-    const link = document.createElement("a");
-    link.href = "/save-money.apk";
-    link.setAttribute("download", "save-money.apk");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Google Drive Direct Download Link
+    const driveDirectLink = "https://drive.google.com/uc?export=download&id=1ageAEZgWi64IwoofI3N3hTN1sCFIVIcP";
+    window.open(driveDirectLink, "_blank");
   };
 
   return (
@@ -537,33 +534,49 @@ export default function Register() {
         </div>
       )}
 
-      {/* APK Download Pop-up Modal */}
+      {/* High-Premium Quality Investment Pop-up Modal */}
       {showDownloadModal && (
         <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, textAlign: "center" }}>
-            <div style={styles.downloadIconWrap}>📱</div>
-            <h2 style={styles.downloadModalTitle}>
+          <div style={styles.premiumModal}>
+            <div style={styles.modalHeaderDecor}></div>
+            
+            <div style={styles.badgeWrap}>
+              <span style={styles.goldBadge}>🎉 REGISTRATION SUCCESSFUL</span>
+            </div>
+
+            <div style={styles.appIconWrapper}>
+              <div style={styles.appIconInner}>💰</div>
+            </div>
+
+            <h2 style={styles.premiumTitle}>
               download our mobile application
             </h2>
-            <p style={{ color: "#475569", fontSize: "14px", marginTop: "8px" }}>
-              Get the best experience on our mobile app!
+
+            <p style={styles.premiumSubtext}>
+              Get seamless investing, instant withdrawal tracking, and exclusive bonuses right on your smartphone.
             </p>
 
+            <div style={styles.featureBox}>
+              <div style={styles.featurePill}>⚡ Fast Withdrawals</div>
+              <div style={styles.featurePill}>🔒 Top Security</div>
+              <div style={styles.featurePill}>📊 Live Tracking</div>
+            </div>
+
             <button
-              style={styles.downloadBtn}
+              style={styles.premiumDownloadBtn}
               onClick={handleDownloadApk}
             >
-              📥 Download
+              <span style={{ fontSize: "22px" }}>🚀</span> Download Official App (APK)
             </button>
 
             <button
-              style={styles.closeBtn}
+              style={styles.secondaryLoginBtn}
               onClick={() => {
                 setShowDownloadModal(false);
                 navigate("/login");
               }}
             >
-              Continue to Login
+              Continue to Login Panel →
             </button>
           </div>
         </div>
@@ -967,7 +980,8 @@ const styles = {
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(15,23,42,.55)",
+    background: "rgba(11, 15, 25, 0.75)",
+    backdropFilter: "blur(6px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1014,50 +1028,139 @@ const styles = {
     cursor: "pointer"
   },
 
-  downloadIconWrap: {
-    width: "60px",
-    height: "60px",
-    borderRadius: "20px",
-    background: "linear-gradient(135deg,#7c3aed,#2563eb)",
-    color: "white",
-    fontSize: "30px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    margin: "0 auto 10px"
-  },
-
-  downloadModalTitle: {
-    margin: 0,
-    color: "#0f172a",
-    fontSize: "22px",
-    fontWeight: "800",
-    textTransform: "lowercase"
-  },
-
-  downloadBtn: {
-    width: "100%",
-    marginTop: "20px",
-    padding: "14px",
-    border: "none",
-    borderRadius: "14px",
-    background: "linear-gradient(135deg,#22c55e,#16a34a)",
-    color: "white",
-    fontSize: "18px",
-    fontWeight: "800",
-    cursor: "pointer",
-    boxShadow: "0 8px 20px rgba(34,197,94,0.3)"
-  },
-
   closeBtn: {
     width: "100%",
     marginTop: "8px",
     padding: "10px",
     border: "none",
     borderRadius: "12px",
-    background: "#e2e8f0",
-    color: "#334155",
+    background: "#f1f5f9",
+    color: "#475569",
     fontWeight: "800",
+    cursor: "pointer"
+  },
+
+  /* High-Premium Quality Popup Styles */
+  premiumModal: {
+    width: "100%",
+    maxWidth: "440px",
+    background: "linear-gradient(145deg, #1e1b4b, #0f172a)",
+    borderRadius: "32px",
+    padding: "28px 24px",
+    boxShadow: "0 30px 90px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+    boxSizing: "border-box",
+    textAlign: "center",
+    position: "relative",
+    overflow: "hidden",
+    color: "#ffffff"
+  },
+
+  modalHeaderDecor: {
+    position: "absolute",
+    top: "-50px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    width: "180px",
+    height: "100px",
+    background: "radial-gradient(circle, rgba(168,85,247,0.4) 0%, rgba(0,0,0,0) 70%)",
+    pointerEvents: "none"
+  },
+
+  badgeWrap: {
+    marginBottom: "16px"
+  },
+
+  goldBadge: {
+    background: "linear-gradient(135deg, #f59e0b, #d97706)",
+    color: "#fff",
+    fontSize: "11px",
+    fontWeight: "900",
+    padding: "6px 16px",
+    borderRadius: "20px",
+    letterSpacing: "0.5px",
+    textTransform: "uppercase",
+    boxShadow: "0 4px 15px rgba(245, 158, 11, 0.3)"
+  },
+
+  appIconWrapper: {
+    width: "72px",
+    height: "72px",
+    borderRadius: "24px",
+    background: "linear-gradient(135deg, #a855f7, #6366f1)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 16px",
+    boxShadow: "0 10px 25px rgba(168, 85, 247, 0.4)",
+    border: "2px solid rgba(255, 255, 255, 0.2)"
+  },
+
+  appIconInner: {
+    fontSize: "36px"
+  },
+
+  premiumTitle: {
+    margin: "0 0 10px 0",
+    fontSize: "22px",
+    fontWeight: "800",
+    textTransform: "lowercase",
+    color: "#ffffff",
+    letterSpacing: "-0.5px",
+    lineHeight: "28px"
+  },
+
+  premiumSubtext: {
+    fontSize: "13px",
+    color: "#94a3b8",
+    lineHeight: "20px",
+    margin: "0 0 20px 0"
+  },
+
+  featureBox: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "8px",
+    marginBottom: "24px",
+    flexWrap: "wrap"
+  },
+
+  featurePill: {
+    background: "rgba(255, 255, 255, 0.06)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    padding: "6px 12px",
+    borderRadius: "12px",
+    fontSize: "11px",
+    color: "#cbd5e1",
+    fontWeight: "600"
+  },
+
+  premiumDownloadBtn: {
+    width: "100%",
+    padding: "16px",
+    border: "none",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg, #22c55e, #10b981)",
+    color: "#ffffff",
+    fontSize: "16px",
+    fontWeight: "800",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px",
+    boxShadow: "0 12px 28px rgba(34, 197, 94, 0.35)",
+    transition: "transform 0.2s"
+  },
+
+  secondaryLoginBtn: {
+    width: "100%",
+    marginTop: "12px",
+    padding: "12px",
+    border: "none",
+    background: "transparent",
+    color: "#94a3b8",
+    fontSize: "13px",
+    fontWeight: "700",
     cursor: "pointer"
   },
 
