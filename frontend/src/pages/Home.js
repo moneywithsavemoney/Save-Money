@@ -129,15 +129,10 @@ export default function Home() {
     }, 1200);
   };
 
-const handleDownloadApp = () => {
-  // ফাইল পাথ (ফাইলটির নাম স্পেস ছাড়া save-money.apk রাখুন)
-  const apkUrl = process.env.PUBLIC_URL 
-    ? `${process.env.PUBLIC_URL}/save-money.apk` 
-    : "/save-money.apk";
-  
-  // সরাসরি ডাউনলোডের জন্য উইন্ডো রিডাইরেক্ট ব্যবহার করুন
-  window.location.href = apkUrl;
-};
+  const handleDownloadApp = () => {
+    window.location.href = "https://drive.google.com/uc?export=download&id=1ageAEZgWi64IwoofI3N3hTN1sCFIVIcP";
+  };
+
 
 
 
