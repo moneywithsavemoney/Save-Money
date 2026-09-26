@@ -556,14 +556,16 @@ export default function Home() {
             </button>
 
             <img
-              src="/INDEPENDENCE OFFER.png"
-              alt="INDEPENDENCE OFFER"
-              style={styles.popupImage}
-            />
+  src="/OFFER_BANNER.png"
+  alt="OFFER BANNER"
+  style={styles.popupImage}
+/>
+
 
             <button
               style={styles.popupDownloadBtn}
-              onClick={() => handleDownloadImage("/INDEPENDENCE OFFER.png")}
+              onClick={() => handleDownloadImage("/OFFER_BANNER.png")}
+
             >
               📥 Download Offer Image
             </button>
