@@ -167,11 +167,7 @@ export default function Home() {
       loadLatestUpdate();
     }, 10000);
 
-    const flag = localStorage.getItem("showLoginPopup");
-    if (flag === "true") {
-      setShowOfferPopup(true);
-      localStorage.removeItem("showLoginPopup");
-    }
+    setShowOfferPopup(true);
 
     return () => clearInterval(interval);
   }, []);
