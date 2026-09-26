@@ -562,6 +562,8 @@ export default function Home() {
   src="/OFFER_BANNER.png"
   alt="OFFER BANNER"
   style={styles.popupImage}
+  loading="eager"
+  decoding="async"
 />
 
 
