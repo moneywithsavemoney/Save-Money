@@ -1526,16 +1526,16 @@ const styles = {
     padding: "16px"
   },
   popupCard: {
-    background: "#0f172a",
-    borderRadius: "24px",
-    padding: "20px",
-    maxWidth: "420px",
-    width: "100%",
-    position: "relative",
-    boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
-    border: "1px solid #1e293b",
-    textAlign: "center"
-  },
+  background: "#0f172a",
+  borderRadius: "24px",
+  padding: "20px",
+  maxWidth: "90%", // মোবাইলে যেন কেটে না যায়
+  width: "420px",
+  position: "relative",
+  boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
+  border: "1px solid #1e293b",
+  textAlign: "center"
+},
   popupCloseBtn: {
     position: "absolute",
     top: "12px",
@@ -1557,12 +1557,12 @@ const styles = {
     zIndex: 2
   },
   popupImage: {
-    width: "100%",
-    maxHeight: "260px",
-    objectFit: "cover",
-    borderRadius: "16px",
-    marginBottom: "14px"
-  },
+  width: "100%",
+  height: "auto", // স্বয়ংক্রিয় উচ্চতা নেবে
+  objectFit: "contain", // পুরো ছবি সুন্দরভাবে দেখাবে, কাটবে না
+  borderRadius: "16px",
+  marginBottom: "14px"
+},
   popupDownloadBtn: {
     width: "100%",
     padding: "12px",
