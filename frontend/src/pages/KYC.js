@@ -19,7 +19,7 @@ export default function KYC() {
   const [kycStatus, setKycStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 👇 সাইডবার ড্রয়ার ও ডাউনলোড স্টেট
+  // 👇 সাইডবার ড্রয়ার ও ডাউনলোড স্টেট     
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
 
