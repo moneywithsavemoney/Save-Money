@@ -137,21 +137,28 @@ export default function Home() {
 
 
   const handleDownloadImage = async (imageUrl) => {
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "OFFER_BANNAR.png";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      window.open(imageUrl, "_blank");
-    }
-  };
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.href = url;
+    // গিটহাবের আসল ফাইলের সাথে মিলিয়ে নাম দিন
+    link.download = "OFFER_BANNER.png"; 
+    link.target = "_blank";
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setTimeout(() => window.URL.revokeObjectURL(url), 100);
+  } catch (error) {
+    // অ্যাপ বা অ্যান্ড্রয়েড ওয়েবভিউতে ফেচ ব্যর্থ হলে সরাসরি লিঙ্ক ওপেন করবে
+    window.open(imageUrl, "_blank");
+  }
+};
+
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -559,12 +566,12 @@ export default function Home() {
 
 
             <button
-              style={styles.popupDownloadBtn}
-              onClick={() => handleDownloadImage("/OFFER_BANNER.png")}
+  style={styles.popupDownloadBtn}
+  onClick={() => handleDownloadImage("/OFFER_BANNER.png")}
+>
+  📥 Download Offer Image
+</button>
 
-            >
-              📥 Download Offer Image
-            </button>
           </div>
         </div>
       )}
