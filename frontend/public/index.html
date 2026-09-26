@@ -7,19 +7,31 @@
     <meta name="theme-color" content="#020617" />
     <meta name="description" content="Join SAVE MONEY and manage your finance easily!" />
 
+    <!-- 🟢 ১. অ্যাপ ক্যাশ বন্ধ করার মেটা ট্যাগ যুক্ত করা হলো -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logoo 192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <title>Save Money</title>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-    <!-- PWA Service Worker Registration -->
+    <!-- 🟢 ২. সার্ভিস ওয়ার্কার আনরেজিস্টার (Unregister) এবং পুরাতন ক্যাশ ডিলেট করা হলো -->
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker Registered!', reg))
-            .catch(err => console.log('Service Worker Registration Failed!', err));
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister(); // পুরোনো সার্ভিস ওয়ার্কার আনইনস্টল করবে
+          }
+        });
+      }
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) {
+            caches.delete(name); // সেভ থাকা সমস্ত পুরোনো ফাইল ক্যাশ ক্লিয়ার করবে
+          }
         });
       }
     </script>
