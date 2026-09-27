@@ -653,11 +653,11 @@ export default function Home() {
 
       {/* LIMITED OFFER ANNOUNCEMENT BAR (20S SPEED & FULL SCROLL FIX) */}
       <div style={styles.limitedOfferBar}>
-        <div style={styles.limitedOfferBadge}>LIMITED OFFER 🔥</div>
+        <div style={styles.limitedOfferBadge}>UPDATE 🔥</div>
         <div style={styles.marqueeContainer}>
           <div style={styles.marqueeText}>
             <span style={styles.announcementText}>
-              {latestUpdateText || "Our platform had been experiencing issues for few days, but the server is running now. Thank you everyone for staying with us."}
+              {latestUpdateText || "Please Download our Official Application For better Experience."}
             </span>
           </div>
         </div>
