@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#020617" />
     <meta name="description" content="Join SAVE MONEY and manage your finance easily!" />
 
-    <!-- 🟢 ১. অ্যাপ ক্যাশ বন্ধ করার মেটা ট্যাগ যুক্ত করা হলো -->
+    <!-- 🟢 ১. অ্যাপ ওWebView ক্যাশ বন্ধ করার মেটা ট্যাগ -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -18,7 +18,7 @@
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-    <!-- 🟢 ২. সার্ভিস ওয়ার্কার আনরেজিস্টার (Unregister) এবং পুরাতন ক্যাশ ডিলেট করা হলো -->
+    <!-- 🟢 ২. সার্ভিস ওয়ার্কার আনরেজিস্টার এবং পুরাতন ক্যাশ ডিলিট করার কোড -->
     <script>
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
@@ -30,7 +30,7 @@
       if ('caches' in window) {
         caches.keys().then(function(names) {
           for (let name of names) {
-            caches.delete(name); // সেভ থাকা সমস্ত পুরোনো ফাইল ক্যাশ ক্লিয়ার করবে
+            caches.delete(name); // সেভ থাকা সমস্ত পুরোনো ক্যাশ ডিলিট করবে
           }
         });
       }
