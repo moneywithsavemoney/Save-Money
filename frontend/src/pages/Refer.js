@@ -284,8 +284,8 @@ export default function Refer() {
   const refAmt = Number(referBonus.totalBonus || user.referIncome || 0);
 
   const totalAllTimeBalance = perfAmt + teamAmt + royAmt + refAmt;
-  const referLink = `${window.location.origin}/register?ref=${referCode}`;
-
+const baseUrl = "https://save-moneyy-indol.vercel.app";
+const referLink = `${baseUrl}/register?ref=${user.referCode}`;
   const copyText = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
