@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { App as CapApp } from "@capacitor/app";
 import socket from "./socket";
 
 import { ToastContainer } from "react-toastify";
@@ -51,6 +52,42 @@ import OneTime from "./pages/OneTime";
 import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
 
+// 🟢 ব্যাক বাটন হ্যান্ডলার সাব-কম্পোনেন্ট
+function BackButtonHandler() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    let listener;
+
+    const setupListener = async () => {
+      listener = await CapApp.addListener("backButton", ({ canGoBack }) => {
+        // যদি ইউজার হোম, লগইন বা মেইন পেজে থাকে তবে ব্যাক চাপলে অ্যাপ ক্লোজ হবে
+        if (
+          location.pathname === "/" ||
+          location.pathname === "/home" ||
+          location.pathname === "/login"
+        ) {
+          CapApp.exitApp();
+        } else {
+          // অন্য কোনো সাব-পেজে থাকলে ১ ধাপ ব্যাক করে হোম/আগের পেজে ফিরবে
+          navigate(-1);
+        }
+      });
+    };
+
+    setupListener();
+
+    return () => {
+      if (listener) {
+        listener.remove();
+      }
+    };
+  }, [location, navigate]);
+
+  return null;
+}
+
 function App() {
   const [popup, setPopup] = useState(null);
 
@@ -76,6 +113,9 @@ function App() {
 
   return (
     <BrowserRouter>
+      {/* 🟢 ব্যাক বাটন লিসেনার যুক্ত করা হলো */}
+      <BackButtonHandler />
+
       {/* 🟢 জুম ও মোবাইল ওভারফ্লো বন্ধ করার মূল কন্টেইনার Wrapper */}
       <div style={{ width: "100%", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh", boxSizing: "border-box" }}>
 
