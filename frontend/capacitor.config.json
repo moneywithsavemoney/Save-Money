@@ -1,10 +1,9 @@
 {
-  "appId": "com.savemoney.app",
-  "appName": "Save Money",
-  "webDir": "build",
-  "bundledWebRuntime": false,
-  "server": {
-    "androidScheme": "https",
-    "cleartext": true
-  }
-}
+    "appId": "com.savemoney.app",
+      "appName": "Save Money",
+        "webDir": "build",
+          "server": {
+              "url": "https://save-moneyy-indol.vercel.app",
+                  "cleartext": true
+                    }
+                    }
