@@ -44,6 +44,21 @@ const { P2PUser, P2PReview } = require("./models/p2p");
 const sendPushNotification = require("./utils/sendPush");
 const News = mongoose.model("News", new mongoose.Schema({ message: String }));
 const OneTimeInvestment = require("./models/OneTimeInvestment");
+// === Firebase Admin SDK Import ===
+const admin = require('firebase-admin');
+
+// === Firebase Initialize (Render Environment Variable থেকে) ===
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log("Firebase Admin Initialized Successfully!");
+  }
+} catch (error) {
+  console.error("Firebase Initialization Error:", error);
+}
 
 
 
@@ -10355,73 +10370,126 @@ cron.schedule("0 0 5 * *", async () => {
 });
 
 // ১. প্রতিদিন সকালে ডেইলি রিওয়ার্ড ক্লাইম করার নোটিফিকেশন (প্রতিদিন সকাল ৮:০০ টায়)
+// 5. Thrice daily Daily Reward Reminder Notifications (e.g., at 8 AM, 12 PM, and 8 PM)
 cron.schedule('0 8,12,20 * * *', async () => {
   try {
     console.log("⏰ Running Daily Reward Cron Job...");
-    const users = await User.find({ pushSubscription: { $ne: null } });
+    
+    // Find users who have an fcmToken
+    const users = await User.find({ fcmToken: { $ne: null } });
 
     for (let user of users) {
-      await sendPushNotification(
-        user.email,
-        "🎁 Daily Reward Reminder!",
-        "শুভ সকাল! প্লিজ আপনার ডেইলি রিওয়ার্ড ক্লেইম করুন 💸✨",
-        "/daily-reward"
-      );
+      if (user.fcmToken) {
+        const message = {
+          token: user.fcmToken,
+          notification: {
+            title: "🎁 Daily Reward Reminder!",
+            body: "Good day! Please claim your daily reward now 💸✨"
+          },
+          data: {
+            url: "/daily-reward"
+          }
+        };
+
+        admin.messaging().send(message)
+          .then(response => {
+            console.log(`📲 Daily reward notification sent to ${user.email}`);
+          })
+          .catch(error => {
+            console.error(`❌ Daily reward notification error for ${user.email}:`, error);
+          });
+      }
     }
-    console.log("✅ Daily Reward notifications sent successfully!");
+    console.log("✅ Daily Reward notifications process completed!");
   } catch (err) {
     console.error("❌ Daily reward cron error:", err);
   }
-  }, {
-    scheduled: true,
-    timezone: "Asia/Kolkata"
+}, {
+  scheduled: true,
+  timezone: "Asia/Kolkata"
 });
 
+
 // ২. প্রতিদিন ৩ বার রেফার করার নোটিফিকেশন (যেমন: সকাল ১০টা, দুপুর ২টা এবং সন্ধ্যা ৭টায়)
+// 4. Thrice daily Referral Notifications (e.g., at 10 AM, 2 PM, and 7 PM)
 cron.schedule('0 10,14,19 * * *', async () => {
   try {
     console.log("⏰ Running Referral Cron Job...");
-    const users = await User.find({ pushSubscription: { $ne: null } });
+    
+    // Find users who have an fcmToken
+    const users = await User.find({ fcmToken: { $ne: null } });
 
     for (let user of users) {
-      await sendPushNotification(
-        user.email,
-        "👥 Refer & Earn More!",
-        "বন্ধুদের বেশি বেশি রেফার করো আর ঝটপট ইনকাম করো 🚀💰",
-        "/refer"
-      );
+      if (user.fcmToken) {
+        const message = {
+          token: user.fcmToken,
+          notification: {
+            title: "👥 Refer & Earn More!",
+            body: "Refer more friends and boost your earnings instantly! 🚀💰"
+          },
+          data: {
+            url: "/refer"
+          }
+        };
+
+        admin.messaging().send(message)
+          .then(response => {
+            console.log(`📲 Referral notification sent to ${user.email}`);
+          })
+          .catch(error => {
+            console.error(`❌ Referral notification error for ${user.email}:`, error);
+          });
+      }
     }
-    console.log("✅ Referral notifications sent successfully!");
+    console.log("✅ Referral notifications process completed!");
   } catch (err) {
     console.error("❌ Referral cron error:", err);
   }
-  }, {
-    scheduled: true,
-    timezone: "Asia/Kolkata"
+}, {
+  scheduled: true,
+  timezone: "Asia/Kolkata"
 });
 
-// ৩. প্রতিদিন ২ বার SIP ও রেফার আর্নিংয়ের নোটিফিকেশন (যেমন: দুপুর ১২টা এবং বিকেল ৫টায়)
+
+// 3. Twice daily SIP & Referral Promo Notifications (e.g., at 12 PM and 5 PM)
 cron.schedule('0 12,17 * * *', async () => {
   try {
     console.log("⏰ Running SIP & Referral Promo Cron Job...");
-    const users = await User.find({ pushSubscription: { $ne: null } });
+    
+    // Find users who have an fcmToken
+    const users = await User.find({ fcmToken: { $ne: null } });
 
     for (let user of users) {
-      await sendPushNotification(
-        user.email,
-        "🌱 SIP & Earn Opportunity!",
-        "সেভ মানি আপনাকে SIP করার সঙ্গে সঙ্গে রেফার করে দুর্দান্ত আর্নিংয়ের সুযোগ করে দিচ্ছে! এখনই শুরু করুন 📈🎯",
-        "/invest-now"
-      );
+      if (user.fcmToken) {
+        const message = {
+          token: user.fcmToken,
+          notification: {
+            title: "🌱 SIP & Earn Opportunity!",
+            body: "Save Money brings you a great earning opportunity by referring along with SIP! Start now 📈🎯"
+          },
+          data: {
+            url: "/invest-now"
+          }
+        };
+
+        admin.messaging().send(message)
+          .then(response => {
+            console.log(`📲 Promo notification sent to ${user.email}`);
+          })
+          .catch(error => {
+            console.error(`❌ Promo notification error for ${user.email}:`, error);
+          });
+      }
     }
-    console.log("✅ SIP promo notifications sent successfully!");
+    console.log("✅ SIP promo notifications process completed!");
   } catch (err) {
     console.error("❌ SIP promo cron error:", err);
   }
-  }, {
-    scheduled: true,
-    timezone: "Asia/Kolkata"
+}, {
+  scheduled: true,
+  timezone: "Asia/Kolkata"
 });
+
 
 // ONETIME DAILY RETURN AUTOMATION (প্রতিদিন রাত ১২:০০ টায় IST)
 cron.schedule("0 0 * * *", async () => {
@@ -10486,6 +10554,25 @@ cron.schedule("0 0 * * *", async () => {
         user.markModified("onetimeHistory");
 
         await user.save();
+                // === FCM Push Notification Trigger ===
+        if (user.fcmToken) {
+          const notificationMessage = {
+            token: user.fcmToken,
+            notification: {
+              title: "Daily Return Credited! 🎉",
+              body: `Your daily return of ₹${totalDailyReturnForUser} has been added to your balance.`
+            }
+          };
+
+          admin.messaging().send(notificationMessage)
+            .then(response => {
+              console.log(`📲 Notification sent to ${user.email}`);
+            })
+            .catch(error => {
+              console.error(`❌ Notification error for ${user.email}:`, error);
+            });
+        }
+        
         processedUsersCount++;
         console.log(`✅ Success: Credited ₹${totalDailyReturnForUser} to ${user.email}`);
       }
@@ -10517,6 +10604,27 @@ app.use((err, req, res, next) => {
   });
 
 });
+
+// FCM নোটিফিকেশন পাঠানোর হেলপার ফাংশন
+async function sendNotification(fcmToken, title, body) {
+  if (!fcmToken) return;
+
+  const message = {
+    token: fcmToken,
+    notification: {
+      title: title,
+      body: body
+    }
+  };
+
+  try {
+    const response = await admin.messaging().send(message);
+    console.log("Notification sent successfully:", response);
+  } catch (error) {
+    console.error("Error sending notification:", error);
+  }
+}
+
 
 // ✅ server.listen MUST be outside io.on
 const PORT = process.env.PORT || 5000;
