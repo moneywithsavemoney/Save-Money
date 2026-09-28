@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { App as CapApp } from "@capacitor/app";
+import { PushNotifications } from "@capacitor/push-notifications";
+import axios from "axios";
 import socket from "./socket";
 
 import { ToastContainer } from "react-toastify";
@@ -94,6 +96,50 @@ function App() {
     show: false,
     downloadUrl: ""
   });
+
+  // 🔔 FCM Push Notification টোকেন রেজিস্টার ও ব্যাকএন্ডে সেভ করার লজিক
+  useEffect(() => {
+    const initPushNotifications = async () => {
+      try {
+        let permStatus = await PushNotifications.checkPermissions();
+
+        if (permStatus.receive === 'prompt') {
+          permStatus = await PushNotifications.requestPermissions();
+        }
+
+        if (permStatus.receive === 'granted') {
+          await PushNotifications.register();
+        }
+      } catch (err) {
+        console.error("Push notification initialization error:", err);
+      }
+    };
+
+    initPushNotifications();
+
+    // ফায়ারবেস থেকে টোকেন জেনারেট হলে ব্যাকএন্ডের API-তে পাঠানো
+    const tokenListener = PushNotifications.addListener('registration', async (token) => {
+      const email = localStorage.getItem("email");
+      const userId = localStorage.getItem("userId");
+
+      if (token.value && (email || userId)) {
+        try {
+          await axios.post("https://save-money-backend.onrender.com/api/save-fcm-token", {
+            userId: userId,
+            email: email,
+            fcmToken: token.value
+          });
+          console.log("FCM token synced successfully with backend");
+        } catch (error) {
+          console.error("Failed to save FCM token to backend:", error);
+        }
+      }
+    });
+
+    return () => {
+      tokenListener.then(l => l.remove());
+    };
+  }, []);
 
   // 🔄 অটো-আপডেট চেকিং লজিক
   useEffect(() => {
