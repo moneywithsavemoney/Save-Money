@@ -101,7 +101,7 @@ function App() {
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        const res = await fetch("https://save-moneyy-indol.vercel.app/update.json");
+        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
         const data = await res.json();
 
         // ⚠️ আপনার ইনস্টল করা অ্যাপের বর্তমান ভার্সন (১)
