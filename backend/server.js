@@ -10625,6 +10625,24 @@ async function sendNotification(fcmToken, title, body) {
   }
 }
 
+// === FCM Token Save করার API ===
+app.post('/api/save-fcm-token', async (req, res) => {
+  const { userId, fcmToken } = req.body;
+
+  try {
+    if (!userId || !fcmToken) {
+      return res.status(400).json({ error: "User ID and FCM Token are required" });
+    }
+
+    await User.findByIdAndUpdate(userId, { fcmToken: fcmToken });
+    console.log(`✅ FCM Token saved for user: ${userId}`);
+    res.status(200).json({ message: "FCM Token saved successfully" });
+  } catch (error) {
+    console.error("❌ Error saving FCM Token:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 // ✅ server.listen MUST be outside io.on
 const PORT = process.env.PORT || 5000;
