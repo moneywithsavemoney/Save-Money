@@ -62,7 +62,6 @@ function BackButtonHandler() {
 
     const setupListener = async () => {
       listener = await CapApp.addListener("backButton", ({ canGoBack }) => {
-        // যদি ইউজার হোম, লগইন বা মেইন পেজে থাকে তবে ব্যাক চাপলে অ্যাপ ক্লোজ হবে
         if (
           location.pathname === "/" ||
           location.pathname === "/home" ||
@@ -70,7 +69,6 @@ function BackButtonHandler() {
         ) {
           CapApp.exitApp();
         } else {
-          // অন্য কোনো সাব-পেজে থাকলে ১ ধাপ ব্যাক করে হোম/আগের পেজে ফিরবে
           navigate(-1);
         }
       });
@@ -177,22 +175,43 @@ function App() {
               <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: "20px", marginBottom: "20px" }}>
                 A new version of Save Money app is available with new features and performance improvements.
               </p>
-              <button
-                onClick={() => window.open(updateModal.downloadUrl, "_system")}
-                style={{
-                  width: "100%",
-                  padding: "14px",
-                  borderRadius: "14px",
-                  border: "none",
-                  background: "linear-gradient(135deg,#22c55e,#10b981)",
-                  color: "#fff",
-                  fontWeight: "bold",
-                  fontSize: "16px",
-                  cursor: "pointer"
-                }}
-              >
-                Update Now
-              </button>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <button
+                  onClick={() => window.open(updateModal.downloadUrl, "_system")}
+                  style={{
+                    width: "100%",
+                    padding: "14px",
+                    borderRadius: "14px",
+                    border: "none",
+                    background: "linear-gradient(135deg,#22c55e,#10b981)",
+                    color: "#fff",
+                    fontWeight: "bold",
+                    fontSize: "16px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Update Now
+                </button>
+
+                {/* 🔴 স্কিপ বাটন যুক্ত করা হলো */}
+                <button
+                  onClick={() => setUpdateModal((prev) => ({ ...prev, show: false }))}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "14px",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    background: "transparent",
+                    color: "#cbd5e1",
+                    fontWeight: "500",
+                    fontSize: "14px",
+                    cursor: "pointer"
+                  }}
+                >
+                  Skip for Now
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -214,7 +233,6 @@ function App() {
         )}
 
         <Routes>
-          {/* 🏠 রুট ইউআরএল হুক (ডিফল্ট হোমপেজে নিয়ে যাবে) */}
           <Route
             path="/"
             element={
@@ -224,12 +242,10 @@ function App() {
             }
           />
 
-          {/* 🔓 পাবলিক রুটস */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          {/* 🔒 প্রটেক্টেড রুটস (ইউজারদের জন্য) */}
           <Route
             path="/leaderboard"
             element={
@@ -448,7 +464,6 @@ function App() {
             }
           />
 
-          {/* 🛠️ অ্যাডমিন রুটস */}
           <Route
             path="/admin"
             element={
@@ -512,7 +527,6 @@ function App() {
             }
           />
 
-          {/* 🔄 ফলব্যাক রুট */}
           <Route path="*" element={<Login />} />
 
         </Routes>
