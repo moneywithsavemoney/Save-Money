@@ -91,6 +91,36 @@ function BackButtonHandler() {
 function App() {
   const [popup, setPopup] = useState(null);
 
+  // 🚀 অটো-আপডেট পপ-আপের জন্য স্টেট
+  const [updateModal, setUpdateModal] = useState({
+    show: false,
+    downloadUrl: ""
+  });
+
+  // 🔄 অটো-আপডেট চেকিং লজিক
+  useEffect(() => {
+    const checkAppUpdate = async () => {
+      try {
+        const res = await fetch("https://save-moneyy-indol.vercel.app/update.json");
+        const data = await res.json();
+
+        // ⚠️ আপনার ইনস্টল করা অ্যাপের বর্তমান ভার্সন (১)
+        const currentVersionCode = 1;
+
+        if (data && data.versionCode > currentVersionCode) {
+          setUpdateModal({
+            show: true,
+            downloadUrl: data.downloadUrl
+          });
+        }
+      } catch (err) {
+        console.error("Update check failed:", err);
+      }
+    };
+
+    checkAppUpdate();
+  }, []);
+
   useEffect(() => {
     const email = localStorage.getItem("email");
 
@@ -118,6 +148,54 @@ function App() {
 
       {/* 🟢 জুম ও মোবাইল ওভারফ্লো বন্ধ করার মূল কন্টেইনার Wrapper */}
       <div style={{ width: "100%", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh", boxSizing: "border-box" }}>
+
+        {/* 🚀 ইন-অ্যাপ অটো-আপডেট পপ-আপ মোডাল */}
+        {updateModal.show && (
+          <div style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.8)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 99999,
+            padding: "20px"
+          }}>
+            <div style={{
+              background: "#1e1b4b",
+              borderRadius: "24px",
+              padding: "24px",
+              maxWidth: "360px",
+              width: "100%",
+              textAlign: "center",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.5)"
+            }}>
+              <div style={{ fontSize: "48px", marginBottom: "10px" }}>🚀</div>
+              <h3 style={{ margin: "0 0 8px 0", fontSize: "20px" }}>New Update Available!</h3>
+              <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: "20px", marginBottom: "20px" }}>
+                A new version of Save Money app is available with new features and performance improvements.
+              </p>
+              <button
+                onClick={() => window.open(updateModal.downloadUrl, "_system")}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  borderRadius: "14px",
+                  border: "none",
+                  background: "linear-gradient(135deg,#22c55e,#10b981)",
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  cursor: "pointer"
+                }}
+              >
+                Update Now
+              </button>
+            </div>
+          </div>
+        )}
 
         {popup && (
           <div style={{
