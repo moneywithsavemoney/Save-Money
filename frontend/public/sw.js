@@ -1,12 +1,6 @@
-const CACHE_NAME = "save-money-cache-v1";
-const urlsToCache = ["/", "/index.html", "/manifest.json", "/logo192.png", "/logo512.png"];
+// Network-First Service Worker for Live Updates
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    })
-  );
   self.skipWaiting();
 });
 
@@ -14,26 +8,36 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            return caches.delete(cache);
-          }
-        })
+        cacheNames.map((cache) => caches.delete(cache))
       );
     })
   );
   self.clients.claim();
 });
 
+// Network-first fetch handler
 self.addEventListener("fetch", (event) => {
+  // Only handle HTTP/HTTPS requests
+  if (!event.request.url.startsWith("http")) return;
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open("save-money-dynamic-cache").then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
 
-// পুশ নোটিফিকেশন রিসিভ ও হ্যান্ডলিং
+// Push Notification Handling
 self.addEventListener("push", function (event) {
   let data = { title: "Save Money", body: "You have a new notification" };
   
@@ -60,7 +64,7 @@ self.addEventListener("push", function (event) {
   );
 });
 
-// নোটিফিকেশনে ক্লিক হ্যান্ডলিং
+// Notification Click Handling
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
   event.waitUntil(
