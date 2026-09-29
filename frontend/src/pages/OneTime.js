@@ -28,10 +28,11 @@ const parseSafeDate = (dateVal) => {
     const d = new Date(dateVal);
     if (!isNaN(d.getTime())) return d;
 
+    // DD/MM/YYYY or MM/DD/YYYY Support
     const parts = dateVal.split(/[\/\-]/);
     if (parts.length === 3) {
-      const month = parseInt(parts[0], 10) - 1;
-      const day = parseInt(parts[1], 10);
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
       const year = parseInt(parts[2], 10);
       const customDate = new Date(year, month, day);
       if (!isNaN(customDate.getTime())) return customDate;
@@ -45,7 +46,7 @@ const parseSafeDate = (dateVal) => {
 const formatDate = (dateVal) => {
   const d = parseSafeDate(dateVal);
   if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
-  return d.toLocaleDateString("en-GB");
+  return d.toLocaleDateString("en-GB"); // Format: DD/MM/YYYY
 };
 
 export default function OneTime() {
@@ -214,6 +215,42 @@ export default function OneTime() {
       setAmount(5000);
     }
   }, [activeInvestment]);
+
+  // ----------------- ACCURATE MATURITY DATE CALCULATION -----------------
+  const calculatedMaturityDate = useMemo(() => {
+    if (!activeInvestment) return "In Progress";
+
+    //১. ব্যাকএন্ড থেকে সঠিক ম্যাচ্যুরিটি ডেট পাঠালে সেটি সরাসরি নিবে
+    if (activeInvestment.maturityDate) {
+      const parsedMaturity = parseSafeDate(activeInvestment.maturityDate);
+      if (!isNaN(parsedMaturity.getTime()) && parsedMaturity.getTime() > 0) {
+        return formatDate(parsedMaturity);
+      }
+    }
+
+    // ২. না থাকলে Start Date বা Created At থেকে Duration অনুযায়ী সঠিক তারিখ হিসেব করবে
+    const startDateRaw = activeInvestment.startDate || activeInvestment.createdAt;
+    if (startDateRaw) {
+      const startDateObj = parseSafeDate(startDateRaw);
+      if (!isNaN(startDateObj.getTime()) && startDateObj.getTime() > 0) {
+        let durationDays = tenure;
+        if (typeof activeInvestment.duration === "number") {
+          durationDays = activeInvestment.duration;
+        } else if (typeof activeInvestment.duration === "string") {
+          const match = activeInvestment.duration.match(/\d+/);
+          if (match) durationDays = parseInt(match[0], 10);
+        } else if (activeInvestment.durationDays) {
+          durationDays = Number(activeInvestment.durationDays);
+        }
+
+        const maturityObj = new Date(startDateObj);
+        maturityObj.setDate(maturityObj.getDate() + durationDays);
+        return formatDate(maturityObj);
+      }
+    }
+
+    return "In Progress";
+  }, [activeInvestment, tenure]);
 
   const loadDashboardData = async () => {
     try {
@@ -918,7 +955,7 @@ export default function OneTime() {
                 <div style={styles.activeStatItem}>
                   <span style={styles.activeLabel}>Maturity Date</span>
                   <strong style={{ ...styles.activeValue, color: "#38bdf8" }}>
-                    {activeInvestment.maturityDate ? formatDate(activeInvestment.maturityDate) : "In Progress"}
+                    {calculatedMaturityDate}
                   </strong>
                 </div>
               </div>
