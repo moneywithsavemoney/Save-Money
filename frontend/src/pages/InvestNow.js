@@ -5,16 +5,54 @@ import { toast } from "react-toastify";
 export default function InvestNow() {
   const navigate = useNavigate();
   const [showValue, setShowValue] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const summary = {
-    totalInvestment: 16000.0,
-    totalReturn: 41882.13,
-    returnRate: 17
-  };
+  // Dynamic user investment summary state
+  const [summary, setSummary] = useState({
+    totalInvestment: 0,
+    totalReturn: 0,
+    returnRate: 0
+  });
+
+  // Fetch logged-in user's dynamic/original data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("token"); // Auth Token
+
+        // API Endpoint change koren apnar backend route onusare
+        const response = await fetch("/api/user/investment-summary", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : ""
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setSummary({
+            totalInvestment: data.totalInvestment || 0,
+            totalReturn: data.totalReturn || 0,
+            returnRate: data.returnRate || 0
+          });
+        } else {
+          toast.error("Data load korte somosya hochhe!");
+        }
+      } catch (error) {
+        console.error("Error fetching investment data:", error);
+        toast.error("Network error!");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const formatMoney = (val) => {
-    return `₹ ${val.toLocaleString("en-IN", {
+    return `₹ ${(val || 0).toLocaleString("en-IN", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
@@ -34,7 +72,11 @@ export default function InvestNow() {
             
             <div style={styles.amountRow}>
               <h1 style={styles.amountText}>
-                {showValue ? formatMoney(summary.totalInvestment) : "₹ ••••••••"}
+                {loading
+                  ? "Loading..."
+                  : showValue
+                  ? formatMoney(summary.totalInvestment)
+                  : "₹ ••••••••"}
               </h1>
               <span 
                 style={styles.arrowToggle} 
@@ -58,7 +100,7 @@ export default function InvestNow() {
           </div>
         </div>
 
-        {/* 2. QUICK ACTIONS (Add Money / My Investments) */}
+        {/* 2. QUICK ACTIONS */}
         <div style={styles.quickActionBox}>
           <div style={styles.actionItem} onClick={() => navigate("/wallet")}>
             <div style={styles.iconBoxPurple}>👛</div>
@@ -184,7 +226,9 @@ export default function InvestNow() {
             <div style={{ ...styles.statIcon, background: "#10b981" }}>📈</div>
             <div>
               <p style={styles.statLabel}>Total Invested</p>
-              <h4 style={styles.statValue}>{formatMoney(summary.totalInvestment)}</h4>
+              <h4 style={styles.statValue}>
+                {loading ? "..." : formatMoney(summary.totalInvestment)}
+              </h4>
             </div>
           </div>
 
@@ -194,7 +238,9 @@ export default function InvestNow() {
             <div style={{ ...styles.statIcon, background: "#3b82f6" }}>₹</div>
             <div>
               <p style={styles.statLabel}>Total Return</p>
-              <h4 style={styles.statValue}>{formatMoney(summary.totalReturn)}</h4>
+              <h4 style={styles.statValue}>
+                {loading ? "..." : formatMoney(summary.totalReturn)}
+              </h4>
             </div>
           </div>
 
@@ -204,7 +250,9 @@ export default function InvestNow() {
             <div style={{ ...styles.statIcon, background: "#8b5cf6" }}>%</div>
             <div>
               <p style={styles.statLabel}>Return Rate</p>
-              <h4 style={styles.statValue}>{summary.returnRate}%</h4>
+              <h4 style={styles.statValue}>
+                {loading ? "..." : `${summary.returnRate}%`}
+              </h4>
             </div>
           </div>
         </div>
@@ -217,7 +265,7 @@ export default function InvestNow() {
 // 100% Matching CSS Styles
 const styles = {
   pageBackground: {
-    backgroundColor: "#ebf3fe", // Soft Light Blue Background (Target Matching)
+    backgroundColor: "#ebf3fe",
     minHeight: "100vh",
     padding: "12px",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
