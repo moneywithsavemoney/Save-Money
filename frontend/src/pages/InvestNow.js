@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-// ⚠️ আপনার ব্যাকএন্ডের মূল URL এখানে দিন (যেমন: "https://your-backend-domain.com")
-// যদি ব্যাকএন্ড এবং ফ্রন্টএন্ড একটাই Vercel ডোমেইনে হয়, তবে: "https://save-moneyy-indol.vercel.app"
+// Backend API Base URL
 const API_BASE_URL = "https://save-moneyy-indol.vercel.app";
 
 export default function InvestNow() {
@@ -25,13 +24,19 @@ export default function InvestNow() {
         setLoading(true);
         const token = localStorage.getItem("token"); // Auth Token
 
-        // Full URL ব্যবহার করা হয়েছে যাতে অ্যাপের ভেতর থেকে Network Error না আসে
+        // Prepare safe headers
+        const headers = {
+          "Content-Type": "application/json"
+        };
+
+        if (token && token !== "undefined" && token !== "null") {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        // Full URL Call with CORS safety
         const response = await fetch(`${API_BASE_URL}/api/user/investment-summary`, {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token ? `Bearer ${token}` : ""
-          }
+          headers: headers
         });
 
         if (response.ok) {
@@ -42,11 +47,14 @@ export default function InvestNow() {
             returnRate: data.returnRate || 0
           });
         } else {
-          toast.error("Data load করতে সমস্যা হচ্ছে!");
+          console.warn("Investment data fetch returned non-200 status");
+          // Fallback to empty state instead of breaking UI
+          setSummary({ totalInvestment: 0, totalReturn: 0, returnRate: 0 });
         }
       } catch (error) {
         console.error("Error fetching investment data:", error);
-        toast.error("Network error!");
+        // Silent handling to avoid aggressive toasts on minor disconnects
+        setSummary({ totalInvestment: 0, totalReturn: 0, returnRate: 0 });
       } finally {
         setLoading(false);
       }
@@ -266,6 +274,7 @@ export default function InvestNow() {
   );
 }
 
+// Inline Styles
 const styles = {
   pageBackground: {
     backgroundColor: "#ebf3fe",
