@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
+// ⚠️ আপনার ব্যাকএন্ডের মূল URL এখানে দিন (যেমন: "https://your-backend-domain.com")
+// যদি ব্যাকএন্ড এবং ফ্রন্টএন্ড একটাই Vercel ডোমেইনে হয়, তবে: "https://save-moneyy-indol.vercel.app"
+const API_BASE_URL = "https://save-moneyy-indol.vercel.app";
+
 export default function InvestNow() {
   const navigate = useNavigate();
   const [showValue, setShowValue] = useState(false);
@@ -21,8 +25,8 @@ export default function InvestNow() {
         setLoading(true);
         const token = localStorage.getItem("token"); // Auth Token
 
-        // API Endpoint change koren apnar backend route onusare
-        const response = await fetch("/api/user/investment-summary", {
+        // Full URL ব্যবহার করা হয়েছে যাতে অ্যাপের ভেতর থেকে Network Error না আসে
+        const response = await fetch(`${API_BASE_URL}/api/user/investment-summary`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -38,7 +42,7 @@ export default function InvestNow() {
             returnRate: data.returnRate || 0
           });
         } else {
-          toast.error("Data load korte somosya hochhe!");
+          toast.error("Data load করতে সমস্যা হচ্ছে!");
         }
       } catch (error) {
         console.error("Error fetching investment data:", error);
@@ -262,7 +266,6 @@ export default function InvestNow() {
   );
 }
 
-// 100% Matching CSS Styles
 const styles = {
   pageBackground: {
     backgroundColor: "#ebf3fe",
@@ -277,8 +280,6 @@ const styles = {
     flexDirection: "column",
     gap: "12px"
   },
-
-  /* HERO */
   heroCard: {
     background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #e11d48 100%)",
     borderRadius: "22px",
@@ -325,8 +326,6 @@ const styles = {
     fontWeight: "bold",
     border: "2px solid #ffffff"
   },
-
-  /* QUICK ACTIONS */
   quickActionBox: {
     background: "#ffffff",
     borderRadius: "18px",
@@ -367,8 +366,6 @@ const styles = {
   actionSub: { fontSize: "10px", color: "#64748b" },
   verticalDivider: { width: "1px", height: "28px", background: "#f1f5f9", margin: "0 10px" },
   navArrow: { marginLeft: "auto", color: "#cbd5e1", fontSize: "18px" },
-
-  /* SECTION DIVIDER */
   sectionDivider: {
     display: "flex",
     alignItems: "center",
@@ -384,8 +381,6 @@ const styles = {
     padding: "0 10px"
   },
   sectionTitle: { fontSize: "16px", fontWeight: "800", color: "#1e1b4b" },
-
-  /* ACTIVE GRID */
   activeGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" },
   saveMoneyCard: {
     background: "linear-gradient(160deg, #10b981 0%, #047857 100%)",
@@ -440,7 +435,6 @@ const styles = {
   },
   cardMainHeading: { fontSize: "15px", fontWeight: "800", margin: "10px 0 2px 0" },
   cardDescription: { fontSize: "10px", opacity: 0.85, lineHeight: "1.3", margin: 0 },
-  
   btnInvestNow: {
     background: "#064e3b",
     color: "#fff",
@@ -489,8 +483,6 @@ const styles = {
     justifyContent: "center",
     fontWeight: "bold"
   },
-
-  /* COMING SOON GRID */
   comingSoonGrid: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" },
   goldCard: {
     background: "linear-gradient(180deg, #fefce8 0%, #fef08a 100%)",
@@ -528,7 +520,6 @@ const styles = {
     justifyContent: "space-between",
     minHeight: "175px"
   },
-
   topPinkTag: {
     position: "absolute",
     top: 0,
@@ -576,7 +567,6 @@ const styles = {
   },
   comingCardTitle: { fontSize: "10px", fontWeight: "800", margin: "4px 0 2px 0", color: "#0f172a" },
   comingCardSub: { fontSize: "8px", color: "#64748b", margin: 0, lineHeight: "1.2" },
-
   goldBtnPill: {
     background: "#eab308",
     color: "#fff",
@@ -601,8 +591,6 @@ const styles = {
     padding: "4px 0",
     borderRadius: "10px"
   },
-
-  /* BANNER */
   bannerContainer: {
     background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)",
     borderRadius: "16px",
@@ -614,8 +602,6 @@ const styles = {
   },
   bannerTitle: { fontSize: "12px", fontWeight: "800", margin: 0 },
   bannerSub: { fontSize: "10px", opacity: 0.8, margin: 0 },
-
-  /* STATS CARD */
   bottomStatsCard: {
     background: "#ffffff",
     borderRadius: "16px",
