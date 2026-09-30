@@ -26,6 +26,7 @@ jobs:
       run: |
         cd frontend
         DISABLE_ESLINT_PLUGIN=true npm run build
+        npx cap copy android
         npx cap sync android
 
     - name: Setup Java JDK
