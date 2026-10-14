@@ -568,7 +568,7 @@ export default function OneTime() {
     }
   };
 
-  // ----------------- WITHDRAW INVESTED PRINCIPAL AMOUNT HANDLER -----------------
+  // ----------------- WITHDRAW INVESTED PRINCIPAL AMOUNT HANDLER (UPDATED) -----------------
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
@@ -589,7 +589,7 @@ export default function OneTime() {
           email: email.trim().toLowerCase(), 
           amount: Number(activeInvestment.amount),
           isInvestAmountWithdrawal: true,
-          investmentId: activeInvestment._id,
+          investmentId: activeInvestment._id || activeInvestment.id,
           bankDetails: user.bankDetails || bankForm
         })
       });
@@ -605,6 +605,42 @@ export default function OneTime() {
     } catch (err) {
       console.error("Invest Amount Withdrawal error:", err);
       triggerToast("Network error during withdrawal.", "error");
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
+  // ----------------- REINVEST AMOUNT HANDLER -----------------
+  const handleReinvestAmount = async () => {
+    if (!activeInvestment) return;
+
+    try {
+      setWithdrawing(true);
+      const res = await fetch(`${API}/api/onetime/create-investment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({
+          email,
+          amount: Number(activeInvestment.amount),
+          duration: activeInvestment.duration || `${tenure} Days`,
+          frequency: activeInvestment.frequency || frequency,
+          dailyReturn: Number(activeInvestment.dailyReturn || dailyReturn),
+          status: "Active"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok || data.success) {
+        triggerToast("🚀 Reinvested Successfully!", "success");
+        await loadDashboardData();
+      } else {
+        triggerToast(data.message || "Failed to reinvest", "error");
+      }
+    } catch (err) {
+      triggerToast("Network error during reinvestment", "error");
     } finally {
       setWithdrawing(false);
     }
@@ -966,7 +1002,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* Dynamic Matured Invested Amount Wallet Card */}
+        {/* Dynamic Matured Invested Amount Wallet Card with Withdraw & Reinvest Options */}
         {activeInvestment && isMatured && (
           <section style={styles.maturedWalletCard}>
             <div style={styles.maturedCardHeader}>
@@ -977,7 +1013,7 @@ export default function OneTime() {
                     Matured Investment Amount
                   </h3>
                   <p style={{ margin: 0, fontSize: "10px", color: "#cbd5e1" }}>
-                    Maturity date ({calculatedMaturityDate}) completed! You can withdraw your principal amount now.
+                    Maturity date ({calculatedMaturityDate}) completed! You can withdraw or reinvest your principal.
                   </p>
                 </div>
               </div>
@@ -986,16 +1022,25 @@ export default function OneTime() {
             <div style={styles.maturedValueRow}>
               <div>
                 <span style={{ fontSize: "11px", color: "#94a3b8" }}>Invest Amount</span>
-                <strong style={{ fontSize: "20px", color: "#ffffff", display: "block" }}>
+                <strong style={{ fontSize: "18px", color: "#ffffff", display: "block" }}>
                   ₹ {Number(activeInvestment.amount || 0).toLocaleString("en-IN")}
                 </strong>
               </div>
-              <button 
-                style={styles.withdrawInvestBtn} 
-                onClick={() => setShowInvestWithdrawModal(true)}
-              >
-                Withdraw Invest Amount
-              </button>
+              <div style={{ display: "flex", gap: "6px" }}>
+                <button 
+                  style={styles.withdrawInvestBtn} 
+                  onClick={() => setShowInvestWithdrawModal(true)}
+                >
+                  Withdraw
+                </button>
+                <button 
+                  style={styles.reinvestBtn} 
+                  onClick={handleReinvestAmount}
+                  disabled={withdrawing}
+                >
+                  Reinvest 🚀
+                </button>
+              </div>
             </div>
           </section>
         )}
@@ -1199,7 +1244,6 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // রিজেক্ট হলে কারণ (rejection reason) দেখানোর লজিক
                     const rejectionReason = item.reason || item.rejectReason || item.note || "";
 
                     return (
@@ -1214,7 +1258,6 @@ export default function OneTime() {
                             <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
                               {displayStatus}
                             </span>
-                            {/* যদি উইথড্র বা ট্রানজ্যাকশন রিজেক্ট হয় এবং কারণ দেওয়া থাকে, তবে তা রেন্ডার করবে */}
                             {isRejected && rejectionReason && (
                               <span style={{ fontSize: "10px", color: "#f87171", lineHeight: "1.2" }}>
                                 Reason: {rejectionReason}
@@ -1663,12 +1706,23 @@ const styles = {
     background: "linear-gradient(90deg, #10b981 0%, #0284c7 100%)",
     border: "none",
     color: "#ffffff",
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "bold",
-    padding: "8px 12px",
-    borderRadius: "8px",
+    padding: "7px 10px",
+    borderRadius: "6px",
     cursor: "pointer",
     boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)"
+  },
+  reinvestBtn: {
+    background: "linear-gradient(90deg, #f59e0b 0%, #d97706 100%)",
+    border: "none",
+    color: "#ffffff",
+    fontSize: "10px",
+    fontWeight: "bold",
+    padding: "7px 10px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)"
   },
   darkMainCard: {
     background: "#081628",
