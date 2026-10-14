@@ -214,6 +214,10 @@ export default function KYC() {
               file={aadhaarFile}
               setFile={setAadhaarFile}
               iconBg="#2563eb"
+              inputValue={aadhaarNumber}
+              onInputChange={(e) => setAadhaarNumber(e.target.value)}
+              inputPlaceholder="Enter 12 digit Aadhaar Number"
+              maxLength={12}
             />
             <DocUploadBox
               icon="🪪"
@@ -223,6 +227,10 @@ export default function KYC() {
               file={panFile}
               setFile={setPanFile}
               iconBg="#7c3aed"
+              inputValue={panNumber}
+              onInputChange={(e) => setPanNumber(e.target.value.toUpperCase())}
+              inputPlaceholder="Enter 10 digit PAN Number"
+              maxLength={10}
             />
             <DocUploadBox
               icon="👤"
@@ -287,13 +295,24 @@ function InfoBox({ icon, label, value, iconBg }) {
   );
 }
 
-function DocUploadBox({ icon, title, subtitle, btnText, file, setFile, iconBg }) {
+function DocUploadBox({ icon, title, subtitle, btnText, file, setFile, iconBg, inputValue, onInputChange, inputPlaceholder, maxLength }) {
   return (
     <div style={styles.uploadCard}>
       <div style={{ ...styles.uploadHeaderIcon, background: iconBg }}>{icon}</div>
       <h4 style={styles.uploadTitle}>{title}</h4>
       <p style={styles.uploadSubtitle}>{subtitle}</p>
       
+      {onInputChange && (
+        <input
+          type="text"
+          value={inputValue}
+          onChange={onInputChange}
+          placeholder={inputPlaceholder}
+          maxLength={maxLength}
+          style={styles.textInputStyle}
+        />
+      )}
+
       <label style={styles.uploadButtonLabel}>
         <span style={{ fontSize: "14px" }}>☁️</span>
         <span style={{ fontSize: "10px", fontWeight: "600" }}>
@@ -498,6 +517,18 @@ const styles = {
   },
   uploadTitle: { margin: 0, fontSize: "11px", fontWeight: "700" },
   uploadSubtitle: { margin: "4px 0 8px 0", fontSize: "8px", color: "#64748b", minHeight: "22px" },
+  textInputStyle: {
+    width: "100%",
+    background: "#0f172a",
+    border: "1px solid #334155",
+    borderRadius: "6px",
+    padding: "6px 8px",
+    color: "#ffffff",
+    fontSize: "10px",
+    marginBottom: "8px",
+    boxSizing: "border-box",
+    outline: "none"
+  },
   uploadButtonLabel: {
     width: "100%",
     background: "#1e293b",
