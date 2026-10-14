@@ -7334,10 +7334,9 @@ if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" ||
 
 
 
-
-// ==========================================
-// ONETIME WITHDRAWAL API (Regular + Maturity Principal Combined)
-// ==========================================
+// *********************************************************
+// ➔ PREPARE WITHDRAWAL API (Regular + Maturity Principal Combined)
+// *********************************------------------------
 app.post('/api/onetime/withdraw', async (req, res) => {
   try {
     const { email, amount, isInvestAmountWithdrawal, investmentId, bankDetails } = req.body;
@@ -7346,122 +7345,117 @@ app.post('/api/onetime/withdraw', async (req, res) => {
       return res.status(400).json({ success: false, message: "Email and amount are required" });
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = String(email).trim().toLowerCase();
     const withdrawAmount = Number(amount);
 
-    const user = await User.findOne({ email: new RegExp("^" + cleanEmail + "$", "i") });
+    const user = await User.findOne({ $or: [{ email: cleanEmail }, { email: {$regex: new RegExp(`^${cleanEmail}$`, 'i') } }] });
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const historyList = user.onetimeHistory || [];
+    const historylist = user.onetimeHistory || [];
 
-    // -------------------------------------------------------------
-    // ১. নতুন লজিক: ইনভেস্টমেন্ট ম্যাচিউর হওয়ার পর মূল টাকা (Principal) উইথড্র
-    // -------------------------------------------------------------
-    if (isInvestAmountWithdrawal && investmentId) {
-      const targetInvestment = user.investments?.id(investmentId) || user.onetimeInvestments?.find(inv => inv._id.toString() === investmentId.toString());
-      
-      if (!targetInvestment) {
+    // ১. মূল ম্যচুরিড/প্রিন্সিপাল অ্যামাউন্ট উইথড্র করার পর প্রিন্সিপাল ফিল্ড আপডেট
+    if (isInvestAmountWithdrawal) {
+      if (!investmentId) {
+        return res.status(400).json({ success: false, message: "Investment ID is required for principal withdrawal" });
+      }
+
+      // সঠিক ইনভেস্টমেন্ট আইডি খোঁজার সুদৃঢ় লজিক (যা আগের কোডে প্রবলেম করছিল)
+      let targetInv = null;
+      if (user.investments && user.investments.length > 0) {
+        targetInv = user.investments.id(investmentId) || user.investments.find(i => String(i._id) === String(investmentId));
+      }
+      if (!targetInv && user.onetimeInvestments && user.onetimeInvestments.length > 0) {
+        targetInv = user.onetimeInvestments.find(i => String(i._id) === String(investmentId));
+      }
+      if (!targetInv && user.onetimeHistory && user.onetimeHistory.length > 0) {
+        targetInv = user.onetimeHistory.find(i => String(i._id) === String(investmentId));
+      }
+
+      if (!targetInv) {
         return res.status(404).json({ success: false, message: "Investment plan not found" });
       }
 
-      const withdrawId = new mongoose.Types.ObjectId();
-      const withdrawData = {
-        _id: withdrawId,
+      // প্ল্যান স্ট্যাটাস Completed করা হলো যাতে রানিং না দেখায়
+      targetInv.status = "Completed";
+
+      const withdrawdata = new mongoose.Types.ObjectId();
+      const withdraw = {
+        _id: withdrawdata,
         type: "Withdrawal",
         amount: withdrawAmount,
         isInvestAmountWithdrawal: true,
-        investmentId: investmentId,
+        investmentId: targetInv._id,
         bankDetails: bankDetails || user.bankDetails || {},
         status: "Pending",
         createdAt: new Date(),
         startDate: new Date()
       };
 
-      if (!user.onetimeHistory) user.onetimeHistory = [];
-      user.onetimeHistory.unshift(withdrawData);
-      user.markModified("onetimeHistory");
-      await user.save();
+      if (!user.withdrawals) user.withdrawals = [];
+      user.withdrawals.push(withdraw);
 
-      // Standalone Withdrawal Collection-এ যুক্ত করা (যদি থাকে)
       try {
         if (typeof Withdrawal !== "undefined") {
-          await Withdrawal.create({
-            _id: withdrawId,
+          const standaloneWithdrawal = new Withdrawal({
+            _id: withdrawdata,
             name: user.name || "",
             email: cleanEmail,
             amount: withdrawAmount,
             isInvestAmountWithdrawal: true,
-            investmentId: investmentId,
+            investmentId: targetInv._id,
             bankDetails: bankDetails || user.bankDetails || {},
             status: "Pending",
             createdAt: new Date()
           });
+          await standaloneWithdrawal.save();
         }
-      } catch (wErr) {
-        console.log("Standalone withdrawal collection skipped:", wErr.message);
+      } catch (err) {
+        console.log("Standalone withdrawal collection skipped:", err.message);
       }
+
+      user.markModified('investments');
+      user.markModified('onetimeInvestments');
+      user.markModified('onetimeHistory');
+      user.markModified('withdrawals');
+      await user.save();
 
       return res.status(200).json({
         success: true,
         message: "Invest amount withdrawal request submitted successfully!",
-        withdrawData
+        withdrawal: withdraw
       });
     }
 
-    // -------------------------------------------------------------
-    // ২. স্ক্রিনশটের মূল লজিক: সাধারণ ডেইলি রিটার্ন বা ওয়ালেট ব্যালেন্স উইথড্র
-    // -------------------------------------------------------------
-
-    // ক. কোনো Pending উইথড্রয়াল আছে কি না চেক করা[span_2](start_span)[span_2](end_span)
-    const hasPendingWithdraw = historyList.some((item) => {
-      if (!item) return false;
+    // ২. খতিয়ে না দেখতে, ডেইলি উইথড্র লিমিট বা আজকের দিন চেক
+    const todayStr = new Date().toDateString();
+    const hasWithdrawnToday = (user.withdrawals || []).some((item) => {
       const itemType = (item.type || "").toLowerCase();
-      const itemStatus = (item.status || "").toLowerCase();
-      return itemType === "withdrawal" && itemStatus === "pending";
+      if (!itemType.includes("withdraw")) return false;
+      const itemDate = new Date(item.createdAt || item.startDate || Date.now()).toDateString();
+      const status = (item.status || "").toLowerCase();
+      return itemDate === todayStr && ["pending", "approved", "accepted", "success"].includes(status);
     });
 
-    if (hasPendingWithdraw) {
+    if (hasWithdrawnToday) {
       return res.status(400).json({
         success: false,
         message: "You already have a pending withdrawal request. Please wait for admin response."
       });
     }
 
-    // খ. আজকের তারিখে কোনো সফল বা পেন্ডিং উইথড্রয়াল আছে কি না চেক করা[span_3](start_span)[span_3](end_span)
-    const todayStr = new Date().toDateString();
-    const hasWithdrawToday = historyList.some((item) => {
-      if (!item) return false;
-      const itemType = (item.type || "").toLowerCase();
-      if (itemType !== "withdrawal") return false;
-
-      const itemDate = new Date(item.createdAt || item.startDate || item.date).toDateString();
-      const itemStatus = (item.status || "").toLowerCase();
-      const isBlockedStatus = ["pending", "approved", "accepted", "success"].includes(itemStatus);
-
-      return itemDate === todayStr && isBlockedStatus;
-    });
-
-    if (hasWithdrawToday) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already made a withdrawal request today. You can make another request tomorrow."
-      });
-    }
-
-    // গ. ব্যালেন্স চেক[span_4](start_span)[span_4](end_span)
+    // ৩. ওয়ালেট ব্যালেন্স চেক ও কাটা
     const currentBalance = Number(user.otbalance || user.otBalance || 0);
     if (currentBalance < withdrawAmount) {
       return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
     }
 
-    // ঘ. ব্যালেন্স কাটা[span_5](start_span)[span_5](end_span)
     user.otbalance = currentBalance - withdrawAmount;
 
-    const withdrawId = new mongoose.Types.ObjectId();
-    const withdrawData = {
-      _id: withdrawId,
+    const normalWithdrawalId = new mongoose.Types.ObjectId();
+    const withdraw = {
+      _id: normalWithdrawalId,
       type: "Withdrawal",
       amount: withdrawAmount,
       isInvestAmountWithdrawal: false,
@@ -7471,16 +7465,13 @@ app.post('/api/onetime/withdraw', async (req, res) => {
       startDate: new Date()
     };
 
-    if (!user.onetimeHistory) user.onetimeHistory = [];
-    user.onetimeHistory.unshift(withdrawData);
-    user.markModified("onetimeHistory");
-    await user.save();
+    if (!user.withdrawals) user.withdrawals = [];
+    user.withdrawals.push(withdraw);
 
-    // ঙ. Standalone Withdrawal Collection-এ যুক্ত করা[span_6](start_span)[span_6](end_span)
     try {
       if (typeof Withdrawal !== "undefined") {
-        await Withdrawal.create({
-          _id: withdrawId,
+        const standaloneWithdrawal = new Withdrawal({
+          _id: normalWithdrawalId,
           name: user.name || "",
           email: cleanEmail,
           amount: withdrawAmount,
@@ -7489,25 +7480,29 @@ app.post('/api/onetime/withdraw', async (req, res) => {
           status: "Pending",
           createdAt: new Date()
         });
+        await standaloneWithdrawal.save();
       }
-    } catch (wErr) {
-      console.log("Standalone withdrawal collection skipped:", wErr.message);
+    } catch (err) {
+      console.log("Standalone withdrawal collection skipped:", err.message);
     }
+
+    user.markModified('withdrawals');
+    await user.save();
 
     return res.status(200).json({
       success: true,
       message: "Withdrawal request submitted successfully!",
-      withdrawData,
+      withdrawal: withdraw,
       updatedBalance: user.otbalance
     });
 
   } catch (error) {
-    console.error("Withdraw Error:", error);
+    console.error("Withdrawal Error:", error);
     return res.status(500).json({ success: false, message: "Server error processing withdrawal: " + error.message });
   }
 });
 
-
+                                 
 
 
 // 3. Admin Analytics Endpoint
