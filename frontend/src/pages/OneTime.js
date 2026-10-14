@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { API } from "../config";
 
-// Keyframe Style Injection for Marquee Animation
 if (typeof document !== "undefined") {
   const styleSheet = document.createElement("style");
   styleSheet.type = "text/css";
@@ -15,7 +14,6 @@ if (typeof document !== "undefined") {
   document.head.appendChild(styleSheet);
 }
 
-// Safe Date Parser
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date(0);
   if (dateVal instanceof Date) return isNaN(dateVal) ? new Date(0) : dateVal;
@@ -28,7 +26,6 @@ const parseSafeDate = (dateVal) => {
     const d = new Date(dateVal);
     if (!isNaN(d.getTime())) return d;
 
-    // DD/MM/YYYY or MM/DD/YYYY Support
     const parts = dateVal.split(/[\/\-]/);
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
@@ -46,7 +43,7 @@ const parseSafeDate = (dateVal) => {
 const formatDate = (dateVal) => {
   const d = parseSafeDate(dateVal);
   if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
-  return d.toLocaleDateString("en-GB"); // Format: DD/MM/YYYY
+  return d.toLocaleDateString("en-GB");
 };
 
 export default function OneTime() {
@@ -56,20 +53,15 @@ export default function OneTime() {
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
-  // ----------------- WELCOME OFFER POPUP STATE -----------------
   const [showOfferPopup, setShowOfferPopup] = useState(true);
-
-  // ----------------- SIDEBAR & PLAN STATES -----------------
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
 
-  // ----------------- DASHBOARD STATES -----------------
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState([]);
 
-  // Dynamic Dashboard Stats
   const [stats, setStats] = useState({
     totalInvested: 0,
     totalEarnings: 0,
@@ -77,28 +69,26 @@ export default function OneTime() {
     availableBalance: 0
   });
 
-  // Active Investment Tracking
   const [activeInvestment, setActiveInvestment] = useState(null);
 
-  // Investment Form State
   const [tenure, setTenure] = useState(15);
   const [rate, setRate] = useState(0.6);
   const [frequency, setFrequency] = useState("daily");
   const [amount, setAmount] = useState(5000);
   const [investing, setInvesting] = useState(false);
 
-  // Modals State
   const [showAmountModal, setShowAmountModal] = useState(false);
   const [showAddFundModal, setShowAddFundModal] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  
+  // Modals for Invest Principal Withdraw
+  const [showInvestWithdrawModal, setShowInvestWithdrawModal] = useState(false);
 
-  // Deposit Form State
   const [txnId, setTxnId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [depositing, setDepositing] = useState(false);
 
-  // Bank Form State
   const [bankForm, setBankForm] = useState({
     accountNumber: "",
     ifsc: "",
@@ -107,8 +97,6 @@ export default function OneTime() {
   });
 
   const [withdrawing, setWithdrawing] = useState(false);
-
-  // Toast State
   const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
 
   const triggerToast = (msg, type = "info") => {
@@ -216,40 +204,52 @@ export default function OneTime() {
     }
   }, [activeInvestment]);
 
-  // ----------------- ACCURATE MATURITY DATE CALCULATION -----------------
-  const calculatedMaturityDate = useMemo(() => {
-    if (!activeInvestment) return "In Progress";
+  // ----------------- MATURITY DATE & IS MATURED CHECK -----------------
+  const { calculatedMaturityDate, isMatured, maturityDateObj } = useMemo(() => {
+    if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false, maturityDateObj: null };
 
-    //১. ব্যাকএন্ড থেকে সঠিক ম্যাচ্যুরিটি ডেট পাঠালে সেটি সরাসরি নিবে
+    let maturityObj = null;
+
     if (activeInvestment.maturityDate) {
       const parsedMaturity = parseSafeDate(activeInvestment.maturityDate);
       if (!isNaN(parsedMaturity.getTime()) && parsedMaturity.getTime() > 0) {
-        return formatDate(parsedMaturity);
+        maturityObj = parsedMaturity;
       }
     }
 
-    // ২. না থাকলে Start Date বা Created At থেকে Duration অনুযায়ী সঠিক তারিখ হিসেব করবে
-    const startDateRaw = activeInvestment.startDate || activeInvestment.createdAt;
-    if (startDateRaw) {
-      const startDateObj = parseSafeDate(startDateRaw);
-      if (!isNaN(startDateObj.getTime()) && startDateObj.getTime() > 0) {
-        let durationDays = tenure;
-        if (typeof activeInvestment.duration === "number") {
-          durationDays = activeInvestment.duration;
-        } else if (typeof activeInvestment.duration === "string") {
-          const match = activeInvestment.duration.match(/\d+/);
-          if (match) durationDays = parseInt(match[0], 10);
-        } else if (activeInvestment.durationDays) {
-          durationDays = Number(activeInvestment.durationDays);
+    if (!maturityObj) {
+      const startDateRaw = activeInvestment.startDate || activeInvestment.createdAt;
+      if (startDateRaw) {
+        const startDateObj = parseSafeDate(startDateRaw);
+        if (!isNaN(startDateObj.getTime()) && startDateObj.getTime() > 0) {
+          let durationDays = tenure;
+          if (typeof activeInvestment.duration === "number") {
+            durationDays = activeInvestment.duration;
+          } else if (typeof activeInvestment.duration === "string") {
+            const match = activeInvestment.duration.match(/\d+/);
+            if (match) durationDays = parseInt(match[0], 10);
+          } else if (activeInvestment.durationDays) {
+            durationDays = Number(activeInvestment.durationDays);
+          }
+
+          maturityObj = new Date(startDateObj);
+          maturityObj.setDate(maturityObj.getDate() + durationDays);
         }
-
-        const maturityObj = new Date(startDateObj);
-        maturityObj.setDate(maturityObj.getDate() + durationDays);
-        return formatDate(maturityObj);
       }
     }
 
-    return "In Progress";
+    if (maturityObj) {
+      const today = new Date();
+      // আজ বা আজকের আগের দিন হলে Maturity কমপ্লিট
+      const matured = today >= maturityObj;
+      return {
+        calculatedMaturityDate: formatDate(maturityObj),
+        isMatured: matured,
+        maturityDateObj: maturityObj
+      };
+    }
+
+    return { calculatedMaturityDate: "In Progress", isMatured: false, maturityDateObj: null };
   }, [activeInvestment, tenure]);
 
   const loadDashboardData = async () => {
@@ -564,6 +564,48 @@ export default function OneTime() {
     } catch (err) {
       console.error("Withdrawal error:", err);
       triggerToast("Network error during withdrawal. Please check console.", "error");
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
+  // ----------------- WITHDRAW INVESTED PRINCIPAL AMOUNT HANDLER -----------------
+  const handleWithdrawInvestAmount = async () => {
+    if (!activeInvestment) return;
+
+    if (!user.bankDetails || !user.bankDetails.accountNumber) {
+      setShowBankModal(true);
+      return;
+    }
+
+    try {
+      setWithdrawing(true);
+      const res = await fetch(`${API}/api/onetime/withdraw`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ? token : ""
+        },
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(), 
+          amount: Number(activeInvestment.amount),
+          isInvestAmountWithdrawal: true,
+          investmentId: activeInvestment._id,
+          bankDetails: user.bankDetails || bankForm
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        triggerToast(data.message || "Invest Amount Withdrawal Request Submitted!", "success");
+        setShowInvestWithdrawModal(false);
+        await loadDashboardData();
+      } else {
+        triggerToast(data.message || "Withdrawal Failed", "error");
+      }
+    } catch (err) {
+      console.error("Invest Amount Withdrawal error:", err);
+      triggerToast("Network error during withdrawal.", "error");
     } finally {
       setWithdrawing(false);
     }
@@ -925,6 +967,40 @@ export default function OneTime() {
           </div>
         </section>
 
+        {/* Dynamic Matured Invested Amount Wallet Card (Only shown if maturity date passed) */}
+        {activeInvestment && isMatured && (
+          <section style={styles.maturedWalletCard}>
+            <div style={styles.maturedCardHeader}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "20px" }}>🎉</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "14px", color: "#4ade80", fontWeight: "800" }}>
+                    Matured Investment Amount
+                  </h3>
+                  <p style={{ margin: 0, fontSize: "10px", color: "#cbd5e1" }}>
+                    Maturity date ({calculatedMaturityDate}) completed! You can withdraw your principal amount now.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.maturedValueRow}>
+              <div>
+                <span style={{ fontSize: "11px", color: "#94a3b8" }}>Invest Amount</span>
+                <strong style={{ fontSize: "20px", color: "#ffffff", display: "block" }}>
+                  ₹ {Number(activeInvestment.amount || 0).toLocaleString("en-IN")}
+                </strong>
+              </div>
+              <button 
+                style={styles.withdrawInvestBtn} 
+                onClick={() => setShowInvestWithdrawModal(true)}
+              >
+                Withdraw Invest Amount
+              </button>
+            </div>
+          </section>
+        )}
+
         {/* MAKE NEW INVESTMENT PANEL */}
         <section style={styles.darkMainCard}>
           <h2 style={styles.darkCardTitle}>Make a New Investment</h2>
@@ -936,7 +1012,9 @@ export default function OneTime() {
                   <span style={styles.activePulse}></span>
                   <strong style={styles.activeTitle}>ACTIVE INVESTMENT RUNNING</strong>
                 </div>
-                <span style={styles.activeStatusTagDark}>🟢 Live Earning</span>
+                <span style={styles.activeStatusTagDark}>
+                  {isMatured ? "🎉 Plan Matured" : "🟢 Live Earning"}
+                </span>
               </div>
 
               <div style={styles.activeStatsGrid}>
@@ -954,8 +1032,8 @@ export default function OneTime() {
                 </div>
                 <div style={styles.activeStatItem}>
                   <span style={styles.activeLabel}>Maturity Date</span>
-                  <strong style={{ ...styles.activeValue, color: "#38bdf8" }}>
-                    {calculatedMaturityDate}
+                  <strong style={{ ...styles.activeValue, color: isMatured ? "#4ade80" : "#38bdf8" }}>
+                    {calculatedMaturityDate} {isMatured && "(Matured)"}
                   </strong>
                 </div>
               </div>
@@ -1126,7 +1204,7 @@ export default function OneTime() {
                       <tr key={item._id || idx} style={styles.trDark}>
                         <td style={styles.tdDark}>{formatDate(item.createdAt || item.startDate)}</td>
                         <td style={styles.tdDark}>
-                          {isDeposit ? "💳 Add Fund" : isWithdraw ? "💸 Withdrawal" : `🚀 ${item.duration || `${item.durationDays || tenure} Days`}`}
+                          {isDeposit ? "💳 Add Fund" : isWithdraw ? (item.isInvestAmountWithdrawal ? "🏦 Invest Principal Wd" : "💸 Withdrawal") : `🚀 ${item.duration || `${item.durationDays || tenure} Days`}`}
                         </td>
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
@@ -1264,7 +1342,7 @@ export default function OneTime() {
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Withdraw Funds</h3>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Withdraw Daily Return</h3>
               <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
             </div>
             <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80" }}>
@@ -1287,6 +1365,35 @@ export default function OneTime() {
           </div>
         </div>
       )}
+
+      {/* WITHDRAW MATURED INVESTED AMOUNT MODAL */}
+      {showInvestWithdrawModal && activeInvestment && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.withdrawModalCardDark}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>Withdraw Invested Principal</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowInvestWithdrawModal(false)}>✕</button>
+            </div>
+            <div style={{ ...styles.withdrawBalanceCard, borderColor: "#4ade80" }}>
+              <span style={{ fontSize: "12px", color: "#94a3b8" }}>Matured Invest Amount</span>
+              <strong style={{ fontSize: "22px", color: "#4ade80", display: "block" }}>
+                ₹ {Number(activeInvestment.amount || 0).toLocaleString("en-IN")}
+              </strong>
+            </div>
+            <button
+              style={{
+                ...styles.submitBtnDark,
+                marginTop: "16px",
+                background: "#16a34a"
+              }}
+              onClick={handleWithdrawInvestAmount}
+              disabled={withdrawing}
+            >
+              {withdrawing ? "Processing..." : "Confirm Invest Amount Withdrawal"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1302,7 +1409,6 @@ const getStatusStyleDark = (status) => {
   return { background: "rgba(239, 68, 68, 0.2)", color: "#f87171" };
 };
 
-// ----------------- STYLES -----------------
 const styles = {
   page: {
     minHeight: "100vh",
@@ -1383,7 +1489,7 @@ const styles = {
   marqueeText: {
     display: "inline-block",
     whiteSpace: "nowrap",
-    animation: "marquee 25s linear infinite",
+    animation: "marquee 15s linear infinite",
     fontSize: "11px",
     fontWeight: "600",
     color: "#e2e8f0"
@@ -1521,6 +1627,42 @@ const styles = {
     color: "#ffffff",
     marginTop: "6px"
   },
+  
+  // MATURED WALLET CARD STYLES
+  maturedWalletCard: {
+    background: "linear-gradient(135deg, #022c22 0%, #064e3b 100%)",
+    borderRadius: "14px",
+    padding: "12px 14px",
+    border: "1px solid #22c55e",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  maturedCardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  maturedValueRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "rgba(0,0,0,0.25)",
+    padding: "8px 12px",
+    borderRadius: "10px"
+  },
+  withdrawInvestBtn: {
+    background: "linear-gradient(90deg, #10b981 0%, #0284c7 100%)",
+    border: "none",
+    color: "#ffffff",
+    fontSize: "11px",
+    fontWeight: "bold",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)"
+  },
+
   darkMainCard: {
     background: "#081628",
     borderRadius: "14px",
@@ -1827,7 +1969,6 @@ const styles = {
     color: "#64748b"
   },
 
-  // SIDEBAR STYLES
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -1980,7 +2121,6 @@ const styles = {
     borderRadius: "12px"
   },
 
-  // MODALS
   modalOverlay: {
     position: "fixed",
     inset: 0,
