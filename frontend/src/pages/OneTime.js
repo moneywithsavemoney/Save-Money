@@ -240,7 +240,6 @@ export default function OneTime() {
 
     if (maturityObj) {
       const today = new Date();
-      // আজ বা আজকের আগের দিন হলে Maturity কমপ্লিট
       const matured = today >= maturityObj;
       return {
         calculatedMaturityDate: formatDate(maturityObj),
@@ -967,7 +966,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* Dynamic Matured Invested Amount Wallet Card (Only shown if maturity date passed) */}
+        {/* Dynamic Matured Invested Amount Wallet Card */}
         {activeInvestment && isMatured && (
           <section style={styles.maturedWalletCard}>
             <div style={styles.maturedCardHeader}>
@@ -1199,6 +1198,9 @@ export default function OneTime() {
                     const isSuccess = ["approved", "accepted", "success", "active", "completed"].includes(rawStatus.toLowerCase());
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
+                    
+                    // রিজেক্ট হলে কারণ (rejection reason) দেখানোর লজিক
+                    const rejectionReason = item.reason || item.rejectReason || item.note || "";
 
                     return (
                       <tr key={item._id || idx} style={styles.trDark}>
@@ -1208,9 +1210,17 @@ export default function OneTime() {
                         </td>
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
-                          <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
-                            {displayStatus}
-                          </span>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
+                            <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
+                              {displayStatus}
+                            </span>
+                            {/* যদি উইথড্র বা ট্রানজ্যাকশন রিজেক্ট হয় এবং কারণ দেওয়া থাকে, তবে তা রেন্ডার করবে */}
+                            {isRejected && rejectionReason && (
+                              <span style={{ fontSize: "10px", color: "#f87171", lineHeight: "1.2" }}>
+                                Reason: {rejectionReason}
+                              </span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1627,8 +1637,6 @@ const styles = {
     color: "#ffffff",
     marginTop: "6px"
   },
-  
-  // MATURED WALLET CARD STYLES
   maturedWalletCard: {
     background: "linear-gradient(135deg, #022c22 0%, #064e3b 100%)",
     borderRadius: "14px",
@@ -1662,7 +1670,6 @@ const styles = {
     cursor: "pointer",
     boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)"
   },
-
   darkMainCard: {
     background: "#081628",
     borderRadius: "14px",
@@ -1968,7 +1975,6 @@ const styles = {
     fontSize: "10px",
     color: "#64748b"
   },
-
   drawerOverlay: {
     position: "fixed",
     top: 0,
@@ -2104,7 +2110,6 @@ const styles = {
   drawerNavSupport: { background: "rgba(99, 102, 241, 0.25)", border: "1px solid rgba(99, 102, 241, 0.5)" },
   drawerNavProfile: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
   drawerNavLogout: { background: "rgba(239, 68, 68, 0.25)", border: "1px solid rgba(239, 68, 68, 0.5)" },
-
   treePlantOnlyWrapper: {
     width: "100%",
     paddingTop: "6px",
@@ -2120,7 +2125,6 @@ const styles = {
     objectFit: "cover",
     borderRadius: "12px"
   },
-
   modalOverlay: {
     position: "fixed",
     inset: 0,
