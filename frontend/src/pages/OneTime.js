@@ -23,9 +23,6 @@ const parseSafeDate = (dateVal) => {
   }
 
   if (typeof dateVal === "string") {
-    const d = new Date(dateVal);
-    if (!isNaN(d.getTime())) return d;
-
     const parts = dateVal.split(/[\/\-]/);
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
@@ -34,6 +31,8 @@ const parseSafeDate = (dateVal) => {
       const customDate = new Date(year, month, day);
       if (!isNaN(customDate.getTime())) return customDate;
     }
+    const d = new Date(dateVal);
+    if (!isNaN(d.getTime())) return d;
   }
 
   const fallback = new Date(dateVal);
@@ -82,8 +81,11 @@ export default function OneTime() {
   const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   
-  // Modals for Invest Principal Withdraw
+  // Modals for Invest Principal Withdraw & Reinvest
   const [showInvestWithdrawModal, setShowInvestWithdrawModal] = useState(false);
+  const [showReinvestModal, setShowReinvestModal] = useState(false);
+  const [reinvestTenure, setReinvestTenure] = useState(15);
+  const [reinvestRate, setReinvestRate] = useState(0.6);
 
   const [txnId, setTxnId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
@@ -165,8 +167,61 @@ export default function OneTime() {
     }
   };
 
+  // ----------------- MATURITY DATE & IS MATURED CHECK -----------------
+  const { calculatedMaturityDate, isMatured, maturityDateObj } = useMemo(() => {
+    if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false, maturityDateObj: null };
+
+    let maturityObj = null;
+
+    if (activeInvestment.maturityDate) {
+      const parsedMaturity = parseSafeDate(activeInvestment.maturityDate);
+      if (!isNaN(parsedMaturity.getTime()) && parsedMaturity.getTime() > 0) {
+        maturityObj = parsedMaturity;
+      }
+    }
+
+    if (!maturityObj) {
+      const startDateRaw = activeInvestment.startDate || activeInvestment.createdAt;
+      if (startDateRaw) {
+        const startDateObj = parseSafeDate(startDateRaw);
+        if (!isNaN(startDateObj.getTime()) && startDateObj.getTime() > 0) {
+          let durationDays = 15;
+          if (typeof activeInvestment.duration === "number") {
+            durationDays = activeInvestment.duration;
+          } else if (typeof activeInvestment.duration === "string") {
+            const match = activeInvestment.duration.match(/\d+/);
+            if (match) durationDays = parseInt(match[0], 10);
+          } else if (activeInvestment.durationDays) {
+            durationDays = Number(activeInvestment.durationDays);
+          }
+
+          maturityObj = new Date(startDateObj);
+          maturityObj.setDate(maturityObj.getDate() + durationDays);
+        }
+      }
+    }
+
+    if (maturityObj) {
+      const today = new Date();
+      // আজ যদি মেচুরিটি তারিখের পরে বা সমান হয়
+      const matured = today >= maturityObj;
+      return {
+        calculatedMaturityDate: formatDate(maturityObj),
+        isMatured: matured,
+        maturityDateObj: maturityObj
+      };
+    }
+
+    return { calculatedMaturityDate: "In Progress", isMatured: false, maturityDateObj: null };
+  }, [activeInvestment]);
+
+  // যদি রানিং একটিভ ইনভেস্টমেন্ট থাকে এবং সেটা Matured না হয়ে থাকে তবেই ইনপুট লক থাকবে
+  const isInvestmentLocked = useMemo(() => {
+    return activeInvestment && !isMatured;
+  }, [activeInvestment, isMatured]);
+
   useEffect(() => {
-    if (activeInvestment) {
+    if (activeInvestment && !isMatured) {
       if (activeInvestment.amount) {
         setAmount(Number(activeInvestment.amount));
       }
@@ -196,60 +251,13 @@ export default function OneTime() {
       if (activeInvestment.frequency) {
         setFrequency(activeInvestment.frequency.toLowerCase());
       }
-    } else {
+    } else if (!activeInvestment || isMatured) {
       setTenure(15);
       setRate(0.6);
       setFrequency("daily");
       setAmount(5000);
     }
-  }, [activeInvestment]);
-
-  // ----------------- MATURITY DATE & IS MATURED CHECK -----------------
-  const { calculatedMaturityDate, isMatured, maturityDateObj } = useMemo(() => {
-    if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false, maturityDateObj: null };
-
-    let maturityObj = null;
-
-    if (activeInvestment.maturityDate) {
-      const parsedMaturity = parseSafeDate(activeInvestment.maturityDate);
-      if (!isNaN(parsedMaturity.getTime()) && parsedMaturity.getTime() > 0) {
-        maturityObj = parsedMaturity;
-      }
-    }
-
-    if (!maturityObj) {
-      const startDateRaw = activeInvestment.startDate || activeInvestment.createdAt;
-      if (startDateRaw) {
-        const startDateObj = parseSafeDate(startDateRaw);
-        if (!isNaN(startDateObj.getTime()) && startDateObj.getTime() > 0) {
-          let durationDays = tenure;
-          if (typeof activeInvestment.duration === "number") {
-            durationDays = activeInvestment.duration;
-          } else if (typeof activeInvestment.duration === "string") {
-            const match = activeInvestment.duration.match(/\d+/);
-            if (match) durationDays = parseInt(match[0], 10);
-          } else if (activeInvestment.durationDays) {
-            durationDays = Number(activeInvestment.durationDays);
-          }
-
-          maturityObj = new Date(startDateObj);
-          maturityObj.setDate(maturityObj.getDate() + durationDays);
-        }
-      }
-    }
-
-    if (maturityObj) {
-      const today = new Date();
-      const matured = today >= maturityObj;
-      return {
-        calculatedMaturityDate: formatDate(maturityObj),
-        isMatured: matured,
-        maturityDateObj: maturityObj
-      };
-    }
-
-    return { calculatedMaturityDate: "In Progress", isMatured: false, maturityDateObj: null };
-  }, [activeInvestment, tenure]);
+  }, [activeInvestment, isMatured]);
 
   const loadDashboardData = async () => {
     try {
@@ -357,11 +365,11 @@ export default function OneTime() {
   };
 
   const dailyReturn = useMemo(() => {
-    if (activeInvestment && activeInvestment.dailyReturn) {
+    if (isInvestmentLocked && activeInvestment && activeInvestment.dailyReturn) {
       return Number(activeInvestment.dailyReturn);
     }
     return (Number(amount) * Number(rate)) / 100;
-  }, [amount, rate, activeInvestment]);
+  }, [amount, rate, activeInvestment, isInvestmentLocked]);
 
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
@@ -382,7 +390,7 @@ export default function OneTime() {
   const totalPayout = useMemo(() => Number(amount) + totalReturn, [amount, totalReturn]);
 
   const handleTenureChange = (e) => {
-    if (activeInvestment) return;
+    if (isInvestmentLocked) return;
     const selectedDays = Number(e.target.value);
     const plan = tenurePlans.find((p) => p.days === selectedDays);
     if (plan) {
@@ -392,7 +400,7 @@ export default function OneTime() {
   };
 
   const handleStartInvestment = async () => {
-    if (activeInvestment) {
+    if (isInvestmentLocked) {
       triggerToast("Your investment is currently ongoing. No new investments can be made until it is finished.", "error");
       return;
     }
@@ -568,7 +576,7 @@ export default function OneTime() {
     }
   };
 
-  // ----------------- WITHDRAW INVESTED PRINCIPAL AMOUNT HANDLER (UPDATED) -----------------
+  // ----------------- WITHDRAW INVESTED PRINCIPAL AMOUNT HANDLER -----------------
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
@@ -610,9 +618,12 @@ export default function OneTime() {
     }
   };
 
-  // ----------------- REINVEST AMOUNT HANDLER -----------------
-  const handleReinvestAmount = async () => {
+  // ----------------- REINVEST CONFIRM HANDLER -----------------
+  const handleConfirmReinvest = async () => {
     if (!activeInvestment) return;
+
+    const reinvestAmount = Number(activeInvestment.amount || 0);
+    const calculatedDaily = (reinvestAmount * reinvestRate) / 100;
 
     try {
       setWithdrawing(true);
@@ -624,17 +635,18 @@ export default function OneTime() {
         },
         body: JSON.stringify({
           email,
-          amount: Number(activeInvestment.amount),
-          duration: activeInvestment.duration || `${tenure} Days`,
-          frequency: activeInvestment.frequency || frequency,
-          dailyReturn: Number(activeInvestment.dailyReturn || dailyReturn),
+          amount: reinvestAmount,
+          duration: `${reinvestTenure} Days`,
+          frequency: "daily",
+          dailyReturn: calculatedDaily,
           status: "Active"
         })
       });
 
       const data = await res.json();
       if (res.ok || data.success) {
-        triggerToast("🚀 Reinvested Successfully!", "success");
+        triggerToast("🚀 Investment Done Successfully!", "success");
+        setShowReinvestModal(false);
         await loadDashboardData();
       } else {
         triggerToast(data.message || "Failed to reinvest", "error");
@@ -1035,7 +1047,7 @@ export default function OneTime() {
                 </button>
                 <button 
                   style={styles.reinvestBtn} 
-                  onClick={handleReinvestAmount}
+                  onClick={() => setShowReinvestModal(true)}
                   disabled={withdrawing}
                 >
                   Reinvest 🚀
@@ -1049,7 +1061,8 @@ export default function OneTime() {
         <section style={styles.darkMainCard}>
           <h2 style={styles.darkCardTitle}>Make a New Investment</h2>
 
-          {activeInvestment && (
+          {/* ACTIVE INVESTMENT RUNNING PANEL (শুধুমাত্র প্ল্যান চালু অবস্থায় দেখাবে, Matured হয়ে গেলে সরে যাবে) */}
+          {activeInvestment && !isMatured && (
             <div style={styles.activeInvestCardDark}>
               <div style={styles.activeHeader}>
                 <div style={styles.activeBadgeGroup}>
@@ -1057,7 +1070,7 @@ export default function OneTime() {
                   <strong style={styles.activeTitle}>ACTIVE INVESTMENT RUNNING</strong>
                 </div>
                 <span style={styles.activeStatusTagDark}>
-                  {isMatured ? "🎉 Plan Matured" : "🟢 Live Earning"}
+                  🟢 Live Earning
                 </span>
               </div>
 
@@ -1076,8 +1089,8 @@ export default function OneTime() {
                 </div>
                 <div style={styles.activeStatItem}>
                   <span style={styles.activeLabel}>Maturity Date</span>
-                  <strong style={{ ...styles.activeValue, color: isMatured ? "#4ade80" : "#38bdf8" }}>
-                    {calculatedMaturityDate} {isMatured && "(Matured)"}
+                  <strong style={{ ...styles.activeValue, color: "#38bdf8" }}>
+                    {calculatedMaturityDate}
                   </strong>
                 </div>
               </div>
@@ -1087,16 +1100,16 @@ export default function OneTime() {
           <div style={styles.formGrid}>
             <div style={styles.fieldGroup}>
               <label style={styles.labelDark}>
-                📌 Select Duration {activeInvestment && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+                📌 Select Duration {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
               </label>
               <select
                 style={{
                   ...styles.selectDark,
-                  ...(activeInvestment ? styles.lockedInputDark : {})
+                  ...(isInvestmentLocked ? styles.lockedInputDark : {})
                 }}
                 value={tenure}
                 onChange={handleTenureChange}
-                disabled={!!activeInvestment}
+                disabled={isInvestmentLocked}
               >
                 {tenurePlans.map((p) => (
                   <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
@@ -1108,7 +1121,7 @@ export default function OneTime() {
 
             <div style={styles.fieldGroup}>
               <label style={styles.labelDark}>
-                🔄 Return Frequency {activeInvestment && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+                🔄 Return Frequency {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
               </label>
               <div style={styles.frequencyToggleDark}>
                 <button
@@ -1117,8 +1130,8 @@ export default function OneTime() {
                     ...styles.freqBtnDark,
                     ...(frequency === "daily" ? styles.freqBtnActiveDark : {})
                   }}
-                  onClick={() => !activeInvestment && setFrequency("daily")}
-                  disabled={!!activeInvestment}
+                  onClick={() => !isInvestmentLocked && setFrequency("daily")}
+                  disabled={isInvestmentLocked}
                 >
                   Daily
                 </button>
@@ -1128,8 +1141,8 @@ export default function OneTime() {
                     ...styles.freqBtnDark,
                     ...(frequency === "weekly" ? styles.freqBtnActiveDark : {})
                   }}
-                  onClick={() => !activeInvestment && setFrequency("weekly")}
-                  disabled={!!activeInvestment}
+                  onClick={() => !isInvestmentLocked && setFrequency("weekly")}
+                  disabled={isInvestmentLocked}
                 >
                   Weekly
                 </button>
@@ -1138,16 +1151,16 @@ export default function OneTime() {
 
             <div style={styles.fieldGroup}>
               <label style={styles.labelDark}>
-                💵 Select / Enter Amount {activeInvestment && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+                💵 Select / Enter Amount {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
               </label>
               <div 
                 style={styles.amountInputWrapDark} 
-                onClick={() => !activeInvestment && setShowAmountModal(true)}
+                onClick={() => !isInvestmentLocked && setShowAmountModal(true)}
               >
                 <span style={{ fontSize: "18px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
                 <input style={styles.amountInputDark} type="text" readOnly value={amount.toLocaleString("en-IN")} />
-                <span style={activeInvestment ? styles.lockedBadgeDark : styles.changeBadgeDark}>
-                  {activeInvestment ? "🔒 Locked" : "Change ⚙️"}
+                <span style={isInvestmentLocked ? styles.lockedBadgeDark : styles.changeBadgeDark}>
+                  {isInvestmentLocked ? "🔒 Locked" : "Change ⚙️"}
                 </span>
               </div>
             </div>
@@ -1193,12 +1206,12 @@ export default function OneTime() {
             <button 
               style={{
                 ...styles.startInvestBtnDark,
-                ...(activeInvestment ? styles.disabledBtnDark : {})
+                ...(isInvestmentLocked ? styles.disabledBtnDark : {})
               }} 
               onClick={handleStartInvestment} 
-              disabled={investing || !!activeInvestment}
+              disabled={investing || isInvestmentLocked}
             >
-              {investing ? "Processing..." : activeInvestment ? "🚀 Active Running" : "🚀 Start Investment"}
+              {investing ? "Processing..." : isInvestmentLocked ? "🚀 Active Running" : "🚀 Start Investment"}
             </button>
 
             <button style={styles.addInvestBtnDark} onClick={() => setShowAddFundModal(true)}>
@@ -1443,6 +1456,62 @@ export default function OneTime() {
               disabled={withdrawing}
             >
               {withdrawing ? "Processing..." : "Confirm Invest Amount Withdrawal"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* REINVEST MODAL (ডুরেশন সিলেক্ট করার মডাল) */}
+      {showReinvestModal && activeInvestment && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCardDark}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>Reinvest Principal Amount</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowReinvestModal(false)}>✕</button>
+            </div>
+            <div style={{ marginBottom: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
+              <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Amount to Reinvest</span>
+              <strong style={{ fontSize: "18px", color: "#22c55e" }}>₹{Number(activeInvestment.amount || 0).toLocaleString("en-IN")}</strong>
+            </div>
+            <div style={styles.fieldGroup}>
+              <label style={styles.labelDark}>Select Reinvest Duration</label>
+              <select
+                style={styles.selectDark}
+                value={reinvestTenure}
+                onChange={(e) => {
+                  const selectedDays = Number(e.target.value);
+                  const plan = tenurePlans.find((p) => p.days === selectedDays);
+                  if (plan) {
+                    setReinvestTenure(plan.days);
+                    setReinvestRate(plan.rate);
+                  }
+                }}
+              >
+                {tenurePlans.map((p) => (
+                  <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginTop: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
+              <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Daily Earnings</span>
+              <strong style={{ fontSize: "14px", color: "#38bdf8" }}>
+                ₹{((Number(activeInvestment.amount || 0) * reinvestRate) / 100).toFixed(2)} / day
+              </strong>
+            </div>
+
+            <button
+              style={{
+                ...styles.submitBtnDark,
+                marginTop: "16px",
+                background: "linear-gradient(90deg, #f59e0b 0%, #d97706 100%)"
+              }}
+              onClick={handleConfirmReinvest}
+              disabled={withdrawing}
+            >
+              {withdrawing ? "Processing..." : "Confirm Reinvest 🚀"}
             </button>
           </div>
         </div>
