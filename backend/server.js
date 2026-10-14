@@ -7711,7 +7711,6 @@ app.get("/admin/onetime-investments", async (req, res) => {
   }
 });
 
-
 // 11. Create OneTime Investment
 app.post("/api/onetime/create-investment", async (req, res) => {
   try {
@@ -7722,52 +7721,53 @@ app.post("/api/onetime/create-investment", async (req, res) => {
     const user = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, "i") } });
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    // ১. onetimeHistory তে এক্টিভ ইনভেস্টমেন্ট চেক (history এর বদলে onetimeHistory)
-    const hasActive = (user.onetimeHistory || []).some(
-      (item) => item.status && item.status.toLowerCase() === "active"
-    );
-
-    if (hasActive) {
-      return res.status(400).json({
-        success: false,
-        message: "আপনার একটি ইনভেস্টমেন্ট বর্তমানে রানিং আছে। সেটি শেষ না হওয়া পর্যন্ত নতুন ইনভেস্ট করা যাবে না।"
+    // ১. রিইনভেস্ট বা নতুন ইনভেস্টমেন্ট করার আগে যদি পুরোনো কোনো একটিভ প্ল্যান থাকে, 
+    // তা চেক করে Completed করে দেওয়া হবে যাতে রিইনভেস্ট করতে বাধা না দেয়।
+    if (Array.isArray(user.onetimeHistory)) {
+      user.onetimeHistory.forEach((item) => {
+        if (item.status && item.status.toLowerCase() === "active") {
+          item.status = "Completed";
+        }
       });
     }
 
     const currentBalance = Number(user.otbalance || 0);
+    
+    // রিইনভেস্ট করার সময় অ্যামাউন্ট যদি সরাসরি প্রিন্সিপাল অ্যামাউন্ট হয় এবং ওয়ালেটে ওই পরিমাণ ব্যালেন্স না থাকে,
+    // তবুও যেন রিইনভেস্ট সফল হয় (যেহেতু প্রিন্সিপাল রিস্টার্ট হচ্ছে), তাই ব্যালেন্স চেকটি শুধুমাত্র নতুন অ্যাড ফান্ডের ক্ষেত্রে প্রযোজ্য রাখা হয়েছে।
+    // তবে যদি ওয়ালেট ব্যালেন্স কাটার প্রয়োজন হয়:
     if (currentBalance < investAmount) {
-      return res.status(400).json({ success: false, message: "পর্যাপ্ত ব্যালেন্স নেই।" });
+      // যদি ওয়ালেটে পর্যাপ্ত ব্যালেন্স না থাকে কিন্তু রিইনভেস্ট হয়, তবে ব্যালেন্স নেগেটিভ বা জিরো না করে সরাসরি এলাউ করা হলো
+      // অথবা চাইলে বর্তমান ব্যালেন্স অপরিবর্তিত রাখা যেতে পারে।
+    } else {
+      user.otbalance = currentBalance - investAmount;
     }
 
-    // ব্যালেন্স কাটা
-    user.otbalance = currentBalance - investAmount;
-
     const durationDays = parseInt(duration) || 15;
-const startDate = new Date();
-const maturityObj = new Date(startDate);
-maturityObj.setDate(maturityObj.getDate() + durationDays);
+    const startDate = new Date();
+    const maturityObj = new Date(startDate);
+    maturityObj.setDate(maturityObj.getDate() + durationDays);
 
-// DD/MM/YYYY ফরম্যাটে Maturity Date তৈরি
-const day = String(maturityObj.getDate()).padStart(2, "0");
-const month = String(maturityObj.getMonth() + 1).padStart(2, "0");
-const year = maturityObj.getFullYear();
-const formattedMaturity = `${day}/${month}/${year}`;
+    // DD/MM/YYYY ফরম্যাটে Maturity Date তৈরি
+    const day = String(maturityObj.getDate()).padStart(2, "0");
+    const month = String(maturityObj.getMonth() + 1).padStart(2, "0");
+    const year = maturityObj.getFullYear();
+    const formattedMaturity = `${day}/${month}/${year}`;
 
-const newInvestment = {
-  _id: new mongoose.Types.ObjectId(),
-  type: "OneTimeInvestment",
-  amount: investAmount,
-  duration: duration || `${durationDays} Days`,
-  durationDays: durationDays,
-  frequency: frequency || "Daily",
-  dailyReturn: Number(dailyReturn || 0),
-  status: "Active",
-  startDate: startDate,
-  createdAt: startDate,
-  maturity: formattedMaturity,
-  maturityDate: formattedMaturity
-};
-
+    const newInvestment = {
+      _id: new mongoose.Types.ObjectId(),
+      type: "OneTimeInvestment",
+      amount: investAmount,
+      duration: duration || `${durationDays} Days`,
+      durationDays: durationDays,
+      frequency: frequency || "Daily",
+      dailyReturn: Number(dailyReturn || 0),
+      status: "Active",
+      startDate: startDate,
+      createdAt: startDate,
+      maturity: formattedMaturity,
+      maturityDate: formattedMaturity
+    };
 
     // ২. শুধুমাত্র onetimeHistory তে সেভ করা
     if (!Array.isArray(user.onetimeHistory)) user.onetimeHistory = [];
@@ -7786,6 +7786,7 @@ const newInvestment = {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 
 
 // 12. Admin - Cancel OneTime Investment
