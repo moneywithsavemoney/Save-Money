@@ -7335,119 +7335,89 @@ if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" ||
 
 
 
-// ==================== ONETIME WITHDRAW API ====================
-app.post("/api/onetime/withdraw", async (req, res) => {
+// ==========================================
+// ONETIME WITHDRAWAL API (Regular + Maturity Principal)
+// ==========================================
+app.post('/api/onetime/withdraw', async (req, res) => {
   try {
-    const { email, amount, bankDetails } = req.body;
+    const { email, amount, isInvestAmountWithdrawal, investmentId, bankDetails } = req.body;
+
     if (!email || !amount) {
       return res.status(400).json({ success: false, message: "Email and amount are required" });
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const withdrawAmount = Number(amount);
+    const user = await User.findOne({ email: cleanEmail });
 
-    const user = await User.findOne({ email: new RegExp("^" + cleanEmail + "$", "i") });
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const historyList = user.onetimeHistory || [];
-
-    // ১. কোনো Pending উইথড্রয়াল আছে কি না চেক করা
-    const hasPendingWithdraw = historyList.some((item) => {
-      if (!item) return false;
-      const itemType = (item.type || "").toLowerCase();
-      const itemStatus = (item.status || "").toLowerCase();
-      return itemType === "withdrawal" && itemStatus === "pending";
-    });
-
-    if (hasPendingWithdraw) {
-      return res.status(400).json({
-        success: false,
-        message: "You already have a pending withdrawal request. Please wait for admin response."
-      });
-    }
-
-    // ২. আজকের তারিখে কোনো সফল বা পেন্ডিং উইথড্রয়াল আছে কি না চেক করা (Rejected / Cancelled হলে পুনরায় করতে পারবে)
-    const todayStr = new Date().toDateString();
-    
-    const hasWithdrawToday = historyList.some((item) => {
-      if (!item) return false;
-      const itemType = (item.type || "").toLowerCase();
+    // -------------------------------------------------------------
+    // নতুন লজিক: ইনভেস্টমেন্ট ম্যাচিউর হওয়ার পর মূল টাকা (Principal) উইথড্র
+    // -------------------------------------------------------------
+    if (isInvestAmountWithdrawal && investmentId) {
+      const targetInvestment = user.investments?.id(investmentId) || user.onetimeInvestments?.find(inv => inv._id.toString() === investmentId);
       
-      // শুধুমাত্র "withdrawal" টাইপগুলো চেক করা হবে
-      if (itemType !== "withdrawal") return false;
+      if (!targetInvestment) {
+        return res.status(404).json({ success: false, message: "Investment plan not found" });
+      }
 
-      const itemDate = new Date(item.createdAt || item.startDate || item.date).toDateString();
-      const itemStatus = (item.status || "").toLowerCase();
+      if (!Array.isArray(user.withdrawals)) {
+        user.withdrawals = [];
+      }
 
-      // আজকের দিনে যদি পেমেন্ট Pending, Approved, Accepted বা Success থাকে তবেই আজ আর করতে দেবে না।
-      // কিন্তু Rejected, Cancelled বা Failed হলে আবার উইথড্রয়াল করার অনুমতি দেবে।
-      const isBlockedStatus = ["pending", "approved", "accepted", "success"].includes(itemStatus);
+      user.withdrawals.unshift({
+        amount: Number(amount),
+        isInvestAmountWithdrawal: true,
+        investmentId: investmentId,
+        bankDetails: bankDetails || user.bankDetails,
+        status: "Pending",
+        createdAt: new Date()
+      });
 
-      return itemDate === todayStr && isBlockedStatus;
-    });
+      await user.save();
 
-    if (hasWithdrawToday) {
-      return res.status(400).json({
-        success: false,
-        message: "You have already made a withdrawal request today. You can make another request tomorrow or if your request gets rejected."
+      return res.status(200).json({
+        success: true,
+        message: "Invest amount withdrawal request submitted successfully!"
       });
     }
 
-    // ৩. ব্যালেন্স চেক
+    // -------------------------------------------------------------
+    // পুরোনো লজিক: সাধারণ ডেইলি রিটার্ন বা ওয়ালেট ব্যালেন্স উইথড্র
+    // -------------------------------------------------------------
     const currentBalance = Number(user.otbalance || user.otBalance || 0);
-    if (currentBalance < withdrawAmount) {
+    
+    if (currentBalance < Number(amount)) {
       return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
     }
 
-    // ৪. ব্যালেন্স কাটা
-    user.otbalance = currentBalance - withdrawAmount;
+    // ব্যালেন্স থেকে কাটার অংশ বা আপনার আগের নিয়ম অনুযায়ী
+    user.otbalance = currentBalance - Number(amount);
 
-    const withdrawId = new mongoose.Types.ObjectId();
-    const withdrawData = {
-      _id: withdrawId,
-      type: "Withdrawal",
-      amount: withdrawAmount,
-      bankDetails: bankDetails || user.bankDetails || {},
-      status: "Pending",
-      createdAt: new Date(),
-      startDate: new Date()
-    };
-
-    if (!user.onetimeHistory) user.onetimeHistory = [];
-    user.onetimeHistory.unshift(withdrawData);
-
-    user.markModified("onetimeHistory");
-    await user.save();
-
-    // ৫. Standalone Withdrawal Collection-এ যুক্ত করা (যদি থেকে থাকে)
-    try {
-      if (typeof Withdrawal !== "undefined") {
-        await Withdrawal.create({
-          _id: withdrawId,
-          name: user.name || "",
-          email: cleanEmail,
-          amount: withdrawAmount,
-          bankDetails: bankDetails || user.bankDetails || {},
-          status: "Pending",
-          createdAt: new Date()
-        });
-      }
-    } catch (wErr) {
-      console.log("Standalone withdrawal collection skipped:", wErr.message);
+    if (!Array.isArray(user.withdrawals)) {
+      user.withdrawals = [];
     }
+
+    user.withdrawals.unshift({
+      amount: Number(amount),
+      isInvestAmountWithdrawal: false,
+      bankDetails: bankDetails || user.bankDetails,
+      status: "Pending",
+      createdAt: new Date()
+    });
+
+    await user.save();
 
     return res.status(200).json({
       success: true,
-      message: "Withdrawal request submitted successfully!",
-      withdrawData,
-      updatedBalance: user.otbalance
+      message: "Withdrawal request submitted successfully!"
     });
 
-  } catch (error) {
-    console.error("Withdraw Error:", error);
-    return res.status(500).json({ success: false, message: "Server error processing withdrawal: " + error.message });
+  } catch (err) {
+    console.error("Withdraw Error:", err);
+    res.status(500).json({ success: false, message: "Server error processing withdrawal" });
   }
 });
 
@@ -7498,56 +7468,54 @@ app.get("/api/onetime/admin/withdrawals", async (req, res) => {
 });
 
 
-// ===================================================
-// ADMIN WITHDRAW ACTION (Approve / Reject) - FIXED
-// ===================================================
-app.post("/admin/onetime-withdraw-action", async (req, res) => {
+// ==========================================
+// ADMIN WITHDRAW ACTION API (Regular + Maturity Handler)
+// ==========================================
+app.post('/admin/onetime-withdraw-action', async (req, res) => {
   try {
-    const targetId = req.body.id || req.body.requestId || req.body._id;
-    const { status, rejectReason } = req.body; // status: "Approved" or "Rejected"
+    const { id, status, rejectReason } = req.body;
 
-    if (!targetId) return res.status(400).json({ success: false, message: "ID parameter missing" });
-    const targetIdStr = String(targetId).trim();
-
-    // ১. Standalone Collection আপডেট
-    if (typeof Withdrawal !== "undefined") {
-      await Withdrawal.findByIdAndUpdate(targetIdStr, { status: status, rejectReason: rejectReason });
+    const user = await User.findOne({ "withdrawals._id": id });
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "Withdrawal request not found" });
     }
 
-    // 🛑 onetimeHistory দিয়ে ইউজার খোঁজা
-    let queryConditions = [{ "onetimeHistory._id": targetIdStr }];
-    if (mongoose.Types.ObjectId.isValid(targetIdStr)) {
-      queryConditions.push({ "onetimeHistory._id": new mongoose.Types.ObjectId(targetIdStr) });
+    const withdrawalItem = user.withdrawals.id(id);
+    if (!withdrawalItem) {
+      return res.status(404).json({ success: false, msg: "Withdrawal item not found" });
     }
 
-    let user = await User.findOne({ $or: queryConditions });
+    withdrawalItem.status = status; // "Success" বা "Rejected"
 
-    if (user) {
-      // onetimeHistory অ্যারেতে পেন্ডিং আইটেম খুঁজে আপডেট করা
-      let item = user.onetimeHistory.find((h) => h && h._id && String(h._id) === targetIdStr);
-      if (!item) {
-        item = user.onetimeHistory.find((h) => h && h.type === "Withdrawal" && h.status === "Pending");
+    if (status === "Rejected") {
+      withdrawalItem.rejectReason = rejectReason || "Rejected by admin";
+      
+      // যদি সাধারণ উইথড্র রিজেক্ট হয়, তবে ওয়ালেটে টাকা ফেরত দেওয়ার পুরোনো লজিক এখানে রাখতে পারেন
+      if (!withdrawalItem.isInvestAmountWithdrawal) {
+        user.otbalance = Number(user.otbalance || 0) + Number(withdrawalItem.amount || 0);
       }
-
-      if (item) {
-        item.status = status;
-        if (rejectReason) item.rejectReason = rejectReason;
+    } 
+    else if (status === "Success" || status === "Approved") {
+      // যদি এটি ইনভেস্টমেন্টের মূল টাকা উইথড্র হয় এবং অ্যাডমিন অ্যাপ্রুভ করে
+      if (withdrawalItem.isInvestAmountWithdrawal && withdrawalItem.investmentId) {
+        const targetInv = user.investments?.id(withdrawalItem.investmentId) || user.onetimeInvestments?.find(i => i._id.toString() === withdrawalItem.investmentId.toString());
+        
+        if (targetInv) {
+          targetInv.status = "Completed"; // ইনভেস্টমেন্ট প্ল্যান কমপ্লিট করে দেওয়া হলো
+        }
       }
-
-      // রিজেক্ট হলে otbalance এ টাকা ফেরত দেওয়া
-      if (status === "Rejected") {
-        const refundAmount = Number((item ? item.amount : 0) || req.body.amount || 0);
-        user.otbalance = Number(user.otbalance || 0) + refundAmount;
-      }
-
-      user.markModified("onetimeHistory");
-      await user.save();
     }
 
-    return res.status(200).json({ success: true, message: `Withdrawal ${status}` });
-  } catch (error) {
-    console.error("Admin Withdraw Action Error:", error);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      msg: `Withdrawal marked as ${status} successfully!`
+    });
+
+  } catch (err) {
+    console.error("Admin Withdraw Action Error:", err);
+    res.status(500).json({ success: false, msg: "Server error updating withdrawal action" });
   }
 });
 
