@@ -1489,7 +1489,7 @@ const styles = {
   marqueeText: {
     display: "inline-block",
     whiteSpace: "nowrap",
-    animation: "marquee 35s linear infinite",
+    animation: "marquee 8s linear infinite",
     fontSize: "11px",
     fontWeight: "600",
     color: "#e2e8f0"
