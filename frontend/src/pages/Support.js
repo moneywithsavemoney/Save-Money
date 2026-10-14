@@ -8,33 +8,51 @@ export default function Support() {
   const [subject, setSubject] = useState("");
   const [problem, setProblem] = useState("");
 
-  // টেলিগ্রামে নিয়ে যাওয়ার লজিক
+  // Logic to redirect to Telegram
   const handleGetSupport = (e) => {
     e.preventDefault();
 
     if (!name.trim() || !mobile.trim() || !subject.trim() || !problem.trim()) {
-      return alert("অনুগ্রহ করে নাম, মোবাইল নম্বর, সাবজেক্ট এবং প্রবলেম ফিল্ডগুলো পূরণ করুন।");
+      return alert("Please fill in your name, mobile number, subject, and problem fields.");
     }
 
     const telegramUsername = "savemoneysupport";
     
-    // মেসেজ ফরম্যাট তৈরি (এডমিন যাতে ইউজারের নাম, মোবাইল, রেফার কোড সহ সহজে বুঝতে পারে)
-    const formattedMessage = `📌 New Support Request\n\n👤 Name: ${name}\n📞 Mobile: ${mobile}\n referral Code: ${referCode || "N/A"}\n🔹 Subject: ${subject}\n❌ Problem: ${problem}`;
+    // Formatted message structure
+    const formattedMessage = `📌 New Support Request\n\n👤 Name: ${name}\n📞 Mobile: ${mobile}\nReferral Code: ${referCode || "N/A"}\n🔹 Subject: ${subject}\n❌ Problem: ${problem}`;
     
-    // URL এনকোড করা
+    // URL Encoding
     const encodedMessage = encodeURIComponent(formattedMessage);
     
-    // Telegram ডিরেক্ট লিংক
+    // Direct Telegram Link
     const telegramUrl = `https://t.me/${telegramUsername}?text=${encodedMessage}`;
 
-    // টেলিগ্রামে রিডাইরেক্ট করা
+    // Redirecting to Telegram
     window.open(telegramUrl, "_blank");
   };
 
   return (
     <div style={styles.container}>
-      {/* পপআপ মডাল কার্ড */}
+      {/* Support Card Modal */}
       <div style={styles.modalCard}>
+        
+        {/* 1. Email Support Section (At top) */}
+        <div style={styles.emailSupportBox}>
+          <div style={styles.emailIcon}>✉️</div>
+          <div style={styles.emailTitle}>For any problem resolution, contact us at:</div>
+          <a href="mailto:savemoneyofficial.app@gmail.com" style={styles.emailAddress}>
+            savemoneyofficial.app@gmail.com
+          </a>
+        </div>
+
+        {/* OR Divider */}
+        <div style={styles.dividerContainer}>
+          <div style={styles.dividerLine} />
+          <span style={styles.dividerText}>OR</span>
+          <div style={styles.dividerLine} />
+        </div>
+
+        {/* 2. Telegram Support Form (Below) */}
         <div style={styles.modalHeader}>
           <h3 style={styles.modalTitle}>Start a New Conversation</h3>
         </div>
@@ -95,12 +113,12 @@ export default function Support() {
             </button>
           </div>
         </form>
+
       </div>
     </div>
   );
 }
 
-// 💎 স্টাইলশিট অপরিবর্তিত রাখা হয়েছে
 const styles = {
   container: {
     display: "flex",
@@ -128,13 +146,61 @@ const styles = {
     boxSizing: "border-box"
   },
 
+  emailSupportBox: {
+    background: "rgba(15, 23, 42, 0.6)",
+    border: "1px solid rgba(56, 189, 248, 0.2)",
+    borderRadius: "14px",
+    padding: "16px",
+    textAlign: "center",
+    marginBottom: "16px"
+  },
+
+  emailIcon: {
+    fontSize: "22px",
+    marginBottom: "6px"
+  },
+
+  emailTitle: {
+    fontSize: "12px",
+    color: "#94a3b8",
+    marginBottom: "6px"
+  },
+
+  emailAddress: {
+    fontSize: "13px",
+    fontWeight: "700",
+    color: "#38bdf8",
+    textDecoration: "none",
+    wordBreak: "break-all"
+  },
+
+  dividerContainer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "16px 0",
+    gap: "10px"
+  },
+
+  dividerLine: {
+    flex: 1,
+    height: "1px",
+    background: "rgba(255, 255, 255, 0.1)"
+  },
+
+  dividerText: {
+    fontSize: "12px",
+    fontWeight: "700",
+    color: "#64748b"
+  },
+
   modalHeader: {
-    marginBottom: "20px"
+    marginBottom: "16px"
   },
 
   modalTitle: {
     margin: 0,
-    fontSize: "18px",
+    fontSize: "16px",
     fontWeight: "600",
     color: "#ffffff"
   },
@@ -159,7 +225,7 @@ const styles = {
 
   modalTextarea: {
     width: "100%",
-    minHeight: "120px",
+    minHeight: "100px",
     padding: "14px 16px",
     background: "#0f172a",
     border: "1px solid rgba(255, 255, 255, 0.08)",
@@ -179,6 +245,7 @@ const styles = {
   },
 
   submitBtn: {
+    width: "100%",
     padding: "12px 24px",
     background: "#38bdf8",
     border: "none",
