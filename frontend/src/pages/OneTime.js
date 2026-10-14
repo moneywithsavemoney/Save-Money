@@ -14,16 +14,14 @@ if (typeof document !== "undefined") {
   document.head.appendChild(styleSheet);
 }
 
+// সেফ ডেট পার্সিং ফাংশন (যাতে ১৯ শতক বা উল্টাপাল্টা সাল না আসে)
 const parseSafeDate = (dateVal) => {
-  if (!dateVal) return new Date(0);
-  if (dateVal instanceof Date) return isNaN(dateVal) ? new Date(0) : dateVal;
+  if (!dateVal) return new Date();
+  if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
   
-  if (!isNaN(dateVal) && typeof dateVal !== "string") {
-    return new Date(Number(dateVal));
-  }
-
   if (typeof dateVal === "string") {
-    const parts = dateVal.split(/[\/\-]/);
+    // যদি DD/MM/YYYY ফরম্যাটে থাকে (যেমন: 18/03/2026)
+    const parts = dateVal.split("/");
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10) - 1;
@@ -36,7 +34,7 @@ const parseSafeDate = (dateVal) => {
   }
 
   const fallback = new Date(dateVal);
-  return isNaN(fallback.getTime()) ? new Date(0) : fallback;
+  return isNaN(fallback.getTime()) ? new Date() : fallback;
 };
 
 const formatDate = (dateVal) => {
@@ -81,7 +79,6 @@ export default function OneTime() {
   const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   
-  // Modals for Invest Principal Withdraw & Reinvest
   const [showInvestWithdrawModal, setShowInvestWithdrawModal] = useState(false);
   const [showReinvestModal, setShowReinvestModal] = useState(false);
   const [reinvestTenure, setReinvestTenure] = useState(15);
@@ -167,14 +164,14 @@ export default function OneTime() {
     }
   };
 
-  // ----------------- MATURITY DATE & IS MATURED CHECK -----------------
-  const { calculatedMaturityDate, isMatured, maturityDateObj } = useMemo(() => {
-    if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false, maturityDateObj: null };
+  // মেচুরিটি ডেট ও ইজ ম্যচিউর্ড ক্যালকুলেশন
+  const { calculatedMaturityDate, isMatured } = useMemo(() => {
+    if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false };
 
     let maturityObj = null;
 
-    if (activeInvestment.maturityDate) {
-      const parsedMaturity = parseSafeDate(activeInvestment.maturityDate);
+    if (activeInvestment.maturityDate || activeInvestment.maturity) {
+      const parsedMaturity = parseSafeDate(activeInvestment.maturityDate || activeInvestment.maturity);
       if (!isNaN(parsedMaturity.getTime()) && parsedMaturity.getTime() > 0) {
         maturityObj = parsedMaturity;
       }
@@ -203,19 +200,16 @@ export default function OneTime() {
 
     if (maturityObj) {
       const today = new Date();
-      // আজ যদি মেচুরিটি তারিখের পরে বা সমান হয়
       const matured = today >= maturityObj;
       return {
         calculatedMaturityDate: formatDate(maturityObj),
-        isMatured: matured,
-        maturityDateObj: maturityObj
+        isMatured: matured
       };
     }
 
-    return { calculatedMaturityDate: "In Progress", isMatured: false, maturityDateObj: null };
+    return { calculatedMaturityDate: "In Progress", isMatured: false };
   }, [activeInvestment]);
 
-  // যদি রানিং একটিভ ইনভেস্টমেন্ট থাকে এবং সেটা Matured না হয়ে থাকে তবেই ইনপুট লক থাকবে
   const isInvestmentLocked = useMemo(() => {
     return activeInvestment && !isMatured;
   }, [activeInvestment, isMatured]);
@@ -304,8 +298,8 @@ export default function OneTime() {
         });
 
         const sortedHistory = Array.from(uniqueMap.values()).sort((a, b) => {
-          const dateA = parseSafeDate(a.createdAt || a.startDate);
-          const dateB = parseSafeDate(b.createdAt || b.startDate);
+          const dateA = parseSafeDate(a.createdAt || a.startDate || a.maturity);
+          const dateB = parseSafeDate(b.createdAt || b.startDate || b.maturity);
           return dateB - dateA;
         });
 
@@ -576,7 +570,6 @@ export default function OneTime() {
     }
   };
 
-  // ----------------- WITHDRAW INVESTED PRINCIPAL AMOUNT HANDLER -----------------
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
@@ -618,7 +611,7 @@ export default function OneTime() {
     }
   };
 
-  // ----------------- REINVEST CONFIRM HANDLER -----------------
+  // রিইনভেস্ট কনফার্ম হ্যান্ডলার
   const handleConfirmReinvest = async () => {
     if (!activeInvestment) return;
 
@@ -645,7 +638,7 @@ export default function OneTime() {
 
       const data = await res.json();
       if (res.ok || data.success) {
-        triggerToast("🚀 Investment Done Successfully!", "success");
+        triggerToast("🚀 Reinvestment Started Successfully!", "success");
         setShowReinvestModal(false);
         await loadDashboardData();
       } else {
@@ -1014,7 +1007,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* Dynamic Matured Invested Amount Wallet Card with Withdraw & Reinvest Options */}
+        {/* Dynamic Matured Invested Amount Wallet Card */}
         {activeInvestment && isMatured && (
           <section style={styles.maturedWalletCard}>
             <div style={styles.maturedCardHeader}>
@@ -1061,7 +1054,6 @@ export default function OneTime() {
         <section style={styles.darkMainCard}>
           <h2 style={styles.darkCardTitle}>Make a New Investment</h2>
 
-          {/* ACTIVE INVESTMENT RUNNING PANEL (শুধুমাত্র প্ল্যান চালু অবস্থায় দেখাবে, Matured হয়ে গেলে সরে যাবে) */}
           {activeInvestment && !isMatured && (
             <div style={styles.activeInvestCardDark}>
               <div style={styles.activeHeader}>
@@ -1461,7 +1453,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* REINVEST MODAL (ডুরেশন সিলেক্ট করার মডাল) */}
+      {/* REINVEST MODAL */}
       {showReinvestModal && activeInvestment && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
