@@ -5,32 +5,25 @@ import { API } from "../config";
 export default function AdminOneTime() {
   const token = localStorage.getItem("token");
 
-  // Data States
   const [data, setData] = useState(null);
   const [users, setUsers] = useState([]);
   const [cash, setCash] = useState([]);
   const [withdraws, setWithdraws] = useState([]);
   const [investments, setInvestments] = useState([]);
 
-  // Search & Filter States
   const [userSearch, setUserSearch] = useState("");
   const [investSearch, setInvestSearch] = useState("");
   const [showDepositHistory, setShowDepositHistory] = useState(false);
   const [showWithdrawHistory, setShowWithdrawHistory] = useState(false);
 
-  // Popups & Detail View
   const [openWithdrawId, setOpenWithdrawId] = useState(null);
-
-  // Edit / Modify Investment Modal State
   const [editingInvest, setEditingInvest] = useState(null);
 
-  // Wallet Adjust State
   const [adjustEmail, setAdjustEmail] = useState("");
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustType, setAdjustType] = useState("add");
   const [adjustReason, setAdjustReason] = useState("");
 
-  // Manual User Investment Control State
   const [investEmail, setInvestEmail] = useState("");
   const [investAmount, setInvestAmount] = useState("");
   const [investDuration, setInvestDuration] = useState("15 Days");
@@ -106,21 +99,18 @@ export default function AdminOneTime() {
       const ad = await apiGet("/admin/onetime-analytics");
       if (ad) setData(ad);
 
-      // Safe parse for Cash Requests
       const cData = await apiGet("/admin/onetime-cash-requests");
       const cashList = Array.isArray(cData) 
         ? cData 
         : (cData?.requests || cData?.cashRequests || cData?.data || []);
       setCash(cashList);
 
-      // Safe parse for Withdrawal Requests
       const wData = await apiGet("/admin/onetime-withdraw-requests");
       const withdrawList = Array.isArray(wData)
         ? wData
         : (wData?.requests || wData?.withdrawals || wData?.data || []);
       setWithdraws(withdrawList);
 
-      // Fix: Safe parse for Investments (ontime investment সাপোর্ট সহ সব সম্ভাব্য Key চেক)
       const iData = await apiGet("/admin/onetime-investments");
       const investList = Array.isArray(iData)
         ? iData
@@ -131,7 +121,6 @@ export default function AdminOneTime() {
            iData?.data || []);
       setInvestments(investList);
 
-      // Safe parse for Users
       const uData = await apiGet("/all-users");
       setUsers(Array.isArray(uData) ? uData : (uData?.users || []));
 
@@ -142,7 +131,6 @@ export default function AdminOneTime() {
     }
   };
 
-  // Helper function: Format Date & Time for Withdraws
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
@@ -157,7 +145,6 @@ export default function AdminOneTime() {
     });
   };
 
-  // Quick Action Handlers
   const handleQuickAdjust = (email) => {
     setAdjustEmail(email);
     document.getElementById("wallet-control-box")?.scrollIntoView({ behavior: "smooth" });
@@ -168,7 +155,6 @@ export default function AdminOneTime() {
     document.getElementById("assign-plan-box")?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Actions
   const approveCash = async (id) => {
     const d = await apiPost("/admin/onetime-approve-cash", { requestId: id });
     if (!d) return;
@@ -316,7 +302,6 @@ export default function AdminOneTime() {
     );
   }
 
-  // Filter Data
   const filteredUsers = users.filter((u) =>
     (u.email || "").toLowerCase().includes(userSearch.toLowerCase()) ||
     (u.name || "").toLowerCase().includes(userSearch.toLowerCase())
@@ -362,7 +347,6 @@ export default function AdminOneTime() {
 
       {error && <div style={styles.error}>⚠️ {error}</div>}
 
-      {/* TOP ANALYTICS GRID */}
       <div style={styles.topGrid}>
         <div style={styles.topCard}>
           <p style={styles.topLabel}>NETWORK USERS</p>
@@ -711,6 +695,7 @@ export default function AdminOneTime() {
               <thead>
                 <tr>
                   <th style={styles.th}>User Email</th>
+                  <th style={styles.th}>Type</th>
                   <th style={styles.th}>Amount</th>
                   <th style={styles.th}>Requested Time</th>
                   <th style={styles.th}>Status</th>
@@ -718,11 +703,18 @@ export default function AdminOneTime() {
               </thead>
               <tbody>
                 {historyWithdraws.length === 0 ? (
-                  <tr><td colSpan="4" style={styles.emptyText}>No withdrawal history found.</td></tr>
+                  <tr><td colSpan="5" style={styles.emptyText}>No withdrawal history found.</td></tr>
                 ) : (
                   historyWithdraws.map((w) => (
                     <tr key={w._id} style={styles.tr}>
                       <td style={styles.td}>{w.email}</td>
+                      <td style={styles.td}>
+                        {w.isInvestAmountWithdrawal ? (
+                          <span style={styles.badgePurple}>🏦 Invest Principal Wd</span>
+                        ) : (
+                          <span style={styles.badgeBlue}>💸 Daily Return</span>
+                        )}
+                      </td>
                       <td style={{ ...styles.td, color: "#f87171" }}>{money(w.amount)}</td>
                       <td style={styles.td}>{formatDate(w.createdAt || w.date || w.timestamp || w.time)}</td>
                       <td style={styles.td}>
@@ -748,11 +740,15 @@ export default function AdminOneTime() {
               <div key={w._id} style={styles.withdrawCard}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <h4 style={{ margin: 0, color: "#fff" }}>{w.name || w.email || "User"}</h4>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <h4 style={{ margin: 0, color: "#fff" }}>{w.name || w.email || "User"}</h4>
+                      {w.isInvestAmountWithdrawal && (
+                        <span style={styles.badgePurple}>🏦 Invest Principal Wd</span>
+                      )}
+                    </div>
                     <p style={{ margin: "4px 0 0 0", color: "#22c55e", fontSize: "18px", fontWeight: "bold" }}>
                       {money(w.amount)}
                     </p>
-                    {/* কটার সময় উইথড্র দেওয়া হয়েছে তা নিচে শো করছে */}
                     <p style={{ margin: "4px 0 0 0", color: "#94a3b8", fontSize: "12px" }}>
                       ⏰ <b>Requested At:</b> {formatDate(w.createdAt || w.date || w.timestamp || w.time)}
                     </p>
@@ -899,6 +895,7 @@ const styles = {
   subText: { color: "#94a3b8", fontSize: "13px", margin: "10px 12px" },
 
   badgeBlue: { background: "rgba(56,189,248,0.15)", color: "#38bdf8", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", fontWeight: "600" },
+  badgePurple: { background: "rgba(168,85,247,0.15)", color: "#c084fc", padding: "4px 8px", borderRadius: "6px", fontSize: "12px", fontWeight: "600" },
 
   adjustBtn: { background: "#22c55e", color: "#030712", border: "none", padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", fontSize: "12px", cursor: "pointer" },
   assignBtn: { background: "#3b82f6", color: "#ffffff", border: "none", padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", fontSize: "12px", cursor: "pointer" },
@@ -917,7 +914,6 @@ const styles = {
   withdrawCard: { background: "#030712", border: "1px solid #1e293b", borderRadius: "8px", padding: "12px", marginTop: "10px" },
   bankBox: { marginTop: "10px", padding: "10px", background: "#0f172a", borderRadius: "6px", fontSize: "13px" },
 
-  // Modal Styles
   modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
   modalContent: { background: "#0b0f19", border: "1px solid #1e293b", borderRadius: "12px", padding: "20px", width: "90%", maxWidth: "450px" },
   modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" },
