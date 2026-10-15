@@ -278,8 +278,8 @@ export default function OneTime() {
         const rawDeposits = Array.isArray(data.deposits)
           ? data.deposits.map((d) => ({ ...d, type: "Add Fund" }))
           : [];
-          
-        // ব্যাকএন্ডের withdrawals অথবা user.withdrawals ডাটা সঠিকভাবে ম্যাপ করা হলো[span_1](start_span)[span_1](end_span)
+
+        // এখানে ড্যাশবোর্ড ডাটা এবং ইউজার অবজেক্টের ভেতর থেকে withdrawals ডাটা সঠিকভাবে সংগ্রহ করা হলো
         const withdrawalsSource = data.withdrawals || data.user?.withdrawals || [];
         const rawWithdrawals = Array.isArray(withdrawalsSource)
           ? withdrawalsSource.map((w) => ({ 
@@ -296,7 +296,7 @@ export default function OneTime() {
 
         const uniqueMap = new Map();
         combined.forEach((item) => {
-          const key = item._id || `${item.type}-${item.createdAt || item.startDate || Math.random()}`;
+          const key = item._id || `${item.type}-${item.amount}-${item.createdAt || item.startDate || Math.random()}`;
           if (!uniqueMap.has(key)) {
             uniqueMap.set(key, item);
           }
@@ -564,7 +564,7 @@ export default function OneTime() {
         triggerToast(data.message || "Withdrawal Request Submitted!", "success");
         setShowWithdrawModal(false);
 
-        // উইথড্র সাকসেস হওয়ার পর লোকাল হিস্টরিতে ইনস্ট্যান্ট যোগ করা হলো
+        // উইথড্র সফল হওয়ার সাথে সাথে লোকাল স্টেটেও এন্ট্রি যোগ করা হলো যাতে ইনস্ট্যান্ট শো করে
         const newWithdrawalEntry = {
           _id: data.withdraw?._id || Date.now().toString(),
           type: "Withdrawal",
@@ -2430,7 +2430,6 @@ const styles = {
   },
   fileInputDark: { width: "100%", fontSize: "11px", color: "#cbd5e1" },
   submitBtnDark: {
-    key: "submit",
     height: "38px",
     borderRadius: "8px",
     border: "none",
