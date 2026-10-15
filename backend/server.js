@@ -7566,31 +7566,25 @@ app.get("/api/onetime/admin/withdrawals", async (req, res) => {
 });
 
 
-// ******************************************************************************
-// 🛠️ ADMIN WITHDRAW ACTION (Approve / Reject) - FIXED & COMBINED
-// ******************************************************************************
+
+// -------------------------------------------------------------
+// ADMIN WITHDRAW ACTION (Approve / Reject) - FIXED & COMBINED
+// -------------------------------------------------------------
 app.post("/admin/onetime-withdraw-action", async (req, res) => {
   try {
-    const { id, requestId, _id, status, rejectReason } = req.body;
-    const targetId = id || requestId || _id;
+    const targetId = req.body.id || req.body.requestId || req.body._id;
+    const { status, rejectReason } = req.body; // status: "Success", "Approved" বা "Rejected"
 
     if (!targetId) return res.status(400).json({ success: false, message: "ID parameter missing" });
     const targetIdStr = String(targetId).trim();
 
     // ১. Standalone Collection আপডেট (যদি থাকে)
     if (typeof Withdraw !== "undefined") {
-      try {
-        await Withdraw.findByIdAndUpdate(targetIdStr, { 
-          status: status, 
-          rejectReason: rejectReason || "" 
-        });
-      } catch (e) {
-        console.log("Standalone withdraw update skipped:", e.message);
-      }
+      await Withdraw.findByIdAndUpdate(targetIdStr, { status: status, rejectReason: rejectReason });
     }
 
     // ২. onetimeHistory বা withdrawals নিয়ে ইউজারের খোঁজ নেওয়া
-    let queryConditions = [{ "onetimeHistory._id": targetIdStr }, { "withdrawals._id": targetIdStr }];
+    let queryConditions = [ { "onetimeHistory._id": targetIdStr }, { "withdrawals._id": targetIdStr } ];
     if (mongoose.Types.ObjectId.isValid(targetIdStr)) {
       queryConditions.push({ "onetimeHistory._id": new mongoose.Types.ObjectId(targetIdStr) });
       queryConditions.push({ "withdrawals._id": new mongoose.Types.ObjectId(targetIdStr) });
@@ -7599,21 +7593,18 @@ app.post("/admin/onetime-withdraw-action", async (req, res) => {
     let user = await User.findOne({ $or: queryConditions });
 
     if (user) {
-      // ৩. প্রথমে onetimeHistory থেকে খোঁজা
-      let item = user.onetimeHistory?.find(h => h && String(h._id) === targetIdStr);
+      // প্রথমে onetimeHistory থেকে খোঁজা
+      let item = user.onetimeHistory?.find(h => h && h._id && String(h._id) === targetIdStr);
       if (!item) {
         item = user.onetimeHistory?.find(h => h && h.type === "Withdrawal" && h.status === "Pending");
       }
 
-      // ৪. যদি onetimeHistory তে না পাওয়া যায়, তবে withdrawals অ্যারে থেকে খোঁজা
-      let withdrawalSubItem = user.withdrawals?.id ? user.withdrawals.id(targetIdStr) : null;
-      if (!withdrawalSubItem) {
-        withdrawalSubItem = user.withdrawals?.find(w => w && String(w._id) === targetIdStr);
-      }
+      // যদি onetimeHistory তে না পাওয়া যায়, তবে withdrawals অ্যারে থেকে খোঁজা
+      let withdrawalSubItem = user.withdrawals?.id(targetIdStr) || user.withdrawals?.find(w => w && w._id && String(w._id) === targetIdStr);
 
       if (item) {
         item.status = status;
-        if (rejectReason) item.reason = rejectReason;
+        if (rejectReason) item.rejectReason = rejectReason;
       }
 
       if (withdrawalSubItem) {
@@ -7621,12 +7612,12 @@ app.post("/admin/onetime-withdraw-action", async (req, res) => {
         if (rejectReason) withdrawalSubItem.rejectReason = rejectReason;
       }
 
-      // ৫. রিজেক্ট হলে otbalance এ টাকা ফেরত দেওয়া (প্রিন্সিপাল বা ইনভেস্টমেন্ট প্রিন্সিপাল কমিশন)
+      // ৩. রিজেক্ট হলে otbalance এ টাকা ফেরত দেওয়া (প্রিন্সিপাল বা ইনভেস্টমেন্ট প্রিন্সিপাল কমিশন)
       if (status === "Rejected") {
         const targetItem = item || withdrawalSubItem;
         const isInvestWd = targetItem ? targetItem.isInvestAmountWithdrawal : false;
-        
-        // যদি সাধারণ উইথড্র বা অথবা রিফান্ডেবল ব্যালেন্স না থাকে, তবে ওয়ালেটে টাকা ফেরত যাবে
+
+        // যদি সাধারণ উইথড্র হয় অথবা ইনভেস্টমেন্ট প্রিন্সিপাল ড্রপ না থাকে, তবে ওয়ালেটে টাকা ফেরত যাবে
         if (!isInvestWd) {
           const refundAmount = Number((targetItem ? targetItem.amount : 0)) || Number(req.body.amount || 0);
           user.otbalance = Number(user.otbalance || user.otBalance || 0) + refundAmount;
@@ -7636,24 +7627,18 @@ app.post("/admin/onetime-withdraw-action", async (req, res) => {
         // যদি এটি ইনভেস্টমেন্টের মূল টাকা (Principal) উইথড্র হয় এবং অ্যাডমিন অ্যাপ্রুভ করে
         const targetItem = item || withdrawalSubItem;
         if (targetItem && targetItem.isInvestAmountWithdrawal && targetItem.investmentId) {
-          let targetInv = null;
-          if (user.investments && user.investments.length > 0) {
-            targetInv = user.investments.id(targetItem.investmentId) || user.investments.find(i => String(i._id) === String(targetItem.investmentId));
-          }
-          if (!targetInv && user.onetimeInvestments && user.onetimeInvestments.length > 0) {
-            targetInv = user.onetimeInvestments.id(targetItem.investmentId) || user.onetimeInvestments.find(i => String(i._id) === String(targetItem.investmentId));
-          }
+          const targetInv = user.investments?.id(targetItem.investmentId) || 
+                            user.investments.find(i => i._id.toString() === targetItem.investmentId.toString()) || 
+                            user.onetimeInvestments.find(i => i._id.toString() === targetItem.investmentId.toString());
 
           if (targetInv) {
-            targetInv.status = "Completed"; // ইনভেস্টমেন্ট প্ল্যান কমপ্লিট করে দেওয়া হলো
+            targetInv.status = "Completed"; // ইনভেস্টমেন্ট স্ট্যাটাস কমপ্লিট করে দেওয়া হলো
           }
         }
       }
 
       user.markModified("onetimeHistory");
       user.markModified("withdrawals");
-      user.markModified("investments");
-      user.markModified("onetimeInvestments");
       await user.save();
 
       return res.status(200).json({ success: true, message: `Withdrawal ${status}` });
@@ -7663,10 +7648,9 @@ app.post("/admin/onetime-withdraw-action", async (req, res) => {
 
   } catch (error) {
     console.error("Admin Withdraw Action Error:", error);
-    return res.status(500).json({ success: false, message: "Server Error: " + error.message });
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 });
-
 
 
 
