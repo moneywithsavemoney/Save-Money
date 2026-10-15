@@ -7523,6 +7523,33 @@ app.post("/api/onetime/withdraw", async (req, res) => {
 
 
 // 3. Admin Analytics Endpoint
+app.get("/admin/onetime-analytics", async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const investments = await OneTimeInvestment.find({ status: "Active" });
+    const totalInvested = investments.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+
+    return res.json({
+      totalUsers,
+      totalInvested,
+      activePlansCount: investments.length
+    });
+  } catch (err) {
+    return res.status(500).json({ msg: "Failed to fetch OneTime analytics" });
+  }
+});
+
+// 4. Admin - Fetch All Cash / Deposit Requests
+app.get("/admin/onetime-cash-requests", async (req, res) => {
+  try {
+    const requests = await Txn.find({ type: "Deposit" }).sort({ createdAt: -1 });
+    return res.json(requests);
+  } catch (err) {
+    return res.status(500).json({ msg: "Error fetching cash requests" });
+  }
+});
+
+// অ্যাডমিন প্যানেলের প্যান্ডিং উইথড্র লিস্ট পাওয়ার API
 app.get("/api/onetime/admin/withdrawals", async (req, res) => {
   try {
     let list = [];
@@ -7579,33 +7606,6 @@ app.get("/api/onetime/admin/withdrawals", async (req, res) => {
     return res.status(200).json(finalWithdrawalsList);
   } catch (error) {
     console.error("Admin Fetch Withdrawals Error:", error);
-    return res.status(500).json({ message: error.message });
-  }
-});
-
-
-// 4. Admin - Fetch All Cash / Deposit Requests
-app.get("/admin/onetime-cash-requests", async (req, res) => {
-  try {
-    const requests = await Txn.find({ type: "Deposit" }).sort({ createdAt: -1 });
-    return res.json(requests);
-  } catch (err) {
-    return res.status(500).json({ msg: "Error fetching cash requests" });
-  }
-});
-
-// অ্যাডমিন প্যানেলের প্যান্ডিং উইথড্র লিস্ট পাওয়ার API
-app.get("/api/onetime/admin/withdrawals", async (req, res) => {
-  try {
-    let list = [];
-    if (mongoose.models.OneTimeWithdrawal) {
-      list = await mongoose.models.OneTimeWithdrawal.find({ status: "Pending" }).sort({ createdAt: -1 });
-    }
-    if (list.length === 0 && mongoose.models.Withdrawal) {
-      list = await mongoose.models.Withdrawal.find({ status: "Pending" }).sort({ createdAt: -1 });
-    }
-    return res.status(200).json(list);
-  } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 });
