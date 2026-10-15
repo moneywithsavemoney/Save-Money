@@ -278,9 +278,15 @@ export default function OneTime() {
         const rawDeposits = Array.isArray(data.deposits)
           ? data.deposits.map((d) => ({ ...d, type: "Add Fund" }))
           : [];
+          
+        // উইথড্রয়াল ডাটা সঠিকভাবে ম্যাপ করা হলো যাতে হিস্টরিতে টাইপ 'Withdrawal' থাকে
         const rawWithdrawals = Array.isArray(data.withdrawals)
-          ? data.withdrawals.map((w) => ({ ...w, type: "Withdrawal" }))
+          ? data.withdrawals.map((w) => ({ 
+              ...w, 
+              type: w.type || (w.isInvestAmountWithdrawal ? "Invest Principal Wd" : "Withdrawal") 
+            }))
           : [];
+          
         const rawInvestments = Array.isArray(data.investments)
           ? data.investments.map((i) => ({ ...i, type: "OneTimeInvestment" }))
           : [];
@@ -289,7 +295,7 @@ export default function OneTime() {
 
         const uniqueMap = new Map();
         combined.forEach((item) => {
-          const key = item._id || `${item.type}-${item.createdAt || item.startDate}`;
+          const key = item._id || `${item.type}-${item.createdAt || item.startDate || Math.random()}`;
           if (!uniqueMap.has(key)) {
             uniqueMap.set(key, item);
           }
@@ -322,7 +328,7 @@ export default function OneTime() {
             calculatedInv += Number(item.amount || 0);
           }
 
-          if (t === "withdrawal" && (status === "approved" || status === "accepted" || status === "success")) {
+          if ((t.includes("withdraw") || t.includes("wd")) && (status === "approved" || status === "accepted" || status === "success" || status === "completed" || status === "pending")) {
             calculatedWd += Number(item.amount || 0);
           }
         });
@@ -367,12 +373,12 @@ export default function OneTime() {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
       const typeStr = (item.type || "").toLowerCase();
-      if (typeStr !== "withdrawal" && !typeStr.includes("withdraw")) return false;
+      if (!typeStr.includes("withdraw") && !typeStr.includes("wd")) return false;
 
       const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
       const status = (item.status || "").toLowerCase();
 
-      const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
+      const isBlocked = ["pending", "approved", "accepted", "success", "completed"].includes(status);
       return itemDate === todayStr && isBlocked;
     });
   }, [history]);
@@ -556,6 +562,17 @@ export default function OneTime() {
       if (res.ok && data.success) {
         triggerToast(data.message || "Withdrawal Request Submitted!", "success");
         setShowWithdrawModal(false);
+        
+        // তাৎক্ষণিকভাবে হিস্ট্রিতে যোগ করার জন্য লোকাল অবজেক্ট তৈরি
+        const newWithdrawalEntry = {
+          _id: data.withdraw?._id || Date.now().toString(),
+          type: "Withdrawal",
+          amount: Number(dailyReturn),
+          status: "Pending",
+          createdAt: new Date().toISOString()
+        };
+        setHistory((prev) => [newWithdrawalEntry, ...prev]);
+
         await loadDashboardData();
       } else {
         triggerToast(data.message || "Withdrawal Failed", "error");
@@ -1240,7 +1257,7 @@ export default function OneTime() {
                   displayedHistory.map((item, idx) => {
                     const itemType = (item.type || "").toLowerCase();
                     const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId;
-                    const isWithdraw = itemType.includes("withdraw");
+                    const isWithdraw = itemType.includes("withdraw") || itemType.includes("wd");
 
                     const rawStatus = item.status || "Pending";
                     const isSuccess = ["approved", "accepted", "success", "active", "completed"].includes(rawStatus.toLowerCase());
@@ -1512,7 +1529,7 @@ export default function OneTime() {
 
 const getStatusStyleDark = (status) => {
   const s = (status || "").toLowerCase();
-  if (s === "success" || s === "active" || s === "approved" || s === "accepted") {
+  if (s === "success" || s === "active" || s === "approved" || s === "accepted" || s === "completed") {
     return { background: "rgba(34, 197, 94, 0.2)", color: "#4ade80" };
   }
   if (s === "pending") {
