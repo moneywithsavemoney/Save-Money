@@ -7914,48 +7914,101 @@ app.post("/api/onetime/add-bank-details", async (req, res) => {
 });
 
 
-      app.get("/admin/onetime-withdraw-requests", async (req, res) => {
+      // ******************************************************************************
+// 🛠️ ADMIN GET WITHDRAW REQUESTS - FULLY FIXED & COMBINED
+// ******************************************************************************
+app.get("/admin/onetime-withdraw-requests", async (req, res) => {
   try {
-    let requests = [];
+    let list = [];
 
-    // ১. Withdrawal কালেকশন থেকে খোজা
-    if (typeof Withdrawal !== "undefined") {
-      requests = await Withdrawal.find({}).sort({ createdAt: -1 });
+    // ১. Standalone কালেকশন থেকে উইথড্র রিকোয়েস্ট খোঁজা
+    if (typeof Withdraw !== "undefined" && Withdraw.find) {
+      list = await Withdraw.find({}).sort({ createdAt: -1 }).lean();
+    } else if (typeof OneTimeWithdrawal !== "undefined" && OneTimeWithdrawal.find) {
+      list = await OneTimeWithdrawal.find({}).sort({ createdAt: -1 }).lean();
     }
 
-    // 🛑 ডাটা না থাকলে User-এর onetimeHistory থেকে ফিল্টার করে বের করা
-    if (!requests || requests.length === 0) {
-      const users = await User.find({ "onetimeHistory.type": "Withdrawal" });
-      requests = [];
+    // ২. সব ইউজারের document থেকে withdrawals এবং onetimeHistory সংগ্রহ করা
+    const users = await User.find({
+      $or: [
+        { "withdrawals.0": { $exists: true } },
+        { "onetimeHistory.0": { $exists: true } }
+      ]
+    }).lean();
 
-      users.forEach((u) => {
-        if (Array.isArray(u.onetimeHistory)) {
-          u.onetimeHistory.forEach((h) => {
-            if (h.type === "Withdrawal") {
-              requests.push({
-                _id: h._id,
-                name: u.name,
-                email: u.email,
-                amount: h.amount,
-                bankDetails: h.bankDetails || u.bankDetails,
-                status: h.status || "Pending",
-                createdAt: h.createdAt
-              });
-            }
-          });
-        }
-      });
-    }
+    const userRequestsMap = new Map();
+
+    // প্রথমে স্ট্যান্ডঅ্যালোন লিস্ট ম্যাপে যুক্ত করা
+    list.forEach(item => {
+      if (item && item._id) {
+        userRequestsMap.set(String(item._id), {
+          _id: item._id,
+          name: item.name || "",
+          email: item.email || "",
+          amount: Number(item.amount || 0),
+          isInvestAmountWithdrawal: item.isInvestAmountWithdrawal || false,
+          bankDetails: item.bankDetails || {},
+          status: item.status || "Pending",
+          createdAt: item.createdAt || item.date || new Date()
+        });
+      }
+    });
+
+    // ইউজারদের অ্যারে থেকে উইথড্র এবং হিস্টরি যোগ করা
+    users.forEach(u => {
+      // withdrawals অ্যারে চেক
+      if (Array.isArray(u.withdrawals)) {
+        u.withdrawals.forEach(w => {
+          if (w && (String(w.type || "").toLowerCase().includes("withdraw") || w.amount)) {
+            const key = String(w._id);
+            userRequestsMap.set(key, {
+              _id: w._id,
+              name: u.name || "",
+              email: u.email || "",
+              amount: Number(w.amount || 0),
+              isInvestAmountWithdrawal: w.isInvestAmountWithdrawal || false,
+              bankDetails: w.bankDetails || u.bankDetails || {},
+              status: w.status || "Pending",
+              createdAt: w.createdAt || w.startDate || new Date()
+            });
+          }
+        });
+      }
+
+      // onetimeHistory অ্যারে চেক
+      if (Array.isArray(u.onetimeHistory)) {
+        u.onetimeHistory.forEach(h => {
+          if (h && String(h.type || "").toLowerCase().includes("withdraw")) {
+            const key = String(h._id);
+            userRequestsMap.set(key, {
+              _id: h._id,
+              name: u.name || "",
+              email: u.email || "",
+              amount: Number(h.amount || 0),
+              isInvestAmountWithdrawal: h.isInvestAmountWithdrawal || false,
+              bankDetails: h.bankDetails || u.bankDetails || {},
+              status: h.status || "Pending",
+              createdAt: h.createdAt || h.startDate || new Date()
+            });
+          }
+        });
+      }
+    });
+
+    const finalRequestsList = Array.from(userRequestsMap.values()).sort((a, b) => {
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
 
     return res.status(200).json({
       success: true,
-      requests: requests,
-      withdrawals: requests,
-      data: requests
+      requests: finalRequestsList,
+      withdrawals: finalRequestsList,
+      data: finalRequestsList
     });
+
   } catch (error) {
     console.error("Admin Fetch Withdraw Error:", error);
-    return res.status(500).json({ success: false, requests: [], message: "Error fetching withdraws" });
+    return res.status(500).json({ success: false, requests: [], message: error.message });
   }
 });
 
