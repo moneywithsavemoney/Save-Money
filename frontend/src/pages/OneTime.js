@@ -279,14 +279,15 @@ export default function OneTime() {
           ? data.deposits.map((d) => ({ ...d, type: "Add Fund" }))
           : [];
           
-        // উইথড্রয়াল ডাটা সঠিকভাবে ম্যাপ করা হলো যাতে হিস্টরিতে টাইপ 'Withdrawal' থাকে
-        const rawWithdrawals = Array.isArray(data.withdrawals)
-          ? data.withdrawals.map((w) => ({ 
+        // ব্যাকএন্ডের withdrawals অথবা user.withdrawals ডাটা সঠিকভাবে ম্যাপ করা হলো[span_1](start_span)[span_1](end_span)
+        const withdrawalsSource = data.withdrawals || data.user?.withdrawals || [];
+        const rawWithdrawals = Array.isArray(withdrawalsSource)
+          ? withdrawalsSource.map((w) => ({ 
               ...w, 
               type: w.type || (w.isInvestAmountWithdrawal ? "Invest Principal Wd" : "Withdrawal") 
             }))
           : [];
-          
+
         const rawInvestments = Array.isArray(data.investments)
           ? data.investments.map((i) => ({ ...i, type: "OneTimeInvestment" }))
           : [];
@@ -562,8 +563,8 @@ export default function OneTime() {
       if (res.ok && data.success) {
         triggerToast(data.message || "Withdrawal Request Submitted!", "success");
         setShowWithdrawModal(false);
-        
-        // তাৎক্ষণিকভাবে হিস্ট্রিতে যোগ করার জন্য লোকাল অবজেক্ট তৈরি
+
+        // উইথড্র সাকসেস হওয়ার পর লোকাল হিস্টরিতে ইনস্ট্যান্ট যোগ করা হলো
         const newWithdrawalEntry = {
           _id: data.withdraw?._id || Date.now().toString(),
           type: "Withdrawal",
@@ -2429,6 +2430,7 @@ const styles = {
   },
   fileInputDark: { width: "100%", fontSize: "11px", color: "#cbd5e1" },
   submitBtnDark: {
+    key: "submit",
     height: "38px",
     borderRadius: "8px",
     border: "none",
