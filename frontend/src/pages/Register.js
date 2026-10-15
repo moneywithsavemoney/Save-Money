@@ -167,7 +167,7 @@ export default function Register() {
 
   const handleDownloadApk = () => {
     // Google Drive Direct Download Link
-    const driveDirectLink = "https://github.com/moneywithsavemoney/Save-Money/releases/download/v1.0.5/SaveMoney.apk";
+    const driveDirectLink = "https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t](https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t)";
     window.open(driveDirectLink, "_blank");
   };
 
