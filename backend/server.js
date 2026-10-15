@@ -7334,10 +7334,10 @@ if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" ||
 
 
 
-// *********************************************************
-// ➔ PREPARE WITHDRAWAL API (Regular + Maturity Principal Combined)
-// *********************************------------------------
-app.post('/api/onetime/withdraw', async (req, res) => {
+// ******************************************************************************
+// 🛠️ PREPARE WITHDRAWAL API (Regular + Maturity Principal Combined) - FULLY UPDATED
+// ******************************************************************************
+app.post("/api/onetime/withdraw", async (req, res) => {
   try {
     const { email, amount, isInvestAmountWithdrawal, investmentId, bankDetails } = req.body;
 
@@ -7348,26 +7348,31 @@ app.post('/api/onetime/withdraw', async (req, res) => {
     const cleanEmail = String(email).trim().toLowerCase();
     const withdrawAmount = Number(amount);
 
-    const user = await User.findOne({ $or: [{ email: cleanEmail }, { email: {$regex: new RegExp(`^${cleanEmail}$`, 'i') } }] });
+    const user = await User.findOne({ 
+      $or: [
+        { email: cleanEmail }, 
+        { email: new RegExp(`^${cleanEmail}$`, 'i') }
+      ] 
+    });
+
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
     const historylist = user.onetimeHistory || [];
 
-    // ১. মূল ম্যচুরিড/প্রিন্সিপাল অ্যামাউন্ট উইথড্র করার পর প্রিন্সিপাল ফিল্ড আপডেট
+    // ১. মূল ম্যচিউর্ড/প্রিন্সিপাল অ্যামাউন্ট উইথড্র করার পর প্রিন্সিপাল পিন্ড আপডেট
     if (isInvestAmountWithdrawal) {
       if (!investmentId) {
         return res.status(400).json({ success: false, message: "Investment ID is required for principal withdrawal" });
       }
 
-      // সঠিক ইনভেস্টমেন্ট আইডি খোঁজার সুদৃঢ় লজিক (যা আগের কোডে প্রবলেম করছিল)
       let targetInv = null;
       if (user.investments && user.investments.length > 0) {
         targetInv = user.investments.id(investmentId) || user.investments.find(i => String(i._id) === String(investmentId));
       }
       if (!targetInv && user.onetimeInvestments && user.onetimeInvestments.length > 0) {
-        targetInv = user.onetimeInvestments.find(i => String(i._id) === String(investmentId));
+        targetInv = user.onetimeInvestments.id(investmentId) || user.onetimeInvestments.find(i => String(i._id) === String(investmentId));
       }
       if (!targetInv && user.onetimeHistory && user.onetimeHistory.length > 0) {
         targetInv = user.onetimeHistory.find(i => String(i._id) === String(investmentId));
@@ -7377,7 +7382,7 @@ app.post('/api/onetime/withdraw', async (req, res) => {
         return res.status(404).json({ success: false, message: "Investment plan not found" });
       }
 
-      // প্ল্যান স্ট্যাটাস Completed করা হলো যাতে রানিং না দেখায়
+      // প্ল্যান স্ট্যাটাস Completed করা অথবা রিমুভ না রেখে
       targetInv.status = "Completed";
 
       const withdrawdata = new mongoose.Types.ObjectId();
@@ -7397,8 +7402,8 @@ app.post('/api/onetime/withdraw', async (req, res) => {
       user.withdrawals.push(withdraw);
 
       try {
-        if (typeof Withdrawal !== "undefined") {
-          const standaloneWithdrawal = new Withdrawal({
+        if (typeof Withdraw !== "undefined") {
+          const standaloneWithdraw = new Withdraw({
             _id: withdrawdata,
             name: user.name || "",
             email: cleanEmail,
@@ -7409,26 +7414,26 @@ app.post('/api/onetime/withdraw', async (req, res) => {
             status: "Pending",
             createdAt: new Date()
           });
-          await standaloneWithdrawal.save();
+          await standaloneWithdraw.save();
         }
       } catch (err) {
         console.log("Standalone withdrawal collection skipped:", err.message);
       }
 
-      user.markModified('investments');
-      user.markModified('onetimeInvestments');
-      user.markModified('onetimeHistory');
-      user.markModified('withdrawals');
+      user.markModified("investments");
+      user.markModified("onetimeInvestments");
+      user.markModified("onetimeHistory");
+      user.markModified("withdrawals");
       await user.save();
 
       return res.status(200).json({
         success: true,
         message: "Invest amount withdrawal request submitted successfully!",
-        withdrawal: withdraw
+        withdraw: withdraw
       });
     }
 
-    // ২. খতিয়ে না দেখতে, ডেইলি উইথড্র লিমিট বা আজকের দিন চেক
+    // ২. প্রতিদিনের বা দৈনিক উইথড্র লিমিট বা আজকের দিন চেক
     const todayStr = new Date().toDateString();
     const hasWithdrawnToday = (user.withdrawals || []).some((item) => {
       const itemType = (item.type || "").toLowerCase();
@@ -7453,9 +7458,9 @@ app.post('/api/onetime/withdraw', async (req, res) => {
 
     user.otbalance = currentBalance - withdrawAmount;
 
-    const normalWithdrawalId = new mongoose.Types.ObjectId();
+    const normalwithdrawalId = new mongoose.Types.ObjectId();
     const withdraw = {
-      _id: normalWithdrawalId,
+      _id: normalwithdrawalId,
       type: "Withdrawal",
       amount: withdrawAmount,
       isInvestAmountWithdrawal: false,
@@ -7468,10 +7473,20 @@ app.post('/api/onetime/withdraw', async (req, res) => {
     if (!user.withdrawals) user.withdrawals = [];
     user.withdrawals.push(withdraw);
 
+    // হিস্টোরিতেও যুক্ত করা যাতে ইউজারের ড্যাশবোর্ডে সাথে সাথে শো করে
+    if (!user.onetimeHistory) user.onetimeHistory = [];
+    user.onetimeHistory.unshift({
+      _id: normalwithdrawalId,
+      type: "Withdrawal",
+      amount: withdrawAmount,
+      status: "Pending",
+      createdAt: new Date()
+    });
+
     try {
-      if (typeof Withdrawal !== "undefined") {
-        const standaloneWithdrawal = new Withdrawal({
-          _id: normalWithdrawalId,
+      if (typeof Withdraw !== "undefined") {
+        const standaloneWithdraw = new Withdraw({
+          _id: normalwithdrawalId,
           name: user.name || "",
           email: cleanEmail,
           amount: withdrawAmount,
@@ -7480,19 +7495,20 @@ app.post('/api/onetime/withdraw', async (req, res) => {
           status: "Pending",
           createdAt: new Date()
         });
-        await standaloneWithdrawal.save();
+        await standaloneWithdraw.save();
       }
     } catch (err) {
       console.log("Standalone withdrawal collection skipped:", err.message);
     }
 
-    user.markModified('withdrawals');
+    user.markModified("onetimeHistory");
+    user.markModified("withdrawals");
     await user.save();
 
     return res.status(200).json({
       success: true,
       message: "Withdrawal request submitted successfully!",
-      withdrawal: withdraw,
+      withdraw: withdraw,
       updatedBalance: user.otbalance
     });
 
@@ -7501,6 +7517,7 @@ app.post('/api/onetime/withdraw', async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error processing withdrawal: " + error.message });
   }
 });
+
 
                                  
 
@@ -7549,23 +7566,30 @@ app.get("/api/onetime/admin/withdrawals", async (req, res) => {
 });
 
 
-// ==========================================
-// ADMIN WITHDRAW ACTION (Approve / Reject) - FIXED & COMBINED
-// ==========================================
+// ******************************************************************************
+// 🛠️ ADMIN WITHDRAW ACTION (Approve / Reject) - FIXED & COMBINED
+// ******************************************************************************
 app.post("/admin/onetime-withdraw-action", async (req, res) => {
   try {
-    const targetId = req.body.id || req.body.requestId || req.body._id;
-    const { status, rejectReason } = req.body; // status: "Success", "Approved" বা "Rejected"
+    const { id, requestId, _id, status, rejectReason } = req.body;
+    const targetId = id || requestId || _id;
 
     if (!targetId) return res.status(400).json({ success: false, message: "ID parameter missing" });
     const targetIdStr = String(targetId).trim();
 
     // ১. Standalone Collection আপডেট (যদি থাকে)
-    if (typeof Withdrawal !== "undefined") {
-      await Withdrawal.findByIdAndUpdate(targetIdStr, { status: status, rejectReason: rejectReason });
+    if (typeof Withdraw !== "undefined") {
+      try {
+        await Withdraw.findByIdAndUpdate(targetIdStr, { 
+          status: status, 
+          rejectReason: rejectReason || "" 
+        });
+      } catch (e) {
+        console.log("Standalone withdraw update skipped:", e.message);
+      }
     }
 
-    // ২. onetimeHistory বা withdrawals দিয়ে ইউজার খোঁজা
+    // ২. onetimeHistory বা withdrawals নিয়ে ইউজারের খোঁজ নেওয়া
     let queryConditions = [{ "onetimeHistory._id": targetIdStr }, { "withdrawals._id": targetIdStr }];
     if (mongoose.Types.ObjectId.isValid(targetIdStr)) {
       queryConditions.push({ "onetimeHistory._id": new mongoose.Types.ObjectId(targetIdStr) });
@@ -7575,18 +7599,21 @@ app.post("/admin/onetime-withdraw-action", async (req, res) => {
     let user = await User.findOne({ $or: queryConditions });
 
     if (user) {
-      // প্রথমে onetimeHistory থেকে খোঁজা
-      let item = user.onetimeHistory?.find(h => h && h._id && String(h._id) === targetIdStr);
+      // ৩. প্রথমে onetimeHistory থেকে খোঁজা
+      let item = user.onetimeHistory?.find(h => h && String(h._id) === targetIdStr);
       if (!item) {
         item = user.onetimeHistory?.find(h => h && h.type === "Withdrawal" && h.status === "Pending");
       }
 
-      // যদি onetimeHistory তে না পাওয়া যায়, তবে withdrawals অ্যারে থেকে খোঁজা
-      let withdrawalSubItem = user.withdrawals?.id(targetIdStr) || user.withdrawals?.find(w => w && w._id && String(w._id) === targetIdStr);
+      // ৪. যদি onetimeHistory তে না পাওয়া যায়, তবে withdrawals অ্যারে থেকে খোঁজা
+      let withdrawalSubItem = user.withdrawals?.id ? user.withdrawals.id(targetIdStr) : null;
+      if (!withdrawalSubItem) {
+        withdrawalSubItem = user.withdrawals?.find(w => w && String(w._id) === targetIdStr);
+      }
 
       if (item) {
         item.status = status;
-        if (rejectReason) item.rejectReason = rejectReason;
+        if (rejectReason) item.reason = rejectReason;
       }
 
       if (withdrawalSubItem) {
@@ -7594,12 +7621,12 @@ app.post("/admin/onetime-withdraw-action", async (req, res) => {
         if (rejectReason) withdrawalSubItem.rejectReason = rejectReason;
       }
 
-      // ৩. রিজেক্ট হলে otbalance এ টাকা ফেরত দেওয়া (স্ক্রিনশটের মূল লজিক + ইনভেস্টমেন্ট প্রিন্সিপাল কন্ডিশন)
+      // ৫. রিজেক্ট হলে otbalance এ টাকা ফেরত দেওয়া (প্রিন্সিপাল বা ইনভেস্টমেন্ট প্রিন্সিপাল কমিশন)
       if (status === "Rejected") {
         const targetItem = item || withdrawalSubItem;
         const isInvestWd = targetItem ? targetItem.isInvestAmountWithdrawal : false;
-
-        // যদি সাধারণ উইথড্র হয় অথবা রিকোয়েস্টে ফ্ল্যাগ না থাকে, তবে ওয়ালেটে টাকা ফেরত যাবে
+        
+        // যদি সাধারণ উইথড্র বা অথবা রিফান্ডেবল ব্যালেন্স না থাকে, তবে ওয়ালেটে টাকা ফেরত যাবে
         if (!isInvestWd) {
           const refundAmount = Number((targetItem ? targetItem.amount : 0)) || Number(req.body.amount || 0);
           user.otbalance = Number(user.otbalance || user.otBalance || 0) + refundAmount;
@@ -7609,10 +7636,14 @@ app.post("/admin/onetime-withdraw-action", async (req, res) => {
         // যদি এটি ইনভেস্টমেন্টের মূল টাকা (Principal) উইথড্র হয় এবং অ্যাডমিন অ্যাপ্রুভ করে
         const targetItem = item || withdrawalSubItem;
         if (targetItem && targetItem.isInvestAmountWithdrawal && targetItem.investmentId) {
-          const targetInv = user.investments?.id(targetItem.investmentId) || 
-                            user.investments?.find(i => i._id.toString() === targetItem.investmentId.toString()) ||
-                            user.onetimeInvestments?.find(i => i._id.toString() === targetItem.investmentId.toString());
-          
+          let targetInv = null;
+          if (user.investments && user.investments.length > 0) {
+            targetInv = user.investments.id(targetItem.investmentId) || user.investments.find(i => String(i._id) === String(targetItem.investmentId));
+          }
+          if (!targetInv && user.onetimeInvestments && user.onetimeInvestments.length > 0) {
+            targetInv = user.onetimeInvestments.id(targetItem.investmentId) || user.onetimeInvestments.find(i => String(i._id) === String(targetItem.investmentId));
+          }
+
           if (targetInv) {
             targetInv.status = "Completed"; // ইনভেস্টমেন্ট প্ল্যান কমপ্লিট করে দেওয়া হলো
           }
@@ -7621,6 +7652,8 @@ app.post("/admin/onetime-withdraw-action", async (req, res) => {
 
       user.markModified("onetimeHistory");
       user.markModified("withdrawals");
+      user.markModified("investments");
+      user.markModified("onetimeInvestments");
       await user.save();
 
       return res.status(200).json({ success: true, message: `Withdrawal ${status}` });
@@ -7630,9 +7663,10 @@ app.post("/admin/onetime-withdraw-action", async (req, res) => {
 
   } catch (error) {
     console.error("Admin Withdraw Action Error:", error);
-    return res.status(500).json({ success: false, message: "Server Error" });
+    return res.status(500).json({ success: false, message: "Server Error: " + error.message });
   }
 });
+
 
 
 
