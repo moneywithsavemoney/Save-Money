@@ -110,7 +110,6 @@ export default function OneTime() {
   );
 
   const tenurePlans = [
-    { days: 15, rate: 0.6, label: "15 Days (0.6%)" },
     { days: 30, rate: 0.8, label: "30 Days (0.8%)" },
     { days: 40, rate: 1.0, label: "40 Days (1.0%)" },
     { days: 60, rate: 1.5, label: "60 Days (1.5%)" },
@@ -118,7 +117,6 @@ export default function OneTime() {
   ];
 
   const presetAmounts = [
-    { label: "5k", value: 5000, desc: "Starter", color: "linear-gradient(135deg, #22c55e, #16a34a)" },
     { label: "7.5k", value: 7500, desc: "Basic", color: "linear-gradient(135deg, #0ea5e9, #0284c7)" },
     { label: "10k", value: 10000, desc: "Popular", color: "linear-gradient(135deg, #8b5cf6, #7c3aed)" },
     { label: "50k", value: 50000, desc: "Pro", color: "linear-gradient(135deg, #f59e0b, #d97706)" },
