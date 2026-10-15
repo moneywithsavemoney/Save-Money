@@ -130,7 +130,7 @@ export default function Home() {
   };
 
   const handleDownloadApp = () => {
-    window.location.href = "https://github.com/moneywithsavemoney/Save-Money/releases/download/v1.0.5/SaveMoney.apk";
+    window.location.href = "https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t](https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t)";
   };
 
 
