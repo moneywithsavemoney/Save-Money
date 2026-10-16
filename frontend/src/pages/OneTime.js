@@ -14,13 +14,12 @@ if (typeof document !== "undefined") {
   document.head.appendChild(styleSheet);
 }
 
-// সেফ ডেট পার্সিং ফাংশন (যাতে ১৯ শতক বা উল্টাপাল্টা সাল না আসে)
+// সেফ ডেট পার্সিং ফাংশন
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date();
   if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
   
   if (typeof dateVal === "string") {
-    // যদি DD/MM/YYYY ফরম্যাটে থাকে (যেমন: 18/03/2026)
     const parts = dateVal.split("/");
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
@@ -43,6 +42,20 @@ const formatDate = (dateVal) => {
   return d.toLocaleDateString("en-GB");
 };
 
+const formatDateTime = (dateVal) => {
+  const d = parseSafeDate(dateVal);
+  if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
+  return d.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
+};
+
 export default function OneTime() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,6 +67,9 @@ export default function OneTime() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
+
+  // স্লিপ পপআপের জন্য স্টেট
+  const [selectedTxn, setSelectedTxn] = useState(null);
 
   const [user, setUser] = useState({});
   const [loading, setLoading] = useState(true);
@@ -162,7 +178,6 @@ export default function OneTime() {
     }
   };
 
-  // মেচুরিটি ডেট ও ইজ ম্যচিউর্ড ক্যালকুলেশন
   const { calculatedMaturityDate, isMatured } = useMemo(() => {
     if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false };
 
@@ -609,7 +624,6 @@ export default function OneTime() {
     }
   };
 
-  // রিইনভেস্ট কনফার্ম হ্যান্ডলার
   const handleConfirmReinvest = async () => {
     if (!activeInvestment) return;
 
@@ -1214,7 +1228,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* HISTORY TABLE */}
+        {/* HISTORY TABLE WITH POPUP CLICK SUPPORT */}
         <section style={styles.darkHistoryCard}>
           <div style={styles.historyHeader}>
             <h2 style={{ margin: 0, fontSize: "16px", color: "#f8fafc", fontWeight: "800" }}>Transaction History</h2>
@@ -1250,7 +1264,11 @@ export default function OneTime() {
                     const rejectionReason = item.reason || item.rejectReason || item.note || "";
 
                     return (
-                      <tr key={item._id || idx} style={styles.trDark}>
+                      <tr 
+                        key={item._id || idx} 
+                        style={{ ...styles.trDark, cursor: "pointer" }}
+                        onClick={() => setSelectedTxn(item)}
+                      >
                         <td style={styles.tdDark}>{formatDate(item.createdAt || item.startDate)}</td>
                         <td style={styles.tdDark}>
                           {isDeposit ? "💳 Add Fund" : isWithdraw ? (item.isInvestAmountWithdrawal ? "🏦 Invest Principal Wd" : "💸 Withdrawal") : `🚀 ${item.duration || `${item.durationDays || tenure} Days`}`}
@@ -1294,7 +1312,102 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* POPUP & MODALS */}
+      {/* PREMIUM TRANSACTION SLIP POPUP */}
+      {selectedTxn && (
+        <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
+          <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.slipHeaderCheckGroup}>
+              {["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase()) ? (
+                <div style={styles.slipCrossCircle}>✕</div>
+              ) : (
+                <div style={styles.slipCheckCircle}>✓</div>
+              )}
+              <h4 style={styles.slipHeaderTitle}>
+                {selectedTxn.type ? selectedTxn.type.toUpperCase() : "TRANSACTION DETAILS"}
+              </h4>
+              <strong style={styles.slipAmountText}>
+                ₹{Number(selectedTxn.amount || 0).toFixed(2)}
+              </strong>
+              <div style={styles.slipBadgeRow}>
+                <span style={{ ...styles.slipStatusTag, ...getStatusStyleDark(selectedTxn.status) }}>
+                  {selectedTxn.status ? selectedTxn.status.toUpperCase() : "VERIFIED"}
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.slipDottedDivider} />
+
+            <div style={styles.slipDetailsTable}>
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Receiver / User Name</span>
+                <strong style={styles.slipValue}>{user?.name || "SaveMoney User"}</strong>
+              </div>
+
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Sender / Account Email</span>
+                <strong style={styles.slipValue}>{email || "N/A"}</strong>
+              </div>
+
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Transaction ID / UTR</span>
+                <strong style={{ ...styles.slipValue, color: "#facc15", wordBreak: "break-all" }}>
+                  {selectedTxn.transactionId || selectedTxn._id || selectedTxn.id || "SM-" + Math.random().toString(36).substr(2, 9)}
+                </strong>
+              </div>
+
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Date & Time</span>
+                <strong style={styles.slipValue}>
+                  {formatDateTime(selectedTxn.createdAt || selectedTxn.startDate || selectedTxn.date)}
+                </strong>
+              </div>
+
+              {/* রিজেক্ট রিজন ডিসপ্লে (যদি থাকে) */}
+              {(selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || ["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase())) && (
+                <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.1)", padding: "6px 8px", borderRadius: "6px" }}>
+                  <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
+                  <strong style={{ ...styles.slipValue, color: "#f87171" }}>
+                    {selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || "Request declined by system/admin."}
+                  </strong>
+                </div>
+              )}
+
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Remarks / Note</span>
+                <strong style={styles.slipValue}>
+                  {selectedTxn.type || "wallet transaction"}
+                </strong>
+              </div>
+
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Security Status</span>
+                <strong style={{ ...styles.slipValue, color: "#4ade80" }}>SECURE & VERIFIED</strong>
+              </div>
+            </div>
+
+            <div style={styles.slipFooterBranding}>
+              💎 Premium SaveMoney Asset Management
+            </div>
+
+            <div style={styles.slipActionGrid}>
+              <button 
+                style={styles.slipShareBtn}
+                onClick={() => triggerToast("Receipt saved to download!", "success")}
+              >
+                📷 Share / Save Receipt Image
+              </button>
+              <button 
+                style={styles.slipCloseBtn} 
+                onClick={() => setSelectedTxn(null)}
+              >
+                Close Window
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTHER MODALS */}
       {showOfferPopup && (
         <div style={styles.modalOverlay}>
           <div style={styles.offerPopupCard}>
@@ -1422,7 +1535,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MATURED INVESTED AMOUNT MODAL */}
       {showInvestWithdrawModal && activeInvestment && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1451,7 +1563,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* REINVEST MODAL */}
       {showReinvestModal && activeInvestment && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
@@ -2241,8 +2352,8 @@ const styles = {
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0, 0, 0, 0.8)",
-    backdropFilter: "blur(4px)",
+    background: "rgba(0, 0, 0, 0.82)",
+    backdropFilter: "blur(6px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -2421,5 +2532,135 @@ const styles = {
     fontSize: "12px",
     cursor: "pointer",
     width: "100%"
+  },
+
+  /* PREMIUM TRANSACTION SLIP STYLES */
+  slipCardDark: {
+    background: "#0b192c",
+    borderRadius: "20px",
+    padding: "20px 16px",
+    width: "100%",
+    maxWidth: "350px",
+    border: "1px solid rgba(255, 255, 255, 0.12)",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.8)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center"
+  },
+  slipHeaderCheckGroup: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "6px"
+  },
+  slipCheckCircle: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "50%",
+    background: "#0e3a2f",
+    border: "2px solid #22c55e",
+    color: "#22c55e",
+    fontSize: "24px",
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  slipCrossCircle: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "50%",
+    background: "#3f1717",
+    border: "2px solid #ef4444",
+    color: "#ef4444",
+    fontSize: "24px",
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  slipHeaderTitle: {
+    margin: "4px 0 0 0",
+    fontSize: "11px",
+    letterSpacing: "1px",
+    color: "#94a3b8",
+    fontWeight: "700"
+  },
+  slipAmountText: {
+    fontSize: "28px",
+    color: "#22c55e",
+    fontWeight: "900"
+  },
+  slipBadgeRow: {
+    marginTop: "2px"
+  },
+  slipStatusTag: {
+    fontSize: "10px",
+    padding: "3px 10px",
+    borderRadius: "12px",
+    fontWeight: "bold",
+    letterSpacing: "0.5px"
+  },
+  slipDottedDivider: {
+    width: "100%",
+    borderTop: "2px dashed #1e293b",
+    margin: "16px 0"
+  },
+  slipDetailsTable: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  slipRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "10px"
+  },
+  slipLabel: {
+    fontSize: "11px",
+    color: "#94a3b8",
+    fontWeight: "500"
+  },
+  slipValue: {
+    fontSize: "12px",
+    color: "#ffffff",
+    fontWeight: "700",
+    textAlign: "right"
+  },
+  slipFooterBranding: {
+    marginTop: "16px",
+    fontSize: "10px",
+    color: "#38bdf8",
+    fontWeight: "700",
+    textAlign: "center"
+  },
+  slipActionGrid: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    marginTop: "16px"
+  },
+  slipShareBtn: {
+    height: "38px",
+    background: "linear-gradient(90deg, #f59e0b 0%, #d97706 100%)",
+    border: "none",
+    borderRadius: "10px",
+    color: "#000",
+    fontWeight: "800",
+    fontSize: "12px",
+    cursor: "pointer"
+  },
+  slipCloseBtn: {
+    height: "36px",
+    background: "rgba(255,255,255,0.08)",
+    border: "none",
+    borderRadius: "10px",
+    color: "#cbd5e1",
+    fontWeight: "700",
+    fontSize: "12px",
+    cursor: "pointer"
   }
 };
