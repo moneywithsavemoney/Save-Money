@@ -7914,7 +7914,7 @@ app.post("/api/onetime/add-bank-details", async (req, res) => {
 });
 
 
-// 🎁 APPLY BONUS CODE API
+// 🎁 APPLY BONUS CODE API (Updated with restriction)
 app.post("/api/onetime/apply-bonus", async (req, res) => {
   try {
     const { email, bonusCode } = req.body;
@@ -7927,10 +7927,15 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found." });
     }
 
+    // চেক করা ইউজার ইতিমধ্যে কোনো বোনাস কোড ব্যবহার করেছে কি না
+    if (user.hasAppliedBonus || (user.bonusList && user.bonusList.length > 0)) {
+      return res.status(400).json({ success: false, message: "You have already applied a bonus code. It cannot be changed." });
+    }
+
     // ইউজারের OT Balance-এ ৩০০ টাকা যোগ করা এবং বোনাস লিস্টে আপডেট করা
     user.otbalance = (Number(user.otbalance) || 0) + 300;
+    user.hasAppliedBonus = true; // ফ্ল্যাগ সেট করা হলো যাতে পরবর্তীতে আর না দিতে পারে
     
-    // বোনাস লিস্ট বা রেফারেল হিস্টরিতে সেভ করা
     if (!user.bonusList) user.bonusList = [];
     user.bonusList.push({
       code: bonusCode,
@@ -7944,7 +7949,8 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Bonus code applied successfully! ₹300 added to your OT Balance.",
-      otbalance: user.otbalance
+      otbalance: user.otbalance,
+      hasAppliedBonus: true
     });
   } catch (err) {
     console.error("Apply bonus error:", err);
