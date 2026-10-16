@@ -14,12 +14,13 @@ if (typeof document !== "undefined") {
   document.head.appendChild(styleSheet);
 }
 
-// সেফ ডেট পার্সিং ফাংশন
+// সেফ ডেট পার্সিং ফাংশন (যাতে ১৯ শতক বা উল্টাপাল্টা সাল না আসে)
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date();
   if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
   
   if (typeof dateVal === "string") {
+    // যদি DD/MM/YYYY ফরম্যাটে থাকে (যেমন: 18/03/2026)
     const parts = dateVal.split("/");
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
@@ -40,29 +41,6 @@ const formatDate = (dateVal) => {
   const d = parseSafeDate(dateVal);
   if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
   return d.toLocaleDateString("en-GB");
-};
-
-// অ্যাডমিনের ইনপুট করা আসল রিজন বের করার সুনির্দিষ্ট ফাংশন
-const getRejectionReason = (item) => {
-  if (!item) return "";
-  
-  // ব্যাকএন্ডের সম্ভাব্য সমস্ত ফিল্ড চেইনিং
-  const rawReason = 
-    item.rejectReason || 
-    item.reason || 
-    item.rejectionReason || 
-    item.remarks || 
-    item.remark || 
-    item.adminRemark || 
-    item.note || 
-    item.message || 
-    "";
-
-  if (!rawReason) return "";
-
-  const strReason = String(rawReason).trim();
-  // যদি ডুপ্লিকেট "Reason:" লেখা থাকে তা ক্লিন করা
-  return strReason.replace(/^Reason:\s*/i, "").trim();
 };
 
 export default function OneTime() {
@@ -184,6 +162,7 @@ export default function OneTime() {
     }
   };
 
+  // মেচুরিটি ডেট ও ইজ ম্যচিউর্ড ক্যালকুলেশন
   const { calculatedMaturityDate, isMatured } = useMemo(() => {
     if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false };
 
@@ -239,7 +218,7 @@ export default function OneTime() {
         setAmount(Number(activeInvestment.amount));
       }
 
-      let days = 15;
+      let days = 30;
       if (typeof activeInvestment.duration === "number") {
         days = activeInvestment.duration;
       } else if (typeof activeInvestment.duration === "string") {
@@ -265,10 +244,10 @@ export default function OneTime() {
         setFrequency(activeInvestment.frequency.toLowerCase());
       }
     } else if (!activeInvestment || isMatured) {
-      setTenure(15);
-      setRate(0.6);
+      setTenure(30);
+      setRate(0.8);
       setFrequency("daily");
-      setAmount(5000);
+      setAmount(7500);
     }
   }, [activeInvestment, isMatured]);
 
@@ -630,6 +609,7 @@ export default function OneTime() {
     }
   };
 
+  // রিইনভেস্ট কনফার্ম হ্যান্ডলার
   const handleConfirmReinvest = async () => {
     if (!activeInvestment) return;
 
@@ -1262,13 +1242,12 @@ export default function OneTime() {
                     const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId;
                     const isWithdraw = itemType.includes("withdraw");
 
-                    const statusStr = String(item.status || "").toLowerCase().trim();
-                    const isSuccess = ["approved", "accepted", "success", "active", "completed"].includes(statusStr);
-                    const isRejected = ["rejected", "cancelled", "failed", "reject"].includes(statusStr);
-                    const displayStatus = statusStr === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
+                    const rawStatus = item.status || "Pending";
+                    const isSuccess = ["approved", "accepted", "success", "active", "completed"].includes(rawStatus.toLowerCase());
+                    const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
+                    const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // অ্যাডমিনের ডাটাবেজে ইনপুট করা অরিজিনাল মেসেজ বের করা হচ্ছে
-                    const rejectionReason = getRejectionReason(item);
+                    const rejectReason = item.reason || item.rejectReason || item.note || "";
 
                     return (
                       <tr key={item._id || idx} style={styles.trDark}>
@@ -1278,17 +1257,15 @@ export default function OneTime() {
                         </td>
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
-                          <div style={{ display: "flex", flexDirection: "column", gap: "2px", alignItems: "flex-start" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
                             <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
                               {displayStatus}
                             </span>
-                            
-                            {/* অ্যাডমিনের আসল টেক্সট কেবল থাকলে তবেই শো করবে, কোনো হার্ডকোডেড ফলব্যাক দেখানো হবে না */}
-                            {rejectionReason ? (
-                              <span style={{ fontSize: "10px", color: "#f87171", marginTop: "2px", display: "block", fontWeight: "600", wordBreak: "break-word" }}>
+                            {isRejected && rejectionReason && (
+                              <span style={{ fontSize: "10px", color: "#f87171", lineHeight: "1.2" }}>
                                 Reason: {rejectionReason}
                               </span>
-                            ) : null}
+                            )}
                           </div>
                         </td>
                       </tr>
