@@ -663,6 +663,39 @@ export default function OneTime() {
     }
   };
 
+  // সরাসরি হোয়াটসঅ্যাপে শেয়ার করার ফাংশন
+  const handleShareToWhatsApp = () => {
+    if (!selectedTxn) return;
+
+    const txnType = selectedTxn.type ? selectedTxn.type.toUpperCase() : "TRANSACTION DETAILS";
+    const amountVal = Number(selectedTxn.amount || 0).toFixed(2);
+    const statusVal = selectedTxn.status ? selectedTxn.status.toUpperCase() : "VERIFIED";
+    const userName = user?.name || "SaveMoney User";
+    const userEmail = email || "N/A";
+    const txnIdVal = selectedTxn.transactionId || selectedTxn._id || selectedTxn.id || "N/A";
+    const dateTimeVal = formatDateTime(selectedTxn.createdAt || selectedTxn.startDate || selectedTxn.date);
+    const rejectReasonVal = selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || "";
+
+    let message = `*💎 SAVE MONEY - TRANSACTION SLIP*\n\n`;
+    message += `📌 *Type:* ${txnType}\n`;
+    message += `💰 *Amount:* ₹${amountVal}\n`;
+    message += `🟢 *Status:* ${statusVal}\n`;
+    message += `👤 *User Name:* ${userName}\n`;
+    message += `📧 *Email:* ${userEmail}\n`;
+    message += `🆔 *Transaction ID / UTR:* ${txnIdVal}\n`;
+    message += `📅 *Date & Time:* ${dateTimeVal}\n`;
+
+    if (rejectReasonVal) {
+      message += `⚠️ *Reject Reason:* ${rejectReasonVal}\n`;
+    }
+
+    message += `\n✨ *Premium SaveMoney Asset Management*`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
   const handleCopyWallet = () => {
     navigator.clipboard.writeText(COMPANY_WALLET_ADDRESS);
     triggerToast("Wallet Address Copied!", "success");
@@ -1228,7 +1261,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* HISTORY TABLE WITH POPUP CLICK SUPPORT */}
+        {/* HISTORY TABLE */}
         <section style={styles.darkHistoryCard}>
           <div style={styles.historyHeader}>
             <h2 style={{ margin: 0, fontSize: "16px", color: "#f8fafc", fontWeight: "800" }}>Transaction History</h2>
@@ -1312,7 +1345,7 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* PREMIUM TRANSACTION SLIP POPUP */}
+      {/* PREMIUM TRANSACTION SLIP POPUP WITH DIRECT WHATSAPP SHARE */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
           <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1362,7 +1395,7 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              {/* রিজেক্ট রিজন ডিসপ্লে (যদি থাকে) */}
+              {/* রিজেক্ট রিজন ডিসপ্লে */}
               {(selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || ["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase())) && (
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.1)", padding: "6px 8px", borderRadius: "6px" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
@@ -1392,9 +1425,9 @@ export default function OneTime() {
             <div style={styles.slipActionGrid}>
               <button 
                 style={styles.slipShareBtn}
-                onClick={() => triggerToast("Receipt saved to download!", "success")}
+                onClick={handleShareToWhatsApp}
               >
-                📷 Share / Save Receipt Image
+                💬 Share on WhatsApp ➔
               </button>
               <button 
                 style={styles.slipCloseBtn} 
@@ -2645,10 +2678,10 @@ const styles = {
   },
   slipShareBtn: {
     height: "38px",
-    background: "linear-gradient(90deg, #f59e0b 0%, #d97706 100%)",
+    background: "linear-gradient(90deg, #25D366 0%, #128C7E 100%)",
     border: "none",
     borderRadius: "10px",
-    color: "#000",
+    color: "#fff",
     fontWeight: "800",
     fontSize: "12px",
     cursor: "pointer"
