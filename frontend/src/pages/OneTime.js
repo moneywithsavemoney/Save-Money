@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import html2canvas from "html2canvas";
 import { API } from "../config";
 
 if (typeof document !== "undefined") {
@@ -73,9 +72,11 @@ export default function OneTime() {
   const [showBonusModal, setShowBonusModal] = useState(false);
   const [bonusInputCode, setBonusInputCode] = useState("");
   const [uniqueBonusCode] = useState("ot324556");
+  
+  // যারা আপনার বোনাস কোড ব্যবহার করেছে তাদের তালিকা (Referred Users List)
   const [bonusList, setBonusList] = useState([
-    { id: 1, title: "Welcome Bonus", amount: 100, status: "Claimed" },
-    { id: 2, title: "First Investment Bonus", amount: 250, status: "Available" }
+    { id: 1, name: "Rahul Sharma", date: "15/10/2026", status: "Success", reward: "₹50" },
+    { id: 2, name: "Amit Das", date: "14/10/2026", status: "Success", reward: "₹50" }
   ]);
 
   // স্লিপ পপআপের জন্য স্টেট
@@ -1415,21 +1416,28 @@ export default function OneTime() {
               </button>
             </div>
 
-            {/* বোনাস লিস্ট শো করবে */}
+            {/* বোনাস কোড ব্যবহারকারী ইউজারদের নামের লিস্ট শো করবে */}
             <div>
-              <label style={{ ...styles.labelDark, marginBottom: "6px", display: "block" }}>Your Bonus List</label>
+              <label style={{ ...styles.labelDark, marginBottom: "6px", display: "block" }}>Users Who Used Your Code</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "150px", overflowY: "auto" }}>
-                {bonusList.map((b) => (
-                  <div key={b.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#040d1a", padding: "8px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                    <div>
-                      <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{b.title}</strong>
-                      <span style={{ fontSize: "10px", color: "#22c55e" }}>₹{b.amount}</span>
+                {bonusList.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "12px", color: "#94a3b8", fontSize: "11px" }}>No users found yet</div>
+                ) : (
+                  bonusList.map((item) => (
+                    <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#040d1a", padding: "8px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div>
+                        <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{item.name}</strong>
+                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>Joined: {item.date}</span>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: "bold", display: "block" }}>+{item.reward}</span>
+                        <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "4px", background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", fontWeight: "bold" }}>
+                          {item.status}
+                        </span>
+                      </div>
                     </div>
-                    <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: b.status === "Claimed" ? "rgba(34, 197, 94, 0.2)" : "rgba(234, 179, 8, 0.2)", color: b.status === "Claimed" ? "#4ade80" : "#facc15", fontWeight: "bold" }}>
-                      {b.status}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
