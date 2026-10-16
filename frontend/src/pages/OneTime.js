@@ -68,6 +68,14 @@ export default function OneTime() {
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
 
+  // রেফার মেইনটেইন করার জন্য নতুন স্টেট
+  const [showReferModal, setShowReferModal] = useState(false);
+  const [referInputCode, setReferInputCode] = useState("");
+  const [referredBy, setReferredBy] = useState("");
+  const [myReferCode, setMyReferCode] = useState("");
+  const [referList, setReferList] = useState([]);
+  const [submittingRefer, setSubmittingRefer] = useState(false);
+
   // স্লিপ পপআপের জন্য স্টেট
   const [selectedTxn, setSelectedTxn] = useState(null);
 
@@ -281,6 +289,19 @@ export default function OneTime() {
       const data = await res.json();
       if (res.ok) {
         setUser(data.user || {});
+        
+        // রেফার ডাটা লোড করা
+        if (data.user?.referredBy) setReferredBy(data.user.referredBy);
+        if (data.user?.referCode || data.user?.myReferCode) {
+          setMyReferCode(data.user.referCode || data.user.myReferCode);
+        } else {
+          setMyReferCode(data.user?.referralCode || "SM-" + Math.random().toString(36).substring(2, 8).toUpperCase());
+        }
+        if (Array.isArray(data.user?.referList)) {
+          setReferList(data.user.referList);
+        } else if (Array.isArray(data.referList)) {
+          setReferList(data.referList);
+        }
 
         const rawHistory = Array.isArray(data.history)
           ? data.history
@@ -663,6 +684,42 @@ export default function OneTime() {
     }
   };
 
+  // রেফার কোড সাবমিট হ্যান্ডলার
+  const handleReferSubmit = async (e) => {
+    e.preventDefault();
+    if (!referInputCode.trim()) {
+      triggerToast("Please enter a valid referral code", "error");
+      return;
+    }
+
+    try {
+      setSubmittingRefer(true);
+      const res = await fetch(`${API}/api/onetime/apply-referral`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({ email, referCode: referInputCode.trim() })
+      });
+
+      const data = await res.json();
+      if (res.ok || data.success) {
+        triggerToast("Referral code applied successfully!", "success");
+        setReferredBy(referInputCode.trim());
+        if (data.myReferCode) setMyReferCode(data.myReferCode);
+        if (Array.isArray(data.referList)) setReferList(data.referList);
+        await loadDashboardData();
+      } else {
+        triggerToast(data.message || "Invalid referral code or already applied", "error");
+      }
+    } catch (err) {
+      triggerToast("Network error submitting referral code", "error");
+    } finally {
+      setSubmittingRefer(false);
+    }
+  };
+
   // সরাসরি হোয়াটসঅ্যাপে শেয়ার করার ফাংশন
   const handleShareToWhatsApp = () => {
     if (!selectedTxn) return;
@@ -966,16 +1023,26 @@ export default function OneTime() {
             </div>
           </div>
 
-          <div style={styles.profileCircle} onClick={() => navigate("/kyc")}>
-            {profilePhoto ? (
-              <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
-            ) : (
-              <div style={styles.profileAvatarPlaceholder}>
-                <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
-                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                </span>
-              </div>
-            )}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {/* নতুন রেফার বাটন ওপরের দিকে অ্যাড করা হয়েছে */}
+            <button 
+              style={styles.topReferBtn}
+              onClick={() => setShowReferModal(true)}
+            >
+              🎁 Refer
+            </button>
+
+            <div style={styles.profileCircle} onClick={() => navigate("/kyc")}>
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
+              ) : (
+                <div style={styles.profileAvatarPlaceholder}>
+                  <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -1345,6 +1412,72 @@ export default function OneTime() {
         </footer>
       </div>
 
+      {/* রেফার অপশনের নতুন পপআপ মডাল */}
+      {showReferModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowReferModal(false)}>
+          <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>👥 Refer & Earn</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowReferModal(false)}>✕</button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {/* Referred By সেকশন */}
+              <div style={{ background: "#040d1a", padding: "12px", borderRadius: "8px", border: "1px solid #1e293b" }}>
+                <span style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginBottom: "4px" }}>Referred By</span>
+                {referredBy ? (
+                  <strong style={{ fontSize: "14px", color: "#4ade80" }}>{referredBy} (Applied)</strong>
+                ) : (
+                  <form onSubmit={handleReferSubmit} style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
+                    <input 
+                      style={{ ...styles.inputModalDark, flex: 1 }} 
+                      placeholder="Enter Refer Code" 
+                      value={referInputCode} 
+                      onChange={(e) => setReferInputCode(e.target.value)} 
+                    />
+                    <button type="submit" style={{ ...styles.submitBtnDark, width: "80px", height: "38px" }} disabled={submittingRefer}>
+                      {submittingRefer ? "..." : "Submit"}
+                    </button>
+                  </form>
+                )}
+              </div>
+
+              {/* নিজের রেফার কোড শো করার সেকশন */}
+              <div style={{ background: "#040d1a", padding: "12px", borderRadius: "8px", border: "1px solid #1e293b", textAlign: "center" }}>
+                <span style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginBottom: "4px" }}>Your Referral Code</span>
+                <strong style={{ fontSize: "18px", color: "#facc15", letterSpacing: "1px" }}>{myReferCode || "Generating..."}</strong>
+                <button 
+                  style={{ ...styles.copyBtn, marginTop: "6px", width: "100%", padding: "6px" }} 
+                  onClick={() => {
+                    navigator.clipboard.writeText(myReferCode);
+                    triggerToast("Referral Code Copied!", "success");
+                  }}
+                >
+                  Copy Referral Code 📋
+                </button>
+              </div>
+
+              {/* রেফার লিস্ট শো করার সেকশন */}
+              <div style={{ background: "#040d1a", padding: "12px", borderRadius: "8px", border: "1px solid #1e293b" }}>
+                <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: "bold", display: "block", marginBottom: "8px" }}>Referral List ({referList.length})</span>
+                <div style={{ maxHeight: "120px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {referList.length === 0 ? (
+                    <span style={{ fontSize: "11px", color: "#64748b", textAlign: "center" }}>No referrals yet</span>
+                  ) : (
+                    referList.map((refUser, idx) => (
+                      <div key={idx} style={{ display: "flex", justifyContent: "space-between", background: "#0f2138", padding: "6px 8px", borderRadius: "6px", fontSize: "11px" }}>
+                        <span style={{ color: "#f8fafc" }}>{refUser.email || refUser.name || `User ${idx + 1}`}</span>
+                        <span style={{ color: "#4ade80", fontWeight: "bold" }}>Verified</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* PREMIUM TRANSACTION SLIP POPUP WITH DIRECT WHATSAPP SHARE */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
@@ -1453,7 +1586,7 @@ export default function OneTime() {
               <strong style={styles.offerHighlightText}>upto 15% flat bonus</strong> instantly!
             </p>
             <div style={styles.offerActionGroup}>
-              <button style={styles.offerReferBtn} onClick={() => { setShowOfferPopup(false); navigate("/refer"); }}>
+              <button style={styles.offerReferBtn} onClick={() => { setShowOfferPopup(false); setShowReferModal(true); }}>
                 👥 Refer Friend Now
               </button>
               <button style={styles.offerSkipBtn} onClick={() => setShowOfferPopup(false)}>Maybe Later</button>
@@ -1771,6 +1904,18 @@ const styles = {
     fontSize: "24px",
     cursor: "pointer",
     padding: "0"
+  },
+  // ওপরের রেফার বাটনের স্টাইল
+  topReferBtn: {
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    color: "#fff",
+    border: "none",
+    padding: "6px 12px",
+    borderRadius: "20px",
+    fontSize: "12px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.4)"
   },
   welcomeTitle: {
     margin: 0,
