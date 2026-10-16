@@ -218,7 +218,7 @@ export default function OneTime() {
         setAmount(Number(activeInvestment.amount));
       }
 
-      let days = 30;
+      let days = 15;
       if (typeof activeInvestment.duration === "number") {
         days = activeInvestment.duration;
       } else if (typeof activeInvestment.duration === "string") {
@@ -244,10 +244,10 @@ export default function OneTime() {
         setFrequency(activeInvestment.frequency.toLowerCase());
       }
     } else if (!activeInvestment || isMatured) {
-      setTenure(30);
-      setRate(0.8);
+      setTenure(15);
+      setRate(0.6);
       setFrequency("daily");
-      setAmount(7500);
+      setAmount(5000);
     }
   }, [activeInvestment, isMatured]);
 
@@ -1247,7 +1247,7 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    const rejectReason = item.reason || item.rejectReason || item.note || "";
+                    const rejectionReason = item.reason || item.rejectReason || item.note || "";
 
                     return (
                       <tr key={item._id || idx} style={styles.trDark}>
