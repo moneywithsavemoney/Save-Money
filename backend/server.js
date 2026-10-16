@@ -7914,6 +7914,50 @@ app.post("/api/onetime/add-bank-details", async (req, res) => {
 });
 
 
+// 🎁 APPLY BONUS CODE API
+app.post("/api/onetime/apply-bonus", async (req, res) => {
+  try {
+    const { email, bonusCode } = req.body;
+    if (!email || !bonusCode) {
+      return res.status(400).json({ success: false, message: "Email and bonus code are required." });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found." });
+    }
+
+    // এখানে আপনার লজিক চেক করতে পারেন কোডটি সঠিক কিনা বা অলরেডি ব্যবহার করা হয়েছে কিনা
+    // উদাহরণস্বরূপ, যদি কোডটি আপনার ইউনিক কোডের সাথে মিলে যায়:
+    // if (bonusCode !== "ot324556") { return res.status(400).json({ success: false, message: "Invalid bonus code." }); }
+
+    // ইউজারের OT Balance-এ ৩৩০ টাকা যোগ করা এবং বোনাস লিস্টে আপডেট করা
+    user.otbalance = (Number(user.otbalance) || 0) + 300;
+    
+    // বোনাস লিস্ট বা রেফারেল হিস্টরিতে সেভ করা
+    if (!user.bonusList) user.bonusList = [];
+    user.bonusList.push({
+      code: bonusCode,
+      amount: 300,
+      date: new Date(),
+      status: "Success"
+    });
+
+    await user.save();
+
+    return.status(200).json({
+      success: true,
+      message: "Bonus code applied successfully! ₹300 added to your OT Balance.",
+      otbalance: user.otbalance
+    });
+  } catch (err) {
+    console.error("Apply bonus error:", err);
+    return res.status(500).json({ success: false, message: "Server error applying bonus." });
+  }
+});
+
+
+
       // ******************************************************************************
 // 🛠️ ADMIN GET WITHDRAW REQUESTS - FULLY FIXED & COMBINED
 // ******************************************************************************
