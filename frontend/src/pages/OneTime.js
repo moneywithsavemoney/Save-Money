@@ -1247,8 +1247,11 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // রিজেক্ট বা অন্যান্য মেসেজ দেখানোর জন্য বিভিন্ন প্রপার্টি চেক করা হচ্ছে
-                    const rejectionReason = item.reason || item.rejectReason || item.note || item.message || "";
+                    // ব্যাকএন্ডের সম্ভাব্য সব ফিল্ড থেকে রিজন বের করা হচ্ছে
+                    const rawReason = item.remarks || item.remark || item.adminRemark || item.rejectionReason || item.reason || item.rejectReason || item.note || item.message || "";
+                    
+                    // অতিরিক্ত 'Reason:' লিখা যাতে দ্বিতীয়বার রিপিট না হয়
+                    const rejectionReason = typeof rawReason === "string" ? rawReason.replace(/^Reason:\s*/i, "").trim() : rawReason;
 
                     return (
                       <tr key={item._id || idx} style={styles.trDark}>
@@ -1258,12 +1261,12 @@ export default function OneTime() {
                         </td>
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
-                          <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "2px", alignItems: "flex-start" }}>
                             <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
                               {displayStatus}
                             </span>
                             {isRejected && rejectionReason && (
-                              <span style={{ fontSize: "10px", color: "#f87171", lineHeight: "1.2", fontWeight: "600" }}>
+                              <span style={{ fontSize: "10px", color: "#ef4444", marginTop: "2px", display: "block", wordBreak: "break-word" }}>
                                 Reason: {rejectionReason}
                               </span>
                             )}
