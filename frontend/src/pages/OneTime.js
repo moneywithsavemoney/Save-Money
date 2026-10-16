@@ -163,7 +163,6 @@ export default function OneTime() {
       if (res.ok) {
         setUser(data.user || {});
 
-        // ব্যাকএন্ড থেকে আসা রিয়েল বোনাস বা রেফার লিস্ট সেট করা
         if (data.bonusList || data.user?.bonusList || data.referrals) {
           setBonusList(data.bonusList || data.user?.bonusList || data.referrals || []);
         }
@@ -257,7 +256,6 @@ export default function OneTime() {
     }
   };
 
-  // বোনাস কোড এপ্লাই করার ফাংশন (ব্যাকএন্ডে রিকোয়েস্ট পাঠানো)
   const handleApplyBonusCode = async () => {
     if (!bonusInputCode) {
       triggerToast("Please enter a bonus code", "error");
@@ -577,7 +575,6 @@ export default function OneTime() {
     }
   };
 
-  // উইথড্র অ্যামাউন্ট স্টেট (যদি বোনাস লিস্ট থাকে তবে প্রিসেট অ্যামাউন্ট ব্যবহারের জন্য)
   const [selectedWithdrawAmount, setSelectedWithdrawAmount] = useState(100);
 
   const handleWithdrawSubmit = async (customAmt = null) => {
@@ -1006,7 +1003,6 @@ export default function OneTime() {
             </div>
           </div>
 
-          {/* ইউজার ছবির ঠিক বাঁদিকে বোনাস বোতাম এবং ইউজার প্রোফাইল */}
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button 
               style={styles.headerBonusBtn} 
@@ -1102,7 +1098,6 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* Dynamic Matured Invested Amount Wallet Card */}
         {activeInvestment && isMatured && (
           <section style={styles.maturedWalletCard}>
             <div style={styles.maturedCardHeader}>
@@ -1145,7 +1140,6 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* MAKE NEW INVESTMENT PANEL */}
         <section style={styles.darkMainCard}>
           <h2 style={styles.darkCardTitle}>Make a New Investment</h2>
 
@@ -1311,7 +1305,6 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* HISTORY TABLE */}
         <section style={styles.darkHistoryCard}>
           <div style={styles.historyHeader}>
             <h2 style={{ margin: 0, fontSize: "16px", color: "#f8fafc", fontWeight: "800" }}>Transaction History</h2>
@@ -1384,7 +1377,6 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* FOOTER */}
         <footer style={styles.footerBar}>
           <p style={styles.footerTagline}>
             Chhote nivesh, badi kamai ka sapna, ab hoga sach! <strong style={{ color: "#22c55e" }}>SAVE MONEY</strong>! 💚
@@ -1395,7 +1387,7 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* 🎁 BONUS MODAL POPUP */}
+      {/* 🎁 BONUS MODAL POPUP (Updated with already applied check) */}
       {showBonusModal && (
         <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
           <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1404,26 +1396,35 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowBonusModal(false)}>✕</button>
             </div>
 
-            {/* বোনাস কোড দেওয়ার জায়গা */}
-            <div style={{ marginBottom: "14px" }}>
-              <label style={styles.labelDark}>Enter Bonus / Referral Code</label>
-              <div style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
-                <input 
-                  style={{ ...styles.inputModalDark, flex: 1 }} 
-                  placeholder="e.g. ot324556" 
-                  value={bonusInputCode} 
-                  onChange={(e) => setBonusInputCode(e.target.value)} 
-                />
-                <button 
-                  style={{ ...styles.submitBtnDark, width: "80px", height: "38px" }}
-                  onClick={handleApplyBonusCode}
-                >
-                  Apply
-                </button>
+            {user?.hasAppliedBonus || (bonusList && bonusList.length > 0) ? (
+              <div style={{ background: "rgba(34, 197, 94, 0.1)", border: "1px solid #22c55e", padding: "10px", borderRadius: "8px", textAlign: "center", marginBottom: "14px" }}>
+                <span style={{ fontSize: "12px", color: "#4ade80", fontWeight: "bold" }}>
+                  ✅ Bonus Code Already Applied!
+                </span>
+                <p style={{ fontSize: "10px", color: "#cbd5e1", margin: "4px 0 0 0" }}>
+                  You cannot change or apply another bonus code.
+                </p>
               </div>
-            </div>
+            ) : (
+              <div style={{ marginBottom: "14px" }}>
+                <label style={styles.labelDark}>Enter Bonus / Referral Code</label>
+                <div style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
+                  <input 
+                    style={{ ...styles.inputModalDark, flex: 1 }} 
+                    placeholder="e.g. ot324556" 
+                    value={bonusInputCode} 
+                    onChange={(e) => setBonusInputCode(e.target.value)} 
+                  />
+                  <button 
+                    style={{ ...styles.submitBtnDark, width: "80px", height: "38px" }}
+                    onClick={handleApplyBonusCode}
+                  >
+                    Apply
+                  </button>
+                </div>
+              </div>
+            )}
 
-            {/* নিজের ইউনিক বোনাস কোড শো করবে */}
             <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px dashed #22c55e", marginBottom: "14px", textAlign: "center" }}>
               <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Your Unique Bonus Code</span>
               <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>{user?.bonusCode || user?.referralCode || "ot324556"}</strong>
@@ -1438,7 +1439,6 @@ export default function OneTime() {
               </button>
             </div>
 
-            {/* বোনাস লিস্ট (যে ইউজাররা কোড ব্যবহার করে ইনভেস্ট করেছে) */}
             <div>
               <label style={{ ...styles.labelDark, marginBottom: "6px", display: "block" }}>Users Who Used Your Code & Invested</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "150px", overflowY: "auto" }}>
@@ -1466,7 +1466,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL (বোনাস লিস্ট থাকলে প্রিসেট অ্যামাউন্ট ও উইথড্র নোটিশ দেখাবে) */}
+      {/* WITHDRAW MODAL (Preset amounts & 2 hours notice) */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1485,7 +1485,7 @@ export default function OneTime() {
             {bonusList.length > 0 ? (
               <>
                 <label style={{ ...styles.labelDark, display: "block", marginBottom: "6px" }}>Select Preset Withdraw Amount</label>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "6px", marginBottom: "14px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px", marginBottom: "10px" }}>
                   {[100, 300, 500, 1000].map((amt) => (
                     <button
                       key={amt}
@@ -1542,7 +1542,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* PREMIUM TRANSACTION SLIP POPUP WITH DIRECT WHATSAPP SHARE */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
           <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
@@ -2648,8 +2647,6 @@ const styles = {
     cursor: "pointer",
     width: "100%"
   },
-
-  /* PREMIUM TRANSACTION SLIP STYLES */
   slipCardDark: {
     background: "#0b192c",
     borderRadius: "20px",
