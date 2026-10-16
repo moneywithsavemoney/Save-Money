@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import html2canvas from "html2canvas";
 import { API } from "../config";
 
 if (typeof document !== "undefined") {
@@ -68,11 +69,14 @@ export default function OneTime() {
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
 
-  // বোনাস মডাল ও রেফারেল স্টেটস
+  // বোনাস পপআপ এবং স্টেট
   const [showBonusModal, setShowBonusModal] = useState(false);
-  const [inputBonusCode, setInputBonusCode] = useState("");
-  const [myUniqueBonusCode, setMyUniqueBonusCode] = useState("");
-  const [bonusList, setBonusList] = useState([]);
+  const [bonusInputCode, setBonusInputCode] = useState("");
+  const [uniqueBonusCode] = useState("ot324556");
+  const [bonusList, setBonusList] = useState([
+    { id: 1, title: "Welcome Bonus", amount: 100, status: "Claimed" },
+    { id: 2, title: "First Investment Bonus", amount: 250, status: "Available" }
+  ]);
 
   // স্লিপ পপআপের জন্য স্টেট
   const [selectedTxn, setSelectedTxn] = useState(null);
@@ -148,54 +152,7 @@ export default function OneTime() {
 
   useEffect(() => {
     loadDashboardData();
-    // লোকালস্টোরেজ থেকে সেভ করা ইউনিক বোনাস কোড ও বোনাস লিস্ট লোড করা
-    const savedCode = localStorage.getItem(`my_bonus_code_${email}`);
-    if (savedCode) {
-      setMyUniqueBonusCode(savedCode);
-    }
-    const savedList = localStorage.getItem(`my_bonus_list_${email}`);
-    if (savedList) {
-      try {
-        setBonusList(JSON.parse(savedList));
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }, [email]);
-
-  // বোনাস কোড সাবমিট হ্যান্ডলার
-  const handleBonusSubmit = (e) => {
-    e.preventDefault();
-    if (!inputBonusCode.trim()) {
-      triggerToast("Please enter a valid bonus code", "error");
-      return;
-    }
-
-    // ইউনিক কোড জেনারেট করা ot324556 ফরম্যাটে যদি আগে না থাকে
-    let generatedCode = myUniqueBonusCode;
-    if (!generatedCode) {
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      generatedCode = `ot${randomNum}`;
-      setMyUniqueBonusCode(generatedCode);
-      localStorage.setItem(`my_bonus_code_${email}`, generatedCode);
-    }
-
-    // নতুন বোনাস এন্ট্রি লিস্টে যোগ করা
-    const newBonusItem = {
-      id: Date.now(),
-      usedCode: inputBonusCode.trim(),
-      myCode: generatedCode,
-      date: new Date().toISOString(),
-      reward: "₹150 Bonus Activated"
-    };
-
-    const updatedList = [newBonusItem, ...bonusList];
-    setBonusList(updatedList);
-    localStorage.setItem(`my_bonus_list_${email}`, JSON.stringify(updatedList));
-
-    setInputBonusCode("");
-    triggerToast("🎉 Bonus Code Applied Successfully! Your Unique Code Generated.", "success");
-  };
+  }, []);
 
   const handleDownloadPlan = () => {
     if (isDownloadingPlan) return;
@@ -716,6 +673,7 @@ export default function OneTime() {
     }
   };
 
+  // সরাসরি হোয়াটসঅ্যাপে শেয়ার করার ফাংশন
   const handleShareToWhatsApp = () => {
     if (!selectedTxn) return;
 
@@ -1001,16 +959,6 @@ export default function OneTime() {
           </div>
         </div>
 
-        {/* TOP BONUS BUTTON SECTION */}
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button 
-            style={styles.topBonusBtn}
-            onClick={() => setShowBonusModal(true)}
-          >
-            🎁 Bonus
-          </button>
-        </div>
-
         {/* HEADER */}
         <header style={styles.header}>
           <div style={styles.headerLeft}>
@@ -1028,16 +976,26 @@ export default function OneTime() {
             </div>
           </div>
 
-          <div style={styles.profileCircle} onClick={() => navigate("/kyc")}>
-            {profilePhoto ? (
-              <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
-            ) : (
-              <div style={styles.profileAvatarPlaceholder}>
-                <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
-                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                </span>
-              </div>
-            )}
+          {/* ইউজার ছবির ঠিক বাঁদিকে বোনাস বোতাম এবং ইউজার প্রোফাইল */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <button 
+              style={styles.headerBonusBtn} 
+              onClick={() => setShowBonusModal(true)}
+            >
+              🎁 Bonus
+            </button>
+
+            <div style={styles.profileCircle} onClick={() => navigate("/kyc")}>
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
+              ) : (
+                <div style={styles.profileAvatarPlaceholder}>
+                  <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -1407,7 +1365,7 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* 🎁 BONUS MODAL (রেফারেল বোনাস কোড সাবমিট ও লিস্ট পপআপ) */}
+      {/* 🎁 BONUS MODAL POPUP */}
       {showBonusModal && (
         <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
           <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1416,47 +1374,62 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowBonusModal(false)}>✕</button>
             </div>
 
-            <form onSubmit={handleBonusSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "14px" }}>
-              <div>
-                <label style={styles.labelDark}>Enter Friend's Bonus Code</label>
+            {/* বোনাস কোড দেওয়ার জায়গা */}
+            <div style={{ marginBottom: "14px" }}>
+              <label style={styles.labelDark}>Enter Bonus / Referral Code</label>
+              <div style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
                 <input 
-                  style={styles.inputModalDark} 
+                  style={{ ...styles.inputModalDark, flex: 1 }} 
                   placeholder="e.g. ot324556" 
-                  value={inputBonusCode} 
-                  onChange={(e) => setInputBonusCode(e.target.value)} 
-                  required 
+                  value={bonusInputCode} 
+                  onChange={(e) => setBonusInputCode(e.target.value)} 
                 />
+                <button 
+                  style={{ ...styles.submitBtnDark, width: "80px", height: "38px" }}
+                  onClick={() => {
+                    if (!bonusInputCode) {
+                      triggerToast("Please enter a bonus code", "error");
+                      return;
+                    }
+                    triggerToast("Bonus Code Applied Successfully!", "success");
+                    setBonusInputCode("");
+                  }}
+                >
+                  Apply
+                </button>
               </div>
-              <button type="submit" style={styles.submitBtnDark}>
-                Submit & Get Bonus Code
+            </div>
+
+            {/* নিজের ইউনিক বোনাস কোড শো করবে */}
+            <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px dashed #22c55e", marginBottom: "14px", textAlign: "center" }}>
+              <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Your Unique Bonus Code</span>
+              <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>{uniqueBonusCode}</strong>
+              <button 
+                style={{ display: "block", margin: "6px auto 0 auto", background: "transparent", border: "none", color: "#38bdf8", fontSize: "11px", cursor: "pointer", fontWeight: "bold" }}
+                onClick={() => {
+                  navigator.clipboard.writeText(uniqueBonusCode);
+                  triggerToast("Bonus Code Copied!", "success");
+                }}
+              >
+                📋 Copy Code
               </button>
-            </form>
+            </div>
 
-            {/* নিজের ইউনিক বোনাস কোড শো */}
-            {myUniqueBonusCode && (
-              <div style={{ background: "rgba(34, 197, 94, 0.15)", border: "1px solid #22c55e", padding: "10px", borderRadius: "8px", textAlign: "center", marginBottom: "14px" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Your Unique Bonus Code</span>
-                <strong style={{ fontSize: "18px", color: "#4ade80", letterSpacing: "1px" }}>{myUniqueBonusCode}</strong>
-              </div>
-            )}
-
-            {/* বোনাস লিস্ট */}
+            {/* বোনাস লিস্ট শো করবে */}
             <div>
-              <h4 style={{ fontSize: "13px", color: "#cbd5e1", margin: "0 0 8px 0" }}>📜 Bonus History List</h4>
-              <div style={{ maxHeight: "150px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
-                {bonusList.length === 0 ? (
-                  <p style={{ fontSize: "11px", color: "#64748b", textAlign: "center", margin: "10px 0" }}>No bonus records yet.</p>
-                ) : (
-                  bonusList.map((item) => (
-                    <div key={item.id} style={{ background: "#040d1a", padding: "8px", borderRadius: "6px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px" }}>
-                      <div>
-                        <span style={{ color: "#38bdf8", display: "block" }}>Used: {item.usedCode}</span>
-                        <span style={{ color: "#94a3b8", fontSize: "9px" }}>{formatDate(item.date)}</span>
-                      </div>
-                      <span style={{ color: "#22c55e", fontWeight: "bold" }}>{item.reward}</span>
+              <label style={{ ...styles.labelDark, marginBottom: "6px", display: "block" }}>Your Bonus List</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "150px", overflowY: "auto" }}>
+                {bonusList.map((b) => (
+                  <div key={b.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#040d1a", padding: "8px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div>
+                      <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{b.title}</strong>
+                      <span style={{ fontSize: "10px", color: "#22c55e" }}>₹{b.amount}</span>
                     </div>
-                  ))
-                )}
+                    <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: b.status === "Claimed" ? "rgba(34, 197, 94, 0.2)" : "rgba(234, 179, 8, 0.2)", color: b.status === "Claimed" ? "#4ade80" : "#facc15", fontWeight: "bold" }}>
+                      {b.status}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -1513,6 +1486,7 @@ export default function OneTime() {
                 </strong>
               </div>
 
+              {/* রিজেক্ট রিজন ডিসপ্লে */}
               {(selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || ["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase())) && (
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.1)", padding: "6px 8px", borderRadius: "6px" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
@@ -1832,17 +1806,6 @@ const styles = {
     gap: "8px",
     boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
   },
-  topBonusBtn: {
-    background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-    border: "none",
-    color: "#fff",
-    padding: "6px 14px",
-    borderRadius: "8px",
-    fontWeight: "bold",
-    fontSize: "12px",
-    cursor: "pointer",
-    boxShadow: "0 2px 8px rgba(245, 158, 11, 0.4)"
-  },
   topNoticeBanner: {
     background: "linear-gradient(90deg, #052e16 0%, #064e3b 100%)",
     border: "1px solid #22c55e",
@@ -1910,6 +1873,17 @@ const styles = {
     margin: 0,
     fontSize: "11px",
     color: "#94a3b8"
+  },
+  headerBonusBtn: {
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    border: "none",
+    color: "#fff",
+    padding: "6px 12px",
+    borderRadius: "20px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)"
   },
   profileCircle: {
     width: "40px",
