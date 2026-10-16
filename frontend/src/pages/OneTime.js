@@ -14,13 +14,12 @@ if (typeof document !== "undefined") {
   document.head.appendChild(styleSheet);
 }
 
-// সেফ ডেট পার্সিং ফাংশন (যাতে ১৯ শতক বা উল্টাপাল্টা সাল না আসে)
+// সেফ ডেট পার্সিং ফাংশন
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date();
   if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
   
   if (typeof dateVal === "string") {
-    // যদি DD/MM/YYYY ফরম্যাটে থাকে (যেমন: 18/03/2026)
     const parts = dateVal.split("/");
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
@@ -41,6 +40,26 @@ const formatDate = (dateVal) => {
   const d = parseSafeDate(dateVal);
   if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
   return d.toLocaleDateString("en-GB");
+};
+
+// ব্যাকএন্ডের সকল সম্ভাব্য রিজন ফিল্ড খোঁজার সেফ ফাংশন
+const getRejectionReason = (item) => {
+  if (!item) return "";
+  const possibleReason = 
+    item.reason || 
+    item.rejectReason || 
+    item.rejectionReason || 
+    item.remarks || 
+    item.remark || 
+    item.adminRemark || 
+    item.note || 
+    item.message || 
+    "";
+
+  if (typeof possibleReason === "string") {
+    return possibleReason.replace(/^Reason:\s*/i, "").trim();
+  }
+  return String(possibleReason || "").trim();
 };
 
 export default function OneTime() {
@@ -162,7 +181,6 @@ export default function OneTime() {
     }
   };
 
-  // মেচুরিটি ডেট ও ইজ ম্যচিউর্ড ক্যালকুলেশন
   const { calculatedMaturityDate, isMatured } = useMemo(() => {
     if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false };
 
@@ -609,7 +627,6 @@ export default function OneTime() {
     }
   };
 
-  // রিইনভেস্ট কনফার্ম হ্যান্ডলার
   const handleConfirmReinvest = async () => {
     if (!activeInvestment) return;
 
@@ -1242,16 +1259,13 @@ export default function OneTime() {
                     const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId;
                     const isWithdraw = itemType.includes("withdraw");
 
-                    const rawStatus = item.status || "Pending";
-                    const isSuccess = ["approved", "accepted", "success", "active", "completed"].includes(rawStatus.toLowerCase());
-                    const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
-                    const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
+                    const statusStr = String(item.status || "").toLowerCase().trim();
+                    const isSuccess = ["approved", "accepted", "success", "active", "completed"].includes(statusStr);
+                    const isRejected = ["rejected", "cancelled", "failed", "reject"].includes(statusStr);
+                    const displayStatus = statusStr === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // ব্যাকএন্ডের সম্ভাব্য সব ফিল্ড থেকে রিজন বের করা হচ্ছে
-                    const rawReason = item.remarks || item.remark || item.adminRemark || item.rejectionReason || item.reason || item.rejectReason || item.note || item.message || "";
-                    
-                    // অতিরিক্ত 'Reason:' লিখা যাতে দ্বিতীয়বার রিপিট না হয়
-                    const rejectionReason = typeof rawReason === "string" ? rawReason.replace(/^Reason:\s*/i, "").trim() : rawReason;
+                    // রিজন নিয়ে আসার জন্য নিরাপদ ফাংশন
+                    const rejectionReason = getRejectionReason(item);
 
                     return (
                       <tr key={item._id || idx} style={styles.trDark}>
@@ -1265,9 +1279,10 @@ export default function OneTime() {
                             <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
                               {displayStatus}
                             </span>
-                            {isRejected && rejectionReason && (
-                              <span style={{ fontSize: "10px", color: "#ef4444", marginTop: "2px", display: "block", wordBreak: "break-word" }}>
-                                Reason: {rejectionReason}
+                            {/* রিজেক্টেড স্ট্যাটাস হলে অথবা রিজন ফিল্ডে ডাটা থাকলে সাথে সাথেই লাল কালারে শো করবে */}
+                            {(isRejected || rejectionReason) && (
+                              <span style={{ fontSize: "10px", color: "#f87171", marginTop: "2px", display: "block", fontWeight: "600", wordBreak: "break-word" }}>
+                                Reason: {rejectionReason || "Request Rejected"}
                               </span>
                             )}
                           </div>
