@@ -42,12 +42,12 @@ const formatDate = (dateVal) => {
   return d.toLocaleDateString("en-GB");
 };
 
-// ব্যাকএন্ডের সকল সম্ভাব্য রিজন ফিল্ড খোঁজার সেফ ফাংশন
+// ব্যাকএন্ডের সঠিক rejectReason এবং অন্যান্য ফিল্ড থেকে রিজন বের করার ফাংশন
 const getRejectionReason = (item) => {
   if (!item) return "";
   const possibleReason = 
-    item.reason || 
     item.rejectReason || 
+    item.reason || 
     item.rejectionReason || 
     item.remarks || 
     item.remark || 
@@ -1264,7 +1264,7 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed", "reject"].includes(statusStr);
                     const displayStatus = statusStr === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // রিজন নিয়ে আসার জন্য নিরাপদ ফাংশন
+                    // এখানে ব্যাকএন্ডের সঠিক rejectReason এবং অন্যান্য ফিল্ড থেকে রিজন বের করা হচ্ছে
                     const rejectionReason = getRejectionReason(item);
 
                     return (
@@ -1279,7 +1279,7 @@ export default function OneTime() {
                             <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
                               {displayStatus}
                             </span>
-                            {/* রিজেক্টেড স্ট্যাটাস হলে অথবা রিজন ফিল্ডে ডাটা থাকলে সাথে সাথেই লাল কালারে শো করবে */}
+                            {/* অ্যাডমিন যা লিখেছে হুবহু সেই রিজন এখানে শো করবে */}
                             {(isRejected || rejectionReason) && (
                               <span style={{ fontSize: "10px", color: "#f87171", marginTop: "2px", display: "block", fontWeight: "600", wordBreak: "break-word" }}>
                                 Reason: {rejectionReason || "Request Rejected"}
