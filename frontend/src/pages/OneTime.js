@@ -68,13 +68,11 @@ export default function OneTime() {
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
 
-  // রেফার মেইনটেইন করার জন্য নতুন স্টেট
-  const [showReferModal, setShowReferModal] = useState(false);
-  const [referInputCode, setReferInputCode] = useState("");
-  const [referredBy, setReferredBy] = useState("");
-  const [myReferCode, setMyReferCode] = useState("");
-  const [referList, setReferList] = useState([]);
-  const [submittingRefer, setSubmittingRefer] = useState(false);
+  // বোনাস মডাল ও রেফারেল স্টেটস
+  const [showBonusModal, setShowBonusModal] = useState(false);
+  const [inputBonusCode, setInputBonusCode] = useState("");
+  const [myUniqueBonusCode, setMyUniqueBonusCode] = useState("");
+  const [bonusList, setBonusList] = useState([]);
 
   // স্লিপ পপআপের জন্য স্টেট
   const [selectedTxn, setSelectedTxn] = useState(null);
@@ -150,7 +148,54 @@ export default function OneTime() {
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+    // লোকালস্টোরেজ থেকে সেভ করা ইউনিক বোনাস কোড ও বোনাস লিস্ট লোড করা
+    const savedCode = localStorage.getItem(`my_bonus_code_${email}`);
+    if (savedCode) {
+      setMyUniqueBonusCode(savedCode);
+    }
+    const savedList = localStorage.getItem(`my_bonus_list_${email}`);
+    if (savedList) {
+      try {
+        setBonusList(JSON.parse(savedList));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [email]);
+
+  // বোনাস কোড সাবমিট হ্যান্ডলার
+  const handleBonusSubmit = (e) => {
+    e.preventDefault();
+    if (!inputBonusCode.trim()) {
+      triggerToast("Please enter a valid bonus code", "error");
+      return;
+    }
+
+    // ইউনিক কোড জেনারেট করা ot324556 ফরম্যাটে যদি আগে না থাকে
+    let generatedCode = myUniqueBonusCode;
+    if (!generatedCode) {
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      generatedCode = `ot${randomNum}`;
+      setMyUniqueBonusCode(generatedCode);
+      localStorage.setItem(`my_bonus_code_${email}`, generatedCode);
+    }
+
+    // নতুন বোনাস এন্ট্রি লিস্টে যোগ করা
+    const newBonusItem = {
+      id: Date.now(),
+      usedCode: inputBonusCode.trim(),
+      myCode: generatedCode,
+      date: new Date().toISOString(),
+      reward: "₹150 Bonus Activated"
+    };
+
+    const updatedList = [newBonusItem, ...bonusList];
+    setBonusList(updatedList);
+    localStorage.setItem(`my_bonus_list_${email}`, JSON.stringify(updatedList));
+
+    setInputBonusCode("");
+    triggerToast("🎉 Bonus Code Applied Successfully! Your Unique Code Generated.", "success");
+  };
 
   const handleDownloadPlan = () => {
     if (isDownloadingPlan) return;
@@ -289,19 +334,6 @@ export default function OneTime() {
       const data = await res.json();
       if (res.ok) {
         setUser(data.user || {});
-        
-        // রেফার ডাটা লোড করা
-        if (data.user?.referredBy) setReferredBy(data.user.referredBy);
-        if (data.user?.referCode || data.user?.myReferCode) {
-          setMyReferCode(data.user.referCode || data.user.myReferCode);
-        } else {
-          setMyReferCode(data.user?.referralCode || "SM-" + Math.random().toString(36).substring(2, 8).toUpperCase());
-        }
-        if (Array.isArray(data.user?.referList)) {
-          setReferList(data.user.referList);
-        } else if (Array.isArray(data.referList)) {
-          setReferList(data.referList);
-        }
 
         const rawHistory = Array.isArray(data.history)
           ? data.history
@@ -684,43 +716,6 @@ export default function OneTime() {
     }
   };
 
-  // রেফার কোড সাবমিট হ্যান্ডলার
-  const handleReferSubmit = async (e) => {
-    e.preventDefault();
-    if (!referInputCode.trim()) {
-      triggerToast("Please enter a valid referral code", "error");
-      return;
-    }
-
-    try {
-      setSubmittingRefer(true);
-      const res = await fetch(`${API}/api/onetime/apply-referral`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token
-        },
-        body: JSON.stringify({ email, referCode: referInputCode.trim() })
-      });
-
-      const data = await res.json();
-      if (res.ok || data.success) {
-        triggerToast("Referral code applied successfully!", "success");
-        setReferredBy(referInputCode.trim());
-        if (data.myReferCode) setMyReferCode(data.myReferCode);
-        if (Array.isArray(data.referList)) setReferList(data.referList);
-        await loadDashboardData();
-      } else {
-        triggerToast(data.message || "Invalid referral code or already applied", "error");
-      }
-    } catch (err) {
-      triggerToast("Network error submitting referral code", "error");
-    } finally {
-      setSubmittingRefer(false);
-    }
-  };
-
-  // সরাসরি হোয়াটসঅ্যাপে শেয়ার করার ফাংশন
   const handleShareToWhatsApp = () => {
     if (!selectedTxn) return;
 
@@ -1006,6 +1001,16 @@ export default function OneTime() {
           </div>
         </div>
 
+        {/* TOP BONUS BUTTON SECTION */}
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <button 
+            style={styles.topBonusBtn}
+            onClick={() => setShowBonusModal(true)}
+          >
+            🎁 Bonus
+          </button>
+        </div>
+
         {/* HEADER */}
         <header style={styles.header}>
           <div style={styles.headerLeft}>
@@ -1023,26 +1028,16 @@ export default function OneTime() {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            {/* নতুন রেফার বাটন ওপরের দিকে অ্যাড করা হয়েছে */}
-            <button 
-              style={styles.topReferBtn}
-              onClick={() => setShowReferModal(true)}
-            >
-              🎁 Refer
-            </button>
-
-            <div style={styles.profileCircle} onClick={() => navigate("/kyc")}>
-              {profilePhoto ? (
-                <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
-              ) : (
-                <div style={styles.profileAvatarPlaceholder}>
-                  <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
-                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                  </span>
-                </div>
-              )}
-            </div>
+          <div style={styles.profileCircle} onClick={() => navigate("/kyc")}>
+            {profilePhoto ? (
+              <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
+            ) : (
+              <div style={styles.profileAvatarPlaceholder}>
+                <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
+                  {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                </span>
+              </div>
+            )}
           </div>
         </header>
 
@@ -1412,66 +1407,56 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* রেফার অপশনের নতুন পপআপ মডাল */}
-      {showReferModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowReferModal(false)}>
+      {/* 🎁 BONUS MODAL (রেফারেল বোনাস কোড সাবমিট ও লিস্ট পপআপ) */}
+      {showBonusModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
           <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>👥 Refer & Earn</h3>
-              <button style={styles.closeBtnDark} onClick={() => setShowReferModal(false)}>✕</button>
+              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>🎁 Bonus & Referral System</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowBonusModal(false)}>✕</button>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {/* Referred By সেকশন */}
-              <div style={{ background: "#040d1a", padding: "12px", borderRadius: "8px", border: "1px solid #1e293b" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginBottom: "4px" }}>Referred By</span>
-                {referredBy ? (
-                  <strong style={{ fontSize: "14px", color: "#4ade80" }}>{referredBy} (Applied)</strong>
+            <form onSubmit={handleBonusSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "14px" }}>
+              <div>
+                <label style={styles.labelDark}>Enter Friend's Bonus Code</label>
+                <input 
+                  style={styles.inputModalDark} 
+                  placeholder="e.g. ot324556" 
+                  value={inputBonusCode} 
+                  onChange={(e) => setInputBonusCode(e.target.value)} 
+                  required 
+                />
+              </div>
+              <button type="submit" style={styles.submitBtnDark}>
+                Submit & Get Bonus Code
+              </button>
+            </form>
+
+            {/* নিজের ইউনিক বোনাস কোড শো */}
+            {myUniqueBonusCode && (
+              <div style={{ background: "rgba(34, 197, 94, 0.15)", border: "1px solid #22c55e", padding: "10px", borderRadius: "8px", textAlign: "center", marginBottom: "14px" }}>
+                <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Your Unique Bonus Code</span>
+                <strong style={{ fontSize: "18px", color: "#4ade80", letterSpacing: "1px" }}>{myUniqueBonusCode}</strong>
+              </div>
+            )}
+
+            {/* বোনাস লিস্ট */}
+            <div>
+              <h4 style={{ fontSize: "13px", color: "#cbd5e1", margin: "0 0 8px 0" }}>📜 Bonus History List</h4>
+              <div style={{ maxHeight: "150px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
+                {bonusList.length === 0 ? (
+                  <p style={{ fontSize: "11px", color: "#64748b", textAlign: "center", margin: "10px 0" }}>No bonus records yet.</p>
                 ) : (
-                  <form onSubmit={handleReferSubmit} style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
-                    <input 
-                      style={{ ...styles.inputModalDark, flex: 1 }} 
-                      placeholder="Enter Refer Code" 
-                      value={referInputCode} 
-                      onChange={(e) => setReferInputCode(e.target.value)} 
-                    />
-                    <button type="submit" style={{ ...styles.submitBtnDark, width: "80px", height: "38px" }} disabled={submittingRefer}>
-                      {submittingRefer ? "..." : "Submit"}
-                    </button>
-                  </form>
-                )}
-              </div>
-
-              {/* নিজের রেফার কোড শো করার সেকশন */}
-              <div style={{ background: "#040d1a", padding: "12px", borderRadius: "8px", border: "1px solid #1e293b", textAlign: "center" }}>
-                <span style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginBottom: "4px" }}>Your Referral Code</span>
-                <strong style={{ fontSize: "18px", color: "#facc15", letterSpacing: "1px" }}>{myReferCode || "Generating..."}</strong>
-                <button 
-                  style={{ ...styles.copyBtn, marginTop: "6px", width: "100%", padding: "6px" }} 
-                  onClick={() => {
-                    navigator.clipboard.writeText(myReferCode);
-                    triggerToast("Referral Code Copied!", "success");
-                  }}
-                >
-                  Copy Referral Code 📋
-                </button>
-              </div>
-
-              {/* রেফার লিস্ট শো করার সেকশন */}
-              <div style={{ background: "#040d1a", padding: "12px", borderRadius: "8px", border: "1px solid #1e293b" }}>
-                <span style={{ fontSize: "12px", color: "#cbd5e1", fontWeight: "bold", display: "block", marginBottom: "8px" }}>Referral List ({referList.length})</span>
-                <div style={{ maxHeight: "120px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
-                  {referList.length === 0 ? (
-                    <span style={{ fontSize: "11px", color: "#64748b", textAlign: "center" }}>No referrals yet</span>
-                  ) : (
-                    referList.map((refUser, idx) => (
-                      <div key={idx} style={{ display: "flex", justifyContent: "space-between", background: "#0f2138", padding: "6px 8px", borderRadius: "6px", fontSize: "11px" }}>
-                        <span style={{ color: "#f8fafc" }}>{refUser.email || refUser.name || `User ${idx + 1}`}</span>
-                        <span style={{ color: "#4ade80", fontWeight: "bold" }}>Verified</span>
+                  bonusList.map((item) => (
+                    <div key={item.id} style={{ background: "#040d1a", padding: "8px", borderRadius: "6px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px" }}>
+                      <div>
+                        <span style={{ color: "#38bdf8", display: "block" }}>Used: {item.usedCode}</span>
+                        <span style={{ color: "#94a3b8", fontSize: "9px" }}>{formatDate(item.date)}</span>
                       </div>
-                    ))
-                  )}
-                </div>
+                      <span style={{ color: "#22c55e", fontWeight: "bold" }}>{item.reward}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -1528,7 +1513,6 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              {/* রিজেক্ট রিজন ডিসপ্লে */}
               {(selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || ["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase())) && (
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.1)", padding: "6px 8px", borderRadius: "6px" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
@@ -1586,7 +1570,7 @@ export default function OneTime() {
               <strong style={styles.offerHighlightText}>upto 15% flat bonus</strong> instantly!
             </p>
             <div style={styles.offerActionGroup}>
-              <button style={styles.offerReferBtn} onClick={() => { setShowOfferPopup(false); setShowReferModal(true); }}>
+              <button style={styles.offerReferBtn} onClick={() => { setShowOfferPopup(false); navigate("/refer"); }}>
                 👥 Refer Friend Now
               </button>
               <button style={styles.offerSkipBtn} onClick={() => setShowOfferPopup(false)}>Maybe Later</button>
@@ -1848,6 +1832,17 @@ const styles = {
     gap: "8px",
     boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
   },
+  topBonusBtn: {
+    background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    border: "none",
+    color: "#fff",
+    padding: "6px 14px",
+    borderRadius: "8px",
+    fontWeight: "bold",
+    fontSize: "12px",
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(245, 158, 11, 0.4)"
+  },
   topNoticeBanner: {
     background: "linear-gradient(90deg, #052e16 0%, #064e3b 100%)",
     border: "1px solid #22c55e",
@@ -1904,18 +1899,6 @@ const styles = {
     fontSize: "24px",
     cursor: "pointer",
     padding: "0"
-  },
-  // ওপরের রেফার বাটনের স্টাইল
-  topReferBtn: {
-    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-    color: "#fff",
-    border: "none",
-    padding: "6px 12px",
-    borderRadius: "20px",
-    fontSize: "12px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.4)"
   },
   welcomeTitle: {
     margin: 0,
