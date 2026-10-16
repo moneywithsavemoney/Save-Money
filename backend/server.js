@@ -7927,11 +7927,7 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found." });
     }
 
-    // এখানে আপনার লজিক চেক করতে পারেন কোডটি সঠিক কিনা বা অলরেডি ব্যবহার করা হয়েছে কিনা
-    // উদাহরণস্বরূপ, যদি কোডটি আপনার ইউনিক কোডের সাথে মিলে যায়:
-    // if (bonusCode !== "ot324556") { return res.status(400).json({ success: false, message: "Invalid bonus code." }); }
-
-    // ইউজারের OT Balance-এ ৩৩০ টাকা যোগ করা এবং বোনাস লিস্টে আপডেট করা
+    // ইউজারের OT Balance-এ ৩০০ টাকা যোগ করা এবং বোনাস লিস্টে আপডেট করা
     user.otbalance = (Number(user.otbalance) || 0) + 300;
     
     // বোনাস লিস্ট বা রেফারেল হিস্টরিতে সেভ করা
@@ -7945,7 +7941,7 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
 
     await user.save();
 
-    return.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Bonus code applied successfully! ₹300 added to your OT Balance.",
       otbalance: user.otbalance
@@ -7955,6 +7951,7 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error applying bonus." });
   }
 });
+
 
 
 
