@@ -272,9 +272,10 @@ export default function OneTime() {
       });
       const data = await res.json();
       if (res.ok || data.success) {
-        triggerToast(data.message || "Bonus Code Applied Successfully! +₹300 added to OT Balance", "success");
+        triggerToast(data.message || "Bonus Code Applied Successfully!", "success");
         setBonusInputCode("");
-        loadDashboardData();
+        setUser((prev) => ({ ...prev, hasAppliedBonus: true }));
+        await loadDashboardData();
       } else {
         triggerToast(data.message || "Invalid or already used bonus code", "error");
       }
@@ -1387,7 +1388,7 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* 🎁 BONUS MODAL POPUP (Updated with already applied check) */}
+      {/* 🎁 BONUS MODAL POPUP (Fixed with hasAppliedBonus check) */}
       {showBonusModal && (
         <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
           <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1396,7 +1397,7 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowBonusModal(false)}>✕</button>
             </div>
 
-            {user?.hasAppliedBonus || (bonusList && bonusList.length > 0) ? (
+            {user?.hasAppliedBonus ? (
               <div style={{ background: "rgba(34, 197, 94, 0.1)", border: "1px solid #22c55e", padding: "10px", borderRadius: "8px", textAlign: "center", marginBottom: "14px" }}>
                 <span style={{ fontSize: "12px", color: "#4ade80", fontWeight: "bold" }}>
                   ✅ Bonus Code Already Applied!
