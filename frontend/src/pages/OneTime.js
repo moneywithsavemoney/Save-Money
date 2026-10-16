@@ -42,10 +42,12 @@ const formatDate = (dateVal) => {
   return d.toLocaleDateString("en-GB");
 };
 
-// ব্যাকএন্ডের সঠিক rejectReason এবং অন্যান্য ফিল্ড থেকে রিজন বের করার ফাংশন
+// অ্যাডমিনের ইনপুট করা আসল রিজন বের করার সুনির্দিষ্ট ফাংশন
 const getRejectionReason = (item) => {
   if (!item) return "";
-  const possibleReason = 
+  
+  // ব্যাকএন্ডের সম্ভাব্য সমস্ত ফিল্ড চেইনিং
+  const rawReason = 
     item.rejectReason || 
     item.reason || 
     item.rejectionReason || 
@@ -56,10 +58,11 @@ const getRejectionReason = (item) => {
     item.message || 
     "";
 
-  if (typeof possibleReason === "string") {
-    return possibleReason.replace(/^Reason:\s*/i, "").trim();
-  }
-  return String(possibleReason || "").trim();
+  if (!rawReason) return "";
+
+  const strReason = String(rawReason).trim();
+  // যদি ডুপ্লিকেট "Reason:" লেখা থাকে তা ক্লিন করা
+  return strReason.replace(/^Reason:\s*/i, "").trim();
 };
 
 export default function OneTime() {
@@ -1264,7 +1267,7 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed", "reject"].includes(statusStr);
                     const displayStatus = statusStr === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // এখানে ব্যাকএন্ডের সঠিক rejectReason এবং অন্যান্য ফিল্ড থেকে রিজন বের করা হচ্ছে
+                    // অ্যাডমিনের ডাটাবেজে ইনপুট করা অরিজিনাল মেসেজ বের করা হচ্ছে
                     const rejectionReason = getRejectionReason(item);
 
                     return (
@@ -1279,12 +1282,13 @@ export default function OneTime() {
                             <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
                               {displayStatus}
                             </span>
-                            {/* অ্যাডমিন যা লিখেছে হুবহু সেই রিজন এখানে শো করবে */}
-                            {(isRejected || rejectionReason) && (
+                            
+                            {/* অ্যাডমিনের আসল টেক্সট কেবল থাকলে তবেই শো করবে, কোনো হার্ডকোডেড ফলব্যাক দেখানো হবে না */}
+                            {rejectionReason ? (
                               <span style={{ fontSize: "10px", color: "#f87171", marginTop: "2px", display: "block", fontWeight: "600", wordBreak: "break-word" }}>
-                                Reason: {rejectionReason || "Request Rejected"}
+                                Reason: {rejectionReason}
                               </span>
-                            )}
+                            ) : null}
                           </div>
                         </td>
                       </tr>
