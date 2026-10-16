@@ -14,7 +14,6 @@ if (typeof document !== "undefined") {
   document.head.appendChild(styleSheet);
 }
 
-// সেফ ডেট পার্সিং ফাংশন
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date();
   if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
@@ -63,21 +62,14 @@ export default function OneTime() {
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
-  const [showOfferPopup, setShowOfferPopup] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
 
-  // বোনাস পপআপ এবং স্টেট
+  // বোনাস এবং রেফারেল স্টেট
   const [showBonusModal, setShowBonusModal] = useState(false);
   const [bonusInputCode, setBonusInputCode] = useState("");
-  const [uniqueBonusCode] = useState("ot324556");
-  
-  // যারা আপনার বোনাস কোড ব্যবহার করেছে তাদের তালিকা (Referred Users List)
-  const [bonusList, setBonusList] = useState([
-    { id: 1, name: "Rahul Sharma", date: "15/10/2026", status: "Success", reward: "₹50" },
-    { id: 2, name: "Amit Das", date: "14/10/2026", status: "Success", reward: "₹50" }
-  ]);
+  const [bonusList, setBonusList] = useState([]);
 
   // স্লিপ পপআপের জন্য স্টেট
   const [selectedTxn, setSelectedTxn] = useState(null);
@@ -154,6 +146,144 @@ export default function OneTime() {
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${API}/api/onetime/dashboard`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user || {});
+
+        // ব্যাকএন্ড থেকে আসা রিয়েল বোনাস বা রেফার লিস্ট সেট করা
+        if (data.bonusList || data.user?.bonusList || data.referrals) {
+          setBonusList(data.bonusList || data.user?.bonusList || data.referrals || []);
+        }
+
+        const rawHistory = Array.isArray(data.history)
+          ? data.history
+          : Array.isArray(data.onetimeHistory)
+          ? data.onetimeHistory
+          : Array.isArray(data.user?.onetimeHistory)
+          ? data.user.onetimeHistory
+          : [];
+
+        const rawDeposits = Array.isArray(data.deposits)
+          ? data.deposits.map((d) => ({ ...d, type: "Add Fund" }))
+          : [];
+        const rawWithdrawals = Array.isArray(data.withdrawals)
+          ? data.withdrawals.map((w) => ({ ...w, type: "Withdrawal" }))
+          : [];
+        const rawInvestments = Array.isArray(data.investments)
+          ? data.investments.map((i) => ({ ...i, type: "OneTimeInvestment" }))
+          : [];
+
+        const combined = [...rawHistory, ...rawDeposits, ...rawWithdrawals, ...rawInvestments];
+
+        const uniqueMap = new Map();
+        combined.forEach((item) => {
+          const key = item._id || `${item.type}-${item.createdAt || item.startDate}`;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, item);
+          }
+        });
+
+        const sortedHistory = Array.from(uniqueMap.values()).sort((a, b) => {
+          const dateA = parseSafeDate(a.createdAt || a.startDate || a.maturity);
+          const dateB = parseSafeDate(b.createdAt || b.startDate || b.maturity);
+          return dateB - dateA;
+        });
+
+        setHistory(sortedHistory);
+
+        const exactOneTimeEarnings = Number(
+          data.stats?.totalEarnings ?? data.user?.oneTimeTotalEarnings ?? data.user?.totalEarnings ?? 0
+        );
+
+        let calculatedInv = 0;
+        let calculatedWd = 0;
+
+        sortedHistory.forEach((item) => {
+          const t = (item.type || "").toLowerCase();
+          const status = (item.status || "").toLowerCase();
+          
+          const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
+          const isInvestment = t.includes("investment") || t === "onetimeinvestment";
+          const isValidStatus = status === "active" || status === "completed";
+
+          if (!isAddFund && isInvestment && isValidStatus) {
+            calculatedInv += Number(item.amount || 0);
+          }
+
+          if (t === "withdrawal" && (status === "approved" || status === "accepted" || status === "success")) {
+            calculatedWd += Number(item.amount || 0);
+          }
+        });
+
+        setStats({
+          totalInvested: calculatedInv,
+          totalEarnings: exactOneTimeEarnings,
+          totalWithdrawn: calculatedWd,
+          availableBalance: Number(data.user?.otbalance || data.user?.otBalance || 0)
+        });
+
+        const active = data.activeInvestment || sortedHistory.find(
+          (item) => {
+            const t = (item.type || "").toLowerCase();
+            const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
+            return !isAddFund && (t.includes("investment") || t === "onetimeinvestment") && (item.status || "").toLowerCase() === "active";
+          }
+        );
+        setActiveInvestment(active || null);
+
+        if (data.user?.bankDetails) {
+          setBankForm(data.user.bankDetails);
+        }
+      } else {
+        triggerToast(data.message || "Failed to load dashboard", "error");
+      }
+    } catch (err) {
+      triggerToast("Network error. Please try again.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // বোনাস কোড এপ্লাই করার ফাংশন (ব্যাকএন্ডে রিকোয়েস্ট পাঠানো)
+  const handleApplyBonusCode = async () => {
+    if (!bonusInputCode) {
+      triggerToast("Please enter a bonus code", "error");
+      return;
+    }
+    try {
+      const res = await fetch(`${API}/api/onetime/apply-bonus`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({ email, bonusCode: bonusInputCode })
+      });
+      const data = await res.json();
+      if (res.ok || data.success) {
+        triggerToast(data.message || "Bonus Code Applied Successfully! +₹300 added to OT Balance", "success");
+        setBonusInputCode("");
+        loadDashboardData();
+      } else {
+        triggerToast(data.message || "Invalid or already used bonus code", "error");
+      }
+    } catch (err) {
+      triggerToast("Network error applying bonus code", "error");
+    }
+  };
 
   const handleDownloadPlan = () => {
     if (isDownloadingPlan) return;
@@ -276,111 +406,6 @@ export default function OneTime() {
       setAmount(5000);
     }
   }, [activeInvestment, isMatured]);
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`${API}/api/onetime/dashboard`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token
-        },
-        body: JSON.stringify({ email })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setUser(data.user || {});
-
-        const rawHistory = Array.isArray(data.history)
-          ? data.history
-          : Array.isArray(data.onetimeHistory)
-          ? data.onetimeHistory
-          : Array.isArray(data.user?.onetimeHistory)
-          ? data.user.onetimeHistory
-          : [];
-
-        const rawDeposits = Array.isArray(data.deposits)
-          ? data.deposits.map((d) => ({ ...d, type: "Add Fund" }))
-          : [];
-        const rawWithdrawals = Array.isArray(data.withdrawals)
-          ? data.withdrawals.map((w) => ({ ...w, type: "Withdrawal" }))
-          : [];
-        const rawInvestments = Array.isArray(data.investments)
-          ? data.investments.map((i) => ({ ...i, type: "OneTimeInvestment" }))
-          : [];
-
-        const combined = [...rawHistory, ...rawDeposits, ...rawWithdrawals, ...rawInvestments];
-
-        const uniqueMap = new Map();
-        combined.forEach((item) => {
-          const key = item._id || `${item.type}-${item.createdAt || item.startDate}`;
-          if (!uniqueMap.has(key)) {
-            uniqueMap.set(key, item);
-          }
-        });
-
-        const sortedHistory = Array.from(uniqueMap.values()).sort((a, b) => {
-          const dateA = parseSafeDate(a.createdAt || a.startDate || a.maturity);
-          const dateB = parseSafeDate(b.createdAt || b.startDate || b.maturity);
-          return dateB - dateA;
-        });
-
-        setHistory(sortedHistory);
-
-        const exactOneTimeEarnings = Number(
-          data.stats?.totalEarnings ?? data.user?.oneTimeTotalEarnings ?? data.user?.totalEarnings ?? 0
-        );
-
-        let calculatedInv = 0;
-        let calculatedWd = 0;
-
-        sortedHistory.forEach((item) => {
-          const t = (item.type || "").toLowerCase();
-          const status = (item.status || "").toLowerCase();
-          
-          const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
-          const isInvestment = t.includes("investment") || t === "onetimeinvestment";
-          const isValidStatus = status === "active" || status === "completed";
-
-          if (!isAddFund && isInvestment && isValidStatus) {
-            calculatedInv += Number(item.amount || 0);
-          }
-
-          if (t === "withdrawal" && (status === "approved" || status === "accepted" || status === "success")) {
-            calculatedWd += Number(item.amount || 0);
-          }
-        });
-
-        setStats({
-          totalInvested: calculatedInv,
-          totalEarnings: exactOneTimeEarnings,
-          totalWithdrawn: calculatedWd,
-          availableBalance: Number(data.user?.otbalance || data.user?.otBalance || 0)
-        });
-
-        const active = data.activeInvestment || sortedHistory.find(
-          (item) => {
-            const t = (item.type || "").toLowerCase();
-            const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
-            return !isAddFund && (t.includes("investment") || t === "onetimeinvestment") && (item.status || "").toLowerCase() === "active";
-          }
-        );
-        setActiveInvestment(active || null);
-
-        if (data.user?.bankDetails) {
-          setBankForm(data.user.bankDetails);
-        }
-      } else {
-        triggerToast(data.message || "Failed to load dashboard", "error");
-      }
-    } catch (err) {
-      triggerToast("Network error. Please try again.", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const dailyReturn = useMemo(() => {
     if (isInvestmentLocked && activeInvestment && activeInvestment.dailyReturn) {
@@ -552,13 +577,18 @@ export default function OneTime() {
     }
   };
 
-  const handleWithdrawSubmit = async () => {
+  // উইথড্র অ্যামাউন্ট স্টেট (যদি বোনাস লিস্ট থাকে তবে প্রিসেট অ্যামাউন্ট ব্যবহারের জন্য)
+  const [selectedWithdrawAmount, setSelectedWithdrawAmount] = useState(100);
+
+  const handleWithdrawSubmit = async (customAmt = null) => {
+    const amountToWithdraw = customAmt || (bonusList.length > 0 ? selectedWithdrawAmount : Number(dailyReturn));
+
     if (hasWithdrawnToday) {
       triggerToast("You have already placed a withdrawal request today!", "error");
       return;
     }
 
-    if (currentWalletBalance < dailyReturn) {
+    if (currentWalletBalance < amountToWithdraw) {
       triggerToast(`Insufficient Wallet Balance! Your balance is ₹${currentWalletBalance}`, "error");
       return;
     }
@@ -573,7 +603,7 @@ export default function OneTime() {
         },
         body: JSON.stringify({ 
           email: email.trim().toLowerCase(), 
-          amount: Number(dailyReturn),
+          amount: Number(amountToWithdraw),
           bankDetails: user.bankDetails || bankForm
         })
       });
@@ -674,7 +704,6 @@ export default function OneTime() {
     }
   };
 
-  // সরাসরি হোয়াটসঅ্যাপে শেয়ার করার ফাংশন
   const handleShareToWhatsApp = () => {
     if (!selectedTxn) return;
 
@@ -1375,7 +1404,7 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowBonusModal(false)}>✕</button>
             </div>
 
-            {/* বোনাস কোড দেওয়ার জায়গা */}
+            {/* বোনাস কোড দেওয়ার জায়গা */}
             <div style={{ marginBottom: "14px" }}>
               <label style={styles.labelDark}>Enter Bonus / Referral Code</label>
               <div style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
@@ -1387,14 +1416,7 @@ export default function OneTime() {
                 />
                 <button 
                   style={{ ...styles.submitBtnDark, width: "80px", height: "38px" }}
-                  onClick={() => {
-                    if (!bonusInputCode) {
-                      triggerToast("Please enter a bonus code", "error");
-                      return;
-                    }
-                    triggerToast("Bonus Code Applied Successfully!", "success");
-                    setBonusInputCode("");
-                  }}
+                  onClick={handleApplyBonusCode}
                 >
                   Apply
                 </button>
@@ -1404,11 +1426,11 @@ export default function OneTime() {
             {/* নিজের ইউনিক বোনাস কোড শো করবে */}
             <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px dashed #22c55e", marginBottom: "14px", textAlign: "center" }}>
               <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Your Unique Bonus Code</span>
-              <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>{uniqueBonusCode}</strong>
+              <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>{user?.bonusCode || user?.referralCode || "ot324556"}</strong>
               <button 
                 style={{ display: "block", margin: "6px auto 0 auto", background: "transparent", border: "none", color: "#38bdf8", fontSize: "11px", cursor: "pointer", fontWeight: "bold" }}
                 onClick={() => {
-                  navigator.clipboard.writeText(uniqueBonusCode);
+                  navigator.clipboard.writeText(user?.bonusCode || user?.referralCode || "ot324556");
                   triggerToast("Bonus Code Copied!", "success");
                 }}
               >
@@ -1416,23 +1438,23 @@ export default function OneTime() {
               </button>
             </div>
 
-            {/* বোনাস কোড ব্যবহারকারী ইউজারদের নামের লিস্ট শো করবে */}
+            {/* বোনাস লিস্ট (যে ইউজাররা কোড ব্যবহার করে ইনভেস্ট করেছে) */}
             <div>
-              <label style={{ ...styles.labelDark, marginBottom: "6px", display: "block" }}>Users Who Used Your Code</label>
+              <label style={{ ...styles.labelDark, marginBottom: "6px", display: "block" }}>Users Who Used Your Code & Invested</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "150px", overflowY: "auto" }}>
                 {bonusList.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "12px", color: "#94a3b8", fontSize: "11px" }}>No users found yet</div>
                 ) : (
-                  bonusList.map((item) => (
-                    <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#040d1a", padding: "8px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  bonusList.map((item, index) => (
+                    <div key={item._id || index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#040d1a", padding: "8px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
                       <div>
-                        <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{item.name}</strong>
-                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>Joined: {item.date}</span>
+                        <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{item.name || item.username || "User"}</strong>
+                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>Joined: {formatDate(item.createdAt || item.date)}</span>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: "bold", display: "block" }}>+{item.reward}</span>
+                        <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: "bold", display: "block" }}>+₹300</span>
                         <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "4px", background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", fontWeight: "bold" }}>
-                          {item.status}
+                          Success
                         </span>
                       </div>
                     </div>
@@ -1440,6 +1462,82 @@ export default function OneTime() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* WITHDRAW MODAL (বোনাস লিস্ট থাকলে প্রিসেট অ্যামাউন্ট ও উইথড্র নোটিশ দেখাবে) */}
+      {showWithdrawModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.withdrawModalCardDark}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Withdraw Funds</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
+            </div>
+            
+            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < (bonusList.length > 0 ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", marginBottom: "12px" }}>
+              <span style={{ fontSize: "12px", color: "#94a3b8" }}>Available Balance</span>
+              <strong style={{ fontSize: "22px", color: currentWalletBalance < (bonusList.length > 0 ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", display: "block" }}>
+                ₹ {currentWalletBalance.toLocaleString("en-IN")}
+              </strong>
+            </div>
+
+            {bonusList.length > 0 ? (
+              <>
+                <label style={{ ...styles.labelDark, display: "block", marginBottom: "6px" }}>Select Preset Withdraw Amount</label>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "6px", marginBottom: "14px" }}>
+                  {[100, 300, 500, 1000].map((amt) => (
+                    <button
+                      key={amt}
+                      style={{
+                        padding: "8px 4px",
+                        borderRadius: "6px",
+                        border: selectedWithdrawAmount === amt ? "2px solid #22c55e" : "1px solid #334155",
+                        background: selectedWithdrawAmount === amt ? "rgba(34, 197, 94, 0.2)" : "#0f2138",
+                        color: "#fff",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                      }}
+                      onClick={() => setSelectedWithdrawAmount(amt)}
+                    >
+                      ₹{amt}
+                    </button>
+                  ))}
+                </div>
+
+                <p style={{ fontSize: "11px", color: "#facc15", textAlign: "center", marginBottom: "12px", fontStyle: "italic" }}>
+                  Your withdrawal will be successful within 2 hours.
+                </p>
+
+                <button
+                  style={{
+                    ...styles.submitBtnDark,
+                    background: (currentWalletBalance < selectedWithdrawAmount || hasWithdrawnToday) ? "#334155" : "#16a34a"
+                  }}
+                  onClick={() => handleWithdrawSubmit(selectedWithdrawAmount)}
+                  disabled={withdrawing || currentWalletBalance < selectedWithdrawAmount || hasWithdrawnToday}
+                >
+                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : `Withdraw ₹${selectedWithdrawAmount}`}
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
+                  Withdraw Daily Return: <strong style={{ color: "#22c55e" }}>₹{dailyReturn.toFixed(2)}</strong>
+                </p>
+                <button
+                  style={{
+                    ...styles.submitBtnDark,
+                    background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "#16a34a"
+                  }}
+                  onClick={() => handleWithdrawSubmit()}
+                  disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
+                >
+                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1494,7 +1592,6 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              {/* রিজেক্ট রিজন ডিসপ্লে */}
               {(selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || ["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase())) && (
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.1)", padding: "6px 8px", borderRadius: "6px" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
@@ -1534,28 +1631,6 @@ export default function OneTime() {
               >
                 Close Window
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* OTHER MODALS */}
-      {showOfferPopup && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.offerPopupCard}>
-            <button style={styles.offerCloseBtn} onClick={() => setShowOfferPopup(false)}>✕</button>
-            <div style={styles.offerHeaderBadge}>🎁 EXCLUSIVE REFERRAL OFFER</div>
-            <div style={styles.offerIconWrapper}>🚀</div>
-            <h2 style={styles.offerTitle}>Thank you for choosing <span style={{ color: "#22c55e" }}>Save Money</span>!</h2>
-            <p style={styles.offerDescription}>
-              Refer your friend to invest today and get <br />
-              <strong style={styles.offerHighlightText}>upto 15% flat bonus</strong> instantly!
-            </p>
-            <div style={styles.offerActionGroup}>
-              <button style={styles.offerReferBtn} onClick={() => { setShowOfferPopup(false); navigate("/refer"); }}>
-                👥 Refer Friend Now
-              </button>
-              <button style={styles.offerSkipBtn} onClick={() => setShowOfferPopup(false)}>Maybe Later</button>
             </div>
           </div>
         </div>
@@ -1635,34 +1710,6 @@ export default function OneTime() {
               <input style={styles.inputModalDark} placeholder="IFSC Code" value={bankForm.ifsc} onChange={(e) => setBankForm({ ...bankForm, ifsc: e.target.value })} required />
               <button type="submit" style={styles.submitBtnDark}>Save Details</button>
             </form>
-          </div>
-        </div>
-      )}
-
-      {showWithdrawModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.withdrawModalCardDark}>
-            <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Withdraw Daily Return</h3>
-              <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
-            </div>
-            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80" }}>
-              <span style={{ fontSize: "12px", color: "#94a3b8" }}>Available Balance</span>
-              <strong style={{ fontSize: "22px", color: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80", display: "block" }}>
-                ₹ {currentWalletBalance.toLocaleString("en-IN")}
-              </strong>
-            </div>
-            <button
-              style={{
-                ...styles.submitBtnDark,
-                marginTop: "16px",
-                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "#16a34a"
-              }}
-              onClick={handleWithdrawSubmit}
-              disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
-            >
-              {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
-            </button>
           </div>
         </div>
       )}
@@ -2540,81 +2587,6 @@ const styles = {
     height: "28px",
     cursor: "pointer",
     fontSize: "14px"
-  },
-  offerPopupCard: {
-    background: "#091a2e",
-    borderRadius: "16px",
-    padding: "20px",
-    width: "100%",
-    maxWidth: "340px",
-    border: "1px solid #22c55e",
-    textAlign: "center",
-    position: "relative"
-  },
-  offerCloseBtn: {
-    position: "absolute",
-    top: "10px",
-    right: "10px",
-    border: "none",
-    background: "rgba(255,255,255,0.1)",
-    color: "#fff",
-    borderRadius: "50%",
-    width: "28px",
-    height: "28px",
-    cursor: "pointer"
-  },
-  offerHeaderBadge: {
-    background: "rgba(34, 197, 94, 0.15)",
-    color: "#4ade80",
-    padding: "4px 10px",
-    borderRadius: "12px",
-    fontSize: "10px",
-    fontWeight: "bold",
-    marginBottom: "10px",
-    display: "inline-block"
-  },
-  offerIconWrapper: {
-    fontSize: "36px",
-    marginBottom: "8px"
-  },
-  offerTitle: {
-    margin: "0 0 8px 0",
-    fontSize: "16px",
-    fontWeight: "800",
-    color: "#ffffff"
-  },
-  offerDescription: {
-    fontSize: "12px",
-    color: "#cbd5e1",
-    margin: "0 0 14px 0"
-  },
-  offerHighlightText: {
-    color: "#facc15",
-    fontSize: "14px"
-  },
-  offerActionGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px"
-  },
-  offerReferBtn: {
-    height: "38px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#22c55e",
-    color: "#ffffff",
-    fontSize: "12px",
-    fontWeight: "bold",
-    cursor: "pointer"
-  },
-  offerSkipBtn: {
-    height: "32px",
-    borderRadius: "8px",
-    border: "none",
-    background: "transparent",
-    color: "#94a3b8",
-    fontSize: "11px",
-    cursor: "pointer"
   },
   presetGrid: {
     display: "grid",
