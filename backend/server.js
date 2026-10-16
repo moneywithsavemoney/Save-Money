@@ -7914,7 +7914,7 @@ app.post("/api/onetime/add-bank-details", async (req, res) => {
 });
 
 
-// 🎁 APPLY BONUS CODE API (Updated with restriction)
+// 🎁 APPLY BONUS CODE API (FIXED LOGIC)
 app.post("/api/onetime/apply-bonus", async (req, res) => {
   try {
     const { email, bonusCode } = req.body;
@@ -7922,42 +7922,62 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
       return res.status(400).json({ success: false, message: "Email and bonus code are required." });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
+    // ১. যে ইউজার কোড এপ্লাই করছে তাকে খোঁজা
+    const currentUser = await User.findOne({ email: email.toLowerCase() });
+    if (!currentUser) {
       return res.status(404).json({ success: false, message: "User not found." });
     }
 
     // চেক করা ইউজার ইতিমধ্যে কোনো বোনাস কোড ব্যবহার করেছে কি না
-    if (user.hasAppliedBonus || (user.bonusList && user.bonusList.length > 0)) {
-      return res.status(400).json({ success: false, message: "You have already applied a bonus code. It cannot be changed." });
+    if (currentUser.hasAppliedBonus) {
+      return res.status(400).json({ success: false, message: "You have already applied a bonus code. It cannot be used again." });
     }
 
-    // ইউজারের OT Balance-এ ৩০০ টাকা যোগ করা এবং বোনাস লিস্টে আপডেট করা
-    user.otbalance = (Number(user.otbalance) || 0) + 300;
-    user.hasAppliedBonus = true; // ফ্ল্যাগ সেট করা হলো যাতে পরবর্তীতে আর না দিতে পারে
+    // ইউজার নিজের বোনাস কোড নিজেই ব্যবহার করতে পারবে না
+    if (currentUser.bonusCode === bonusCode || currentUser.referralCode === bonusCode) {
+      return res.status(400).json({ success: false, message: "You cannot use your own bonus code." });
+    }
+
+    // ২. কোডের আসল মালিককে খুঁজে বের করা
+    const codeOwner = await User.findOne({
+      $or: [{ bonusCode: bonusCode }, { referralCode: bonusCode }]
+    });
+
+    if (!codeOwner) {
+      return res.status(400).json({ success: false, message: "Invalid bonus code." });
+    }
+
+    // ৩. কোডের মালিকের (Referrer) অ্যাকাউন্টে ৩০০ টাকা যোগ করা
+    codeOwner.otbalance = (Number(codeOwner.otbalance) || 0) + 300;
     
-    if (!user.bonusList) user.bonusList = [];
-    user.bonusList.push({
-      code: bonusCode,
+    if (!codeOwner.bonusList) codeOwner.bonusList = [];
+    codeOwner.bonusList.push({
+      userId: currentUser._id,
+      name: currentUser.name || "User",
+      email: currentUser.email,
       amount: 300,
-      date: new Date(),
+      createdAt: new Date(),
       status: "Success"
     });
 
-    await user.save();
+    await codeOwner.save();
+
+    // ৪. যে ইউজার এপ্লাই করল তাকে মার্ক করে দেওয়া যাতে সে আর দ্বিতীয়বার এপ্লাই না করতে পারে
+    currentUser.hasAppliedBonus = true;
+    currentUser.usedBonusCode = bonusCode;
+    await currentUser.save();
 
     return res.status(200).json({
       success: true,
-      message: "Bonus code applied successfully! ₹300 added to your OT Balance.",
-      otbalance: user.otbalance,
+      message: "Bonus code applied successfully! ₹300 credited to referrer's account.",
       hasAppliedBonus: true
     });
+
   } catch (err) {
     console.error("Apply bonus error:", err);
     return res.status(500).json({ success: false, message: "Server error applying bonus." });
   }
 });
-
 
 
 
