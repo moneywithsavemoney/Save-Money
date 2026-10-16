@@ -62,6 +62,23 @@ export default function OneTime() {
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
+  // নিজস্ব ইউনিক বোনাস কোড জেনারেট বা লোড করার ফাংশন
+  const getOrGenerateUniqueCode = () => {
+    const userEmail = email.trim().toLowerCase();
+    if (!userEmail) return "ot324556"; // ডিফল্ট ফলব্যাক
+
+    const storedCodeKey = `sm_bonus_code_${userEmail}`;
+    let existingCode = localStorage.getItem(storedCodeKey);
+
+    if (!existingCode) {
+      const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+      existingCode = `ot${randomSuffix}`;
+      localStorage.setItem(storedCodeKey, existingCode);
+    }
+
+    return existingCode;
+  };
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
@@ -1388,7 +1405,7 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* 🎁 BONUS MODAL POPUP (Fixed with hasAppliedBonus check) */}
+      {/* 🎁 BONUS MODAL POPUP */}
       {showBonusModal && (
         <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
           <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1426,13 +1443,17 @@ export default function OneTime() {
               </div>
             )}
 
+            {/* ইউনিক বোনাস কোড সেকশন */}
             <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px dashed #22c55e", marginBottom: "14px", textAlign: "center" }}>
               <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Your Unique Bonus Code</span>
-              <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>{user?.bonusCode || user?.referralCode || "ot324556"}</strong>
+              <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>
+                {user?.bonusCode || user?.referralCode || getOrGenerateUniqueCode()}
+              </strong>
               <button 
                 style={{ display: "block", margin: "6px auto 0 auto", background: "transparent", border: "none", color: "#38bdf8", fontSize: "11px", cursor: "pointer", fontWeight: "bold" }}
                 onClick={() => {
-                  navigator.clipboard.writeText(user?.bonusCode || user?.referralCode || "ot324556");
+                  const codeToCopy = user?.bonusCode || user?.referralCode || getOrGenerateUniqueCode();
+                  navigator.clipboard.writeText(codeToCopy);
                   triggerToast("Bonus Code Copied!", "success");
                 }}
               >
@@ -1467,7 +1488,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL (Preset amounts & 2 hours notice) */}
+      {/* WITHDRAW MODAL */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
