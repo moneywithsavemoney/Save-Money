@@ -416,10 +416,10 @@ export default function OneTime() {
         setFrequency(activeInvestment.frequency.toLowerCase());
       }
     } else if (!activeInvestment || isMatured) {
-      setTenure(15);
-      setRate(0.6);
+      setTenure(30);
+      setRate(0.8);
       setFrequency("daily");
-      setAmount(5000);
+      setAmount(7500);
     }
   }, [activeInvestment, isMatured]);
 
