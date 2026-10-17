@@ -7232,7 +7232,7 @@ app.post("/api/onetime/dashboard", async (req, res) => {
       return res.status(404).json({ success: false, message: "user not found" });
     }
 
-    // 🎁 যদি ইউজারের ডাটাবেজে bonusCode না থাকে, তবে একটি ইউনিক কোড জেনারেট করে সেভ করে দেওয়া
+    // 🎁 ইউজারের ডাটাবেজে bonusCode না থাকলে জেনারেট করে সেভ করা
     if (!user.bonusCode) {
       const randomSuffix = Math.floor(100000 + Math.random() * 900000);
       user.bonusCode = `ot${randomSuffix}`;
@@ -7248,7 +7248,10 @@ app.post("/api/onetime/dashboard", async (req, res) => {
 
     const formattedHistory = rawHistory.map((rawItem) => {
       const item = rawItem.toObject ? rawItem.toObject() : { ...rawItem };
-      const statusLower = (item.status || "").toLowerCase();
+      
+      // 📌 এখানে status এবং statusLower নিরাপদভাবে ডিক্লেয়ার করা হলো
+      const status = item.status || "";
+      const statusLower = status.toLowerCase();
       const typeLower = (item.type || "").toLowerCase();
 
       const isInvestment = typeLower.includes("onetimeinvestment") || typeLower.includes("deposit") || typeLower.includes("investment");
@@ -7282,12 +7285,12 @@ app.post("/api/onetime/dashboard", async (req, res) => {
       }
 
       // ২. ডেইলি রিটার্ন / মোট আর্নিং হিসাব
-      if (!isInvestment && !isWithdrawal && (statusLower === "approved" || status === "accepted" || status === "success")) {
+      if (!isInvestment && !isWithdrawal && (statusLower === "approved" || statusLower === "accepted" || statusLower === "success")) {
         totalEarnings += Number(item.amount || 0);
       }
 
       // ৩. উইথড্রয়াল হিসাব
-      if (isWithdrawal && (statusLower === "approved" || status === "accepted" || status === "success" || status === "pending")) {
+      if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" || statusLower === "success" || statusLower === "pending")) {
         totalWithdraw += Number(item.amount || 0);
       }
 
@@ -7327,7 +7330,7 @@ app.post("/api/onetime/dashboard", async (req, res) => {
       success: true,
       user: userObj,
       history: formattedHistory,
-      bonusList: user.bonusList || [], // বোনাস লিস্ট পাস করা হলো
+      bonusList: user.bonusList || [],
       stats: {
         totalInvested: totalInvested,
         totalEarnings: totalEarnings,
@@ -7345,6 +7348,7 @@ app.post("/api/onetime/dashboard", async (req, res) => {
     return res.status(500).json({ success: false, message: "Server Error" });
   }
 });
+
 
 
 
