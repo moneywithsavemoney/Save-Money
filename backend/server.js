@@ -7216,23 +7216,34 @@ app.get("/get-vapid-key", (req, res) => {
 });
 
 // ==========================================
-// ⚡ ONETIME ADMIN & USER BACKEND CONTROLLERS
+// 📌 ONETIME ADMIN & USER BACKEND CONTROLLERS
 // ==========================================
 app.post("/api/onetime/dashboard", async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ success: false, message: "Email required" });
+    if (!email) {
+      return res.status(400).json({ success: false, message: "email required" });
+    }
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = String(email).trim().toLowerCase();
     const user = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, "i") } });
 
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "user not found" });
+    }
+
+    // 🎁 যদি ইউজারের ডাটাবেজে bonusCode না থাকে, তবে একটি ইউনিক কোড জেনারেট করে সেভ করে দেওয়া
+    if (!user.bonusCode) {
+      const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+      user.bonusCode = `ot${randomSuffix}`;
+      await user.save();
+    }
 
     const rawHistory = user.onetimeHistory || [];
 
     let totalInvested = 0;
     let totalEarnings = 0;
-    let totalWithdrawn = 0;
+    let totalWithdraw = 0;
     let activeInvestment = null;
 
     const formattedHistory = rawHistory.map((rawItem) => {
@@ -7240,7 +7251,7 @@ app.post("/api/onetime/dashboard", async (req, res) => {
       const statusLower = (item.status || "").toLowerCase();
       const typeLower = (item.type || "").toLowerCase();
 
-      const isInvestment = typeLower.includes("onetimeinvestment") || typeLower.includes("deposit") || typeLower.includes("add fund");
+      const isInvestment = typeLower.includes("onetimeinvestment") || typeLower.includes("deposit") || typeLower.includes("investment");
       const isWithdrawal = typeLower.includes("withdrawal") || typeLower.includes("withdraw");
 
       // ১. ইনভেস্টমেন্ট হিসাব
@@ -7253,12 +7264,12 @@ app.post("/api/onetime/dashboard", async (req, res) => {
         let matDate = item.maturityDate || item.maturity;
         if (!matDate) {
           let startDate = item.createdAt ? new Date(item.createdAt) : new Date();
-          let mDate = new Date(startDate);
-          mDate.setDate(mDate.getDate() + durationDays);
+          let dDate = new Date(startDate);
+          dDate.setDate(dDate.getDate() + durationDays);
 
-          const day = String(mDate.getDate()).padStart(2, "0");
-          const month = String(mDate.getMonth() + 1).padStart(2, "0");
-          const year = mDate.getFullYear();
+          const day = String(dDate.getDate()).padStart(2, "0");
+          const month = String(dDate.getMonth() + 1).padStart(2, "0");
+          const year = dDate.getFullYear();
           matDate = `${day}/${month}/${year}`;
         }
 
@@ -7270,34 +7281,35 @@ app.post("/api/onetime/dashboard", async (req, res) => {
         }
       }
 
-      // ২. ডেইলি রিটার্ন / আর্নিং হিসাব
-      if (!isInvestment && !isWithdrawal && (statusLower === "approved" || statusLower === "success")) {
+      // ২. ডেইলি রিটার্ন / মোট আর্নিং হিসাব
+      if (!isInvestment && !isWithdrawal && (statusLower === "approved" || status === "accepted" || status === "success")) {
         totalEarnings += Number(item.amount || 0);
       }
 
       // ৩. উইথড্রয়াল হিসাব
-if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" || statusLower === "success" || statusLower === "completed")) {
-  totalWithdrawn += Number(item.amount || 0);
-}
-
+      if (isWithdrawal && (statusLower === "approved" || status === "accepted" || status === "success" || status === "pending")) {
+        totalWithdraw += Number(item.amount || 0);
+      }
 
       return item;
     });
 
-    // ⚡ MongoDB ডাটাবেজে স্থায়ীভাবে সেভ করার লজিক (Auto DB Update)
+    // MongoDB ড্যাশবোর্ডে টোটাল আর্নিং সিঙ্ক করা
     let isDbModified = false;
 
-    if (Number(user.totalEarnings) !== totalEarnings) {
+    if (Number(user.totalEarnings || 0) !== totalEarnings) {
       user.totalEarnings = totalEarnings;
       user.markModified("totalEarnings");
       isDbModified = true;
     }
-    if (Number(user.totalEarning) !== totalEarnings) {
+
+    if (Number(user.totalEarning || 0) !== totalEarnings) {
       user.totalEarning = totalEarnings;
       user.markModified("totalEarning");
       isDbModified = true;
     }
-    if (Number(user.oneTimeTotalEarnings) !== totalEarnings) {
+
+    if (Number(user.oneTimeTotalEarnings || 0) !== totalEarnings) {
       user.oneTimeTotalEarnings = totalEarnings;
       user.markModified("oneTimeTotalEarnings");
       isDbModified = true;
@@ -7315,17 +7327,19 @@ if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" ||
       success: true,
       user: userObj,
       history: formattedHistory,
+      bonusList: user.bonusList || [], // বোনাস লিস্ট পাস করা হলো
       stats: {
         totalInvested: totalInvested,
         totalEarnings: totalEarnings,
         totalEarning: totalEarnings,
-        oneTimeTotalEarnings: totalEarnings,
-        totalWithdrawn: totalWithdrawn,
+        onetimeTotalEarnings: totalEarnings,
+        totalWithdraw: totalWithdraw,
         availableBalance: Number(user.otbalance || 0)
       },
       hasActiveInvestment: !!activeInvestment,
       activeInvestment: activeInvestment
     });
+
   } catch (error) {
     console.error("Dashboard Fetch Error:", error);
     return res.status(500).json({ success: false, message: "Server Error" });
