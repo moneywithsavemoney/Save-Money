@@ -7337,37 +7337,49 @@ if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" ||
 // ******************************************************************************
 // 🛠️ PREPARE WITHDRAWAL API (Regular + Maturity Principal Combined) - FULLY UPDATED
 // ******************************************************************************
+// 📌 PREPARE WITHDRAWAL API (Fully Updated with Principal Withdrawal & Bonus Preset Logic)
 app.post("/api/onetime/withdraw", async (req, res) => {
   try {
     const { email, amount, isInvestAmountWithdrawal, investmentId, bankDetails } = req.body;
 
     if (!email || !amount) {
-      return res.status(400).json({ success: false, message: "Email and amount are required" });
+      return res.status(400).json({ success: false, message: "Email and amount are required." });
     }
 
     const cleanEmail = String(email).trim().toLowerCase();
     const withdrawAmount = Number(amount);
 
-    const user = await User.findOne({ 
+    const user = await User.findOne({
       $or: [
-        { email: cleanEmail }, 
-        { email: new RegExp(`^${cleanEmail}$`, 'i') }
-      ] 
+        { email: cleanEmail },
+        { email: new RegExp(`^${cleanEmail}$`, "i") }
+      ]
     });
 
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const historylist = user.onetimeHistory || [];
+    // 📌 বোনাস কোড ব্যবহারের ভিত্তিতে উইথড্র অ্যামাউন্ট ভ্যালিডেশন (যদি প্রিন্সিপাল উইথড্র না হয়)
+    const isBonusCodeUsedByOthers = Array.isArray(user.bonusList) && user.bonusList.length > 0;
 
-    // ১. মূল ম্যচিউর্ড/প্রিন্সিপাল অ্যামাউন্ট উইথড্র করার পর প্রিন্সিপাল পিন্ড আপডেট
+    if (isBonusCodeUsedByOthers && !isInvestAmountWithdrawal) {
+      const allowedPresetAmounts = [100, 300, 500, 1000];
+      if (!allowedPresetAmounts.includes(withdrawAmount)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid withdrawal amount. Allowed amounts: ₹100, ₹300, ₹500, ₹1000."
+        });
+      }
+    }
+
+    // ১. মূল ইনভেস্টমেন্ট/প্রিন্সিপাল অ্যামাউন্ট উইথড্র করার ক্ষেত্রে প্রিন্সিপাল স্ট্যাটাস আপডেট
+    let targetInv = null;
     if (isInvestAmountWithdrawal) {
       if (!investmentId) {
         return res.status(400).json({ success: false, message: "Investment ID is required for principal withdrawal" });
       }
 
-      let targetInv = null;
       if (user.investments && user.investments.length > 0) {
         targetInv = user.investments.id(investmentId) || user.investments.find(i => String(i._id) === String(investmentId));
       }
@@ -7382,65 +7394,20 @@ app.post("/api/onetime/withdraw", async (req, res) => {
         return res.status(404).json({ success: false, message: "Investment plan not found" });
       }
 
-      // প্ল্যান স্ট্যাটাস Completed করা অথবা রিমুভ না রেখে
+      // মেয়াদ পূর্ণ বা কমপ্লিটেড করা স্ট্যাটাস
       targetInv.status = "Completed";
-
-      const withdrawdata = new mongoose.Types.ObjectId();
-      const withdraw = {
-        _id: withdrawdata,
-        type: "Withdrawal",
-        amount: withdrawAmount,
-        isInvestAmountWithdrawal: true,
-        investmentId: targetInv._id,
-        bankDetails: bankDetails || user.bankDetails || {},
-        status: "Pending",
-        createdAt: new Date(),
-        startDate: new Date()
-      };
-
-      if (!user.withdrawals) user.withdrawals = [];
-      user.withdrawals.push(withdraw);
-
-      try {
-        if (typeof Withdraw !== "undefined") {
-          const standaloneWithdraw = new Withdraw({
-            _id: withdrawdata,
-            name: user.name || "",
-            email: cleanEmail,
-            amount: withdrawAmount,
-            isInvestAmountWithdrawal: true,
-            investmentId: targetInv._id,
-            bankDetails: bankDetails || user.bankDetails || {},
-            status: "Pending",
-            createdAt: new Date()
-          });
-          await standaloneWithdraw.save();
-        }
-      } catch (err) {
-        console.log("Standalone withdrawal collection skipped:", err.message);
-      }
-
-      user.markModified("investments");
-      user.markModified("onetimeInvestments");
-      user.markModified("onetimeHistory");
-      user.markModified("withdrawals");
-      await user.save();
-
-      return res.status(200).json({
-        success: true,
-        message: "Invest amount withdrawal request submitted successfully!",
-        withdraw: withdraw
-      });
     }
 
-    // ২. প্রতিদিনের বা দৈনিক উইথড্র লিমিট বা আজকের দিন চেক
+    // ২. প্রত্রিদেন ১টি উইথড্র রিকোয়েস্ট চেক (রুগুলার উইথড্রর জন্য)
     const todayStr = new Date().toDateString();
     const hasWithdrawnToday = (user.withdrawals || []).some((item) => {
       const itemType = (item.type || "").toLowerCase();
-      if (!itemType.includes("withdraw")) return false;
-      const itemDate = new Date(item.createdAt || item.startDate || Date.now()).toDateString();
-      const status = (item.status || "").toLowerCase();
-      return itemDate === todayStr && ["pending", "approved", "accepted", "success"].includes(status);
+      if (itemType.includes("withdraw")) {
+        const itemDate = new Date(item.createdAt || item.startDate || Date.now()).toDateString();
+        const status = (item.status || "").toLowerCase();
+        return itemDate === todayStr && ["pending", "approved", "accepted", "success"].includes(status);
+      }
+      return false;
     });
 
     if (hasWithdrawnToday) {
@@ -7450,20 +7417,23 @@ app.post("/api/onetime/withdraw", async (req, res) => {
       });
     }
 
-    // ৩. ওয়ালেট ব্যালেন্স চেক ও কাটা
-    const currentBalance = Number(user.otbalance || user.otBalance || 0);
-    if (currentBalance < withdrawAmount) {
-      return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
+    // ৩. ওয়ালেট ব্যালেন্স চেক (যদি রেগুলার উইথড্র হয়)
+    if (!isInvestAmountWithdrawal) {
+      const currentBalance = Number(user.otbalance || user.otBalance || 0);
+      if (currentBalance < withdrawAmount) {
+        return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
+      }
+      user.otbalance = currentBalance - withdrawAmount;
     }
 
-    user.otbalance = currentBalance - withdrawAmount;
-
-    const normalwithdrawalId = new mongoose.Types.ObjectId();
+    // ৪. উইথড্র ডাটা অবজেক্ট তৈরি
+    const normalWithdrawId = new mongoose.Types.ObjectId();
     const withdraw = {
-      _id: normalwithdrawalId,
+      _id: normalWithdrawId,
       type: "Withdrawal",
       amount: withdrawAmount,
-      isInvestAmountWithdrawal: false,
+      isInvestAmountWithdrawal: Boolean(isInvestAmountWithdrawal),
+      investmentId: targetInv ? targetInv._id : null,
       bankDetails: bankDetails || user.bankDetails || {},
       status: "Pending",
       createdAt: new Date(),
@@ -7473,10 +7443,9 @@ app.post("/api/onetime/withdraw", async (req, res) => {
     if (!user.withdrawals) user.withdrawals = [];
     user.withdrawals.push(withdraw);
 
-    // হিস্টোরিতেও যুক্ত করা যাতে ইউজারের ড্যাশবোর্ডে সাথে সাথে শো করে
     if (!user.onetimeHistory) user.onetimeHistory = [];
     user.onetimeHistory.unshift({
-      _id: normalwithdrawalId,
+      _id: normalWithdrawId,
       type: "Withdrawal",
       amount: withdrawAmount,
       status: "Pending",
@@ -7486,11 +7455,12 @@ app.post("/api/onetime/withdraw", async (req, res) => {
     try {
       if (typeof Withdraw !== "undefined") {
         const standaloneWithdraw = new Withdraw({
-          _id: normalwithdrawalId,
+          _id: normalWithdrawId,
           name: user.name || "",
           email: cleanEmail,
           amount: withdrawAmount,
-          isInvestAmountWithdrawal: false,
+          isInvestAmountWithdrawal: Boolean(isInvestAmountWithdrawal),
+          investmentId: targetInv ? targetInv._id : null,
           bankDetails: bankDetails || user.bankDetails || {},
           status: "Pending",
           createdAt: new Date()
@@ -7501,13 +7471,15 @@ app.post("/api/onetime/withdraw", async (req, res) => {
       console.log("Standalone withdrawal collection skipped:", err.message);
     }
 
+    user.markModified("investments");
+    user.markModified("onetimeInvestments");
     user.markModified("onetimeHistory");
     user.markModified("withdrawals");
     await user.save();
 
     return res.status(200).json({
       success: true,
-      message: "Withdrawal request submitted successfully!",
+      message: isInvestAmountWithdrawal ? "Invest amount withdrawal request submitted successfully!" : "Withdrawal request submitted successfully!",
       withdraw: withdraw,
       updatedBalance: user.otbalance
     });
@@ -7519,28 +7491,14 @@ app.post("/api/onetime/withdraw", async (req, res) => {
 });
 
 
-                                 
 
 
-// 3. Admin Analytics Endpoint
-app.get("/admin/onetime-analytics", async (req, res) => {
-  try {
-    const totalUsers = await User.countDocuments();
-    const investments = await OneTimeInvestment.find({ status: "Active" });
-    const totalInvested = investments.reduce((sum, inv) => sum + (inv.amount || 0), 0);
 
-    return res.json({
-      totalUsers,
-      totalInvested,
-      activePlansCount: investments.length
-    });
-  } catch (err) {
-    return res.status(500).json({ msg: "Failed to fetch OneTime analytics" });
-  }
-});
 
-// 4. Admin - Fetch All Cash / Deposit Requests
-app.get("/admin/onetime-cash-requests", async (req, res) => {
+
+
+            
+         app.get("/admin/onetime-cash-requests", async (req, res) => {
   try {
     const requests = await Txn.find({ type: "Deposit" }).sort({ createdAt: -1 });
     return res.json(requests);
@@ -7791,18 +7749,19 @@ app.get("/admin/onetime-investments", async (req, res) => {
   }
 });
 
-// 11. Create OneTime Investment
+// 🚀 CREATE ONETIME INVESTMENT API (Bonus credited here upon starting investment)
 app.post("/api/onetime/create-investment", async (req, res) => {
   try {
     const { email, amount, duration, frequency, dailyReturn } = req.body;
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = String(email).trim().toLowerCase();
     const investAmount = Number(amount);
 
     const user = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, "i") } });
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
-    // ১. রিইনভেস্ট বা নতুন ইনভেস্টমেন্ট করার আগে যদি পুরোনো কোনো একটিভ প্ল্যান থাকে, 
-    // তা চেক করে Completed করে দেওয়া হবে যাতে রিইনভেস্ট করতে বাধা না দেয়।
+    // আগের কোনো অ্যাক্টিভ ইনভেস্টমেন্ট থাকলে কমপ্লিটেড করা (যদি আপনার আগের লজিকে থাকে)
     if (Array.isArray(user.onetimeHistory)) {
       user.onetimeHistory.forEach((item) => {
         if (item.status && item.status.toLowerCase() === "active") {
@@ -7811,24 +7770,50 @@ app.post("/api/onetime/create-investment", async (req, res) => {
       });
     }
 
+    // ওয়ালেট ব্যালেন্স চেক ও ডিডাকশন
     const currentBalance = Number(user.otbalance || 0);
-    
-    // রিইনভেস্ট করার সময় অ্যামাউন্ট যদি সরাসরি প্রিন্সিপাল অ্যামাউন্ট হয় এবং ওয়ালেটে ওই পরিমাণ ব্যালেন্স না থাকে,
-    // তবুও যেন রিইনভেস্ট সফল হয় (যেহেতু প্রিন্সিপাল রিস্টার্ট হচ্ছে), তাই ব্যালেন্স চেকটি শুধুমাত্র নতুন অ্যাড ফান্ডের ক্ষেত্রে প্রযোজ্য রাখা হয়েছে।
-    // তবে যদি ওয়ালেট ব্যালেন্স কাটার প্রয়োজন হয়:
     if (currentBalance < investAmount) {
-      // যদি ওয়ালেটে পর্যাপ্ত ব্যালেন্স না থাকে কিন্তু রিইনভেস্ট হয়, তবে ব্যালেন্স নেগেটিভ বা জিরো না করে সরাসরি এলাউ করা হলো
-      // অথবা চাইলে বর্তমান ব্যালেন্স অপরিবর্তিত রাখা যেতে পারে।
-    } else {
-      user.otbalance = currentBalance - investAmount;
+      return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
+    }
+    user.otbalance = currentBalance - investAmount;
+
+    // 🎁 বোনাস লজিক: ইউজার যদি কারো বোনাস কোড ব্যবহার করে থাকে এবং ইতিপূর্বে বোনাস না দিয়ে থাকে
+    if (user.hasAppliedBonus && user.usedBonusCode && !user.bonusRewarded) {
+      const codeOwner = await User.findOne({
+        $or: [
+          { bonusCode: user.usedBonusCode },
+          { referralCode: user.usedBonusCode },
+          { referCode: user.usedBonusCode }
+        ]
+      });
+
+      if (codeOwner) {
+        // কোডের মালিকের (Referrer) otbalance-এ ৩০০ টাকা যোগ করা
+        codeOwner.otbalance = (Number(codeOwner.otbalance) || 0) + 300;
+
+        if (!codeOwner.bonusList) codeOwner.bonusList = [];
+        codeOwner.bonusList.push({
+          userId: user._id,
+          name: user.name || "User",
+          email: user.email,
+          amount: 300,
+          createdAt: new Date(),
+          status: "Success"
+        });
+
+        await codeOwner.save();
+
+        // যাতে পরবর্তীতে আবার ইনভেস্ট করলে বারবার বোনাস যোগ না হয়
+        user.bonusRewarded = true;
+      }
     }
 
+    // নতুন ইনভেস্টমেন্ট অবজেক্ট তৈরি
     const durationDays = parseInt(duration) || 15;
     const startDate = new Date();
     const maturityObj = new Date(startDate);
     maturityObj.setDate(maturityObj.getDate() + durationDays);
 
-    // DD/MM/YYYY ফরম্যাটে Maturity Date তৈরি
     const day = String(maturityObj.getDate()).padStart(2, "0");
     const month = String(maturityObj.getMonth() + 1).padStart(2, "0");
     const year = maturityObj.getFullYear();
@@ -7844,15 +7829,13 @@ app.post("/api/onetime/create-investment", async (req, res) => {
       dailyReturn: Number(dailyReturn || 0),
       status: "Active",
       startDate: startDate,
-      createdAt: startDate,
       maturity: formattedMaturity,
       maturityDate: formattedMaturity
     };
 
-    // ২. শুধুমাত্র onetimeHistory তে সেভ করা
     if (!Array.isArray(user.onetimeHistory)) user.onetimeHistory = [];
     user.onetimeHistory.unshift(newInvestment);
-    
+
     user.markModified("onetimeHistory");
     await user.save();
 
@@ -7861,11 +7844,13 @@ app.post("/api/onetime/create-investment", async (req, res) => {
       message: "INVESTMENT IS SUCCESSFULLY START!",
       investment: newInvestment
     });
+
   } catch (error) {
     console.error("Create Investment Error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error creating investment" });
   }
 });
+
 
 
 
@@ -7914,7 +7899,7 @@ app.post("/api/onetime/add-bank-details", async (req, res) => {
 });
 
 
-// 🎁 APPLY BONUS CODE API (FIXED LOGIC)
+// 🎁 APPLY BONUS CODE API (Only saves code, no balance added yet)
 app.post("/api/onetime/apply-bonus", async (req, res) => {
   try {
     const { email, bonusCode } = req.body;
@@ -7922,60 +7907,52 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
       return res.status(400).json({ success: false, message: "Email and bonus code are required." });
     }
 
-    // ১. যে ইউজার কোড এপ্লাই করছে তাকে খোঁজা
-    const currentUser = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanBonusCode = String(bonusCode).trim();
+
+    // ১. ইউজারকে খোঁজা
+    const currentUser = await User.findOne({ email: cleanEmail });
     if (!currentUser) {
       return res.status(404).json({ success: false, message: "User not found." });
     }
 
-    // চেক করা ইউজার ইতিমধ্যে কোনো বোনাস কোড ব্যবহার করেছে কি না
+    // চেক করা ইউজার ইতোমধ্যে কোনো বোনাস কোড ব্যবহার করেছেন কি না
     if (currentUser.hasAppliedBonus) {
-      return res.status(400).json({ success: false, message: "You have already applied a bonus code. It cannot be used again." });
+      return res.status(400).json({ success: false, message: "You have already applied a bonus code." });
     }
 
-    // ইউজার নিজের বোনাস কোড নিজেই ব্যবহার করতে পারবে না
-    if (currentUser.bonusCode === bonusCode || currentUser.referralCode === bonusCode) {
+    // ইউজার নিজের বোনাস কোড নিজে ব্যবহার করতে পারবেন না
+    if (currentUser.bonusCode === cleanBonusCode || currentUser.referralCode === cleanBonusCode || currentUser.referCode === cleanBonusCode) {
       return res.status(400).json({ success: false, message: "You cannot use your own bonus code." });
     }
 
-    // ২. কোডের আসল মালিককে খুঁজে বের করা
+    // ২. বোনাস কোডের মালিক অস্তিত্ব চেক করা
     const codeOwner = await User.findOne({
-      $or: [{ bonusCode: bonusCode }, { referralCode: bonusCode }]
+      $or: [
+        { bonusCode: cleanBonusCode },
+        { referralCode: cleanBonusCode },
+        { referCode: cleanBonusCode }
+      ]
     });
 
     if (!codeOwner) {
       return res.status(400).json({ success: false, message: "Invalid bonus code." });
     }
 
-    // ৩. কোডের মালিকের (Referrer) অ্যাকাউন্টে ৩০০ টাকা যোগ করা
-    codeOwner.otbalance = (Number(codeOwner.otbalance) || 0) + 300;
-    
-    if (!codeOwner.bonusList) codeOwner.bonusList = [];
-    codeOwner.bonusList.push({
-      userId: currentUser._id,
-      name: currentUser.name || "User",
-      email: currentUser.email,
-      amount: 300,
-      createdAt: new Date(),
-      status: "Success"
-    });
-
-    await codeOwner.save();
-
-    // ৪. যে ইউজার এপ্লাই করল তাকে মার্ক করে দেওয়া যাতে সে আর দ্বিতীয়বার এপ্লাই না করতে পারে
+    // ৩. শুধুমাত্র বোনাস কোড সেভ করা হবে (এখানে কোনো টাকা যোগ হবে না)
     currentUser.hasAppliedBonus = true;
-    currentUser.usedBonusCode = bonusCode;
+    currentUser.usedBonusCode = cleanBonusCode;
     await currentUser.save();
 
     return res.status(200).json({
       success: true,
-      message: "Bonus code applied successfully! ₹300 credited to referrer's account.",
+      message: "Bonus code applied successfully! ₹300 will be credited to referrer when you start your investment.",
       hasAppliedBonus: true
     });
 
   } catch (err) {
     console.error("Apply bonus error:", err);
-    return res.status(500).json({ success: false, message: "Server error applying bonus." });
+    return res.status(500).json({ success: false, message: "Server error applying bonus code." });
   }
 });
 
