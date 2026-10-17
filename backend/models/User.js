@@ -342,6 +342,37 @@ royaltyBonusEnabled: {
     type: Object,
     default: null
   },
+
+  hasAppliedBonus: {
+  type: Boolean,
+  default: false
+},
+usedBonusCode: {
+  type: String,
+  default: ""
+},
+bonusCode: {
+  type: String,
+  default: ""
+},
+
+  bonusRewarded: {
+  type: Boolean,
+  default: false
+  },
+
+  
+bonusList: [
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    name: { type: String, default: "" },
+    email: { type: String, default: "" },
+    amount: { type: Number, default: 300 },
+    createdAt: { type: Date, default: Date.now },
+    status: { type: String, default: "Success" }
+  }
+]
+  
     
 
 });
