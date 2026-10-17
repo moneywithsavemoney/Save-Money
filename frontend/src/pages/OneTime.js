@@ -62,8 +62,12 @@ export default function OneTime() {
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
-  // নিজস্ব ইউনিক বোনাস কোড জেনারেট বা লোড করার ফাংশন
+    // নিজস্ব ইউনিক বোনাস কোড জেনারেট বা লোড করার ফাংশন (ডাটাবেজ ও লোকালস্টерেজ সিনক্রোনাইজড)
   const getOrGenerateUniqueCode = () => {
+    if (user && user.bonusCode) {
+      return user.bonusCode;
+    }
+
     const userEmail = email.trim().toLowerCase();
     if (!userEmail) return "ot324556"; // ডিফল্ট ফলব্যাক
 
@@ -78,6 +82,7 @@ export default function OneTime() {
 
     return existingCode;
   };
+  
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
