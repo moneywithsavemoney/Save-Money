@@ -53,6 +53,8 @@ import OneTime from "./pages/OneTime";
 
 import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
+import EcommerceHome from "./pages/EcommerceHome";
+
 
 // 🟢 ব্যাক বাটন হ্যান্ডলার সাব-কম্পোনেন্ট
 function BackButtonHandler() {
@@ -500,6 +502,9 @@ function App() {
           />
 
           <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
+
+            <Route path="/ecommerce-home" element={<EcommerceHome />} />
+            
 
           <Route
             path="/support"
