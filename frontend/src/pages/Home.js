@@ -16,14 +16,10 @@ export default function Home() {
   const [latestUpdateText, setLatestUpdateText] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // 👇 ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
-
-  // 👇 পপআপ মোডালের স্টেট
   const [showOfferPopup, setShowOfferPopup] = useState(false);
 
-  // 👇 স্বাইপ হ্যান্ডলার স্টেট
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
 
@@ -130,10 +126,8 @@ export default function Home() {
   };
 
   const handleDownloadApp = () => {
-    window.location.href = "https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t](https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t)";
+    window.location.href = "https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t";
   };
-
-
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -302,8 +296,8 @@ export default function Home() {
             style={styles.loadingLogoImg} 
             onError={(e) => { e.target.style.display = 'none'; }}
           />
-          <h2 style={{ marginTop: "15px", fontSize: "20px", fontWeight: "800" }}>Save Money</h2>
-          <p style={{ color: "#94a3b8", fontSize: "14px" }}>Loading your dashboard...</p>
+          <h2 style={{ marginTop: "15px", fontSize: "20px", fontWeight: "800", color: "#38bdf8" }}>Save Money</h2>
+          <p style={{ color: "#94a3b8", fontSize: "14px" }}>Securing your dashboard...</p>
         </div>
       </div>
     );
@@ -315,8 +309,9 @@ export default function Home() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      <style>{premiumGlobalCSS}</style>
 
-      {/* 👇 SIDEBAR DRAWER (চওড়া ও বাটন সাইজ কমানো এবং সুন্দর নিট লেআউট) */}
+      {/* SIDEBAR DRAWER */}
       <div style={{
         ...styles.drawerOverlay,
         opacity: isDrawerOpen ? 1 : 0,
@@ -327,7 +322,6 @@ export default function Home() {
           transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
         }} onClick={(e) => e.stopPropagation()}>
           
-          {/* LOGO & BRANDING */}
           <div style={styles.drawerHeader}>
             <div style={styles.drawerBrand}>
               <div style={styles.drawerLogoWrapper}>
@@ -340,18 +334,16 @@ export default function Home() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
-                <span style={styles.drawerLogoSubtext}>Invest Small, Earn Big</span>
+                <span style={styles.drawerLogoSubtext}>Diamond Wealth Suite</span>
               </div>
             </div>
           </div>
 
-          {/* SIDEBAR CONTENT (WITH SMOOTH SCROLL FOR BUTTONS & TREE) */}
           <div style={styles.drawerScrollArea}>
             <div style={styles.drawerNavList}>
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavDashboard,
                   ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/home"); setIsDrawerOpen(false); }}
@@ -363,7 +355,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavMyInvestment,
                   ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
@@ -375,7 +366,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavSaveMoney,
                   ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
@@ -387,7 +377,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavOneTime,
                   ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
@@ -397,10 +386,7 @@ export default function Home() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavPlan
-                }} 
+                style={styles.drawerNavItem} 
                 onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
                 disabled={isDownloadingPlan}
               >
@@ -411,7 +397,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavAddFund,
                   ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
@@ -423,7 +408,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavRefer,
                   ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
@@ -435,7 +419,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavWithdraw,
                   ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
@@ -447,7 +430,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavDailyReward,
                   ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
@@ -459,7 +441,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavInvestmentAssistant,
                   ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
@@ -471,7 +452,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavSupport,
                   ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/support"); setIsDrawerOpen(false); }}
@@ -483,7 +463,6 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavProfile,
                   ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
@@ -495,7 +474,8 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  ...styles.drawerNavLogout
+                  background: "rgba(239, 68, 68, 0.2)",
+                  border: "1px solid rgba(239, 68, 68, 0.4)"
                 }} 
                 onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
               >
@@ -504,7 +484,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* FULL VISIBLE TREE PLANT SECTION */}
             <div style={styles.treePlantOnlyWrapper}>
               <img 
                 src="/tree plant.png" 
@@ -518,7 +497,6 @@ export default function Home() {
               />
             </div>
           </div>
-
         </div>
       </div>
 
@@ -532,15 +510,13 @@ export default function Home() {
             >
               ✕
             </button>
-
             <img
-  src="/OFFER_BANNER.png"
-  alt="OFFER BANNER"
-  style={styles.popupImage}
-  loading="eager"
-  decoding="async"
-/>
-            
+              src="/OFFER_BANNER.png"
+              alt="OFFER BANNER"
+              style={styles.popupImage}
+              loading="eager"
+              decoding="async"
+            />
           </div>
         </div>
       )}
@@ -582,7 +558,6 @@ export default function Home() {
             onClick={() => go("/notifications")}
           >
             <span>🔔</span>
-
             {notificationCount > 0 && (
               <small style={styles.notificationBadge}>
                 {notificationCount}
@@ -597,11 +572,10 @@ export default function Home() {
             Logout
           </button>
         </div>
-
       </div>
 
       {/* HERO PROFILE + WALLET */}
-      <section style={styles.heroWrapper}>
+      <section style={styles.heroWrapper} className="diamond-glow-box">
         <div style={styles.heroGlow}></div>
 
         <div style={styles.profilePhotoCircle}>
@@ -618,40 +592,33 @@ export default function Home() {
 
         <div style={styles.heroUserInfo}>
           <p style={styles.heroWelcome}>
-            Welcome Back 👋
+            Diamond Investor 👋
           </p>
 
           <div style={styles.heroNameRow}>
             <h1 style={styles.heroName}>
               {name}
             </h1>
-
             {kycApproved && (
-              <span style={styles.verifiedBadge}>
-                ✔
-              </span>
+              <span style={styles.verifiedBadge}>✔</span>
             )}
           </div>
 
           <p style={styles.heroSubtitle}>
-            Save Money, Secure Future 💚
+            Secure Vault Active 💎
           </p>
         </div>
 
         <div style={styles.heroWalletCard}>
           <p style={styles.heroWalletLabel}>Total Wallet</p>
-
           <h2 style={styles.heroWalletValue}>
-            Scale: ₹{wallet.toFixed(2)}
+            ₹{wallet.toFixed(2)}
           </h2>
-
-          <span style={{ fontSize: "16px" }}>
-            👛
-          </span>
+          <span style={{ fontSize: "14px" }}>👛</span>
         </div>
       </section>
 
-      {/* LIMITED OFFER ANNOUNCEMENT BAR (20S SPEED & FULL SCROLL FIX) */}
+      {/* LIMITED OFFER ANNOUNCEMENT BAR */}
       <div style={styles.limitedOfferBar}>
         <div style={styles.limitedOfferBadge}>UPDATE 🔥</div>
         <div style={styles.marqueeContainer}>
@@ -697,7 +664,7 @@ export default function Home() {
       {/* MAIN ACTIONS */}
       <PremiumSectionTitle
         title="MAIN ACTIONS"
-        color="#38d9ff"
+        color="#38bdf8"
       />
 
       <section style={styles.actionPanel}>
@@ -753,14 +720,14 @@ export default function Home() {
       {/* MORE FEATURES */}
       <PremiumSectionTitle
         title="MORE FEATURES"
-        color="#ffd84d"
+        color="#fbbf24"
       />
 
       <section style={styles.actionPanel}>
         <PremiumActionButton
           icon="✅"
           title="KYC Verification"
-          subtitle="Verify Your Account"
+          subtitle="Verify Account"
           gradient="kyc"
           onClick={() => go("/kyc")}
         />
@@ -783,8 +750,8 @@ export default function Home() {
 
         <PremiumActionButton
           icon="📊"
-          title="Investment Assistant"
-          subtitle="Need You Help"
+          title="Investment Asst"
+          subtitle="Get Assistance"
           gradient="plan"
           onClick={() => go("/investment-assistant")}
         />
@@ -806,19 +773,17 @@ export default function Home() {
         />
       </section>
 
-      {/* PURPLE PROMO BANNER */}
+      {/* PROMO BANNER */}
       <section style={styles.promoBanner}>
         <div style={styles.promoContent}>
           <h1 style={styles.promoTitle}>
-            Grow Your Money
+            Grow Your Wealth
             <br />
-            Build Your Future
+            Secure Your Future
           </h1>
-
           <p style={styles.promoSubtitle}>
-            Invest Smart, Earn More
+            Institutional-grade daily returns & compounding.
           </p>
-
           <button
             style={styles.promoButton}
             onClick={() => go("/save-money")}
@@ -826,9 +791,8 @@ export default function Home() {
             Invest Now →
           </button>
         </div>
-
         <div style={styles.promoIcon}>
-          💰📈
+          💎📈
         </div>
       </section>
 
@@ -837,25 +801,22 @@ export default function Home() {
         <TrustMiniCard
           icon="🔒"
           title="100% Secure"
-          subtitle="Your money is safe"
+          subtitle="Encrypted Vault"
         />
-
         <TrustMiniCard
           icon="⚡"
-          title="Fast Payout"
-          subtitle="Quick withdrawals"
+          title="Instant Payout"
+          subtitle="Quick execution"
         />
-
         <TrustMiniCard
           icon="🛡️"
-          title="Trusted Platform"
-          subtitle="Trusted by users"
+          title="Regulated & Safe"
+          subtitle="Trusted platform"
         />
-
         <TrustMiniCard
           icon="💬"
           title="24/7 Support"
-          subtitle="We are here"
+          subtitle="Always available"
         />
       </section>
 
@@ -864,12 +825,12 @@ export default function Home() {
         style={styles.aboutStrip}
         onClick={() => go("/about")}
       >
-        🏢 About Save Money
+        🏢 About Save Money Private Limited
       </button>
 
       {/* HELP TEXT */}
       <h1 style={styles.helpText}>
-        HELP OTHER FOR EARN MORE 💸
+        HELP OTHERS EARN MORE 💸
       </h1>
 
       {/* APP DOWNLOAD CARD */}
@@ -926,32 +887,20 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer style={styles.footer}>
-        <h2 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 10px 0" }}>
-          Save Money
+        <h2 style={{ fontSize: "16px", fontWeight: "800", margin: "0 0 10px 0", color: "#38bdf8" }}>
+          Save Money Private Limited
         </h2>
 
         <div style={styles.footerLinks}>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/privacy")}>
-            Privacy Policy
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/terms")}>
-            Terms
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/refund")}>
-            Refund
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/risk")}>
-            Risk Disclosure
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/aml")}>
-            AML & KYC
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/disclaimer")}>
-            Disclaimer
-          </button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/privacy")}>Privacy</button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/terms")}>Terms</button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/refund")}>Refund</button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/risk")}>Risk</button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/aml")}>AML & KYC</button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/disclaimer")}>Disclaimer</button>
         </div>
 
-        <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
+        <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>
           © 2026 Save Money. All Rights Reserved.
         </p>
       </footer>
@@ -978,8 +927,8 @@ export default function Home() {
         />
         <BottomNavItem
           icon="🌲"
-          title="tree"
-          active={location.pathname === "/profile"}
+          title="Tree"
+          active={location.pathname === "/referral-tree"}
           onClick={() => go("/referral-tree")}
         />
       </nav>
@@ -1001,7 +950,6 @@ function DashboardStatCard({ icon, title, value, gradient }) {
       <div style={styles.statIconWrap}>
         <span style={styles.statIcon}>{icon}</span>
       </div>
-
       <p style={styles.statTitle}>{title}</p>
       <h2 style={styles.statValue}>{value}</h2>
       <div style={styles.statGlow}></div>
@@ -1010,29 +958,8 @@ function DashboardStatCard({ icon, title, value, gradient }) {
 }
 
 function PremiumActionButton({ icon, title, subtitle, gradient, onClick }) {
-  const gradientStyle = {
-    invest: styles.actionInvest,
-    myInvestment: styles.actionMyInvestment,
-    wallet: styles.actionWallet,
-    withdraw: styles.actionWithdraw,
-    refer: styles.actionRefer,
-    transaction: styles.actionTransaction,
-    kyc: styles.actionKyc,
-    reward: styles.actionReward,
-    bank: styles.actionBank,
-    plan: styles.actionPlan,
-    notification: styles.actionNotification,
-    support: styles.actionSupport
-  };
-
   return (
-    <button
-      style={{
-        ...styles.actionButton,
-        ...gradientStyle[gradient]
-      }}
-      onClick={onClick}
-    >
+    <button style={styles.actionButton} onClick={onClick}>
       <div style={styles.actionIconCircle}>{icon}</div>
       <div style={styles.actionTextBox}>
         <h3 style={styles.actionTitle}>{title}</h3>
@@ -1080,14 +1007,33 @@ function BottomNavItem({ icon, title, active, onClick }) {
   );
 }
 
+const premiumGlobalCSS = `
+  @keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+  @keyframes appPulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+  }
+  .diamond-glow-box {
+    border: 1px solid rgba(56, 189, 248, 0.4) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(56, 189, 248, 0.15) !important;
+  }
+  .premium-app-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5) !important;
+  }
+`;
+
 const styles = {
   limitedOfferBar: {
-    marginTop: "16px",
-    background: "linear-gradient(180deg, #022013 0%, #043820 100%)",
-    borderRadius: "16px",
+    marginTop: "14px",
+    background: "linear-gradient(135deg, #090e1a 0%, #111827 100%)",
+    borderRadius: "14px",
     padding: "8px 12px",
-    border: "1px solid #10b981",
-    boxShadow: "0 0 15px rgba(16, 185, 129, 0.2)",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
     display: "flex",
     alignItems: "center",
     gap: "10px",
@@ -1106,50 +1052,43 @@ const styles = {
     animation: "marquee 20s linear infinite"
   },
   limitedOfferBadge: {
-    background: "#f59e0b",
-    color: "#000000",
+    background: "#38bdf8",
+    color: "#030712",
     fontWeight: "900",
     fontSize: "10px",
-    padding: "4px 8px",
+    padding: "3px 8px",
     borderRadius: "6px",
     letterSpacing: "0.5px",
     whiteSpace: "nowrap",
-    flexShrink: 0,
-    boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
+    flexShrink: 0
   },
   announcementText: {
     fontSize: "12px",
     fontWeight: "700",
-    color: "#ffffff"
+    color: "#f8fafc"
   },
 
   drawerOverlay: {
     position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: "rgba(0, 0, 0, 0.75)",
+    inset: 0,
+    background: "rgba(3, 7, 18, 0.8)",
     backdropFilter: "blur(6px)",
     zIndex: 100002,
     display: "flex",
     justifyContent: "flex-start",
     transition: "opacity 0.3s ease, visibility 0.3s ease"
   },
-  // 🟢 সাইডবার চওড়া কম করা হয়েছে (230px)
   drawerContainer: {
     position: "fixed",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    background: "#08101e",
-    width: "230px",
+    top: 0, bottom: 0, left: 0,
+    background: "#060913",
+    width: "240px",
     height: "100vh",
-    padding: "12px 8px",
+    padding: "12px 10px",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
-    borderRight: "1px solid #1e293b",
+    boxShadow: "15px 0 40px rgba(0,0,0,0.9)",
+    borderRight: "1px solid rgba(56, 189, 248, 0.2)",
     transform: "translateX(-100%)",
     transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     overflow: "hidden",
@@ -1159,28 +1098,25 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
     marginBottom: "10px",
-    paddingBottom: "8px",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-    flexShrink: 0
+    paddingBottom: "10px",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
   },
   drawerBrand: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "4px"
+    gap: "6px"
   },
   drawerLogoWrapper: {
-    width: "42px",
-    height: "42px",
+    width: "44px",
+    height: "44px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
-    border: "2px solid #22c55e",
+    background: "radial-gradient(circle, #0284c7 0%, #0369a1 100%)",
+    border: "2px solid #38bdf8",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 0 10px rgba(34, 197, 94, 0.4)"
+    justifyContent: "center"
   },
   drawerLogoImg: {
     width: "26px",
@@ -1189,20 +1125,15 @@ const styles = {
   },
   drawerLogoText: {
     margin: 0,
-    fontSize: "15px",
+    fontSize: "14px",
     fontWeight: "900",
-    color: "#ffffff",
-    letterSpacing: "0.6px",
-    textAlign: "center"
+    color: "#ffffff"
   },
   drawerLogoSubtext: {
     fontSize: "10px",
-    color: "#a7f3d0",
-    fontWeight: "600",
-    marginTop: "1px",
-    textAlign: "center"
+    color: "#38bdf8",
+    fontWeight: "700"
   },
-  // 🟢 সাইডবার বোতাম ও ট্রি প্ল্যান্টের স্ক্রোল এরিয়া
   drawerScrollArea: {
     flex: 1,
     overflowY: "auto",
@@ -1214,282 +1145,196 @@ const styles = {
   drawerNavList: {
     display: "flex",
     flexDirection: "column",
-    gap: "6px",
-    flexShrink: 0
+    gap: "6px"
   },
-  // 🟢 বোতাম সাইজ ছোট করা হয়েছে
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    padding: "8px 12px",
-    background: "rgba(255, 255, 255, 0.12)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    border: "1px solid rgba(255, 255, 255, 0.25)",
-    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
-    color: "#ffffff",
+    gap: "10px",
+    padding: "9px 12px",
+    background: "rgba(255, 255, 255, 0.03)",
+    border: "1px solid rgba(255, 255, 255, 0.06)",
+    borderRadius: "10px",
+    color: "#f8fafc",
     fontSize: "12px",
-    fontWeight: "800",
+    fontWeight: "700",
     cursor: "pointer",
-    textAlign: "left",
-    transition: "all 0.25s ease",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-    textShadow: "0 1px 2px rgba(0,0,0,0.5)"
+    textAlign: "left"
   },
   drawerNavItemActive: {
-    background: "rgba(255, 255, 255, 0.3)",
-    border: "1px solid #ffffff",
-    boxShadow: "0 0 12px rgba(255, 255, 255, 0.5)",
-    fontWeight: "900"
+    background: "rgba(56, 189, 248, 0.15)",
+    border: "1px solid #38bdf8",
+    color: "#38bdf8"
   },
   drawerNavIcon: {
     fontSize: "16px",
     width: "20px",
-    display: "inline-block",
     textAlign: "center"
   },
   drawerNavText: {
     flex: 1,
-    fontSize: "12px",
-    letterSpacing: "0.3px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis"
+    fontSize: "12px"
   },
-
-  drawerNavDashboard: {
-    background: "rgba(59, 130, 246, 0.25)",
-    border: "1px solid rgba(59, 130, 246, 0.5)"
-  },
-  drawerNavMyInvestment: {
-    background: "rgba(16, 185, 129, 0.25)",
-    border: "1px solid rgba(16, 185, 129, 0.5)"
-  },
-  drawerNavSaveMoney: {
-    background: "rgba(245, 158, 11, 0.25)",
-    border: "1px solid rgba(245, 158, 11, 0.5)"
-  },
-  drawerNavOneTime: {
-    background: "rgba(168, 85, 247, 0.25)",
-    border: "1px solid rgba(168, 85, 247, 0.5)"
-  },
-  drawerNavPlan: {
-    background: "rgba(6, 182, 212, 0.25)",
-    border: "1px solid rgba(6, 182, 212, 0.5)"
-  },
-  drawerNavAddFund: {
-    background: "rgba(20, 184, 166, 0.25)",
-    border: "1px solid rgba(20, 184, 166, 0.5)"
-  },
-  drawerNavRefer: {
-    background: "rgba(236, 72, 153, 0.25)",
-    border: "1px solid rgba(236, 72, 153, 0.5)"
-  },
-  drawerNavWithdraw: {
-    background: "rgba(249, 115, 22, 0.25)",
-    border: "1px solid rgba(249, 115, 22, 0.5)"
-  },
-  drawerNavDailyReward: {
-    background: "rgba(244, 63, 94, 0.25)",
-    border: "1px solid rgba(244, 63, 94, 0.5)"
-  },
-  drawerNavInvestmentAssistant: {
-    background: "rgba(2, 132, 199, 0.25)",
-    border: "1px solid rgba(2, 132, 199, 0.5)"
-  },
-  drawerNavSupport: {
-    background: "rgba(99, 102, 241, 0.25)",
-    border: "1px solid rgba(99, 102, 241, 0.5)"
-  },
-  drawerNavProfile: {
-    background: "rgba(236, 72, 153, 0.25)",
-    border: "1px solid rgba(236, 72, 153, 0.5)"
-  },
-  drawerNavLogout: {
-    background: "rgba(239, 68, 68, 0.25)",
-    border: "1px solid rgba(239, 68, 68, 0.5)"
-  },
-
-  // 🟢 পুরো সুন্দর ট্রি প্ল্যান্ট সেকশন
   treePlantOnlyWrapper: {
+    marginTop: "auto",
     width: "100%",
-    paddingTop: "6px",
-    paddingBottom: "10px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    flexShrink: 0
+    height: "90px",
+    borderRadius: "12px",
+    overflow: "hidden"
   },
   treePlantOnlyImg: {
     width: "100%",
-    maxHeight: "110px",
-    objectFit: "cover",
-    borderRadius: "12px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)"
+    height: "100%",
+    objectFit: "cover"
   },
 
   appDownloadCard: {
     position: "relative",
-    marginTop: "28px",
-    background: "linear-gradient(135deg, #061826 0%, #0b2f38 50%, #03141e 100%)",
-    borderRadius: "24px",
-    padding: "20px 16px",
-    border: "1px solid rgba(34, 197, 94, 0.5)",
-    boxShadow: "0 15px 35px rgba(0,0,0,0.6), inset 0 0 15px rgba(34, 197, 94, 0.15)",
+    marginTop: "24px",
+    background: "linear-gradient(135deg, #090e1a 0%, #111827 50%, #1e1b4b 100%)",
+    borderRadius: "20px",
+    padding: "18px 16px",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
+    boxShadow: "0 15px 35px rgba(0,0,0,0.6)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "16px",
+    gap: "14px",
     overflow: "hidden"
   },
   appGlowBackground: {
     position: "absolute",
     top: "-30px",
     right: "-30px",
-    width: "120px",
-    height: "120px",
-    background: "radial-gradient(circle, rgba(34,197,94,0.3) 0%, transparent 70%)",
+    width: "100px",
+    height: "100px",
+    background: "radial-gradient(circle, rgba(56,189,248,0.2) 0%, transparent 70%)",
     pointerEvents: "none"
   },
   appTopBadge: {
     display: "inline-flex",
     alignItems: "center",
     gap: "6px",
-    background: "rgba(34, 197, 94, 0.15)",
-    border: "1px solid rgba(34, 197, 94, 0.4)",
-    padding: "5px 14px",
+    background: "rgba(56, 189, 248, 0.12)",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
+    padding: "4px 12px",
     borderRadius: "20px",
-    color: "#4ade80",
+    color: "#38bdf8",
     fontSize: "10px",
-    fontWeight: "800",
-    letterSpacing: "0.6px"
+    fontWeight: "800"
   },
   appBadgePulse: {
     width: "6px",
     height: "6px",
     borderRadius: "50%",
-    background: "#22c55e",
-    boxShadow: "0 0 8px #22c55e",
+    background: "#38bdf8",
     animation: "appPulse 1.5s infinite"
   },
   appDownloadHeader: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
     textAlign: "center",
-    gap: "10px",
+    gap: "8px",
     width: "100%"
   },
   appLogoContainer: {
     position: "relative"
   },
   appLogoImg: {
-    width: "62px",
-    height: "62px",
-    borderRadius: "18px",
-    border: "2px solid #22c55e",
+    width: "56px",
+    height: "56px",
+    borderRadius: "16px",
+    border: "2px solid #38bdf8",
     objectFit: "contain",
-    boxShadow: "0 6px 18px rgba(34, 197, 94, 0.3)"
+    boxShadow: "0 6px 18px rgba(56, 189, 248, 0.3)"
   },
   appOnlineDot: {
     position: "absolute",
     bottom: "-2px",
     right: "-2px",
-    width: "14px",
-    height: "14px",
+    width: "12px",
+    height: "12px",
     borderRadius: "50%",
-    background: "#22c55e",
-    border: "2px solid #061826"
+    background: "#10b981",
+    border: "2px solid #090e1a"
   },
   appInfoTextCenter: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
-    textAlign: "center"
+    alignItems: "center"
   },
   appDownloadTitle: {
     margin: 0,
-    fontSize: "18px",
+    fontSize: "17px",
     fontWeight: "900",
-    color: "#ffffff",
-    letterSpacing: "0.3px"
+    color: "#f8fafc"
   },
   appDownloadSub: {
-    margin: "4px 0 0 0",
-    fontSize: "12px",
-    color: "#94a3b8",
-    fontWeight: "600"
+    margin: "2px 0 0 0",
+    fontSize: "11px",
+    color: "#94a3b8"
   },
   appRatingWrap: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
     gap: "6px",
-    marginTop: "6px",
+    marginTop: "4px",
     fontSize: "11px"
   },
   appRatingText: {
-    color: "#e2e8f0",
+    color: "#cbd5e1",
     fontWeight: "700"
   },
   appBtnGroup: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
     width: "100%"
   },
   appDownloadBtn: {
     width: "100%",
-    padding: "12px 18px",
-    borderRadius: "16px",
-    background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
-    border: "1px solid #4ade80",
+    padding: "12px",
+    borderRadius: "14px",
+    background: "linear-gradient(135deg, #38bdf8 0%, #2563eb 100%)",
+    border: "none",
     color: "#ffffff",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "10px",
-    boxShadow: "0 6px 20px rgba(22, 163, 74, 0.4)",
+    boxShadow: "0 6px 20px rgba(56, 189, 248, 0.3)",
     transition: "transform 0.2s ease"
   },
   appStoreSvg: {
-    width: "24px",
-    height: "24px",
+    width: "22px",
+    height: "22px",
     flexShrink: 0
   },
   btnTextWrapper: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center",
-    textAlign: "center"
+    alignItems: "center"
   },
   btnMiniLabel: {
     fontSize: "9px",
     fontWeight: "800",
-    color: "#86efac",
+    color: "#e0f2fe",
     letterSpacing: "0.5px"
   },
   btnMainLabel: {
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: "900",
     color: "#ffffff"
   },
   downloadIconSvg: {
-    width: "20px",
-    height: "20px",
+    width: "18px",
+    height: "18px",
     flexShrink: 0
   },
 
   popupOverlay: {
     position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: "rgba(2, 6, 23, 0.75)",
+    inset: 0,
+    background: "rgba(3, 7, 18, 0.8)",
     backdropFilter: "blur(6px)",
     zIndex: 100001,
     display: "flex",
@@ -1498,29 +1343,27 @@ const styles = {
     padding: "16px"
   },
   popupCard: {
-  background: "#0f172a",
-  borderRadius: "24px",
-  padding: "20px",
-  maxWidth: "90%", // মোবাইলে যেন কেটে না যায়
-  width: "420px",
-  position: "relative",
-  boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
-  border: "1px solid #1e293b",
-  textAlign: "center"
-},
+    background: "#090e1a",
+    borderRadius: "20px",
+    padding: "18px",
+    maxWidth: "90%",
+    width: "380px",
+    position: "relative",
+    boxShadow: "0 25px 60px rgba(0,0,0,0.8)",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
+    textAlign: "center"
+  },
   popupCloseBtn: {
     position: "absolute",
-    top: "12px",
-    right: "12px",
-    width: "34px",
-    height: "34px",
-    background: "rgba(255, 255, 255, 0.15)",
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
-    border: "1px solid rgba(255, 255, 255, 0.3)",
-    clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+    top: "10px",
+    right: "10px",
+    width: "30px",
+    height: "30px",
+    background: "rgba(255, 255, 255, 0.1)",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    borderRadius: "50%",
     color: "#ffffff",
-    fontSize: "14px",
+    fontSize: "12px",
     fontWeight: "bold",
     cursor: "pointer",
     display: "flex",
@@ -1529,67 +1372,48 @@ const styles = {
     zIndex: 2
   },
   popupImage: {
-  width: "100%",
-  height: "auto", // স্বয়ংক্রিয় উচ্চতা নেবে
-  objectFit: "contain", // পুরো ছবি সুন্দরভাবে দেখাবে, কাটবে না
-  borderRadius: "16px",
-  marginBottom: "14px"
-},
-  popupDownloadBtn: {
     width: "100%",
-    padding: "12px",
-    border: "1px solid rgba(34, 197, 94, 0.4)",
-    background: "rgba(34, 197, 94, 0.2)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    clipPath: "polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%)",
-    color: "#ffffff",
-    fontWeight: "800",
-    fontSize: "14px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "8px",
-    boxShadow: "0 4px 14px rgba(0, 0, 0, 0.3)"
+    height: "auto",
+    objectFit: "contain",
+    borderRadius: "14px"
   },
 
   statusOverlayBg: {
     position: "fixed",
     inset: 0,
-    background: "rgba(2, 6, 23, 0.65)",
-    backdropFilter: "blur(8px)",
+    background: "rgba(3, 7, 18, 0.8)",
+    backdropFilter: "blur(6px)",
     zIndex: 100000,
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   statusOverlayCard: {
-    background: "#0f172a",
-    padding: "24px 34px",
-    borderRadius: "24px",
+    background: "#090e1a",
+    padding: "20px 28px",
+    borderRadius: "18px",
     textAlign: "center",
-    boxShadow: "0 30px 70px rgba(0,0,0,0.5)",
-    border: "1px solid #1e293b",
-    maxWidth: "380px",
+    boxShadow: "0 25px 50px rgba(0,0,0,0.7)",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
+    maxWidth: "340px",
     width: "85%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "14px"
+    gap: "12px"
   },
   statusOverlayIcon: {
-    width: "58px",
-    height: "58px",
+    width: "50px",
+    height: "50px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "28px",
+    fontSize: "24px",
     fontWeight: "bold"
   },
   statusOverlayText: {
-    fontSize: "16px",
+    fontSize: "15px",
     color: "#ffffff",
     margin: 0,
     fontWeight: "800",
@@ -1598,92 +1422,91 @@ const styles = {
 
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(180deg,#020617 0%,#031026 45%,#020617 100%)",
+    background: "#030712",
     color: "white",
-    padding: "0 12px 140px",
+    padding: "0 12px 130px",
     fontFamily: "system-ui, -apple-system, sans-serif"
   },
-
   loadingPage: {
     minHeight: "100vh",
-    background: "#020617",
+    background: "#030712",
     color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
-
   loadingCard: {
-    background: "#0f172a",
-    padding: "30px",
-    borderRadius: "24px",
+    background: "#090e1a",
+    padding: "28px",
+    borderRadius: "20px",
     textAlign: "center",
-    border: "1px solid #1e40af",
-    boxShadow: "0 0 35px rgba(34,197,94,0.25)"
+    border: "1px solid rgba(56, 189, 248, 0.3)",
+    boxShadow: "0 0 30px rgba(56,189,248,0.2)"
   },
-
   topHeader: {
-    height: "60px",
+    height: "56px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     padding: "0 4px"
   },
-
   menuButton: {
-    background: "transparent",
-    border: "none",
-    color: "white",
-    fontSize: "26px",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "#38bdf8",
+    fontSize: "20px",
     cursor: "pointer",
-    padding: "4px"
+    width: "40px",
+    height: "40px",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   },
-
   headerTitle: {
     margin: 0,
-    fontSize: "15px",
+    fontSize: "14px",
     fontWeight: "800",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
     maxWidth: "180px"
   },
-
   logoutBtn: {
     height: "36px",
     padding: "0 12px",
     border: "1px solid rgba(239, 68, 68, 0.4)",
-    background: "rgba(239, 68, 68, 0.2)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    clipPath: "polygon(8px 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%)",
-    color: "white",
+    background: "rgba(239, 68, 68, 0.15)",
+    color: "#f87171",
     fontWeight: "800",
-    fontSize: "12px",
-    boxShadow: "0 4px 14px rgba(0, 0, 0, 0.35)",
+    fontSize: "11px",
+    borderRadius: "10px",
     cursor: "pointer"
   },
-
   notificationButton: {
     position: "relative",
-    background: "transparent",
-    border: "none",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
     color: "white",
-    fontSize: "20px",
+    fontSize: "16px",
     cursor: "pointer",
-    padding: "4px"
+    width: "40px",
+    height: "40px",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   },
-
   notificationBadge: {
     position: "absolute",
     top: "-2px",
     right: "-2px",
-    background: "#ff1744",
+    background: "#ef4444",
     color: "white",
-    width: "18px",
-    height: "18px",
+    width: "16px",
+    height: "16px",
     borderRadius: "50%",
-    fontSize: "10px",
+    fontSize: "9px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1695,102 +1518,88 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    padding: "14px 12px",
+    padding: "16px 14px",
     borderRadius: "20px",
     overflow: "hidden",
-    background: "radial-gradient(circle at 90% 0%,#22ff88 0%,transparent 34%),linear-gradient(135deg,#06152d,#043858,#08c96b)",
-    border: "1px solid rgba(34,255,136,0.55)",
-    boxShadow: "0 0 38px rgba(34,255,136,0.23)"
+    background: "linear-gradient(135deg, #090e1a 0%, #111827 50%, #1e1b4b 100%)",
+    boxShadow: "0 15px 35px rgba(0,0,0,0.6)"
   },
-
   heroGlow: {
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(90deg,rgba(255,255,255,0.08),transparent,rgba(255,255,255,0.08))",
+    background: "linear-gradient(90deg,rgba(56,189,248,0.05),transparent,rgba(56,189,248,0.05))",
     pointerEvents: "none"
   },
-
   profilePhotoCircle: {
-    width: "60px",
-    height: "60px",
+    width: "56px",
+    height: "56px",
     borderRadius: "50%",
-    background: "#334155",
-    border: "2px solid #e0f2fe",
+    background: "#1f2937",
+    border: "2px solid #38bdf8",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
     zIndex: 2,
-    flexShrink: 0,
-    boxShadow: "0 0 12px rgba(255,255,255,0.35)"
+    flexShrink: 0
   },
-
   profilePhoto: {
     width: "100%",
     height: "100%",
     objectFit: "cover"
   },
-
   defaultProfileIcon: {
-    fontSize: "30px"
+    fontSize: "26px"
   },
-
   heroUserInfo: {
     flex: 1,
     zIndex: 2,
     overflow: "hidden"
   },
-
   heroWelcome: {
     margin: 0,
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "700",
-    color: "#cbd5e1"
+    color: "#94a3b8"
   },
-
   heroNameRow: {
     display: "flex",
     alignItems: "center",
     gap: "5px"
   },
-
   heroName: {
     margin: "2px 0",
     fontSize: "15px",
-    fontWeight: "800",
-    lineHeight: "1.2",
+    fontWeight: "900",
+    color: "#f8fafc",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis"
   },
-
   verifiedBadge: {
-    width: "16px",
-    height: "16px",
+    width: "14px",
+    height: "14px",
     borderRadius: "50%",
-    background: "#2563eb",
+    background: "#10b981",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "bold",
-    flexShrink: 0
+    color: "#fff"
   },
-
   heroSubtitle: {
     margin: 0,
     fontSize: "10px",
-    color: "#dcfce7",
-    fontWeight: "600",
-    whiteSpace: "nowrap"
+    color: "#34d399",
+    fontWeight: "700"
   },
-
   heroWalletCard: {
-    minWidth: "90px",
+    minWidth: "85px",
     borderRadius: "14px",
     padding: "8px 10px",
-    background: "linear-gradient(135deg,#16ff75,#00b96b)",
-    boxShadow: "0 8px 18px rgba(0,0,0,0.35)",
+    background: "rgba(56, 189, 248, 0.1)",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
     zIndex: 2,
     display: "flex",
     flexDirection: "column",
@@ -1799,347 +1608,245 @@ const styles = {
   },
   heroWalletLabel: {
     margin: 0,
-    fontSize: "10px",
-    fontWeight: "700",
-    color: "#000000"
+    fontSize: "9px",
+    fontWeight: "800",
+    color: "#94a3b8"
   },
   heroWalletValue: {
     margin: "2px 0",
     fontSize: "13px",
     fontWeight: "900",
-    color: "#000000"
+    color: "#34d399"
   },
 
   statsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
     gap: "10px",
-    marginTop: "14px"
+    marginTop: "12px"
   },
-
   statCard: {
     position: "relative",
     borderRadius: "16px",
     padding: "12px",
     overflow: "hidden",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.35)",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    minHeight: "90px"
+    minHeight: "85px",
+    border: "1px solid rgba(255,255,255,0.06)"
   },
+  statBlue: { background: "linear-gradient(135deg,#090e1a,#1e3a8a)" },
+  statGreen: { background: "linear-gradient(135deg,#090e1a,#065f46)" },
+  statPurple: { background: "linear-gradient(135deg,#090e1a,#581c87)" },
+  statOrange: { background: "linear-gradient(135deg,#090e1a,#7c2d12)" },
 
-  statBlue: {
-    background: "linear-gradient(135deg,#2f63ff,#061b91)"
-  },
-
-  statGreen: {
-    background: "linear-gradient(135deg,#00f58a,#006b45)"
-  },
-
-  statPurple: {
-    background: "linear-gradient(135deg,#9b35ff,#4c057a)"
-  },
-
-  statOrange: {
-    background: "linear-gradient(135deg,#ff8a00,#c2410c)"
-  },
-
-  statIconWrap: {
-    lineHeight: "1"
-  },
-
-  statIcon: {
-    fontSize: "22px"
-  },
-
+  statIconWrap: { lineHeight: "1" },
+  statIcon: { fontSize: "20px" },
   statTitle: {
-    margin: "6px 0 2px",
-    color: "rgba(255,255,255,0.9)",
+    margin: "4px 0 2px",
+    color: "#94a3b8",
     fontSize: "11px",
-    fontWeight: "700",
-    whiteSpace: "nowrap"
+    fontWeight: "700"
   },
-
   statValue: {
     margin: 0,
-    fontSize: "16px",
-    fontWeight: "900"
+    fontSize: "15px",
+    fontWeight: "900",
+    color: "#f8fafc"
   },
-
   statGlow: {
     position: "absolute",
     right: "-15px",
     top: "-15px",
-    width: "55px",
-    height: "55px",
+    width: "45px",
+    height: "45px",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.18)"
+    background: "rgba(255,255,255,0.08)"
   },
 
   sectionTitleWrap: {
-    margin: "20px 0 10px",
+    margin: "18px 0 10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "8px"
   },
-
   sectionLine: {
     flex: 1,
-    height: "2px",
-    borderRadius: "10px",
-    background: "linear-gradient(90deg,transparent,#38bdf8,#facc15,transparent)"
+    height: "1px",
+    background: "linear-gradient(90deg,transparent,rgba(56,189,248,0.4),transparent)"
   },
-
   sectionTitleText: {
     margin: 0,
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: "900",
     letterSpacing: "0.5px"
   },
 
   actionPanel: {
-    background: "linear-gradient(180deg,#061936,#07101e)",
-    border: "1.5px solid #1d4ed8",
-    borderRadius: "20px",
+    background: "#090e1a",
+    border: "1px solid rgba(56, 189, 248, 0.2)",
+    borderRadius: "18px",
     padding: "10px",
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "10px",
-    boxShadow: "inset 0 0 25px rgba(59,130,246,0.2)"
+    gap: "8px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.5)"
   },
-
   actionButton: {
     position: "relative",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    background: "rgba(255, 255, 255, 0.08)",
-    backdropFilter: "blur(8px)",
-    WebkitBackdropFilter: "blur(8px)",
-    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    border: "1px solid rgba(255, 255, 255, 0.08)",
+    background: "rgba(255, 255, 255, 0.03)",
+    borderRadius: "12px",
     padding: "10px 4px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     gap: "4px",
-    overflow: "hidden",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
-    cursor: "pointer"
+    cursor: "pointer",
+    transition: "all 0.2s ease"
   },
-
   actionIconCircle: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "12px",
-    background: "rgba(255,255,255,0.18)",
-    backdropFilter: "blur(6px)",
-    WebkitBackdropFilter: "blur(6px)",
+    width: "34px",
+    height: "34px",
+    borderRadius: "10px",
+    background: "rgba(56, 189, 248, 0.12)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "18px"
+    fontSize: "16px"
   },
-
   actionTextBox: {
     textAlign: "center",
-    zIndex: 2,
     width: "100%"
   },
-
   actionTitle: {
     margin: 0,
     fontSize: "11px",
     fontWeight: "800",
-    lineHeight: "1.1",
+    color: "#f8fafc",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis"
   },
-
   actionSubtitle: {
     margin: "2px 0 0",
     fontSize: "9px",
-    color: "rgba(255,255,255,0.8)",
+    color: "#94a3b8",
     fontWeight: "600",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis"
   },
-
   actionShine: {
     position: "absolute",
-    right: "-18px",
-    top: "-18px",
-    width: "50px",
-    height: "50px",
+    right: "-12px",
+    top: "-12px",
+    width: "40px",
+    height: "40px",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.12)"
-  },
-
-  actionInvest: {
-    background: "rgba(0, 255, 117, 0.12)",
-    border: "1px solid rgba(0, 255, 117, 0.3)"
-  },
-  actionMyInvestment: {
-    background: "rgba(0, 180, 255, 0.12)",
-    border: "1px solid rgba(0, 180, 255, 0.3)"
-  },
-  actionWallet: {
-    background: "rgba(217, 70, 239, 0.12)",
-    border: "1px solid rgba(217, 70, 239, 0.3)"
-  },
-  actionWithdraw: {
-    background: "rgba(255, 107, 0, 0.12)",
-    border: "1px solid rgba(255, 107, 0, 0.3)"
-  },
-  actionRefer: {
-    background: "rgba(255, 0, 122, 0.12)",
-    border: "1px solid rgba(255, 0, 122, 0.3)"
-  },
-  actionTransaction: {
-    background: "rgba(0, 229, 255, 0.12)",
-    border: "1px solid rgba(0, 229, 255, 0.3)"
-  },
-  actionKyc: {
-    background: "rgba(0, 245, 255, 0.12)",
-    border: "1px solid rgba(0, 245, 255, 0.3)"
-  },
-  actionReward: {
-    background: "rgba(168, 85, 247, 0.12)",
-    border: "1px solid rgba(168, 85, 247, 0.3)"
-  },
-  actionBank: {
-    background: "rgba(255, 183, 3, 0.12)",
-    border: "1px solid rgba(255, 183, 3, 0.3)"
-  },
-  actionPlan: {
-    background: "rgba(0, 176, 255, 0.12)",
-    border: "1px solid rgba(0, 176, 255, 0.3)"
-  },
-  actionNotification: {
-    background: "rgba(255, 23, 68, 0.12)",
-    border: "1px solid rgba(255, 23, 68, 0.3)"
-  },
-  actionSupport: {
-    background: "rgba(0, 255, 117, 0.12)",
-    border: "1px solid rgba(0, 255, 117, 0.3)"
+    background: "rgba(255,255,255,0.05)"
   },
 
   promoBanner: {
     marginTop: "16px",
     borderRadius: "18px",
     padding: "16px",
-    background: "linear-gradient(135deg,#4c1d95,#8b00ff,#9d00ff)",
+    background: "linear-gradient(135deg,#090e1a,#1e1b4b,#311042)",
+    border: "1px solid rgba(168, 85, 247, 0.3)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 8px 24px rgba(126,34,206,0.35)"
+    boxShadow: "0 10px 25px rgba(0,0,0,0.5)"
   },
-
-  promoContent: {
-    flex: 1
-  },
-
+  promoContent: { flex: 1 },
   promoTitle: {
     margin: 0,
-    fontSize: "16px",
+    fontSize: "15px",
     fontWeight: "900",
-    lineHeight: "1.2"
+    color: "#f8fafc",
+    lineHeight: "1.3"
   },
-
   promoSubtitle: {
     margin: "4px 0 0",
     fontSize: "11px",
-    color: "#e9d5ff"
+    color: "#c084fc"
   },
-
   promoButton: {
     marginTop: "10px",
-    border: "1px solid rgba(250, 204, 21, 0.5)",
-    background: "rgba(250, 204, 21, 0.2)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    clipPath: "polygon(8px 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%)",
+    border: "1px solid rgba(168, 85, 247, 0.5)",
+    background: "rgba(168, 85, 247, 0.2)",
     color: "#ffffff",
     fontWeight: "900",
-    fontSize: "12px",
+    fontSize: "11px",
+    borderRadius: "8px",
     cursor: "pointer",
-    padding: "8px 14px"
+    padding: "6px 12px"
   },
-
-  promoIcon: {
-    fontSize: "36px"
-  },
+  promoIcon: { fontSize: "32px" },
 
   trustPanel: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
     gap: "8px",
     marginTop: "14px",
-    background: "#071831",
-    borderRadius: "18px",
+    background: "#090e1a",
+    borderRadius: "16px",
     padding: "10px",
-    border: "1px solid #1e40af"
+    border: "1px solid rgba(255,255,255,0.08)"
   },
-
   trustMiniCard: {
     display: "flex",
     alignItems: "center",
     gap: "8px",
-    background: "rgba(15,23,42,0.65)",
-    borderRadius: "12px",
-    padding: "8px 10px"
+    background: "rgba(255,255,255,0.03)",
+    borderRadius: "10px",
+    padding: "8px 10px",
+    border: "1px solid rgba(255,255,255,0.04)"
   },
-
-  trustIconCircle: {
-    fontSize: "18px"
-  },
-
+  trustIconCircle: { fontSize: "16px" },
   trustTitle: {
     margin: 0,
     fontSize: "11px",
     fontWeight: "800",
-    whiteSpace: "nowrap"
+    color: "#f8fafc"
   },
-
   trustSubtitle: {
     margin: "2px 0 0",
     color: "#94a3b8",
-    fontSize: "9px",
-    whiteSpace: "nowrap"
+    fontSize: "9px"
   },
 
   aboutStrip: {
     width: "100%",
-    marginTop: "16px",
+    marginTop: "14px",
     padding: "12px",
-    border: "1px solid rgba(6, 182, 212, 0.4)",
-    background: "rgba(6, 182, 212, 0.2)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    clipPath: "polygon(12px 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0% 50%)",
-    color: "white",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
+    background: "rgba(56, 189, 248, 0.1)",
+    borderRadius: "12px",
+    color: "#38bdf8",
     fontWeight: "900",
-    fontSize: "13px",
+    fontSize: "12px",
     cursor: "pointer"
   },
 
   helpText: {
     textAlign: "center",
-    color: "#22ff73",
-    fontSize: "15px",
+    color: "#34d399",
+    fontSize: "14px",
     fontWeight: "900",
-    marginTop: "18px",
+    marginTop: "16px",
     letterSpacing: "0.5px"
   },
 
   footer: {
     textAlign: "center",
-    padding: "20px 4px 10px",
-    color: "#87CEEB"
+    padding: "18px 4px 10px",
+    color: "#94a3b8"
   },
-
   footerLinks: {
     display: "flex",
     flexWrap: "wrap",
@@ -2147,7 +1854,6 @@ const styles = {
     justifyContent: "center",
     marginBottom: "10px"
   },
-
   footerLinkBtn: {
     background: "transparent",
     border: "none",
@@ -2157,27 +1863,23 @@ const styles = {
     cursor: "pointer",
     padding: "2px 4px"
   },
-
   loadingLogoImg: {
-    width: "80px",
-    height: "80px",
+    width: "70px",
+    height: "70px",
     objectFit: "contain",
-    borderRadius: "16px"
+    borderRadius: "14px"
   },
 
   bottomNav: {
     position: "fixed",
-    bottom: 0,
-    left: 0,
-    right: 0,
+    bottom: 0, left: 0, right: 0,
     height: "56px",
-    background: "#020817",
+    background: "#060913",
     display: "grid",
     gridTemplateColumns: "repeat(4,1fr)",
-    borderTop: "1px solid #1e40af",
+    borderTop: "1px solid rgba(56, 189, 248, 0.2)",
     zIndex: 999
   },
-
   bottomNavItem: {
     border: "none",
     background: "transparent",
@@ -2186,58 +1888,13 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "11px",
+    fontSize: "10px",
     cursor: "pointer"
   },
-
   bottomNavItemActive: {
-    background: "#0f2a5c",
-    color: "white"
+    background: "rgba(56, 189, 248, 0.15)",
+    color: "#38bdf8"
   },
-
-  bottomNavIcon: {
-    fontSize: "18px"
-  },
-
-  bottomNavText: {
-    fontSize: "10px",
-    marginTop: "2px"
-  }
+  bottomNavIcon: { fontSize: "18px" },
+  bottomNavText: { fontSize: "10px", marginTop: "2px" }
 };
-
-// 🟢 অ্যানিমেশন স্টাইল আপডেট (সম্পূর্ণ স্মুথ 20s ফুল অ্যানিমেশন)
-const animationStyleSheet = document.createElement("style");
-animationStyleSheet.type = "text/css";
-animationStyleSheet.innerText = `
-  @keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-  }
-
-  @keyframes appPulse {
-    0% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-    }
-    70% {
-      transform: scale(1);
-      box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
-    }
-    100% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-    }
-  }
-
-  .premium-app-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6) !important;
-  }
-
-  .premium-download-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-`;
-if (typeof document !== "undefined") {
-  document.head.appendChild(animationStyleSheet);
-}
