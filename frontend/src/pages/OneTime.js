@@ -62,14 +62,13 @@ export default function OneTime() {
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
-    // নিজস্ব ইউনিক বোনাস কোড জেনারেট বা লোড করার ফাংশন (ডাটাবেজ ও লোকালস্টерেজ সিনক্রোনাইজড)
   const getOrGenerateUniqueCode = () => {
     if (user && user.bonusCode) {
       return user.bonusCode;
     }
 
     const userEmail = email.trim().toLowerCase();
-    if (!userEmail) return "ot324556"; // ডিফল্ট ফলব্যাক
+    if (!userEmail) return "ot324556";
 
     const storedCodeKey = `sm_bonus_code_${userEmail}`;
     let existingCode = localStorage.getItem(storedCodeKey);
@@ -83,17 +82,14 @@ export default function OneTime() {
     return existingCode;
   };
   
-
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
 
-  // বোনাস এবং রেফারেল স্টেট
   const [showBonusModal, setShowBonusModal] = useState(false);
   const [bonusInputCode, setBonusInputCode] = useState("");
   const [bonusList, setBonusList] = useState([]);
 
-  // স্লিপ পপআপের জন্য স্টেট
   const [selectedTxn, setSelectedTxn] = useState(null);
 
   const [user, setUser] = useState({});
@@ -128,6 +124,7 @@ export default function OneTime() {
   const [txnId, setTxnId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [depositing, setDepositing] = useState(false);
+  const [razorpayLoading, setRazorpayLoading] = useState(false);
 
   const [bankForm, setBankForm] = useState({
     accountNumber: "",
@@ -556,6 +553,113 @@ export default function OneTime() {
       triggerToast("Error uploading deposit screenshot", "error");
     } finally {
       setDepositing(false);
+    }
+  };
+
+  // 🟢 RAZORPAY PAYMENT GATEWAY INTEGRATION
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleRazorpayPayment = async () => {
+    if (!amount || amount <= 0) {
+      triggerToast("Please select a valid deposit amount", "error");
+      return;
+    }
+
+    setRazorpayLoading(true);
+    const resLoaded = await loadRazorpayScript();
+    if (!resLoaded) {
+      triggerToast("Razorpay SDK failed to load. Check your internet connection.", "error");
+      setRazorpayLoading(false);
+      return;
+    }
+
+    try {
+      // Step 1: Create Order on Backend
+      const orderRes = await fetch(`${API}/api/onetime/create-razorpay-order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({ email, amount: Number(amount) })
+      });
+      const orderData = await orderRes.json();
+
+      if (!orderRes.ok || !orderData.success) {
+        triggerToast(orderData.message || "Failed to create Razorpay order", "error");
+        setRazorpayLoading(false);
+        return;
+      }
+
+      const { orderId, keyId, currency } = orderData;
+
+      // Step 2: Open Razorpay Checkout Modal
+      const options = {
+        key: keyId,
+        amount: Number(amount) * 100, // Amount in paise
+        currency: currency || "INR",
+        name: "Save Money",
+        description: "Add Fund to Wallet",
+        order_id: orderId,
+        handler: async function (response) {
+          try {
+            // Step 3: Verify Payment on Backend
+            const verifyRes = await fetch(`${API}/api/onetime/verify-razorpay-payment`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                authorization: token
+              },
+              body: JSON.stringify({
+                email,
+                amount: Number(amount),
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature
+              })
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyRes.ok && verifyData.success) {
+              triggerToast("🎉 Payment Successful! Funds added to wallet.", "success");
+              setShowAddFundModal(false);
+              await loadDashboardData();
+            } else {
+              triggerToast(verifyData.message || "Payment verification failed", "error");
+            }
+          } catch (err) {
+            triggerToast("Error verifying payment", "error");
+          }
+        },
+        prefill: {
+          name: user?.name || "SaveMoney User",
+          email: email,
+          contact: user?.mobile || user?.phone || ""
+        },
+        theme: {
+          color: "#16a34a"
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (err) {
+      console.error("Razorpay error:", err);
+      triggerToast("Payment initialization failed", "error");
+    } finally {
+      setRazorpayLoading(false);
     }
   };
 
@@ -1448,7 +1552,6 @@ export default function OneTime() {
               </div>
             )}
 
-            {/* ইউনিক বোনাস কোড সেকশন */}
             <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px dashed #22c55e", marginBottom: "14px", textAlign: "center" }}>
               <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Your Unique Bonus Code</span>
               <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>
@@ -1689,6 +1792,7 @@ export default function OneTime() {
         </div>
       )}
 
+      {/* 🟢 ADD FUND MODAL WITH RAZORPAY BUTTON */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
@@ -1696,7 +1800,37 @@ export default function OneTime() {
               <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Add Investment Fund</h3>
               <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
-            <p style={{ fontSize: "14px", color: "#cbd5e1", margin: "0 0 12px 0" }}>
+
+            {/* RAZORPAY INSTANT PAY BUTTON */}
+            <div style={{ marginBottom: "16px" }}>
+              <p style={{ fontSize: "13px", color: "#cbd5e1", margin: "0 0 10px 0" }}>
+                Pay instantly via UPI / Card / NetBanking (<strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong>):
+              </p>
+              <button 
+                type="button"
+                style={{
+                  ...styles.submitBtnDark,
+                  background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                  marginBottom: "12px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px"
+                }}
+                onClick={handleRazorpayPayment}
+                disabled={razorpayLoading}
+              >
+                <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${amount.toLocaleString("en-IN")} with Razorpay`}
+              </button>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "10px 0", color: "#64748b", fontSize: "12px" }}>
+              <div style={{ flex: 1, height: "1px", background: "#1e293b" }}></div>
+              <span>OR MANUAL DEPOSIT</span>
+              <div style={{ flex: 1, height: "1px", background: "#1e293b" }}></div>
+            </div>
+
+            <p style={{ fontSize: "13px", color: "#cbd5e1", margin: "0 0 10px 0" }}>
               Send <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong> to company wallet:
             </p>
             <div style={styles.walletBoxDark}>
@@ -1705,6 +1839,7 @@ export default function OneTime() {
                 <button style={styles.copyBtn} onClick={handleCopyWallet}>Copy</button>
               </div>
             </div>
+
             <form onSubmit={handleDepositSubmit} style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "12px" }}>
               <div>
                 <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
@@ -1715,7 +1850,7 @@ export default function OneTime() {
                 <input type="file" accept="image/*" style={styles.fileInputDark} onChange={(e) => setScreenshot(e.target.files[0])} required />
               </div>
               <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
-                {depositing ? "Uploading..." : "Submit Deposit Proof"}
+                {depositing ? "Uploading..." : "Submit Manual Deposit Proof"}
               </button>
             </form>
           </div>
@@ -1838,6 +1973,7 @@ const getStatusStyleDark = (status) => {
 };
 
 const styles = {
+  // আগের সব স্টাইল হুবহু রাখা হয়েছে...
   page: {
     minHeight: "100vh",
     width: "100%",
