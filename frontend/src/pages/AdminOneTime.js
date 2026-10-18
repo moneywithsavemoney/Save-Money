@@ -15,6 +15,7 @@ export default function AdminOneTime() {
   const [investSearch, setInvestSearch] = useState("");
   const [showDepositHistory, setShowDepositHistory] = useState(false);
   const [showWithdrawHistory, setShowWithdrawHistory] = useState(false);
+  const [showCompletePlans, setShowCompletePlans] = useState(false); // 👈 কমপ্লিট প্লান টগল স্টেট
 
   const [openWithdrawId, setOpenWithdrawId] = useState(null);
   const [editingInvest, setEditingInvest] = useState(null);
@@ -241,7 +242,7 @@ export default function AdminOneTime() {
       setInvestDailyReturn("");
       load();
     } else {
-      toast.error(d.msg || "Failed to assign plan");
+      toast.error(d?.msg || "Failed to assign plan");
     }
   };
 
@@ -314,6 +315,17 @@ export default function AdminOneTime() {
     const duration = (i.duration || "").toLowerCase();
     const plan = (i.planName || i.name || i.investmentType || "").toLowerCase();
     return email.includes(q) || status.includes(q) || duration.includes(q) || plan.includes(q);
+  });
+
+  // 📌 একটিভ এবং কমপ্লিট প্লান আলাদা করা
+  const activeInvestmentsList = filteredInvestments.filter((i) => {
+    const st = (i.status || "active").toLowerCase();
+    return st === "active" || st === "approved" || st === "running" || st === "pending";
+  });
+
+  const completedInvestmentsList = filteredInvestments.filter((i) => {
+    const st = (i.status || "").toLowerCase();
+    return st === "completed" || st === "cancelled" || st === "rejected";
   });
 
   const pendingCashRequests = cash.filter(
@@ -434,84 +446,153 @@ export default function AdminOneTime() {
       <div style={styles.section}>
         <div style={styles.sectionHeaderRow}>
           <h2 style={styles.sectionTitle}>💼 Invested Users & Active Plans Directory</h2>
-          <input
-            style={styles.searchInput}
-            placeholder="🔍 Search Email / Status..."
-            value={investSearch}
-            onChange={(e) => setInvestSearch(e.target.value)}
-          />
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <input
+              style={styles.searchInput}
+              placeholder="🔍 Search Email / Status..."
+              value={investSearch}
+              onChange={(e) => setInvestSearch(e.target.value)}
+            />
+            {/* 👈 View Complete Plan টগল বাটন */}
+            <button style={styles.historyToggleBtn} onClick={() => setShowCompletePlans(!showCompletePlans)}>
+              {showCompletePlans ? "📋 Show Active Plans" : "📜 View Complete Plan"}
+            </button>
+          </div>
         </div>
 
-        <div style={styles.tableWrap}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>User Email</th>
-                <th style={styles.th}>Plan Name</th>
-                <th style={styles.th}>Amount</th>
-                <th style={styles.th}>Duration</th>
-                <th style={styles.th}>Daily Return</th>
-                <th style={styles.th}>Status</th>
-                <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredInvestments.length === 0 ? (
-                <tr><td colSpan="7" style={styles.emptyText}>No investments found</td></tr>
-              ) : (
-                filteredInvestments.map((inv, idx) => {
-                  const rawStatus = inv.status || "Active";
-                  const statusLower = rawStatus.toLowerCase();
-                  const isActive = statusLower === "active" || statusLower === "approved" || statusLower === "running";
+        {showCompletePlans ? (
+          // 👈 কমপ্লিট হয়ে যাওয়া প্লানগুলোর হিস্ট্রি টেবিল
+          <div style={styles.tableWrap}>
+            <h4 style={styles.subText}>Historical Completed / Cancelled Investment Plans</h4>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>User Email</th>
+                  <th style={styles.th}>Plan Name</th>
+                  <th style={styles.th}>Amount</th>
+                  <th style={styles.th}>Duration</th>
+                  <th style={styles.th}>Daily Return</th>
+                  <th style={styles.th}>Status</th>
+                  <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {completedInvestmentsList.length === 0 ? (
+                  <tr><td colSpan="7" style={styles.emptyText}>No completed or cancelled investments found.</td></tr>
+                ) : (
+                  completedInvestmentsList.map((inv, idx) => {
+                    const rawStatus = inv.status || "Completed";
+                    const statusLower = rawStatus.toLowerCase();
 
-                  return (
-                    <tr key={inv._id || idx} style={styles.tr}>
-                      <td style={styles.td}>
-                        <div style={{ fontWeight: "600", color: "#f8fafc" }}>{inv.email || inv.userEmail || "User"}</div>
-                        <div style={{ fontSize: "11px", color: "#64748b" }}>ID: {inv._id || "N/A"}</div>
-                      </td>
-                      <td style={styles.td}>
-                        <span style={styles.badgeBlue}>
-                          {inv.planName || inv.name || inv.investmentType || "ontime investment"}
-                        </span>
-                      </td>
-                      <td style={{ ...styles.td, color: "#22c55e", fontWeight: "bold" }}>
-                        {money(inv.amount)}
-                      </td>
-                      <td style={styles.td}>
-                        {inv.duration || "N/A"}
-                      </td>
-                      <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
-                        {money(inv.dailyReturn || inv.dailyEarning || 0)}/day
-                      </td>
-                      <td style={styles.td}>
-                        <span style={{
-                          padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "11px",
-                          background: isActive ? "rgba(34,197,94,0.2)" : statusLower === "cancelled" ? "rgba(239,68,68,0.2)" : "rgba(234,179,8,0.2)",
-                          color: isActive ? "#22c55e" : statusLower === "cancelled" ? "#f87171" : "#eab308"
-                        }}>
-                          {rawStatus}
-                        </span>
-                      </td>
-                      <td style={{ ...styles.td, textAlign: "center" }}>
-                        <div style={{ display: "flex", gap: "6px", justifyContent: "center" }}>
+                    return (
+                      <tr key={inv._id || idx} style={styles.tr}>
+                        <td style={styles.td}>
+                          <div style={{ fontWeight: "600", color: "#f8fafc" }}>{inv.email || inv.userEmail || "User"}</div>
+                          <div style={{ fontSize: "11px", color: "#64748b" }}>ID: {inv._id || "N/A"}</div>
+                        </td>
+                        <td style={styles.td}>
+                          <span style={styles.badgeBlue}>
+                            {inv.planName || inv.name || inv.investmentType || "ontime investment"}
+                          </span>
+                        </td>
+                        <td style={{ ...styles.td, color: "#22c55e", fontWeight: "bold" }}>
+                          {money(inv.amount)}
+                        </td>
+                        <td style={styles.td}>{inv.duration || "N/A"}</td>
+                        <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
+                          {money(inv.dailyReturn || inv.dailyEarning || 0)}/day
+                        </td>
+                        <td style={styles.td}>
+                          <span style={{
+                            padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "11px",
+                            background: statusLower === "cancelled" ? "rgba(239,68,68,0.2)" : "rgba(234,179,8,0.2)",
+                            color: statusLower === "cancelled" ? "#f87171" : "#eab308"
+                          }}>
+                            {rawStatus}
+                          </span>
+                        </td>
+                        <td style={{ ...styles.td, textAlign: "center" }}>
                           <button style={styles.editBtn} onClick={() => setEditingInvest({ ...inv })}>
                             ✏️ Modify
                           </button>
-                          {isActive && (
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          // 👈 মূল অ্যাক্টিভ প্লানগুলোর টেবিল
+          <div style={styles.tableWrap}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>User Email</th>
+                  <th style={styles.th}>Plan Name</th>
+                  <th style={styles.th}>Amount</th>
+                  <th style={styles.th}>Duration</th>
+                  <th style={styles.th}>Daily Return</th>
+                  <th style={styles.th}>Status</th>
+                  <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeInvestmentsList.length === 0 ? (
+                  <tr><td colSpan="7" style={styles.emptyText}>No active investments found</td></tr>
+                ) : (
+                  activeInvestmentsList.map((inv, idx) => {
+                    const rawStatus = inv.status || "Active";
+                    const statusLower = rawStatus.toLowerCase();
+
+                    return (
+                      <tr key={inv._id || idx} style={styles.tr}>
+                        <td style={styles.td}>
+                          <div style={{ fontWeight: "600", color: "#f8fafc" }}>{inv.email || inv.userEmail || "User"}</div>
+                          <div style={{ fontSize: "11px", color: "#64748b" }}>ID: {inv._id || "N/A"}</div>
+                        </td>
+                        <td style={styles.td}>
+                          <span style={styles.badgeBlue}>
+                            {inv.planName || inv.name || inv.investmentType || "ontime investment"}
+                          </span>
+                        </td>
+                        <td style={{ ...styles.td, color: "#22c55e", fontWeight: "bold" }}>
+                          {money(inv.amount)}
+                        </td>
+                        <td style={styles.td}>
+                          {inv.duration || "N/A"}
+                        </td>
+                        <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
+                          {money(inv.dailyReturn || inv.dailyEarning || 0)}/day
+                        </td>
+                        <td style={styles.td}>
+                          <span style={{
+                            padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "11px",
+                            background: "rgba(34,197,94,0.2)",
+                            color: "#22c55e"
+                          }}>
+                            {rawStatus}
+                          </span>
+                        </td>
+                        <td style={{ ...styles.td, textAlign: "center" }}>
+                          <div style={{ display: "flex", gap: "6px", justifyContent: "center" }}>
+                            <button style={styles.editBtn} onClick={() => setEditingInvest({ ...inv })}>
+                              ✏️ Modify
+                            </button>
                             <button style={styles.cancelBtn} onClick={() => handleCancelInvestment(inv)}>
                               ❌ Cancel Plan
                             </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* MODAL FOR MODIFYING INVESTMENT */}
