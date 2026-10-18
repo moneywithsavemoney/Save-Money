@@ -44,6 +44,12 @@ const { P2PUser, P2PReview } = require("./models/p2p");
 const sendPushNotification = require("./utils/sendPush");
 const News = mongoose.model("News", new mongoose.Schema({ message: String }));
 const OneTimeInvestment = require("./models/OneTimeInvestment");
+
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 // === Firebase Admin SDK Import ===
 const admin = require('firebase-admin');
 
@@ -133,6 +139,78 @@ app.post("/razorpay-webhook", express.raw({ type: "application/json" }), async (
 });
 
 app.use(express.json());
+
+// 1. Create Razorpay Order Route
+app.post("/api/onetime/create-razorpay-order", async (req, res) => {
+  try {
+    const { email, amount } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid amount" });
+    }
+
+    const options = {
+      amount: Number(amount) * 100, // INR to paise
+      currency: "INR",
+      receipt: `receipt_ot_${Date.now()}`,
+    };
+
+    const order = await razorpayInstance.orders.create(options);
+    if (!order) {
+      return res.status(500).json({ success: false, message: "Error creating Razorpay order" });
+    }
+
+    res.json({
+      success: true,
+      orderId: order.id,
+      keyId: process.env.RAZORPAY_KEY_ID,
+      currency: order.currency,
+    });
+  } catch (err) {
+    console.error("Razorpay order creation error:", err);
+    res.status(500).json({ success: false, message: "Server error creating Razorpay order" });
+  }
+});
+
+// 2. Verify Razorpay Payment & Add Fund Route
+app.post("/api/onetime/verify-razorpay-payment", async (req, res) => {
+  try {
+    const { email, amount, razorpayOrderId, razorpayPaymentId, razorpaySignature } = req.body;
+
+    const body = razorpayOrderId + "|" + razorpayPaymentId;
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
+
+    if (expectedSignature !== razorpaySignature) {
+      return res.status(400).json({ success: false, message: "Invalid payment signature" });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.otbalance = (Number(user.otbalance) || 0) + Number(amount);
+    
+    if (!user.onetimeHistory) user.onetimeHistory = [];
+    user.onetimeHistory.unshift({
+      type: "Add Fund",
+      amount: Number(amount),
+      transactionId: razorpayPaymentId,
+      status: "Success",
+      createdAt: new Date()
+    });
+
+    await user.save();
+
+    res.json({ success: true, message: "Payment verified and funds added successfully!" });
+  } catch (err) {
+    console.error("Payment verification error:", err);
+    res.status(500).json({ success: false, message: "Server error verifying payment" });
+  }
+});
+
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
