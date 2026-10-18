@@ -722,13 +722,28 @@ export default function Wallet() {
             <WalletIllustration />
           </section>
 
-          {/* INCOME PANEL GRID */}
+          {/* 4 BONUS INCOME CARDS */}
           <section style={styles.incomePanel}>
             <IncomeCard icon="👥" title="REFERRAL" amount={wallet.referral} color="#38bdf8" />
             <IncomeCard icon="📈" title="PERFORMANCE" amount={wallet.performance} color="#f59e0b" />
             <IncomeCard icon="👥" title="TEAM" amount={wallet.team} color="#6366f1" />
             <IncomeCard icon="👑" title="ROYALTY" amount={wallet.royalty} color="#a855f7" />
-            <IncomeCard icon="👛" title="TODAY EARNING" amount={wallet.todayBalance} color="#10b981" />
+          </section>
+
+          {/* TODAY EARNING LONG BANNER */}
+          <section style={styles.todayBannerCard} className="diamond-card-glow">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={styles.todayBannerIcon}>👛</div>
+                <div>
+                  <h4 style={{ color: "#94a3b8", fontSize: "11px", fontWeight: "700", margin: 0, letterSpacing: "0.5px" }}>TODAY EARNING</h4>
+                  <p style={{ color: "#34d399", fontSize: "10px", margin: "2px 0 0 0" }}>Real-time daily yield</p>
+                </div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <h2 style={{ color: "#f8fafc", fontSize: "20px", fontWeight: "900", margin: 0 }}>₹{Number(wallet.todayBalance).toLocaleString()}</h2>
+              </div>
+            </div>
           </section>
 
           {/* MIDDLE GRID: TRANSFER & REFER */}
@@ -767,11 +782,11 @@ export default function Wallet() {
             </div>
 
             <div style={styles.inviteCard} className="diamond-card-glow">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", gap: "10px" }}>
                 <div style={{ flex: 1 }}>
                   <div style={styles.inviteTop}>💎 UNLIMITED REWARDS</div>
                   <h2 style={styles.inviteTitle}>Invite & Earn</h2>
-                  <h3 style={styles.inviteTitle2}>Grow Your Network Fast</h3>
+                  <p style={styles.inviteSubText}>Grow your network fast & unlock elite perks.</p>
                 </div>
                 <div style={styles.giftBox}>🎁</div>
               </div>
@@ -872,7 +887,7 @@ export default function Wallet() {
             )}
           </section>
 
-          {/* BOTTOM FEATURES (PERFECTLY GRIDDED 3-COLUMN LAYOUT) */}
+          {/* BOTTOM FEATURES */}
           <section style={styles.bottomFeatures}>
             <div style={styles.featureItem} className="diamond-feature-card">
               <div style={styles.featureIconBadge}>🛡️</div>
@@ -1245,8 +1260,8 @@ function IncomeCard({ icon, title, amount, color }) {
   return (
     <div style={styles.incomeCard} className="diamond-income-box">
       <div style={{ ...styles.incomeIcon, background: color, boxShadow: `0 0 12px ${color}55` }}>{icon}</div>
-      <h4 style={{ color: "#94a3b8", fontSize: "11px", fontWeight: "700", margin: "4px 0" }}>{title}</h4>
-      <h2 style={{ color: "#f8fafc", fontSize: "17px", fontWeight: "900", margin: 0 }}>₹{Number(amount).toLocaleString()}</h2>
+      <h4 style={{ color: "#94a3b8", fontSize: "10px", fontWeight: "700", margin: "4px 0" }}>{title}</h4>
+      <h2 style={{ color: "#f8fafc", fontSize: "16px", fontWeight: "900", margin: 0 }}>₹{Number(amount).toLocaleString()}</h2>
       <div style={{ ...styles.incomeWave, color }}>✦ ✧ ✦</div>
     </div>
   );
@@ -1282,7 +1297,7 @@ const diamondCutThemeCSS = `
   .diamond-income-box {
     background: #090e1a !important;
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
+    border-radius: 14px;
     padding: 12px 6px;
     transition: all 0.3s ease;
   }
@@ -1978,9 +1993,9 @@ const styles = {
   },
   incomePanel: {
     display: "grid",
-    gridTemplateColumns: "repeat(5,1fr)",
-    gap: "8px",
-    marginBottom: "14px"
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: "10px",
+    marginBottom: "10px"
   },
   incomeCard: {
     textAlign: "center"
@@ -2000,6 +2015,25 @@ const styles = {
     fontSize: "10px",
     fontWeight: "900",
     marginTop: "2px"
+  },
+  todayBannerCard: {
+    background: "#090e1a",
+    borderRadius: "16px",
+    padding: "14px 18px",
+    marginBottom: "14px",
+    border: "1px solid rgba(16,185,129,0.3)",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.4)"
+  },
+  todayBannerIcon: {
+    width: "38px",
+    height: "38px",
+    borderRadius: "50%",
+    background: "rgba(16, 185, 129, 0.15)",
+    border: "1px solid rgba(16, 185, 129, 0.4)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "18px"
   },
   middleGrid: {
     display: "grid",
@@ -2083,20 +2117,24 @@ const styles = {
   inviteTop: {
     color: "#38bdf8",
     fontWeight: "800",
-    fontSize: "11px"
+    fontSize: "11px",
+    letterSpacing: "0.5px"
   },
   inviteTitle: {
     fontSize: "18px",
-    margin: "4px 0 0",
-    color: "#f8fafc"
+    margin: "4px 0 2px 0",
+    color: "#f8fafc",
+    fontWeight: "800"
   },
-  inviteTitle2: {
-    color: "#34d399",
-    fontSize: "13px",
-    margin: "2px 0"
+  inviteSubText: {
+    color: "#94a3b8",
+    fontSize: "11px",
+    margin: 0,
+    lineHeight: "1.3"
   },
   giftBox: {
-    fontSize: "48px"
+    fontSize: "42px",
+    lineHeight: 1
   },
   inviteBtn: {
     height: "40px",
