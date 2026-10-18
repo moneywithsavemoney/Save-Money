@@ -16,7 +16,6 @@ export default function Login() {
   const [otpLoading, setOtpLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // পেজ লোড হওয়ার সময় Remember Me চেক করা থাকলে ডেটা রিকভার করে ফিল্ডে বসিয়ে দিবে
   useEffect(() => {
     const savedRemember = localStorage.getItem("rememberMe") === "true";
     const savedMode = localStorage.getItem("rememberMode") || "email";
@@ -46,7 +45,6 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(data.user));
     }
 
-    // Remember Me লজিক সঠিকভাবে হ্যান্ডেল করা
     if (remember) {
       localStorage.setItem("rememberMe", "true");
       localStorage.setItem("rememberLogin", mode === "email" ? email : mobile);
@@ -193,19 +191,22 @@ export default function Login() {
 
   return (
     <div style={styles.page}>
+      {/* Dynamic keyframe animation CSS injection */}
+      <style>{animationStyles}</style>
 
-      <div style={styles.bgCircleOne}></div>
-      <div style={styles.bgCircleTwo}></div>
-      <div style={styles.bgPill}></div>
+      {/* Floating Animated Circles */}
+      <div style={{ ...styles.bgCircleOne, animation: "floatSlow 8s ease-in-out infinite" }}></div>
+      <div style={{ ...styles.bgCircleTwo, animation: "pulseGlow 6s ease-in-out infinite" }}></div>
+      <div style={{ ...styles.bgPill, animation: "floatSlow 10s ease-in-out infinite reverse" }}></div>
 
-      <div style={styles.mainCard}>
+      <div style={{ ...styles.mainCard, animation: "fadeInUp 0.8s ease-out" }}>
 
         <div style={styles.logoArea}>
-
           <div style={styles.piggyBase}>
-            <div style={styles.coin}>₹</div>
+            {/* Animated Drop Coin */}
+            <div style={{ ...styles.coin, animation: "coinDrop 2.5s infinite ease-in-out" }}>₹</div>
 
-            <div style={styles.piggy}>
+            <div style={{ ...styles.piggy, animation: "wiggle 3s ease-in-out infinite" }}>
               <span style={styles.earLeft}></span>
               <span style={styles.earRight}></span>
               <span style={styles.eyeLeft}></span>
@@ -221,11 +222,11 @@ export default function Login() {
             <span style={styles.logoMoney}>money</span>
           </h1>
 
-         <div style={styles.tagline}>
-          <span style={styles.taglineLine}></span>
-          <p style={{ margin: 0 }}>Save Today, Secure Tomorrow</p>
-          <span style={styles.taglineLine}></span>
-        </div>
+          <div style={styles.tagline}>
+            <span style={styles.taglineLine}></span>
+            <p style={{ margin: 0 }}>Save Today, Secure Tomorrow</p>
+            <span style={styles.taglineLine}></span>
+          </div>
 
           <h2 style={styles.welcomeTitle}>Welcome Back!</h2>
           <p style={styles.welcomeSub}>
@@ -270,13 +271,13 @@ export default function Login() {
           </div>
 
           {message && (
-            <div style={styles.messageBox}>
+            <div style={{ ...styles.messageBox, animation: "fadeInUp 0.3s ease" }}>
               {message}
             </div>
           )}
 
           {mode === "email" ? (
-            <>
+            <div key="email-fields" style={{ animation: "fadeInUp 0.4s ease" }}>
               <div style={styles.inputActive}>
                 <div style={styles.inputIcon}>✉</div>
                 <input
@@ -305,9 +306,9 @@ export default function Login() {
                   👁
                 </button>
               </div>
-            </>
+            </div>
           ) : (
-            <>
+            <div key="mobile-fields" style={{ animation: "fadeInUp 0.4s ease" }}>
               <div style={styles.inputActive}>
                 <div style={styles.inputIcon}>📱</div>
                 <input
@@ -335,7 +336,7 @@ export default function Login() {
                 />
                 <div style={styles.sideIcon}>✓</div>
               </div>
-            </>
+            </div>
           )}
 
           <div style={styles.optionsRow}>
@@ -348,7 +349,7 @@ export default function Login() {
               Remember Me
             </label>
 
-           <button
+            <button
               type="button"
               style={styles.forgot}
               onClick={() => {
@@ -362,13 +363,16 @@ export default function Login() {
 
           <button
             type="button"
-            style={styles.loginBtn}
+            style={{
+              ...styles.loginBtn,
+              animation: loading ? "pulseGlow 1.5s infinite" : "none"
+            }}
             onClick={handleLogin}
             disabled={loading}
           >
             <span style={styles.lockCircle}>🔒</span>
             {loading ? "Please Wait..." : "Login Now"}
-            <span style={styles.arrowCircle}>›</span>
+            <span style={{ ...styles.arrowCircle, animation: "bounceRight 1.5s infinite" }}>›</span>
           </button>
 
           <div style={styles.orRow}>
@@ -387,7 +391,7 @@ export default function Login() {
         </div>
 
         <div style={styles.registerCard}>
-          <div style={styles.registerIcon}>🪪</div>
+          <div style={{ ...styles.registerIcon, animation: "bounceRight 2s infinite" }}>🪪</div>
 
           <div style={styles.registerContent}>
             <h3 style={{ margin: "0 0 4px 0", fontSize: "16px" }}>Don’t have an account?</h3>
@@ -427,6 +431,49 @@ function Trust({ icon, title, text }) {
     </div>
   );
 }
+
+// Keyframe Animations CSS
+const animationStyles = `
+  @keyframes coinDrop {
+    0% { transform: translateY(-12px); opacity: 0.2; }
+    50% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-12px); opacity: 0.2; }
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes floatSlow {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(10deg); }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+
+  @keyframes bounceRight {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(4px); }
+  }
+
+  button, input {
+    transition: all 0.25s ease-in-out !important;
+  }
+
+  input:focus {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2) !important;
+  }
+`;
 
 const styles = {
   page: {
@@ -489,7 +536,8 @@ const styles = {
     position: "relative",
     overflow: "hidden",
     zIndex: 2,
-    boxSizing: "border-box"
+    boxSizing: "border-box",
+    backdropFilter: "blur(10px)"
   },
 
   logoArea: {
