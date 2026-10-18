@@ -8288,9 +8288,8 @@ app.post("/admin/onetime-reject-cash", async (req, res) => {
   }
 });
 
-
 // ==========================================
-// 1. UPDATE / MODIFY INVESTMENT PLAN
+// 1. UPDATE / MODIFY INVESTMENT PLAN (Fixed for User Subdocuments)
 // ==========================================
 app.post("/admin/onetime-update-investment", async (req, res) => {
   try {
@@ -8300,25 +8299,31 @@ app.post("/admin/onetime-update-investment", async (req, res) => {
       return res.status(400).json({ success: false, msg: "Investment ID required" });
     }
 
-    const updatedInvestment = await OneTimeInvestment.findOneAndUpdate(
-      { _id: investmentId }, // 👈 সঠিক কুয়েরি অবজেক্ট দেওয়া হলো
-      {
-        ...(amount && { amount: Number(amount) }),
-        ...(duration && { duration }),
-        ...(dailyReturn !== undefined && { dailyReturn: Number(dailyReturn) }),
-        ...(status && { status }),
-      },
-      { returnDocument: "after" } // 👈 রেন্ডার লগের ওয়ার্নিং দূর করার নতুন নিয়ম
-    );
-
-    if (!updatedInvestment) {
+    // ইউজারের ઓনটাইম হিস্ট্রির মধ্যে ইনভেস্টমেন্ট আইডি দিয়ে ইউজার খোঁজা
+    const user = await User.findOne({ "onetimeHistory._id": investmentId });
+    if (!user) {
       return res.status(404).json({ success: false, msg: "Investment plan not found" });
     }
+
+    // নির্দিষ্ট ইনভেস্টমেন্ট সাব-ডকুমেন্ট বের করা
+    const investment = user.onetimeHistory.id(investmentId) || user.onetimeHistory.find(i => String(i._id) === String(investmentId));
+    if (!investment) {
+      return res.status(404).json({ success: false, msg: "Investment plan not found" });
+    }
+
+    // ফিল্ডগুলো আপডেট করা
+    if (amount !== undefined) investment.amount = Number(amount);
+    if (duration) investment.duration = duration;
+    if (dailyReturn !== undefined) investment.dailyReturn = Number(dailyReturn);
+    if (status) investment.status = status;
+
+    user.markModified("onetimeHistory");
+    await user.save();
 
     return res.status(200).json({
       success: true,
       msg: "Investment plan updated successfully!",
-      investment: updatedInvestment
+      investment
     });
   } catch (err) {
     return res.status(500).json({ success: false, msg: "Failed to update investment", error: err.message });
@@ -8326,7 +8331,7 @@ app.post("/admin/onetime-update-investment", async (req, res) => {
 });
 
 // ==========================================
-// 2. CANCEL INVESTMENT PLAN
+// 2. CANCEL INVESTMENT PLAN (Fixed for User Subdocuments & Refund)
 // ==========================================
 app.post("/admin/onetime-cancel-investment", async (req, res) => {
   try {
@@ -8336,25 +8341,26 @@ app.post("/admin/onetime-cancel-investment", async (req, res) => {
       return res.status(400).json({ success: false, msg: "Investment ID required" });
     }
 
-    // ১. স্ট্যাটাস 'Cancelled' করা
-    const investment = await OneTimeInvestment.findOneAndUpdate(
-      { _id: investmentId }, // 👈 সঠিক কুয়েরি অবজেক্ট দেওয়া হলো
-      { status: "Cancelled" },
-      { returnDocument: "after" } // 👈 রেন্ডার লগের ওয়ার্নিং দূর করার নতুন নিয়ম
-    );
+    // ইউজারের ওনটাইম হিস্ট্রির মধ্যে ইনভেস্টমেন্ট আইডি দিয়ে ইউজার খোঁজা
+    const user = await User.findOne({ "onetimeHistory._id": investmentId });
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "Investment not found" });
+    }
 
+    const investment = user.onetimeHistory.id(investmentId) || user.onetimeHistory.find(i => String(i._id) === String(investmentId));
     if (!investment) {
       return res.status(404).json({ success: false, msg: "Investment not found" });
     }
 
-    // ২. ইউজারের ওয়ালেটে মূল অ্যামাউন্ট রিফান্ড করা
-    const userEmail = email || investment.email || investment.userEmail;
-    if (userEmail && investment.amount) {
-      await User.findOneAndUpdate(
-        { email: userEmail },
-        { $inc: { otbalance: Number(investment.amount) } }
-      );
-    }
+    // ১. স্ট্যাটাস Cancelled করা
+    investment.status = "Cancelled";
+
+    // ২. ইউজারের otbalance-এ টাকা রিফান্ড করা
+    const refundAmount = Number(investment.amount || 0);
+    user.otbalance = (Number(user.otbalance) || 0) + refundAmount;
+
+    user.markModified("onetimeHistory");
+    await user.save();
 
     return res.status(200).json({
       success: true,
@@ -8365,6 +8371,7 @@ app.post("/admin/onetime-cancel-investment", async (req, res) => {
     return res.status(500).json({ success: false, msg: "Failed to cancel investment", error: err.message });
   }
 });
+
 
 
 
