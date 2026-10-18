@@ -3,11 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 export default function EcommerceHome() {
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState("home"); // home, cart, address, payment, tracking
+  const [currentView, setCurrentView] = useState("home"); // home, cart, address-modal, payment, tracking, detail
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   // Address Form State
   const [address, setAddress] = useState({
@@ -15,12 +17,15 @@ export default function EcommerceHome() {
     phone: "",
     house: "",
     city: "",
-    pincode: ""
+    pincode: "",
+    state: ""
   });
 
   const [checkoutItem, setCheckoutItem] = useState(null);
+  const [showOrderSuccessModal, setShowOrderSuccessModal] = useState(false);
+  const [notificationBanner, setNotificationBanner] = useState({ show: false, message: "" });
 
-  // 🟢 ব্যাক প্রেস করলে মেইন সিস্টেমে না গিয়ে সরাসরি লগইন পেজে রিডাইরেক্ট করার লজিক
+  // 🟢 ব্যাক বাটন প্রেস করলে মেইন সিস্টেমে না গিয়ে সরাসরি লগইন পেজে রিডাইরেক্ট করার শক্তিশালী লজিক
   useEffect(() => {
     window.history.pushState(null, null, window.location.href);
     const handlePopState = () => {
@@ -36,62 +41,69 @@ export default function EcommerceHome() {
 
   // Load orders from localStorage
   useEffect(() => {
-    const savedOrders = JSON.parse(localStorage.getItem("user_demo_orders") || "[]");
+    const savedOrders = JSON.parse(localStorage.getItem("save_money_enterprise_orders") || "[]");
     setOrders(savedOrders);
   }, []);
 
-  // 🟢 ৫০+ সম্পূর্ণ আলাদা ও অনন্য (Unique) ইমেজ যুক্ত প্রোডাক্ট লিস্ট
+  const triggerNotification = (msg) => {
+    setNotificationBanner({ show: true, message: msg });
+    setTimeout(() => {
+      setNotificationBanner({ show: false, message: "" });
+    }, 2500);
+  };
+
+  // 🟢 ৫০টি সম্পূর্ণ আলাদা, ইউনিক ও হাই-কোয়ালিটি ইমেজ যুক্ত এন্টারপ্রাইজ প্রোডাক্ট লিস্ট
   const products = [
-    { id: 1, title: "Men Casual Cotton Checked Shirt", category: "Men Shirt", price: 299, oldPrice: 699, discount: "57% OFF", rating: "4.2 ★", image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&auto=format&fit=crop&q=60" },
-    { id: 2, title: "Men Slim Fit Stretchable Blue Jeans", category: "Men Jeans", price: 499, oldPrice: 1299, discount: "61% OFF", rating: "4.3 ★", image: "https://images.unsplash.com/photo-1542272604-780c36856d62?w=400&auto=format&fit=crop&q=60" },
-    { id: 3, title: "Women Floral Printed Rayon Kurti", category: "Women Kurti", price: 249, oldPrice: 799, discount: "68% OFF", rating: "4.4 ★", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400&auto=format&fit=crop&q=60" },
-    { id: 4, title: "Traditional Banarasi Silk Purple Saree", category: "Saree", price: 450, oldPrice: 1500, discount: "70% OFF", rating: "4.5 ★", image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&auto=format&fit=crop&q=60" },
-    { id: 5, title: "Women Soft Cotton Comfortable Nighty", category: "Nighty", price: 299, oldPrice: 699, discount: "57% OFF", rating: "4.1 ★", image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=400&auto=format&fit=crop&q=60" },
-    { id: 6, title: "Kids Baby Boy Cotton Party Wear Suit", category: "Kids", price: 350, oldPrice: 999, discount: "65% OFF", rating: "4.6 ★", image: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=400&auto=format&fit=crop&q=60" },
-    { id: 7, title: "Kids Baby Girl Pink Designer Frock", category: "Kids", price: 320, oldPrice: 899, discount: "64% OFF", rating: "4.5 ★", image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&auto=format&fit=crop&q=60" },
-    { id: 8, title: "Men Formal Solid White Button Shirt", category: "Men Shirt", price: 349, oldPrice: 899, discount: "61% OFF", rating: "4.0 ★", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&auto=format&fit=crop&q=60" },
-    { id: 9, title: "Men Regular Fit Dark Denim Jeans", category: "Men Jeans", price: 450, oldPrice: 1199, discount: "62% OFF", rating: "4.2 ★", image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&auto=format&fit=crop&q=60" },
-    { id: 10, title: "Women Embroidered Anarkali Yellow Kurta", category: "Women Kurti", price: 350, oldPrice: 1099, discount: "68% OFF", rating: "4.3 ★", image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&auto=format&fit=crop&q=60" },
-    { id: 11, title: "Georgette Party Wear Red Saree", category: "Saree", price: 399, oldPrice: 1299, discount: "69% OFF", rating: "4.1 ★", image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=400&auto=format&fit=crop&q=60" },
-    { id: 12, title: "Soft Cotton Printed Maxi Nighty", category: "Nighty", price: 249, oldPrice: 599, discount: "58% OFF", rating: "4.2 ★", image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&auto=format&fit=crop&q=60" },
-    { id: 13, title: "Boys Cotton T-Shirt & Shorts Summer Set", category: "Kids", price: 299, oldPrice: 799, discount: "62% OFF", rating: "4.4 ★", image: "https://images.unsplash.com/photo-1503944583220-7eeec293c68b?w=400&auto=format&fit=crop&q=60" },
-    { id: 14, title: "Girls Princess Dress for Weddings", category: "Kids", price: 399, oldPrice: 1199, discount: "66% OFF", rating: "4.7 ★", image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=400&auto=format&fit=crop&q=60" },
-    { id: 15, title: "Men Printed Casual Black T-Shirt", category: "Men Shirt", price: 199, oldPrice: 499, discount: "60% OFF", rating: "4.1 ★", image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=400&auto=format&fit=crop&q=60" },
-    { id: 16, title: "Men Casual Beige Chino Trouser Pant", category: "Men Jeans", price: 350, oldPrice: 999, discount: "65% OFF", rating: "4.0 ★", image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&auto=format&fit=crop&q=60" },
-    { id: 17, title: "Women Daily Wear Green Printed Kurti", category: "Women Kurti", price: 249, oldPrice: 699, discount: "64% OFF", rating: "4.3 ★", image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&auto=format&fit=crop&q=60" },
-    { id: 18, title: "Soft Kanjeevaram Silk Border Saree", category: "Saree", price: 350, oldPrice: 1199, discount: "70% OFF", rating: "4.4 ★", image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&auto=format&fit=crop&q=60" },
-    { id: 19, title: "Hosiery Cotton Printed Nightwear", category: "Nighty", price: 299, oldPrice: 799, discount: "62% OFF", rating: "4.0 ★", image: "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?w=400&auto=format&fit=crop&q=60" },
-    { id: 20, title: "Infant Cute Baby Romper Dress", category: "Kids", price: 249, oldPrice: 599, discount: "58% OFF", rating: "4.5 ★", image: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=400&auto=format&fit=crop&q=60" },
-    { id: 21, title: "Men Denim Full Sleeve Casual Shirt", category: "Men Shirt", price: 399, oldPrice: 999, discount: "60% OFF", rating: "4.3 ★", image: "https://images.unsplash.com/photo-1588359348347-9bc6cbbb689e?w=400&auto=format&fit=crop&q=60" },
-    { id: 22, title: "Men Black Skinny Fit Biker Jeans", category: "Men Jeans", price: 499, oldPrice: 1399, discount: "64% OFF", rating: "4.5 ★", image: "https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=400&auto=format&fit=crop&q=60" },
-    { id: 23, title: "Women Pink Designer Straight Kurti", category: "Women Kurti", price: 299, oldPrice: 849, discount: "65% OFF", rating: "4.2 ★", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400&auto=format&fit=crop&q=60" },
-    { id: 24, title: "Chiffon Light Weight Designer Saree", category: "Saree", price: 320, oldPrice: 999, discount: "68% OFF", rating: "4.1 ★", image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=400&auto=format&fit=crop&q=60" },
-    { id: 25, title: "Women Long Sleeveless Night Gown", category: "Nighty", price: 350, oldPrice: 899, discount: "61% OFF", rating: "4.3 ★", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400&auto=format&fit=crop&q=60" },
-    { id: 26, title: "Boys Traditional Ethnic Kurta Pyjama", category: "Kids", price: 399, oldPrice: 1199, discount: "66% OFF", rating: "4.6 ★", image: "https://images.unsplash.com/photo-1503944583220-7eeec293c68b?w=400&auto=format&fit=crop&q=60" },
-    { id: 27, title: "Girls Floral Party Wear Lehenga Choli", category: "Kids", price: 450, oldPrice: 1399, discount: "68% OFF", rating: "4.7 ★", image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=400&auto=format&fit=crop&q=60" },
-    { id: 28, title: "Men Striped Casual Polo T-Shirt", category: "Men Shirt", price: 249, oldPrice: 699, discount: "64% OFF", rating: "4.1 ★", image: "https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=400&auto=format&fit=crop&q=60" },
-    { id: 29, title: "Men Ripped Light Blue Denim Jeans", category: "Men Jeans", price: 450, oldPrice: 1249, discount: "63% OFF", rating: "4.2 ★", image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&auto=format&fit=crop&q=60" },
-    { id: 30, title: "Women Blue Printed Flare A-Line Kurti", category: "Women Kurti", price: 349, oldPrice: 999, discount: "65% OFF", rating: "4.4 ★", image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&auto=format&fit=crop&q=60" },
-    { id: 31, title: "Cotton Heavy Embroidery Border Saree", category: "Saree", price: 499, oldPrice: 1699, discount: "70% OFF", rating: "4.5 ★", image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&auto=format&fit=crop&q=60" },
-    { id: 32, title: "Women Pure Cotton Bathrobe & Nighty", category: "Nighty", price: 399, oldPrice: 999, discount: "60% OFF", rating: "4.2 ★", image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=400&auto=format&fit=crop&q=60" },
-    { id: 33, title: "Kids Unisex Hoodie & Trackpant Set", category: "Kids", price: 349, oldPrice: 899, discount: "61% OFF", rating: "4.5 ★", image: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=400&auto=format&fit=crop&q=60" },
-    { id: 34, title: "Girls Summer Cotton Printed Top", category: "Kids", price: 199, oldPrice: 499, discount: "60% OFF", rating: "4.3 ★", image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&auto=format&fit=crop&q=60" },
-    { id: 35, title: "Men Maroon Slim Fit Party Shirt", category: "Men Shirt", price: 350, oldPrice: 899, discount: "61% OFF", rating: "4.2 ★", image: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=400&auto=format&fit=crop&q=60" },
-    { id: 36, title: "Men Jogger Style Cargo Denim Pant", category: "Men Jeans", price: 499, oldPrice: 1299, discount: "61% OFF", rating: "4.4 ★", image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&auto=format&fit=crop&q=60" },
-    { id: 37, title: "Women Cotton Short Tunic Kurti", category: "Women Kurti", price: 249, oldPrice: 649, discount: "61% OFF", rating: "4.1 ★", image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400&auto=format&fit=crop&q=60" },
-    { id: 38, title: "South Indian Temple Border Silk Saree", category: "Saree", price: 450, oldPrice: 1499, discount: "70% OFF", rating: "4.6 ★", image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=400&auto=format&fit=crop&q=60" },
-    { id: 39, title: "Women Satin Silk Nightdress Suit", category: "Nighty", price: 350, oldPrice: 899, discount: "61% OFF", rating: "4.3 ★", image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&auto=format&fit=crop&q=60" },
-    { id: 40, title: "Boys Printed Denim Dungaree Dress", category: "Kids", price: 399, oldPrice: 999, discount: "60% OFF", rating: "4.5 ★", image: "https://images.unsplash.com/photo-1503944583220-7eeec293c68b?w=400&auto=format&fit=crop&q=60" },
-    { id: 41, title: "Girls Red Velvet Party Frock", category: "Kids", price: 349, oldPrice: 899, discount: "61% OFF", rating: "4.4 ★", image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=400&auto=format&fit=crop&q=60" },
-    { id: 42, title: "Men Grey Casual Linen Cotton Shirt", category: "Men Shirt", price: 320, oldPrice: 799, discount: "60% OFF", rating: "4.0 ★", image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=400&auto=format&fit=crop&q=60" },
-    { id: 43, title: "Men Clean Look Black Formal Trousers", category: "Men Jeans", price: 399, oldPrice: 999, discount: "60% OFF", rating: "4.1 ★", image: "https://images.unsplash.com/photo-1542272604-780c36856d62?w=400&auto=format&fit=crop&q=60" },
-    { id: 44, title: "Women Chikankari Work White Kurti", category: "Women Kurti", price: 350, oldPrice: 999, discount: "65% OFF", rating: "4.5 ★", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400&auto=format&fit=crop&q=60" },
-    { id: 45, title: "Organza Floral Printed Modern Saree", category: "Saree", price: 399, oldPrice: 1299, discount: "69% OFF", rating: "4.3 ★", image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&auto=format&fit=crop&q=60" },
-    { id: 46, title: "Soft Rayon Printed Feeding Nighty", category: "Nighty", price: 299, oldPrice: 699, discount: "57% OFF", rating: "4.2 ★", image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=400&auto=format&fit=crop&q=60" },
-    { id: 47, title: "Kids Superhero Print T-Shirt & Shorts", category: "Kids", price: 249, oldPrice: 599, discount: "58% OFF", rating: "4.6 ★", image: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=400&auto=format&fit=crop&q=60" },
-    { id: 48, title: "Girls Embroidered Net Tutu Dress", category: "Kids", price: 399, oldPrice: 1099, discount: "63% OFF", rating: "4.7 ★", image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&auto=format&fit=crop&q=60" },
-    { id: 49, title: "Men Casual Half Sleeve Printed Shirt", category: "Men Shirt", price: 249, oldPrice: 599, discount: "58% OFF", rating: "4.1 ★", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400&auto=format&fit=crop&q=60" },
-    { id: 50, title: "Men Regular Fit Ice Blue Jeans", category: "Men Jeans", price: 450, oldPrice: 1199, discount: "62% OFF", rating: "4.3 ★", image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=400&auto=format&fit=crop&q=60" }
+    { id: 1, title: "Men Casual Cotton Checked Shirt", category: "Men Shirt", price: 299, oldPrice: 699, discount: "57% OFF", rating: "4.2 ★", reviews: "1.4K", image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=600&auto=format&fit=crop&q=80", desc: "Premium quality cotton checked shirt for casual outings and daily wear." },
+    { id: 2, title: "Men Slim Fit Stretchable Blue Jeans", category: "Men Jeans", price: 499, oldPrice: 1299, discount: "61% OFF", rating: "4.3 ★", reviews: "2.1K", image: "https://images.unsplash.com/photo-1542272604-780c36856d62?w=600&auto=format&fit=crop&q=80", desc: "Comfortable stretchable denim jeans designed for modern fit and durability." },
+    { id: 3, title: "Women Floral Printed Rayon Kurti", category: "Women Kurti", price: 249, oldPrice: 799, discount: "68% OFF", rating: "4.4 ★", reviews: "3.5K", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&auto=format&fit=crop&q=80", desc: "Elegant floral printed rayon kurti with fine stitching and soft fabric." },
+    { id: 4, title: "Traditional Banarasi Silk Purple Saree", category: "Saree", price: 450, oldPrice: 1500, discount: "70% OFF", rating: "4.5 ★", reviews: "980", image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80", desc: "Exquisite Banarasi silk saree featuring rich pallu and traditional zari work." },
+    { id: 5, title: "Women Soft Cotton Comfortable Nighty", category: "Nighty", price: 299, oldPrice: 699, discount: "57% OFF", rating: "4.1 ★", reviews: "1.2K", image: "https://images.unsplash.com/photo-1554412933-514a83d2f3c8?w=600&auto=format&fit=crop&q=80", desc: "Breathable pure cotton nighty ensuring maximum comfort during sleep." },
+    { id: 6, title: "Kids Baby Boy Cotton Party Wear Suit", category: "Kids", price: 350, oldPrice: 999, discount: "65% OFF", rating: "4.6 ★", reviews: "850", image: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=600&auto=format&fit=crop&q=80", desc: "Adorable party wear suit for baby boys crafted with skin-friendly fabric." },
+    { id: 7, title: "Kids Baby Girl Pink Designer Frock", category: "Kids", price: 320, oldPrice: 899, discount: "64% OFF", rating: "4.5 ★", reviews: "940", image: "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600&auto=format&fit=crop&q=80", desc: "Cute pink designer frock with net flare and beautiful floral applique." },
+    { id: 8, title: "Men Formal Solid White Button Shirt", category: "Men Shirt", price: 349, oldPrice: 899, discount: "61% OFF", rating: "4.0 ★", reviews: "1.1K", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop&q=80", desc: "Sharp formal white shirt suitable for office wear and professional meetings." },
+    { id: 9, title: "Men Regular Fit Dark Denim Jeans", category: "Men Jeans", price: 450, oldPrice: 1199, discount: "62% OFF", rating: "4.2 ★", reviews: "1.9K", image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=600&auto=format&fit=crop&q=80", desc: "Classic dark denim jeans offering sturdy construction and effortless style." },
+    { id: 10, title: "Women Embroidered Anarkali Yellow Kurta", category: "Women Kurti", price: 350, oldPrice: 1099, discount: "68% OFF", rating: "4.3 ★", reviews: "2.3K", image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop&q=80", desc: "Gorgeous yellow Anarkali kurta with delicate thread embroidery work." },
+    { id: 11, title: "Georgette Party Wear Red Saree", category: "Saree", price: 399, oldPrice: 1299, discount: "69% OFF", rating: "4.1 ★", reviews: "760", image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=600&auto=format&fit=crop&q=80", desc: "Lightweight georgette party wear saree with subtle sequin embellishments." },
+    { id: 12, title: "Soft Cotton Printed Maxi Nighty", category: "Nighty", price: 249, oldPrice: 599, discount: "58% OFF", rating: "4.2 ★", reviews: "1.5K", image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=600&auto=format&fit=crop&q=80", desc: "Full-length printed maxi nighty designed for relaxing home comfort." },
+    { id: 13, title: "Boys Cotton T-Shirt & Shorts Summer Set", category: "Kids", price: 299, oldPrice: 799, discount: "62% OFF", rating: "4.4 ★", reviews: "670", image: "https://images.unsplash.com/photo-1503944583220-7eeec293c68b?w=600&auto=format&fit=crop&q=80", desc: "Vibrant summer clothing set featuring breathable cotton tee and elastic shorts." },
+    { id: 14, title: "Girls Princess Dress for Weddings", category: "Kids", price: 399, oldPrice: 1199, discount: "66% OFF", rating: "4.7 ★", reviews: "1.8K", image: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=600&auto=format&fit=crop&q=80", desc: "Stunning princess gown tailored for special occasions and festive celebrations." },
+    { id: 15, title: "Men Printed Casual Black T-Shirt", category: "Men Shirt", price: 199, oldPrice: 499, discount: "60% OFF", rating: "4.1 ★", reviews: "3.2K", image: "https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=600&auto=format&fit=crop&q=80", desc: "Trendy black graphic t-shirt made from bio-washed combed cotton." },
+    { id: 16, title: "Men Casual Beige Chino Trouser Pant", category: "Men Jeans", price: 350, oldPrice: 999, discount: "65% OFF", rating: "4.0 ★", reviews: "1.0K", image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=600&auto=format&fit=crop&q=80", desc: "Versatile beige chino trousers offering smart-casual appeal." },
+    { id: 17, title: "Women Daily Wear Green Printed Kurti", category: "Women Kurti", price: 249, oldPrice: 699, discount: "64% OFF", rating: "4.3 ★", reviews: "1.6K", image: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&auto=format&fit=crop&q=80", desc: "Charming green printed kurti ideal for college and office daily wear." },
+    { id: 18, title: "Soft Kanjeevaram Silk Border Saree", category: "Saree", price: 350, oldPrice: 1199, discount: "70% OFF", rating: "4.4 ★", reviews: "2.0K", image: "https://images.unsplash.com/photo-1609357605129-26f69ad549d7?w=600&auto=format&fit=crop&q=80", desc: "Classic Kanjeevaram inspired silk saree with intricate golden border." },
+    { id: 19, title: "Hosiery Cotton Printed Nightwear", category: "Nighty", price: 299, oldPrice: 799, discount: "62% OFF", rating: "4.0 ★", reviews: "890", image: "https://images.unsplash.com/photo-1582533561751-ef6f6ab93a2e?w=600&auto=format&fit=crop&q=80", desc: "Super soft hosiery cotton nightwear set for restful nights." },
+    { id: 20, title: "Infant Cute Baby Romper Dress", category: "Kids", price: 249, oldPrice: 599, discount: "58% OFF", rating: "4.5 ★", reviews: "550", image: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=600&auto=format&fit=crop&q=80", desc: "Ultra-gentle baby romper with snap buttons for easy diaper changes." },
+    { id: 21, title: "Men Denim Full Sleeve Casual Shirt", category: "Men Shirt", price: 399, oldPrice: 999, discount: "60% OFF", rating: "4.3 ★", reviews: "1.3K", image: "https://images.unsplash.com/photo-1588359348347-9bc6cbbb689e?w=600&auto=format&fit=crop&q=80", desc: "Rugged yet stylish full-sleeve denim shirt for layered styling." },
+    { id: 22, title: "Men Black Skinny Fit Biker Jeans", category: "Men Jeans", price: 499, oldPrice: 1399, discount: "64% OFF", rating: "4.5 ★", reviews: "1.7K", image: "https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=600&auto=format&fit=crop&q=80", desc: "Edgy skinny fit biker jeans featuring stylized panel stitching." },
+    { id: 23, title: "Women Pink Designer Straight Kurti", category: "Women Kurti", price: 299, oldPrice: 849, discount: "65% OFF", rating: "4.2 ★", reviews: "1.4K", image: "https://images.unsplash.com/photo-1564557287817-3785e3831f1b?w=600&auto=format&fit=crop&q=80", desc: "Chic pink straight cut kurti crafted from premium cotton blend." },
+    { id: 24, title: "Chiffon Light Weight Designer Saree", category: "Saree", price: 320, oldPrice: 999, discount: "68% OFF", rating: "4.1 ★", reviews: "910", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=600&auto=format&fit=crop&q=80", desc: "Airy chiffon designer saree with delicate digital floral prints." },
+    { id: 25, title: "Women Long Sleeveless Night Gown", category: "Nighty", price: 350, oldPrice: 899, discount: "61% OFF", rating: "4.3 ★", reviews: "720", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&auto=format&fit=crop&q=80", desc: "Sleek and luxurious satin blend long sleeveless night gown." },
+    { id: 26, title: "Boys Traditional Ethnic Kurta Pyjama", category: "Kids", price: 399, oldPrice: 1199, discount: "66% OFF", rating: "4.6 ★", reviews: "1.1K", image: "https://images.unsplash.com/photo-1471286174890-9c112ffca5b4?w=600&auto=format&fit=crop&q=80", desc: "Festive ethnic kurta pyjama set specially designed for young boys." },
+    { id: 27, title: "Girls Floral Party Wear Lehenga Choli", category: "Kids", price: 450, oldPrice: 1399, discount: "68% OFF", rating: "4.7 ★", reviews: "1.3K", image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&auto=format&fit=crop&q=80", desc: "Gorgeous floral lehenga choli set for girls wedding wear." },
+    { id: 28, title: "Men Striped Casual Polo T-Shirt", category: "Men Shirt", price: 249, oldPrice: 699, discount: "64% OFF", rating: "4.1 ★", reviews: "2.8K", image: "https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=600&auto=format&fit=crop&q=80", desc: "Smart striped polo t-shirt crafted with pique cotton fabric." },
+    { id: 29, title: "Men Ripped Light Blue Denim Jeans", category: "Men Jeans", price: 450, oldPrice: 1249, discount: "63% OFF", rating: "4.2 ★", reviews: "1.6K", image: "https://images.unsplash.com/photo-1555529771-835f59fc5efe?w=600&auto=format&fit=crop&q=80", desc: "Fashionable light blue distressed denim jeans with trendy knee rips." },
+    { id: 30, title: "Women Blue Printed Flare A-Line Kurti", category: "Women Kurti", price: 349, oldPrice: 999, discount: "65% OFF", rating: "4.4 ★", reviews: "2.5K", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80", desc: "Graceful blue A-line kurti featuring flared hemline and elegant print." },
+    { id: 31, title: "Cotton Heavy Embroidery Border Saree", category: "Saree", price: 499, oldPrice: 1699, discount: "70% OFF", rating: "4.5 ★", reviews: "1.0K", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80", desc: "Heavy embroidered border saree crafted on premium cotton fabric." },
+    { id: 32, title: "Women Pure Cotton Bathrobe & Nighty", category: "Nighty", price: 399, oldPrice: 999, discount: "60% OFF", rating: "4.2 ★", reviews: "640", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&auto=format&fit=crop&q=80", desc: "Super absorbent pure cotton bathrobe and nightwear combo." },
+    { id: 33, title: "Kids Unisex Hoodie & Trackpant Set", category: "Kids", price: 349, oldPrice: 899, discount: "61% OFF", rating: "4.5 ★", reviews: "990", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&auto=format&fit=crop&q=80", desc: "Warm fleece hoodie and matching trackpants for active kids." },
+    { id: 34, title: "Girls Summer Cotton Printed Top", category: "Kids", price: 199, oldPrice: 499, discount: "60% OFF", rating: "4.3 ★", reviews: "780", image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=600&auto=format&fit=crop&q=80", desc: "Colorful and cheerful cotton printed top for young girls." },
+    { id: 35, title: "Men Maroon Slim Fit Party Shirt", category: "Men Shirt", price: 350, oldPrice: 899, discount: "61% OFF", rating: "4.2 ★", reviews: "1.2K", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&auto=format&fit=crop&q=80", desc: "Glossy finish maroon slim fit shirt tailored for parties and events." },
+    { id: 36, title: "Men Jogger Style Cargo Denim Pant", category: "Men Jeans", price: 499, oldPrice: 1299, discount: "61% OFF", rating: "4.4 ★", reviews: "1.5K", image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&auto=format&fit=crop&q=80", desc: "Modern utility jogger denim pant with multiple cargo pockets." },
+    { id: 37, title: "Women Cotton Short Tunic Kurti", category: "Women Kurti", price: 249, oldPrice: 649, discount: "61% OFF", rating: "4.1 ★", reviews: "1.1K", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&auto=format&fit=crop&q=80", desc: "Short Indo-western tunic kurti perfect for pairing with jeans." },
+    { id: 38, title: "South Indian Temple Border Silk Saree", category: "Saree", price: 450, oldPrice: 1499, discount: "70% OFF", rating: "4.6 ★", reviews: "1.8K", image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&auto=format&fit=crop&q=80", desc: "Authentic temple border design silk saree with rich traditional appeal." },
+    { id: 39, title: "Women Satin Silk Nightdress Suit", category: "Nighty", price: 350, oldPrice: 899, discount: "61% OFF", rating: "4.3 ★", reviews: "950", image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80", desc: "Silky smooth 2-piece nightdress set for ultimate nighttime luxury." },
+    { id: 40, title: "Boys Printed Denim Dungaree Dress", category: "Kids", price: 399, oldPrice: 999, discount: "60% OFF", rating: "4.5 ★", reviews: "830", image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600&auto=format&fit=crop&q=80", desc: "Durable and cute denim dungaree dress for active baby boys." },
+    { id: 41, title: "Girls Red Velvet Party Frock", category: "Kids", price: 349, oldPrice: 899, discount: "61% OFF", rating: "4.4 ★", reviews: "920", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&auto=format&fit=crop&q=80", desc: "Rich red velvet party frock featuring bow detailing and soft inner lining." },
+    { id: 42, title: "Men Grey Casual Linen Cotton Shirt", category: "Men Shirt", price: 320, oldPrice: 799, discount: "60% OFF", rating: "4.0 ★", reviews: "1.0K", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80", desc: "Breathable linen cotton blend shirt ideal for warm summer days." },
+    { id: 43, title: "Men Clean Look Black Formal Trousers", category: "Men Jeans", price: 399, oldPrice: 999, discount: "60% OFF", rating: "4.1 ★", reviews: "1.4K", image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&auto=format&fit=crop&q=80", desc: "Wrinkle-resistant clean look black trousers for corporate professionals." },
+    { id: 44, title: "Women Chikankari Work White Kurti", category: "Women Kurti", price: 350, oldPrice: 999, discount: "65% OFF", rating: "4.5 ★", reviews: "3.1K", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&auto=format&fit=crop&q=80", desc: "Exquisite Lucknowi Chikankari hand-embroidered white kurti." },
+    { id: 45, title: "Organza Floral Printed Modern Saree", category: "Saree", price: 399, oldPrice: 1299, discount: "69% OFF", rating: "4.3 ★", reviews: "870", image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600&auto=format&fit=crop&q=80", desc: "Transparent organza saree with vibrant botanical floral prints." },
+    { id: 46, title: "Soft Rayon Printed Feeding Nighty", category: "Nighty", price: 299, oldPrice: 699, discount: "57% OFF", rating: "4.2 ★", reviews: "1.1K", image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80", desc: "Convenient concealed zip feeding nighty made with soft rayon fabric." },
+    { id: 47, title: "Kids Superhero Print T-Shirt & Shorts", category: "Kids", price: 249, oldPrice: 599, discount: "58% OFF", rating: "4.6 ★", reviews: "1.3K", image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600&auto=format&fit=crop&q=80", desc: "Action-packed superhero printed clothing set for boys." },
+    { id: 48, title: "Girls Embroidered Net Tutu Dress", category: "Kids", price: 399, oldPrice: 1099, discount: "63% OFF", rating: "4.7 ★", reviews: "1.6K", image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&auto=format&fit=crop&q=80", desc: "Layered net tutu dress with delicate floral embroidery for birthdays." },
+    { id: 49, title: "Men Casual Half Sleeve Printed Shirt", category: "Men Shirt", price: 249, oldPrice: 599, discount: "58% OFF", rating: "4.1 ★", reviews: "1.5K", image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&auto=format&fit=crop&q=80", desc: "Tropical printed half-sleeve shirt for vacation and beach wear." },
+    { id: 50, title: "Men Regular Fit Ice Blue Jeans", category: "Men Jeans", price: 450, oldPrice: 1199, discount: "62% OFF", rating: "4.3 ★", reviews: "1.8K", image: "https://images.unsplash.com/photo-1542272604-780c36856d62?w=600&auto=format&fit=crop&q=80", desc: "Cool ice blue wash denim jeans offering casual everyday comfort." }
   ];
 
   const categories = ["All", "Men Shirt", "Men Jeans", "Women Kurti", "Saree", "Nighty", "Kids"];
@@ -102,20 +114,22 @@ export default function EcommerceHome() {
     return matchesCategory && matchesSearch;
   });
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = (product, e) => {
+    e?.stopPropagation();
     setCart([...cart, product]);
-    alert("🛍️ Product added to cart!");
+    triggerNotification("🛍️ Product added to cart successfully!");
   };
 
-  const handleBuyNow = (product) => {
+  const handleBuyNow = (product, e) => {
+    e?.stopPropagation();
     setCheckoutItem(product);
-    setCurrentView("address");
+    setCurrentView("address-modal");
   };
 
   const handleSaveAddress = (e) => {
     e.preventDefault();
     if (!address.name || !address.phone || !address.house || !address.city || !address.pincode) {
-      alert("Please fill all address fields!");
+      alert("Please fill all required address fields!");
       return;
     }
     setCurrentView("payment");
@@ -123,7 +137,7 @@ export default function EcommerceHome() {
 
   const handlePlaceOrder = () => {
     const newOrder = {
-      id: "ORD" + Math.floor(100000 + Math.random() * 900000),
+      id: "SM-" + Math.floor(100000 + Math.random() * 900000),
       item: checkoutItem || cart[0] || products[0],
       address: address,
       date: new Date().toLocaleDateString(),
@@ -132,11 +146,11 @@ export default function EcommerceHome() {
 
     const updatedOrders = [newOrder, ...orders];
     setOrders(updatedOrders);
-    localStorage.setItem("user_demo_orders", JSON.stringify(updatedOrders));
+    localStorage.setItem("save_money_enterprise_orders", JSON.stringify(updatedOrders));
     
     setCart([]);
     setCheckoutItem(null);
-    setCurrentView("tracking");
+    setShowOrderSuccessModal(true);
   };
 
   const handleLogout = () => {
@@ -146,10 +160,17 @@ export default function EcommerceHome() {
 
   return (
     <div style={styles.container}>
-      {/* 🟢 TOP HEADER WITH LOGO FROM PUBLIC FOLDER */}
+      {/* 🟢 NOTIFICATION TOAST */}
+      {notificationBanner.show && (
+        <div style={styles.toastBanner}>
+          {notificationBanner.message}
+        </div>
+      )}
+
+      {/* 🟢 TOP HEADER WITH PUBLIC LOGO */}
       <header style={styles.header}>
         <div style={styles.brandRow}>
-          <div style={styles.logoWrap}>
+          <div style={styles.logoWrap} onClick={() => setCurrentView("home")}>
             <img 
               src="/logo512.png" 
               alt="Save Money Logo" 
@@ -161,7 +182,7 @@ export default function EcommerceHome() {
 
           <div style={styles.headerIcons}>
             <button style={styles.navTrackerBtn} onClick={() => setCurrentView("tracking")}>
-              📦 Orders
+              📦 My Orders
             </button>
             <div style={styles.cartBtn} onClick={() => setCurrentView("cart")}>
               🛒 <span style={styles.cartBadge}>{cart.length}</span>
@@ -211,7 +232,14 @@ export default function EcommerceHome() {
 
           <div style={styles.productGrid}>
             {filteredProducts.map((product) => (
-              <div key={product.id} style={styles.productCard}>
+              <div 
+                key={product.id} 
+                style={styles.productCard}
+                onClick={() => {
+                  setSelectedProduct(product);
+                  setCurrentView("product-detail");
+                }}
+              >
                 <div style={styles.imageWrap}>
                   <img src={product.image} alt={product.title} style={styles.productImg} />
                   <span style={styles.freeDeliveryBadge}>Free Delivery</span>
@@ -228,13 +256,14 @@ export default function EcommerceHome() {
 
                   <div style={styles.ratingRow}>
                     <span style={styles.ratingBadge}>{product.rating}</span>
+                    <span style={styles.reviewCount}>({product.reviews})</span>
                   </div>
 
                   <div style={styles.cardBtnGroup}>
-                    <button style={styles.addToCartBtn} onClick={() => handleAddToCart(product)}>
+                    <button style={styles.addToCartBtn} onClick={(e) => handleAddToCart(product, e)}>
                       Add to Cart
                     </button>
-                    <button style={styles.buyNowBtn} onClick={() => handleBuyNow(product)}>
+                    <button style={styles.buyNowBtn} onClick={(e) => handleBuyNow(product, e)}>
                       Buy Now
                     </button>
                   </div>
@@ -245,7 +274,46 @@ export default function EcommerceHome() {
         </>
       )}
 
-      {/* 🟢 VIEW 2: CART */}
+      {/* 🟢 VIEW 2: PRODUCT DETAIL VIEW */}
+      {currentView === "product-detail" && selectedProduct && (
+        <div style={styles.subPageContainer}>
+          <button style={styles.backBtn} onClick={() => setCurrentView("home")}>← Back to Shopping</button>
+          
+          <div style={styles.detailCard}>
+            <div style={styles.detailImgWrap}>
+              <img src={selectedProduct.image} alt={selectedProduct.title} style={styles.detailImg} />
+            </div>
+            <h2 style={styles.detailTitle}>{selectedProduct.title}</h2>
+            <div style={styles.priceRow}>
+              <span style={{ fontSize: "22px", fontWeight: "900", color: "#0f172a" }}>₹{selectedProduct.price}</span>
+              <span style={styles.oldPrice}>₹{selectedProduct.oldPrice}</span>
+              <span style={styles.discount}>{selectedProduct.discount}</span>
+            </div>
+            <div style={{ margin: "10px 0" }}>
+              <span style={styles.ratingBadge}>{selectedProduct.rating}</span>
+              <span style={{ marginLeft: "8px", fontSize: "12px", color: "#64748b" }}>{selectedProduct.reviews} Ratings & Reviews</span>
+            </div>
+            <p style={{ color: "#475569", fontSize: "14px", lineHeight: "1.6" }}>{selectedProduct.desc}</p>
+
+            <div style={styles.detailPerks}>
+              <div style={styles.perkItem}>🛡️ 100% Secure Payments</div>
+              <div style={styles.perkItem}>🔄 7 Days Easy Return</div>
+              <div style={styles.perkItem}>🚚 Free Home Delivery</div>
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              <button style={styles.addToCartBtn} onClick={(e) => handleAddToCart(selectedProduct, e)}>
+                Add to Cart
+              </button>
+              <button style={styles.buyNowBtn} onClick={(e) => handleBuyNow(selectedProduct, e)}>
+                Buy Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🟢 VIEW 3: CART */}
       {currentView === "cart" && (
         <div style={styles.subPageContainer}>
           <h2>Your Shopping Cart ({cart.length})</h2>
@@ -266,36 +334,41 @@ export default function EcommerceHome() {
           )}
 
           {cart.length > 0 && (
-            <button style={styles.primaryBtn} onClick={() => { setCheckoutItem(cart[0]); setCurrentView("address"); }}>
+            <button style={styles.primaryBtn} onClick={() => { setCheckoutItem(cart[0]); setCurrentView("address-modal"); }}>
               Proceed to Checkout
             </button>
           )}
         </div>
       )}
 
-      {/* 🟢 VIEW 3: ADDRESS */}
-      {currentView === "address" && (
-        <div style={styles.subPageContainer}>
-          <h2>Enter Delivery Address</h2>
-          <button style={styles.backBtn} onClick={() => setCurrentView("home")}>← Cancel</button>
+      {/* 🟢 VIEW 4: CENTERED ADDRESS MODAL */}
+      {currentView === "address-modal" && (
+        <div style={styles.modalBackdrop}>
+          <div style={styles.modalCard}>
+            <div style={styles.modalHeader}>
+              <h3>Enter Delivery Address</h3>
+              <button style={styles.closeModalBtn} onClick={() => setCurrentView("home")}>✕</button>
+            </div>
 
-          <form onSubmit={handleSaveAddress} style={styles.formStyle}>
-            <input placeholder="Full Name" style={styles.input} value={address.name} onChange={(e) => setAddress({...address, name: e.target.value})} required />
-            <input placeholder="Phone Number" style={styles.input} value={address.phone} onChange={(e) => setAddress({...address, phone: e.target.value})} required />
-            <input placeholder="House No / Street / Area" style={styles.input} value={address.house} onChange={(e) => setAddress({...address, house: e.target.value})} required />
-            <input placeholder="City" style={styles.input} value={address.city} onChange={(e) => setAddress({...address, city: e.target.value})} required />
-            <input placeholder="Pincode" style={styles.input} value={address.pincode} onChange={(e) => setAddress({...address, pincode: e.target.value})} required />
+            <form onSubmit={handleSaveAddress} style={styles.formStyle}>
+              <input placeholder="Full Name" style={styles.input} value={address.name} onChange={(e) => setAddress({...address, name: e.target.value})} required />
+              <input placeholder="Phone Number" style={styles.input} value={address.phone} onChange={(e) => setAddress({...address, phone: e.target.value})} required />
+              <input placeholder="House No / Street / Area" style={styles.input} value={address.house} onChange={(e) => setAddress({...address, house: e.target.value})} required />
+              <input placeholder="City" style={styles.input} value={address.city} onChange={(e) => setAddress({...address, city: e.target.value})} required />
+              <input placeholder="State" style={styles.input} value={address.state} onChange={(e) => setAddress({...address, state: e.target.value})} required />
+              <input placeholder="Pincode" style={styles.input} value={address.pincode} onChange={(e) => setAddress({...address, pincode: e.target.value})} required />
 
-            <button type="submit" style={styles.primaryBtn}>Save Address & Continue</button>
-          </form>
+              <button type="submit" style={styles.primaryBtn}>Save Address & Continue</button>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* 🟢 VIEW 4: PAYMENT */}
+      {/* 🟢 VIEW 5: PAYMENT PAGE */}
       {currentView === "payment" && (
         <div style={styles.subPageContainer}>
           <h2>Payment Method</h2>
-          <button style={styles.backBtn} onClick={() => setCurrentView("address")}>← Back to Address</button>
+          <button style={styles.backBtn} onClick={() => setCurrentView("address-modal")}>← Back</button>
 
           <div style={styles.paymentNoticeBox}>
             <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.6", color: "#1e293b", fontWeight: "600" }}>
@@ -315,7 +388,7 @@ export default function EcommerceHome() {
         </div>
       )}
 
-      {/* 🟢 VIEW 5: ORDER TRACKING */}
+      {/* 🟢 VIEW 6: ORDER TRACKING PAGE */}
       {currentView === "tracking" && (
         <div style={styles.subPageContainer}>
           <h2>My Order Tracking</h2>
@@ -345,6 +418,28 @@ export default function EcommerceHome() {
           )}
         </div>
       )}
+
+      {/* 🟢 ORDER SUCCESS POPUP MODAL */}
+      {showOrderSuccessModal && (
+        <div style={styles.modalBackdrop}>
+          <div style={{ ...styles.modalCard, textAlign: "center", padding: "30px 20px" }}>
+            <div style={{ fontSize: "50px", marginBottom: "10px" }}>🎉</div>
+            <h2 style={{ color: "#16a34a", marginBottom: "8px" }}>Order Placed Successfully!</h2>
+            <p style={{ color: "#64748b", fontSize: "14px", marginBottom: "20px" }}>
+              Your order has been confirmed via Cash on Delivery. You can track your order anytime.
+            </p>
+            <button 
+              style={styles.primaryBtn} 
+              onClick={() => {
+                setShowOrderSuccessModal(false);
+                setCurrentView("tracking");
+              }}
+            >
+              Track My Order
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -355,6 +450,20 @@ const styles = {
     background: "#f4f5f8",
     paddingBottom: "40px",
     fontFamily: "system-ui, -apple-system, sans-serif"
+  },
+  toastBanner: {
+    position: "fixed",
+    top: "10px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#0f172a",
+    color: "#fff",
+    padding: "10px 20px",
+    borderRadius: "20px",
+    zIndex: 99999,
+    fontSize: "13px",
+    fontWeight: "bold",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
   },
   header: {
     background: "#ffffff",
@@ -372,7 +481,8 @@ const styles = {
   logoWrap: {
     display: "flex",
     alignItems: "center",
-    gap: "8px"
+    gap: "8px",
+    cursor: "pointer"
   },
   logoImg: {
     width: "36px",
@@ -509,7 +619,8 @@ const styles = {
     overflow: "hidden",
     boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
     display: "flex",
-    flexDirection: "column"
+    flexDirection: "column",
+    cursor: "pointer"
   },
   imageWrap: {
     position: "relative",
@@ -574,7 +685,10 @@ const styles = {
     fontWeight: "bold"
   },
   ratingRow: {
-    marginTop: "4px"
+    marginTop: "4px",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
   },
   ratingBadge: {
     background: "#22c55e",
@@ -583,6 +697,10 @@ const styles = {
     fontWeight: "bold",
     padding: "2px 6px",
     borderRadius: "10px"
+  },
+  reviewCount: {
+    fontSize: "10px",
+    color: "#94a3b8"
   },
   cardBtnGroup: {
     display: "flex",
@@ -625,6 +743,42 @@ const styles = {
     marginBottom: "16px",
     fontSize: "14px"
   },
+  detailCard: {
+    background: "#fff",
+    padding: "20px",
+    borderRadius: "20px",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.05)"
+  },
+  detailImgWrap: {
+    width: "100%",
+    height: "300px",
+    borderRadius: "14px",
+    overflow: "hidden",
+    marginBottom: "16px"
+  },
+  detailImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  },
+  detailTitle: {
+    fontSize: "18px",
+    fontWeight: "bold",
+    color: "#0f172a",
+    marginBottom: "10px"
+  },
+  detailPerks: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    marginTop: "16px",
+    background: "#f8fafc",
+    padding: "12px",
+    borderRadius: "12px",
+    fontSize: "13px",
+    color: "#334155",
+    fontWeight: "600"
+  },
   cartItemCard: {
     display: "flex",
     gap: "12px",
@@ -640,6 +794,44 @@ const styles = {
     height: "60px",
     objectFit: "cover",
     borderRadius: "8px"
+  },
+  modalBackdrop: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0, 0, 0, 0.6)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+    padding: "16px"
+  },
+  modalCard: {
+    background: "#ffffff",
+    width: "100%",
+    maxWidth: "420px",
+    borderRadius: "20px",
+    padding: "24px",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+    boxSizing: "border-box"
+  },
+  modalHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "16px"
+  },
+  closeModalBtn: {
+    background: "#f1f5f9",
+    border: "none",
+    width: "30px",
+    height: "30px",
+    borderRadius: "50%",
+    fontWeight: "bold",
+    cursor: "pointer",
+    color: "#64748b"
   },
   formStyle: {
     display: "flex",
