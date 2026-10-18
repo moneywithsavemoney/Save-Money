@@ -164,12 +164,11 @@ export default function Home() {
       const data = await res.json();
 
       if (data?.msg === "Token expired or invalid") {
-        triggerStatusOverlay("error", "You are logout please login again");
+        triggerStatusOverlay("error", "Session expired, please login again");
 
         setTimeout(() => {
           localStorage.clear();
-          navigate("/login");
-          window.location.reload();
+          navigate("/login", { replace: true });
         }, 2500);
         return;
       }
@@ -235,6 +234,7 @@ export default function Home() {
     }
   };
 
+  // 👇 ব্রাউজার রিডাইরেক্ট সমস্যার পারফেক্ট সমাধান (সরাসরি অ্যাপের ভেতর লগইন পেজে যাবে)
   const handleLogout = async () => {
     try {
       if (email) {
@@ -250,8 +250,7 @@ export default function Home() {
       console.log("Logout backend error:", err);
     } finally {
       localStorage.clear();
-      navigate("/login");
-      window.location.reload();
+      navigate("/login", { replace: true });
     }
   };
 
@@ -296,8 +295,8 @@ export default function Home() {
             style={styles.loadingLogoImg} 
             onError={(e) => { e.target.style.display = 'none'; }}
           />
-          <h2 style={{ marginTop: "15px", fontSize: "20px", fontWeight: "800", color: "#38bdf8" }}>Save Money</h2>
-          <p style={{ color: "#94a3b8", fontSize: "14px" }}>Securing your dashboard...</p>
+          <h2 style={{ marginTop: "16px", fontSize: "20px", fontWeight: "900", color: "#38bdf8" }}>Save Money</h2>
+          <p style={{ color: "#94a3b8", fontSize: "13px", marginTop: "4px" }}>Securing your financial vault...</p>
         </div>
       </div>
     );
@@ -309,7 +308,7 @@ export default function Home() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <style>{premiumGlobalCSS}</style>
+      <style>{eliteAppGlobalCSS}</style>
 
       {/* SIDEBAR DRAWER */}
       <div style={{
@@ -334,7 +333,7 @@ export default function Home() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
-                <span style={styles.drawerLogoSubtext}>Diamond Wealth Suite</span>
+                <span style={styles.drawerLogoSubtext}>Elite Wealth Suite</span>
               </div>
             </div>
           </div>
@@ -475,7 +474,8 @@ export default function Home() {
                 style={{
                   ...styles.drawerNavItem,
                   background: "rgba(239, 68, 68, 0.2)",
-                  border: "1px solid rgba(239, 68, 68, 0.4)"
+                  border: "1px solid rgba(239, 68, 68, 0.4)",
+                  color: "#f87171"
                 }} 
                 onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
               >
@@ -575,7 +575,7 @@ export default function Home() {
       </div>
 
       {/* HERO PROFILE + WALLET */}
-      <section style={styles.heroWrapper} className="diamond-glow-box">
+      <section style={styles.heroWrapper} className="elite-glow-box">
         <div style={styles.heroGlow}></div>
 
         <div style={styles.profilePhotoCircle}>
@@ -592,7 +592,7 @@ export default function Home() {
 
         <div style={styles.heroUserInfo}>
           <p style={styles.heroWelcome}>
-            Diamond Investor 👋
+            Elite Investor 🌟
           </p>
 
           <div style={styles.heroNameRow}>
@@ -605,7 +605,7 @@ export default function Home() {
           </div>
 
           <p style={styles.heroSubtitle}>
-            Secure Vault Active 💎
+            Secure Vault Active 🔒
           </p>
         </div>
 
@@ -782,7 +782,7 @@ export default function Home() {
             Secure Your Future
           </h1>
           <p style={styles.promoSubtitle}>
-            Institutional-grade daily returns & compounding.
+            Institutional-grade daily compounding & secure returns.
           </p>
           <button
             style={styles.promoButton}
@@ -834,7 +834,7 @@ export default function Home() {
       </h1>
 
       {/* APP DOWNLOAD CARD */}
-      <div className="premium-download-card" style={styles.appDownloadCard}>
+      <div className="elite-download-card" style={styles.appDownloadCard}>
         <div style={styles.appGlowBackground}></div>
         
         <div style={styles.appTopBadge}>
@@ -864,7 +864,7 @@ export default function Home() {
 
         <div style={styles.appBtnGroup}>
           <button 
-            className="premium-app-btn"
+            className="elite-app-btn"
             style={styles.appDownloadBtn}
             onClick={handleDownloadApp}
           >
@@ -887,7 +887,7 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer style={styles.footer}>
-        <h2 style={{ fontSize: "16px", fontWeight: "800", margin: "0 0 10px 0", color: "#38bdf8" }}>
+        <h2 style={{ fontSize: "16px", fontWeight: "900", margin: "0 0 10px 0", color: "#38bdf8" }}>
           Save Money Private Limited
         </h2>
 
@@ -1007,7 +1007,7 @@ function BottomNavItem({ icon, title, active, onClick }) {
   );
 }
 
-const premiumGlobalCSS = `
+const eliteAppGlobalCSS = `
   @keyframes marquee {
     0% { transform: translateX(100%); }
     100% { transform: translateX(-100%); }
@@ -1017,23 +1017,24 @@ const premiumGlobalCSS = `
     70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
   }
-  .diamond-glow-box {
-    border: 1px solid rgba(56, 189, 248, 0.4) !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(56, 189, 248, 0.15) !important;
+  .elite-glow-box {
+    border: 1px solid rgba(56, 189, 248, 0.45) !important;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.7), 0 0 25px rgba(56, 189, 248, 0.2) !important;
   }
-  .premium-app-btn:hover {
+  .elite-app-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5) !important;
+    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.55) !important;
   }
 `;
 
 const styles = {
   limitedOfferBar: {
     marginTop: "14px",
-    background: "linear-gradient(135deg, #090e1a 0%, #111827 100%)",
-    borderRadius: "14px",
-    padding: "8px 12px",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
+    background: "linear-gradient(135deg, #060a12 0%, #0d1526 100%)",
+    borderRadius: "16px",
+    padding: "9px 14px",
+    border: "1px solid rgba(56, 189, 248, 0.35)",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
     display: "flex",
     alignItems: "center",
     gap: "10px",
@@ -1052,7 +1053,7 @@ const styles = {
     animation: "marquee 20s linear infinite"
   },
   limitedOfferBadge: {
-    background: "#38bdf8",
+    background: "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)",
     color: "#030712",
     fontWeight: "900",
     fontSize: "10px",
@@ -1071,8 +1072,8 @@ const styles = {
   drawerOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(3, 7, 18, 0.8)",
-    backdropFilter: "blur(6px)",
+    background: "rgba(2, 6, 23, 0.82)",
+    backdropFilter: "blur(8px)",
     zIndex: 100002,
     display: "flex",
     justifyContent: "flex-start",
@@ -1081,14 +1082,14 @@ const styles = {
   drawerContainer: {
     position: "fixed",
     top: 0, bottom: 0, left: 0,
-    background: "#060913",
-    width: "240px",
+    background: "#050914",
+    width: "245px",
     height: "100vh",
-    padding: "12px 10px",
+    padding: "14px 10px",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "15px 0 40px rgba(0,0,0,0.9)",
-    borderRight: "1px solid rgba(56, 189, 248, 0.2)",
+    boxShadow: "20px 0 50px rgba(0,0,0,0.9)",
+    borderRight: "1px solid rgba(56, 189, 248, 0.25)",
     transform: "translateX(-100%)",
     transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     overflow: "hidden",
@@ -1098,8 +1099,8 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    marginBottom: "10px",
-    paddingBottom: "10px",
+    marginBottom: "12px",
+    paddingBottom: "12px",
     borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
   },
   drawerBrand: {
@@ -1109,25 +1110,27 @@ const styles = {
     gap: "6px"
   },
   drawerLogoWrapper: {
-    width: "44px",
-    height: "44px",
+    width: "48px",
+    height: "48px",
     borderRadius: "50%",
     background: "radial-gradient(circle, #0284c7 0%, #0369a1 100%)",
     border: "2px solid #38bdf8",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    boxShadow: "0 0 15px rgba(56, 189, 248, 0.4)"
   },
   drawerLogoImg: {
-    width: "26px",
-    height: "26px",
+    width: "28px",
+    height: "28px",
     objectFit: "contain"
   },
   drawerLogoText: {
     margin: 0,
     fontSize: "14px",
     fontWeight: "900",
-    color: "#ffffff"
+    color: "#ffffff",
+    letterSpacing: "0.5px"
   },
   drawerLogoSubtext: {
     fontSize: "10px",
@@ -1153,18 +1156,20 @@ const styles = {
     gap: "10px",
     padding: "9px 12px",
     background: "rgba(255, 255, 255, 0.03)",
-    border: "1px solid rgba(255, 255, 255, 0.06)",
-    borderRadius: "10px",
+    border: "1px solid rgba(255, 255, 255, 0.07)",
+    borderRadius: "12px",
     color: "#f8fafc",
     fontSize: "12px",
     fontWeight: "700",
     cursor: "pointer",
-    textAlign: "left"
+    textAlign: "left",
+    transition: "all 0.2s ease"
   },
   drawerNavItemActive: {
-    background: "rgba(56, 189, 248, 0.15)",
+    background: "rgba(56, 189, 248, 0.18)",
     border: "1px solid #38bdf8",
-    color: "#38bdf8"
+    color: "#38bdf8",
+    boxShadow: "0 0 12px rgba(56, 189, 248, 0.25)"
   },
   drawerNavIcon: {
     fontSize: "16px",
@@ -1178,9 +1183,10 @@ const styles = {
   treePlantOnlyWrapper: {
     marginTop: "auto",
     width: "100%",
-    height: "90px",
-    borderRadius: "12px",
-    overflow: "hidden"
+    height: "95px",
+    borderRadius: "14px",
+    overflow: "hidden",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
   },
   treePlantOnlyImg: {
     width: "100%",
@@ -1191,10 +1197,10 @@ const styles = {
   appDownloadCard: {
     position: "relative",
     marginTop: "24px",
-    background: "linear-gradient(135deg, #090e1a 0%, #111827 50%, #1e1b4b 100%)",
-    borderRadius: "20px",
-    padding: "18px 16px",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
+    background: "linear-gradient(135deg, #060a12 0%, #0d1526 50%, #1e1b4b 100%)",
+    borderRadius: "22px",
+    padding: "20px 16px",
+    border: "1px solid rgba(56, 189, 248, 0.35)",
     boxShadow: "0 15px 35px rgba(0,0,0,0.6)",
     display: "flex",
     flexDirection: "column",
@@ -1206,22 +1212,23 @@ const styles = {
     position: "absolute",
     top: "-30px",
     right: "-30px",
-    width: "100px",
-    height: "100px",
-    background: "radial-gradient(circle, rgba(56,189,248,0.2) 0%, transparent 70%)",
+    width: "110px",
+    height: "110px",
+    background: "radial-gradient(circle, rgba(56,189,248,0.25) 0%, transparent 70%)",
     pointerEvents: "none"
   },
   appTopBadge: {
     display: "inline-flex",
     alignItems: "center",
     gap: "6px",
-    background: "rgba(56, 189, 248, 0.12)",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
-    padding: "4px 12px",
+    background: "rgba(56, 189, 248, 0.15)",
+    border: "1px solid rgba(56, 189, 248, 0.4)",
+    padding: "5px 14px",
     borderRadius: "20px",
     color: "#38bdf8",
     fontSize: "10px",
-    fontWeight: "800"
+    fontWeight: "800",
+    letterSpacing: "0.5px"
   },
   appBadgePulse: {
     width: "6px",
@@ -1242,12 +1249,12 @@ const styles = {
     position: "relative"
   },
   appLogoImg: {
-    width: "56px",
-    height: "56px",
+    width: "60px",
+    height: "60px",
     borderRadius: "16px",
     border: "2px solid #38bdf8",
     objectFit: "contain",
-    boxShadow: "0 6px 18px rgba(56, 189, 248, 0.3)"
+    boxShadow: "0 6px 20px rgba(56, 189, 248, 0.35)"
   },
   appOnlineDot: {
     position: "absolute",
@@ -1257,7 +1264,7 @@ const styles = {
     height: "12px",
     borderRadius: "50%",
     background: "#10b981",
-    border: "2px solid #090e1a"
+    border: "2px solid #060a12"
   },
   appInfoTextCenter: {
     display: "flex",
@@ -1266,7 +1273,7 @@ const styles = {
   },
   appDownloadTitle: {
     margin: 0,
-    fontSize: "17px",
+    fontSize: "18px",
     fontWeight: "900",
     color: "#f8fafc"
   },
@@ -1291,9 +1298,9 @@ const styles = {
   },
   appDownloadBtn: {
     width: "100%",
-    padding: "12px",
-    borderRadius: "14px",
-    background: "linear-gradient(135deg, #38bdf8 0%, #2563eb 100%)",
+    padding: "13px",
+    borderRadius: "16px",
+    background: "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)",
     border: "none",
     color: "#ffffff",
     cursor: "pointer",
@@ -1301,7 +1308,7 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     gap: "10px",
-    boxShadow: "0 6px 20px rgba(56, 189, 248, 0.3)",
+    boxShadow: "0 8px 25px rgba(56, 189, 248, 0.4)",
     transition: "transform 0.2s ease"
   },
   appStoreSvg: {
@@ -1321,7 +1328,7 @@ const styles = {
     letterSpacing: "0.5px"
   },
   btnMainLabel: {
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: "900",
     color: "#ffffff"
   },
@@ -1334,8 +1341,8 @@ const styles = {
   popupOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(3, 7, 18, 0.8)",
-    backdropFilter: "blur(6px)",
+    background: "rgba(2, 6, 23, 0.85)",
+    backdropFilter: "blur(8px)",
     zIndex: 100001,
     display: "flex",
     alignItems: "center",
@@ -1343,27 +1350,27 @@ const styles = {
     padding: "16px"
   },
   popupCard: {
-    background: "#090e1a",
-    borderRadius: "20px",
-    padding: "18px",
+    background: "#060a12",
+    borderRadius: "22px",
+    padding: "20px",
     maxWidth: "90%",
-    width: "380px",
+    width: "390px",
     position: "relative",
-    boxShadow: "0 25px 60px rgba(0,0,0,0.8)",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
+    boxShadow: "0 25px 60px rgba(0,0,0,0.85)",
+    border: "1px solid rgba(56, 189, 248, 0.35)",
     textAlign: "center"
   },
   popupCloseBtn: {
     position: "absolute",
-    top: "10px",
-    right: "10px",
-    width: "30px",
-    height: "30px",
+    top: "12px",
+    right: "12px",
+    width: "32px",
+    height: "32px",
     background: "rgba(255, 255, 255, 0.1)",
     border: "1px solid rgba(255, 255, 255, 0.2)",
     borderRadius: "50%",
     color: "#ffffff",
-    fontSize: "12px",
+    fontSize: "13px",
     fontWeight: "bold",
     cursor: "pointer",
     display: "flex",
@@ -1381,35 +1388,35 @@ const styles = {
   statusOverlayBg: {
     position: "fixed",
     inset: 0,
-    background: "rgba(3, 7, 18, 0.8)",
-    backdropFilter: "blur(6px)",
+    background: "rgba(2, 6, 23, 0.85)",
+    backdropFilter: "blur(8px)",
     zIndex: 100000,
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   statusOverlayCard: {
-    background: "#090e1a",
-    padding: "20px 28px",
-    borderRadius: "18px",
+    background: "#060a12",
+    padding: "22px 30px",
+    borderRadius: "20px",
     textAlign: "center",
-    boxShadow: "0 25px 50px rgba(0,0,0,0.7)",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
-    maxWidth: "340px",
+    boxShadow: "0 25px 50px rgba(0,0,0,0.8)",
+    border: "1px solid rgba(56, 189, 248, 0.35)",
+    maxWidth: "350px",
     width: "85%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "12px"
+    gap: "14px"
   },
   statusOverlayIcon: {
-    width: "50px",
-    height: "50px",
+    width: "52px",
+    height: "52px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "24px",
+    fontSize: "26px",
     fontWeight: "bold"
   },
   statusOverlayText: {
@@ -1422,29 +1429,29 @@ const styles = {
 
   page: {
     minHeight: "100vh",
-    background: "#030712",
+    background: "linear-gradient(180deg, #020617 0%, #040d21 50%, #020617 100%)",
     color: "white",
     padding: "0 12px 130px",
     fontFamily: "system-ui, -apple-system, sans-serif"
   },
   loadingPage: {
     minHeight: "100vh",
-    background: "#030712",
+    background: "#020617",
     color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   loadingCard: {
-    background: "#090e1a",
-    padding: "28px",
-    borderRadius: "20px",
+    background: "#060a12",
+    padding: "32px",
+    borderRadius: "22px",
     textAlign: "center",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
-    boxShadow: "0 0 30px rgba(56,189,248,0.2)"
+    border: "1px solid rgba(56, 189, 248, 0.35)",
+    boxShadow: "0 0 35px rgba(56,189,248,0.25)"
   },
   topHeader: {
-    height: "56px",
+    height: "58px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
@@ -1456,32 +1463,33 @@ const styles = {
     color: "#38bdf8",
     fontSize: "20px",
     cursor: "pointer",
-    width: "40px",
-    height: "40px",
-    borderRadius: "12px",
+    width: "42px",
+    height: "42px",
+    borderRadius: "14px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
   headerTitle: {
     margin: 0,
-    fontSize: "14px",
-    fontWeight: "800",
+    fontSize: "15px",
+    fontWeight: "900",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
     maxWidth: "180px"
   },
   logoutBtn: {
-    height: "36px",
-    padding: "0 12px",
+    height: "38px",
+    padding: "0 14px",
     border: "1px solid rgba(239, 68, 68, 0.4)",
     background: "rgba(239, 68, 68, 0.15)",
     color: "#f87171",
     fontWeight: "800",
-    fontSize: "11px",
-    borderRadius: "10px",
-    cursor: "pointer"
+    fontSize: "12px",
+    borderRadius: "12px",
+    cursor: "pointer",
+    boxShadow: "0 4px 12px rgba(239,68,68,0.2)"
   },
   notificationButton: {
     position: "relative",
@@ -1490,9 +1498,9 @@ const styles = {
     color: "white",
     fontSize: "16px",
     cursor: "pointer",
-    width: "40px",
-    height: "40px",
-    borderRadius: "12px",
+    width: "42px",
+    height: "42px",
+    borderRadius: "14px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
@@ -1503,8 +1511,8 @@ const styles = {
     right: "-2px",
     background: "#ef4444",
     color: "white",
-    width: "16px",
-    height: "16px",
+    width: "17px",
+    height: "17px",
     borderRadius: "50%",
     fontSize: "9px",
     display: "flex",
@@ -1517,22 +1525,22 @@ const styles = {
     position: "relative",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    padding: "16px 14px",
-    borderRadius: "20px",
+    gap: "12px",
+    padding: "18px 16px",
+    borderRadius: "22px",
     overflow: "hidden",
-    background: "linear-gradient(135deg, #090e1a 0%, #111827 50%, #1e1b4b 100%)",
+    background: "linear-gradient(135deg, #060a12 0%, #0d1526 50%, #1e1b4b 100%)",
     boxShadow: "0 15px 35px rgba(0,0,0,0.6)"
   },
   heroGlow: {
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(90deg,rgba(56,189,248,0.05),transparent,rgba(56,189,248,0.05))",
+    background: "linear-gradient(90deg,rgba(56,189,248,0.06),transparent,rgba(56,189,248,0.06))",
     pointerEvents: "none"
   },
   profilePhotoCircle: {
-    width: "56px",
-    height: "56px",
+    width: "60px",
+    height: "60px",
     borderRadius: "50%",
     background: "#1f2937",
     border: "2px solid #38bdf8",
@@ -1541,7 +1549,8 @@ const styles = {
     justifyContent: "center",
     overflow: "hidden",
     zIndex: 2,
-    flexShrink: 0
+    flexShrink: 0,
+    boxShadow: "0 0 15px rgba(56,189,248,0.3)"
   },
   profilePhoto: {
     width: "100%",
@@ -1549,7 +1558,7 @@ const styles = {
     objectFit: "cover"
   },
   defaultProfileIcon: {
-    fontSize: "26px"
+    fontSize: "28px"
   },
   heroUserInfo: {
     flex: 1,
@@ -1569,7 +1578,7 @@ const styles = {
   },
   heroName: {
     margin: "2px 0",
-    fontSize: "15px",
+    fontSize: "16px",
     fontWeight: "900",
     color: "#f8fafc",
     whiteSpace: "nowrap",
@@ -1577,8 +1586,8 @@ const styles = {
     textOverflow: "ellipsis"
   },
   verifiedBadge: {
-    width: "14px",
-    height: "14px",
+    width: "15px",
+    height: "15px",
     borderRadius: "50%",
     background: "#10b981",
     display: "inline-flex",
@@ -1595,16 +1604,16 @@ const styles = {
     fontWeight: "700"
   },
   heroWalletCard: {
-    minWidth: "85px",
-    borderRadius: "14px",
-    padding: "8px 10px",
-    background: "rgba(56, 189, 248, 0.1)",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
+    minWidth: "90px",
+    borderRadius: "16px",
+    padding: "10px 12px",
+    background: "rgba(56, 189, 248, 0.12)",
+    border: "1px solid rgba(56, 189, 248, 0.35)",
     zIndex: 2,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    flexShrink: 0
+    flexShrink: "0"
   },
   heroWalletLabel: {
     margin: 0,
@@ -1613,8 +1622,8 @@ const styles = {
     color: "#94a3b8"
   },
   heroWalletValue: {
-    margin: "2px 0",
-    fontSize: "13px",
+    margin: "3px 0",
+    fontSize: "14px",
     fontWeight: "900",
     color: "#34d399"
   },
@@ -1623,36 +1632,36 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
     gap: "10px",
-    marginTop: "12px"
+    marginTop: "14px"
   },
   statCard: {
     position: "relative",
-    borderRadius: "16px",
-    padding: "12px",
+    borderRadius: "18px",
+    padding: "14px",
     overflow: "hidden",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.4)",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    minHeight: "85px",
-    border: "1px solid rgba(255,255,255,0.06)"
+    minHeight: "90px",
+    border: "1px solid rgba(255,255,255,0.07)"
   },
-  statBlue: { background: "linear-gradient(135deg,#090e1a,#1e3a8a)" },
-  statGreen: { background: "linear-gradient(135deg,#090e1a,#065f46)" },
-  statPurple: { background: "linear-gradient(135deg,#090e1a,#581c87)" },
-  statOrange: { background: "linear-gradient(135deg,#090e1a,#7c2d12)" },
+  statBlue: { background: "linear-gradient(135deg,#060a12,#1e3a8a)" },
+  statGreen: { background: "linear-gradient(135deg,#060a12,#065f46)" },
+  statPurple: { background: "linear-gradient(135deg,#060a12,#581c87)" },
+  statOrange: { background: "linear-gradient(135deg,#060a12,#7c2d12)" },
 
   statIconWrap: { lineHeight: "1" },
-  statIcon: { fontSize: "20px" },
+  statIcon: { fontSize: "22px" },
   statTitle: {
-    margin: "4px 0 2px",
+    margin: "6px 0 2px",
     color: "#94a3b8",
     fontSize: "11px",
     fontWeight: "700"
   },
   statValue: {
     margin: 0,
-    fontSize: "15px",
+    fontSize: "16px",
     fontWeight: "900",
     color: "#f8fafc"
   },
@@ -1660,23 +1669,23 @@ const styles = {
     position: "absolute",
     right: "-15px",
     top: "-15px",
-    width: "45px",
-    height: "45px",
+    width: "50px",
+    height: "50px",
     borderRadius: "50%",
     background: "rgba(255,255,255,0.08)"
   },
 
   sectionTitleWrap: {
-    margin: "18px 0 10px",
+    margin: "20px 0 10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "8px"
+    gap: "10px"
   },
   sectionLine: {
     flex: 1,
     height: "1px",
-    background: "linear-gradient(90deg,transparent,rgba(56,189,248,0.4),transparent)"
+    background: "linear-gradient(90deg,transparent,rgba(56,189,248,0.5),transparent)"
   },
   sectionTitleText: {
     margin: 0,
@@ -1686,38 +1695,38 @@ const styles = {
   },
 
   actionPanel: {
-    background: "#090e1a",
-    border: "1px solid rgba(56, 189, 248, 0.2)",
-    borderRadius: "18px",
-    padding: "10px",
+    background: "#060a12",
+    border: "1px solid rgba(56, 189, 248, 0.25)",
+    borderRadius: "20px",
+    padding: "12px",
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "8px",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.5)"
+    gap: "10px",
+    boxShadow: "0 12px 30px rgba(0,0,0,0.55)"
   },
   actionButton: {
     position: "relative",
     border: "1px solid rgba(255, 255, 255, 0.08)",
     background: "rgba(255, 255, 255, 0.03)",
-    borderRadius: "12px",
-    padding: "10px 4px",
+    borderRadius: "14px",
+    padding: "12px 6px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: "4px",
+    gap: "6px",
     cursor: "pointer",
     transition: "all 0.2s ease"
   },
   actionIconCircle: {
-    width: "34px",
-    height: "34px",
-    borderRadius: "10px",
-    background: "rgba(56, 189, 248, 0.12)",
+    width: "38px",
+    height: "38px",
+    borderRadius: "12px",
+    background: "rgba(56, 189, 248, 0.15)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "16px"
+    fontSize: "18px"
   },
   actionTextBox: {
     textAlign: "center",
@@ -1726,7 +1735,7 @@ const styles = {
   actionTitle: {
     margin: 0,
     fontSize: "11px",
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#f8fafc",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -1745,73 +1754,73 @@ const styles = {
     position: "absolute",
     right: "-12px",
     top: "-12px",
-    width: "40px",
-    height: "40px",
+    width: "45px",
+    height: "45px",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.05)"
+    background: "rgba(255,255,255,0.06)"
   },
 
   promoBanner: {
-    marginTop: "16px",
-    borderRadius: "18px",
-    padding: "16px",
-    background: "linear-gradient(135deg,#090e1a,#1e1b4b,#311042)",
-    border: "1px solid rgba(168, 85, 247, 0.3)",
+    marginTop: "18px",
+    borderRadius: "20px",
+    padding: "18px",
+    background: "linear-gradient(135deg,#060a12,#1e1b4b,#311042)",
+    border: "1px solid rgba(168, 85, 247, 0.35)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.5)"
+    boxShadow: "0 12px 30px rgba(0,0,0,0.55)"
   },
   promoContent: { flex: 1 },
   promoTitle: {
     margin: 0,
-    fontSize: "15px",
+    fontSize: "16px",
     fontWeight: "900",
     color: "#f8fafc",
     lineHeight: "1.3"
   },
   promoSubtitle: {
-    margin: "4px 0 0",
+    margin: "5px 0 0",
     fontSize: "11px",
     color: "#c084fc"
   },
   promoButton: {
-    marginTop: "10px",
-    border: "1px solid rgba(168, 85, 247, 0.5)",
-    background: "rgba(168, 85, 247, 0.2)",
+    marginTop: "12px",
+    border: "1px solid rgba(168, 85, 247, 0.6)",
+    background: "rgba(168, 85, 247, 0.25)",
     color: "#ffffff",
     fontWeight: "900",
     fontSize: "11px",
-    borderRadius: "8px",
+    borderRadius: "10px",
     cursor: "pointer",
-    padding: "6px 12px"
+    padding: "7px 14px"
   },
-  promoIcon: { fontSize: "32px" },
+  promoIcon: { fontSize: "36px" },
 
   trustPanel: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "8px",
-    marginTop: "14px",
-    background: "#090e1a",
-    borderRadius: "16px",
-    padding: "10px",
+    gap: "10px",
+    marginTop: "16px",
+    background: "#060a12",
+    borderRadius: "18px",
+    padding: "12px",
     border: "1px solid rgba(255,255,255,0.08)"
   },
   trustMiniCard: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "10px",
     background: "rgba(255,255,255,0.03)",
-    borderRadius: "10px",
-    padding: "8px 10px",
-    border: "1px solid rgba(255,255,255,0.04)"
+    borderRadius: "12px",
+    padding: "10px 12px",
+    border: "1px solid rgba(255,255,255,0.05)"
   },
-  trustIconCircle: { fontSize: "16px" },
+  trustIconCircle: { fontSize: "18px" },
   trustTitle: {
     margin: 0,
     fontSize: "11px",
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#f8fafc"
   },
   trustSubtitle: {
@@ -1822,37 +1831,38 @@ const styles = {
 
   aboutStrip: {
     width: "100%",
-    marginTop: "14px",
-    padding: "12px",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
-    background: "rgba(56, 189, 248, 0.1)",
-    borderRadius: "12px",
+    marginTop: "16px",
+    padding: "14px",
+    border: "1px solid rgba(56, 189, 248, 0.35)",
+    background: "rgba(56, 189, 248, 0.12)",
+    borderRadius: "14px",
     color: "#38bdf8",
     fontWeight: "900",
-    fontSize: "12px",
-    cursor: "pointer"
+    fontSize: "13px",
+    cursor: "pointer",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
   },
 
   helpText: {
     textAlign: "center",
     color: "#34d399",
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: "900",
-    marginTop: "16px",
+    marginTop: "18px",
     letterSpacing: "0.5px"
   },
 
   footer: {
     textAlign: "center",
-    padding: "18px 4px 10px",
+    padding: "20px 4px 10px",
     color: "#94a3b8"
   },
   footerLinks: {
     display: "flex",
     flexWrap: "wrap",
-    gap: "8px",
+    gap: "10px",
     justifyContent: "center",
-    marginBottom: "10px"
+    marginBottom: "12px"
   },
   footerLinkBtn: {
     background: "transparent",
@@ -1861,23 +1871,23 @@ const styles = {
     fontSize: "11px",
     fontWeight: "700",
     cursor: "pointer",
-    padding: "2px 4px"
+    padding: "2px 6px"
   },
   loadingLogoImg: {
-    width: "70px",
-    height: "70px",
+    width: "75px",
+    height: "75px",
     objectFit: "contain",
-    borderRadius: "14px"
+    borderRadius: "16px"
   },
 
   bottomNav: {
     position: "fixed",
     bottom: 0, left: 0, right: 0,
-    height: "56px",
-    background: "#060913",
+    height: "58px",
+    background: "#050914",
     display: "grid",
     gridTemplateColumns: "repeat(4,1fr)",
-    borderTop: "1px solid rgba(56, 189, 248, 0.2)",
+    borderTop: "1px solid rgba(56, 189, 248, 0.25)",
     zIndex: 999
   },
   bottomNavItem: {
@@ -1892,7 +1902,7 @@ const styles = {
     cursor: "pointer"
   },
   bottomNavItemActive: {
-    background: "rgba(56, 189, 248, 0.15)",
+    background: "rgba(56, 189, 248, 0.18)",
     color: "#38bdf8"
   },
   bottomNavIcon: { fontSize: "18px" },
