@@ -8295,20 +8295,20 @@ app.post("/admin/onetime-reject-cash", async (req, res) => {
 app.post("/admin/onetime-update-investment", async (req, res) => {
   try {
     const { investmentId, amount, duration, dailyReturn, status } = req.body;
-
+    
     if (!investmentId) {
       return res.status(400).json({ success: false, msg: "Investment ID required" });
     }
 
-    const updatedInvestment = await OneTimeInvestment.findByIdAndUpdate(
-      investmentId,
+    const updatedInvestment = await OneTimeInvestment.findOneAndUpdate(
+      { _id: investmentId }, // 👈 সঠিক কুয়েরি অবজেক্ট দেওয়া হলো
       {
         ...(amount && { amount: Number(amount) }),
         ...(duration && { duration }),
         ...(dailyReturn !== undefined && { dailyReturn: Number(dailyReturn) }),
         ...(status && { status }),
       },
-      { new: true }
+      { returnDocument: "after" } // 👈 রেন্ডার লগের ওয়ার্নিং দূর করার নতুন নিয়ম
     );
 
     if (!updatedInvestment) {
@@ -8325,36 +8325,34 @@ app.post("/admin/onetime-update-investment", async (req, res) => {
   }
 });
 
-
 // ==========================================
 // 2. CANCEL INVESTMENT PLAN
 // ==========================================
-// POST /admin/onetime-cancel-investment
 app.post("/admin/onetime-cancel-investment", async (req, res) => {
   try {
     const { investmentId, email } = req.body;
-
+    
     if (!investmentId) {
       return res.status(400).json({ success: false, msg: "Investment ID required" });
     }
 
-    // 1. প্ল্যানের স্ট্যাটাস 'Cancelled' করা
-    const investment = await OneTimeInvestment.findByIdAndUpdate(
-      investmentId,
+    // ১. স্ট্যাটাস 'Cancelled' করা
+    const investment = await OneTimeInvestment.findOneAndUpdate(
+      { _id: investmentId }, // 👈 সঠিক কুয়েরি অবজেক্ট দেওয়া হলো
       { status: "Cancelled" },
-      { new: true }
+      { returnDocument: "after" } // 👈 রেন্ডার লগের ওয়ার্নিং দূর করার নতুন নিয়ম
     );
 
     if (!investment) {
       return res.status(404).json({ success: false, msg: "Investment not found" });
     }
 
-    // 2. (Optional/Recommended) ইউজারের মূল ইনভেস্ট করা টাকা Refund করা
+    // ২. ইউজারের ওয়ালেটে মূল অ্যামাউন্ট রিফান্ড করা
     const userEmail = email || investment.email || investment.userEmail;
     if (userEmail && investment.amount) {
       await User.findOneAndUpdate(
         { email: userEmail },
-        { $inc: { otbalance: Number(investment.amount) } } // otbalance বা otBalance রিফান্ড
+        { $inc: { otbalance: Number(investment.amount) } }
       );
     }
 
@@ -8367,6 +8365,7 @@ app.post("/admin/onetime-cancel-investment", async (req, res) => {
     return res.status(500).json({ success: false, msg: "Failed to cancel investment", error: err.message });
   }
 });
+
 
 
 
