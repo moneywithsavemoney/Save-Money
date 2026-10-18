@@ -56,9 +56,12 @@ export default function Login() {
     }
 
     const role = data.role || data.user?.role || "user";
+    const currentEmail = data.email || data.user?.email || email;
 
     if (role === "admin") {
       navigate("/admin", { replace: true });
+    } else if (role === "demo" || currentEmail.toLowerCase() === "demouser@gmail.com") {
+      navigate("/ecommerce-home", { replace: true });
     } else {
       localStorage.setItem("showLoginPopup", "true");
       navigate("/home", { replace: true });
@@ -68,6 +71,18 @@ export default function Login() {
   const loginEmail = async () => {
     if (!email || !password) {
       setMessage("Please enter email and password");
+      return;
+    }
+
+    // 🟢 ডেমো ইউজার চেক (ব্যাকএন্ড ছাড়াই সরাসরি ইকমার্স পেজে রিডাইরেক্ট করবে)
+    if (email.trim().toLowerCase() === "demouser@gmail.com" && password === "demo@demo") {
+      const demoData = {
+        token: "demo-secret-token",
+        email: "demouser@gmail.com",
+        name: "Demo User",
+        role: "demo"
+      };
+      saveLogin(demoData);
       return;
     }
 
@@ -191,10 +206,8 @@ export default function Login() {
 
   return (
     <div style={styles.page}>
-      {/* Dynamic keyframe animation CSS injection */}
       <style>{animationStyles}</style>
 
-      {/* Floating Animated Circles */}
       <div style={{ ...styles.bgCircleOne, animation: "floatSlow 8s ease-in-out infinite" }}></div>
       <div style={{ ...styles.bgCircleTwo, animation: "pulseGlow 6s ease-in-out infinite" }}></div>
       <div style={{ ...styles.bgPill, animation: "floatSlow 10s ease-in-out infinite reverse" }}></div>
@@ -203,7 +216,6 @@ export default function Login() {
 
         <div style={styles.logoArea}>
           <div style={styles.piggyBase}>
-            {/* Animated Drop Coin */}
             <div style={{ ...styles.coin, animation: "coinDrop 2.5s infinite ease-in-out" }}>₹</div>
 
             <div style={{ ...styles.piggy, animation: "wiggle 3s ease-in-out infinite" }}>
@@ -432,7 +444,6 @@ function Trust({ icon, title, text }) {
   );
 }
 
-// Keyframe Animations CSS
 const animationStyles = `
   @keyframes coinDrop {
     0% { transform: translateY(-12px); opacity: 0.2; }
