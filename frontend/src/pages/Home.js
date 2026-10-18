@@ -16,10 +16,15 @@ export default function Home() {
   const [latestUpdateText, setLatestUpdateText] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // 👇 ড্রয়ার ওপেন/ক্লোজ স্টেট ও ডাউনলোডিং অ্যানিমেশন স্টেট
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
+  const [isDownloadingApp, setIsDownloadingApp] = useState(false);
+
+  // 👇 পপআপ মোডালের স্টেট
   const [showOfferPopup, setShowOfferPopup] = useState(false);
 
+  // 👇 স্বাইপ হ্যান্ডলার স্টেট
   const [touchStartX, setTouchStartX] = useState(0);
   const [touchStartY, setTouchStartY] = useState(0);
 
@@ -109,24 +114,56 @@ export default function Home() {
     return outputArray;
   }
 
-  const handleDownloadPlan = () => {
+  // 🟢 অ্যাপ্লিকেশন ও ওয়েবসাইট উভয় জায়গায় পিডিএফ ডাউনলোডের জন্য ফিক্সড মেথড
+  const handleDownloadPlan = async () => {
     if (isDownloadingPlan) return;
     setIsDownloadingPlan(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("/SAVE_MONEY_PRIVATE_LIMITED.pdf");
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
       const link = document.createElement("a");
-      link.href = "/SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      link.href = blobUrl;
       link.download = "SAVE_MONEY_PRIVATE_LIMITED.pdf";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
+      window.URL.revokeObjectURL(blobUrl);
+      triggerStatusOverlay("success", "Plan PDF downloaded successfully!");
+    } catch (err) {
+      console.log("PDF download error:", err);
+      // Fallback direct link
+      const link = document.createElement("a");
+      link.href = "/SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      link.target = "_blank";
+      link.click();
+    } finally {
       setIsDownloadingPlan(false);
-    }, 1200);
+    }
   };
 
+  // 🟢 অ্যাপ্লিকেশন ও ওয়েবসাইট উভয় জায়গায় এপিকে (APK) ডাউনলোডের জন্য ফিক্সড মেথড
   const handleDownloadApp = () => {
-    window.location.href = "https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t";
+    if (isDownloadingApp) return;
+    setIsDownloadingApp(true);
+
+    const apkUrl = "https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&export=download";
+    
+    try {
+      const link = document.createElement("a");
+      link.href = apkUrl;
+      link.setAttribute("download", "SaveMoney.apk");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      triggerStatusOverlay("success", "Starting APK Download...");
+    } catch (err) {
+      window.open(apkUrl, "_system");
+    } finally {
+      setTimeout(() => setIsDownloadingApp(false), 2000);
+    }
   };
 
   useEffect(() => {
@@ -164,11 +201,12 @@ export default function Home() {
       const data = await res.json();
 
       if (data?.msg === "Token expired or invalid") {
-        triggerStatusOverlay("error", "Session expired, please login again");
+        triggerStatusOverlay("error", "You are logged out, please login again");
 
         setTimeout(() => {
           localStorage.clear();
-          navigate("/login", { replace: true });
+          navigate("/login");
+          window.location.reload();
         }, 2500);
         return;
       }
@@ -234,7 +272,7 @@ export default function Home() {
     }
   };
 
-  // 👇 ব্রাউজার রিডাইরেক্ট সমস্যার পারফেক্ট সমাধান (সরাসরি অ্যাপের ভেতর লগইন পেজে যাবে)
+  // 🟢 লগআউট ফিক্স: অ্যাপ্লিকেশনের ভেতরেই রিডাইরেক্ট করে লগইন পেজে নিয়ে যাওয়া নিশ্চিত করা হয়েছে
   const handleLogout = async () => {
     try {
       if (email) {
@@ -295,8 +333,8 @@ export default function Home() {
             style={styles.loadingLogoImg} 
             onError={(e) => { e.target.style.display = 'none'; }}
           />
-          <h2 style={{ marginTop: "16px", fontSize: "20px", fontWeight: "900", color: "#38bdf8" }}>Save Money</h2>
-          <p style={{ color: "#94a3b8", fontSize: "13px", marginTop: "4px" }}>Securing your financial vault...</p>
+          <h2 style={{ marginTop: "15px", fontSize: "20px", fontWeight: "800" }}>Save Money</h2>
+          <p style={{ color: "#94a3b8", fontSize: "14px" }}>Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -308,9 +346,8 @@ export default function Home() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <style>{eliteAppGlobalCSS}</style>
 
-      {/* SIDEBAR DRAWER */}
+      {/* 👇 SIDEBAR DRAWER */}
       <div style={{
         ...styles.drawerOverlay,
         opacity: isDrawerOpen ? 1 : 0,
@@ -321,6 +358,7 @@ export default function Home() {
           transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
         }} onClick={(e) => e.stopPropagation()}>
           
+          {/* LOGO & BRANDING */}
           <div style={styles.drawerHeader}>
             <div style={styles.drawerBrand}>
               <div style={styles.drawerLogoWrapper}>
@@ -333,16 +371,18 @@ export default function Home() {
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
-                <span style={styles.drawerLogoSubtext}>Elite Wealth Suite</span>
+                <span style={styles.drawerLogoSubtext}>Invest Small, Earn Big</span>
               </div>
             </div>
           </div>
 
+          {/* SIDEBAR CONTENT */}
           <div style={styles.drawerScrollArea}>
             <div style={styles.drawerNavList}>
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavDashboard,
                   ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/home"); setIsDrawerOpen(false); }}
@@ -354,6 +394,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavMyInvestment,
                   ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
@@ -365,6 +406,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavSaveMoney,
                   ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
@@ -376,6 +418,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavOneTime,
                   ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
@@ -385,7 +428,10 @@ export default function Home() {
               </button>
 
               <button 
-                style={styles.drawerNavItem} 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavPlan
+                }} 
                 onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
                 disabled={isDownloadingPlan}
               >
@@ -396,6 +442,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavAddFund,
                   ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
@@ -407,6 +454,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavRefer,
                   ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
@@ -418,6 +466,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavWithdraw,
                   ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
@@ -429,6 +478,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavDailyReward,
                   ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
@@ -440,6 +490,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavInvestmentAssistant,
                   ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
@@ -451,6 +502,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavSupport,
                   ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/support"); setIsDrawerOpen(false); }}
@@ -462,6 +514,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
+                  ...styles.drawerNavProfile,
                   ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
                 }} 
                 onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
@@ -473,9 +526,7 @@ export default function Home() {
               <button 
                 style={{
                   ...styles.drawerNavItem,
-                  background: "rgba(239, 68, 68, 0.2)",
-                  border: "1px solid rgba(239, 68, 68, 0.4)",
-                  color: "#f87171"
+                  ...styles.drawerNavLogout
                 }} 
                 onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
               >
@@ -484,6 +535,7 @@ export default function Home() {
               </button>
             </div>
 
+            {/* FULL VISIBLE TREE PLANT SECTION */}
             <div style={styles.treePlantOnlyWrapper}>
               <img 
                 src="/tree plant.png" 
@@ -497,6 +549,7 @@ export default function Home() {
               />
             </div>
           </div>
+
         </div>
       </div>
 
@@ -510,6 +563,7 @@ export default function Home() {
             >
               ✕
             </button>
+
             <img
               src="/OFFER_BANNER.png"
               alt="OFFER BANNER"
@@ -558,6 +612,7 @@ export default function Home() {
             onClick={() => go("/notifications")}
           >
             <span>🔔</span>
+
             {notificationCount > 0 && (
               <small style={styles.notificationBadge}>
                 {notificationCount}
@@ -575,7 +630,7 @@ export default function Home() {
       </div>
 
       {/* HERO PROFILE + WALLET */}
-      <section style={styles.heroWrapper} className="elite-glow-box">
+      <section style={styles.heroWrapper}>
         <div style={styles.heroGlow}></div>
 
         <div style={styles.profilePhotoCircle}>
@@ -592,29 +647,36 @@ export default function Home() {
 
         <div style={styles.heroUserInfo}>
           <p style={styles.heroWelcome}>
-            Elite Investor 🌟
+            Welcome Back 👋
           </p>
 
           <div style={styles.heroNameRow}>
             <h1 style={styles.heroName}>
               {name}
             </h1>
+
             {kycApproved && (
-              <span style={styles.verifiedBadge}>✔</span>
+              <span style={styles.verifiedBadge}>
+                ✔
+              </span>
             )}
           </div>
 
           <p style={styles.heroSubtitle}>
-            Secure Vault Active 🔒
+            Save Money, Secure Future 💚
           </p>
         </div>
 
         <div style={styles.heroWalletCard}>
           <p style={styles.heroWalletLabel}>Total Wallet</p>
+
           <h2 style={styles.heroWalletValue}>
-            ₹{wallet.toFixed(2)}
+            Scale: ₹{wallet.toFixed(2)}
           </h2>
-          <span style={{ fontSize: "14px" }}>👛</span>
+
+          <span style={{ fontSize: "16px" }}>
+            👛
+          </span>
         </div>
       </section>
 
@@ -664,7 +726,7 @@ export default function Home() {
       {/* MAIN ACTIONS */}
       <PremiumSectionTitle
         title="MAIN ACTIONS"
-        color="#38bdf8"
+        color="#38d9ff"
       />
 
       <section style={styles.actionPanel}>
@@ -720,14 +782,14 @@ export default function Home() {
       {/* MORE FEATURES */}
       <PremiumSectionTitle
         title="MORE FEATURES"
-        color="#fbbf24"
+        color="#ffd84d"
       />
 
       <section style={styles.actionPanel}>
         <PremiumActionButton
           icon="✅"
           title="KYC Verification"
-          subtitle="Verify Account"
+          subtitle="Verify Your Account"
           gradient="kyc"
           onClick={() => go("/kyc")}
         />
@@ -750,8 +812,8 @@ export default function Home() {
 
         <PremiumActionButton
           icon="📊"
-          title="Investment Asst"
-          subtitle="Get Assistance"
+          title="Investment Assistant"
+          subtitle="Need You Help"
           gradient="plan"
           onClick={() => go("/investment-assistant")}
         />
@@ -773,17 +835,19 @@ export default function Home() {
         />
       </section>
 
-      {/* PROMO BANNER */}
+      {/* PURPLE PROMO BANNER */}
       <section style={styles.promoBanner}>
         <div style={styles.promoContent}>
           <h1 style={styles.promoTitle}>
-            Grow Your Wealth
+            Grow Your Money
             <br />
-            Secure Your Future
+            Build Your Future
           </h1>
+
           <p style={styles.promoSubtitle}>
-            Institutional-grade daily compounding & secure returns.
+            Invest Smart, Earn More
           </p>
+
           <button
             style={styles.promoButton}
             onClick={() => go("/save-money")}
@@ -791,8 +855,9 @@ export default function Home() {
             Invest Now →
           </button>
         </div>
+
         <div style={styles.promoIcon}>
-          💎📈
+          💰📈
         </div>
       </section>
 
@@ -801,22 +866,25 @@ export default function Home() {
         <TrustMiniCard
           icon="🔒"
           title="100% Secure"
-          subtitle="Encrypted Vault"
+          subtitle="Your money is safe"
         />
+
         <TrustMiniCard
           icon="⚡"
-          title="Instant Payout"
-          subtitle="Quick execution"
+          title="Fast Payout"
+          subtitle="Quick withdrawals"
         />
+
         <TrustMiniCard
           icon="🛡️"
-          title="Regulated & Safe"
-          subtitle="Trusted platform"
+          title="Trusted Platform"
+          subtitle="Trusted by users"
         />
+
         <TrustMiniCard
           icon="💬"
           title="24/7 Support"
-          subtitle="Always available"
+          subtitle="We are here"
         />
       </section>
 
@@ -825,16 +893,16 @@ export default function Home() {
         style={styles.aboutStrip}
         onClick={() => go("/about")}
       >
-        🏢 About Save Money Private Limited
+        🏢 About Save Money
       </button>
 
       {/* HELP TEXT */}
       <h1 style={styles.helpText}>
-        HELP OTHERS EARN MORE 💸
+        HELP OTHER FOR EARN MORE 💸
       </h1>
 
       {/* APP DOWNLOAD CARD */}
-      <div className="elite-download-card" style={styles.appDownloadCard}>
+      <div className="premium-download-card" style={styles.appDownloadCard}>
         <div style={styles.appGlowBackground}></div>
         
         <div style={styles.appTopBadge}>
@@ -864,9 +932,10 @@ export default function Home() {
 
         <div style={styles.appBtnGroup}>
           <button 
-            className="elite-app-btn"
+            className="premium-app-btn"
             style={styles.appDownloadBtn}
             onClick={handleDownloadApp}
+            disabled={isDownloadingApp}
           >
             <svg style={styles.appStoreSvg} viewBox="0 0 24 24">
               <path fill="#4285F4" d="M3.6,1.82C3.24,2.02 3,2.41 3,2.87V21.13C3,21.59 3.24,21.98 3.6,22.18L13.1,12.68L3.6,1.82Z" />
@@ -876,7 +945,7 @@ export default function Home() {
             </svg>
             <div style={styles.btnTextWrapper}>
               <span style={styles.btnMiniLabel}>DIRECT APK</span>
-              <span style={styles.btnMainLabel}>Download Android App</span>
+              <span style={styles.btnMainLabel}>{isDownloadingApp ? "Downloading APK..." : "Download Android App"}</span>
             </div>
             <svg style={styles.downloadIconSvg} fill="currentColor" viewBox="0 0 24 24">
               <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
@@ -887,20 +956,32 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer style={styles.footer}>
-        <h2 style={{ fontSize: "16px", fontWeight: "900", margin: "0 0 10px 0", color: "#38bdf8" }}>
-          Save Money Private Limited
+        <h2 style={{ fontSize: "18px", fontWeight: "800", margin: "0 0 10px 0" }}>
+          Save Money
         </h2>
 
         <div style={styles.footerLinks}>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/privacy")}>Privacy</button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/terms")}>Terms</button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/refund")}>Refund</button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/risk")}>Risk</button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/aml")}>AML & KYC</button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/disclaimer")}>Disclaimer</button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/privacy")}>
+            Privacy Policy
+          </button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/terms")}>
+            Terms
+          </button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/refund")}>
+            Refund
+          </button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/risk")}>
+            Risk Disclosure
+          </button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/aml")}>
+            AML & KYC
+          </button>
+          <button style={styles.footerLinkBtn} onClick={() => go("/legal/disclaimer")}>
+            Disclaimer
+          </button>
         </div>
 
-        <p style={{ fontSize: "11px", color: "#64748b", margin: 0 }}>
+        <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
           © 2026 Save Money. All Rights Reserved.
         </p>
       </footer>
@@ -927,8 +1008,8 @@ export default function Home() {
         />
         <BottomNavItem
           icon="🌲"
-          title="Tree"
-          active={location.pathname === "/referral-tree"}
+          title="tree"
+          active={location.pathname === "/profile"}
           onClick={() => go("/referral-tree")}
         />
       </nav>
@@ -950,6 +1031,7 @@ function DashboardStatCard({ icon, title, value, gradient }) {
       <div style={styles.statIconWrap}>
         <span style={styles.statIcon}>{icon}</span>
       </div>
+
       <p style={styles.statTitle}>{title}</p>
       <h2 style={styles.statValue}>{value}</h2>
       <div style={styles.statGlow}></div>
@@ -958,8 +1040,29 @@ function DashboardStatCard({ icon, title, value, gradient }) {
 }
 
 function PremiumActionButton({ icon, title, subtitle, gradient, onClick }) {
+  const gradientStyle = {
+    invest: styles.actionInvest,
+    myInvestment: styles.actionMyInvestment,
+    wallet: styles.actionWallet,
+    withdraw: styles.actionWithdraw,
+    refer: styles.actionRefer,
+    transaction: styles.actionTransaction,
+    kyc: styles.actionKyc,
+    reward: styles.actionReward,
+    bank: styles.actionBank,
+    plan: styles.actionPlan,
+    notification: styles.actionNotification,
+    support: styles.actionSupport
+  };
+
   return (
-    <button style={styles.actionButton} onClick={onClick}>
+    <button
+      style={{
+        ...styles.actionButton,
+        ...gradientStyle[gradient]
+      }}
+      onClick={onClick}
+    >
       <div style={styles.actionIconCircle}>{icon}</div>
       <div style={styles.actionTextBox}>
         <h3 style={styles.actionTitle}>{title}</h3>
@@ -1007,34 +1110,14 @@ function BottomNavItem({ icon, title, active, onClick }) {
   );
 }
 
-const eliteAppGlobalCSS = `
-  @keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-  }
-  @keyframes appPulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
-  }
-  .elite-glow-box {
-    border: 1px solid rgba(56, 189, 248, 0.45) !important;
-    box-shadow: 0 12px 35px rgba(0,0,0,0.7), 0 0 25px rgba(56, 189, 248, 0.2) !important;
-  }
-  .elite-app-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(56, 189, 248, 0.55) !important;
-  }
-`;
-
 const styles = {
   limitedOfferBar: {
-    marginTop: "14px",
-    background: "linear-gradient(135deg, #060a12 0%, #0d1526 100%)",
+    marginTop: "16px",
+    background: "linear-gradient(180deg, #022013 0%, #043820 100%)",
     borderRadius: "16px",
-    padding: "9px 14px",
-    border: "1px solid rgba(56, 189, 248, 0.35)",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
+    padding: "8px 12px",
+    border: "1px solid #10b981",
+    boxShadow: "0 0 15px rgba(16, 185, 129, 0.2)",
     display: "flex",
     alignItems: "center",
     gap: "10px",
@@ -1053,27 +1136,31 @@ const styles = {
     animation: "marquee 20s linear infinite"
   },
   limitedOfferBadge: {
-    background: "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)",
-    color: "#030712",
+    background: "#f59e0b",
+    color: "#000000",
     fontWeight: "900",
     fontSize: "10px",
-    padding: "3px 8px",
+    padding: "4px 8px",
     borderRadius: "6px",
     letterSpacing: "0.5px",
     whiteSpace: "nowrap",
-    flexShrink: 0
+    flexShrink: 0,
+    boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
   },
   announcementText: {
     fontSize: "12px",
     fontWeight: "700",
-    color: "#f8fafc"
+    color: "#ffffff"
   },
 
   drawerOverlay: {
     position: "fixed",
-    inset: 0,
-    background: "rgba(2, 6, 23, 0.82)",
-    backdropFilter: "blur(8px)",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0, 0, 0, 0.75)",
+    backdropFilter: "blur(6px)",
     zIndex: 100002,
     display: "flex",
     justifyContent: "flex-start",
@@ -1081,15 +1168,17 @@ const styles = {
   },
   drawerContainer: {
     position: "fixed",
-    top: 0, bottom: 0, left: 0,
-    background: "#050914",
-    width: "245px",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    background: "#08101e",
+    width: "230px",
     height: "100vh",
-    padding: "14px 10px",
+    padding: "12px 8px",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "20px 0 50px rgba(0,0,0,0.9)",
-    borderRight: "1px solid rgba(56, 189, 248, 0.25)",
+    boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
+    borderRight: "1px solid #1e293b",
     transform: "translateX(-100%)",
     transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     overflow: "hidden",
@@ -1099,43 +1188,48 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    marginBottom: "12px",
-    paddingBottom: "12px",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
+    justifyContent: "center",
+    marginBottom: "10px",
+    paddingBottom: "8px",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+    flexShrink: 0
   },
   drawerBrand: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "6px"
+    gap: "4px"
   },
   drawerLogoWrapper: {
-    width: "48px",
-    height: "48px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, #0284c7 0%, #0369a1 100%)",
-    border: "2px solid #38bdf8",
+    background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
+    border: "2px solid #22c55e",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    boxShadow: "0 0 15px rgba(56, 189, 248, 0.4)"
+    boxShadow: "0 0 10px rgba(34, 197, 94, 0.4)"
   },
   drawerLogoImg: {
-    width: "28px",
-    height: "28px",
+    width: "26px",
+    height: "26px",
     objectFit: "contain"
   },
   drawerLogoText: {
     margin: 0,
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: "900",
     color: "#ffffff",
-    letterSpacing: "0.5px"
+    letterSpacing: "0.6px",
+    textAlign: "center"
   },
   drawerLogoSubtext: {
     fontSize: "10px",
-    color: "#38bdf8",
-    fontWeight: "700"
+    color: "#a7f3d0",
+    fontWeight: "600",
+    marginTop: "1px",
+    textAlign: "center"
   },
   drawerScrollArea: {
     flex: 1,
@@ -1148,183 +1242,221 @@ const styles = {
   drawerNavList: {
     display: "flex",
     flexDirection: "column",
-    gap: "6px"
+    gap: "6px",
+    flexShrink: 0
   },
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    padding: "9px 12px",
-    background: "rgba(255, 255, 255, 0.03)",
-    border: "1px solid rgba(255, 255, 255, 0.07)",
-    borderRadius: "12px",
-    color: "#f8fafc",
+    gap: "8px",
+    padding: "8px 12px",
+    background: "rgba(255, 255, 255, 0.12)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    border: "1px solid rgba(255, 255, 255, 0.25)",
+    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    color: "#ffffff",
     fontSize: "12px",
-    fontWeight: "700",
+    fontWeight: "800",
     cursor: "pointer",
     textAlign: "left",
-    transition: "all 0.2s ease"
+    transition: "all 0.25s ease",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+    textShadow: "0 1px 2px rgba(0,0,0,0.5)"
   },
   drawerNavItemActive: {
-    background: "rgba(56, 189, 248, 0.18)",
-    border: "1px solid #38bdf8",
-    color: "#38bdf8",
-    boxShadow: "0 0 12px rgba(56, 189, 248, 0.25)"
+    background: "rgba(255, 255, 255, 0.3)",
+    border: "1px solid #ffffff",
+    boxShadow: "0 0 12px rgba(255, 255, 255, 0.5)",
+    fontWeight: "900"
   },
   drawerNavIcon: {
     fontSize: "16px",
     width: "20px",
+    display: "inline-block",
     textAlign: "center"
   },
   drawerNavText: {
     flex: 1,
-    fontSize: "12px"
-  },
-  treePlantOnlyWrapper: {
-    marginTop: "auto",
-    width: "100%",
-    height: "95px",
-    borderRadius: "14px",
+    fontSize: "12px",
+    letterSpacing: "0.3px",
+    whiteSpace: "nowrap",
     overflow: "hidden",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
+    textOverflow: "ellipsis"
+  },
+
+  drawerNavDashboard: { background: "rgba(59, 130, 246, 0.25)", border: "1px solid rgba(59, 130, 246, 0.5)" },
+  drawerNavMyInvestment: { background: "rgba(16, 185, 129, 0.25)", border: "1px solid rgba(16, 185, 129, 0.5)" },
+  drawerNavSaveMoney: { background: "rgba(245, 158, 11, 0.25)", border: "1px solid rgba(245, 158, 11, 0.5)" },
+  drawerNavOneTime: { background: "rgba(168, 85, 247, 0.25)", border: "1px solid rgba(168, 85, 247, 0.5)" },
+  drawerNavPlan: { background: "rgba(6, 182, 212, 0.25)", border: "1px solid rgba(6, 182, 212, 0.5)" },
+  drawerNavAddFund: { background: "rgba(20, 184, 166, 0.25)", border: "1px solid rgba(20, 184, 166, 0.5)" },
+  drawerNavRefer: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.25)", border: "1px solid rgba(249, 115, 22, 0.5)" },
+  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.25)", border: "1px solid rgba(244, 63, 94, 0.5)" },
+  drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.25)", border: "1px solid rgba(2, 132, 199, 0.5)" },
+  drawerNavSupport: { background: "rgba(99, 102, 241, 0.25)", border: "1px solid rgba(99, 102, 241, 0.5)" },
+  drawerNavProfile: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavLogout: { background: "rgba(239, 68, 68, 0.25)", border: "1px solid rgba(239, 68, 68, 0.5)" },
+
+  treePlantOnlyWrapper: {
+    width: "100%",
+    paddingTop: "6px",
+    paddingBottom: "10px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexShrink: 0
   },
   treePlantOnlyImg: {
     width: "100%",
-    height: "100%",
-    objectFit: "cover"
+    maxHeight: "110px",
+    objectFit: "cover",
+    borderRadius: "12px",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.5)"
   },
 
   appDownloadCard: {
     position: "relative",
-    marginTop: "24px",
-    background: "linear-gradient(135deg, #060a12 0%, #0d1526 50%, #1e1b4b 100%)",
-    borderRadius: "22px",
+    marginTop: "28px",
+    background: "linear-gradient(135deg, #061826 0%, #0b2f38 50%, #03141e 100%)",
+    borderRadius: "24px",
     padding: "20px 16px",
-    border: "1px solid rgba(56, 189, 248, 0.35)",
-    boxShadow: "0 15px 35px rgba(0,0,0,0.6)",
+    border: "1px solid rgba(34, 197, 94, 0.5)",
+    boxShadow: "0 15px 35px rgba(0,0,0,0.6), inset 0 0 15px rgba(34, 197, 94, 0.15)",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "14px",
+    gap: "16px",
     overflow: "hidden"
   },
   appGlowBackground: {
     position: "absolute",
     top: "-30px",
     right: "-30px",
-    width: "110px",
-    height: "110px",
-    background: "radial-gradient(circle, rgba(56,189,248,0.25) 0%, transparent 70%)",
+    width: "120px",
+    height: "120px",
+    background: "radial-gradient(circle, rgba(34,197,94,0.3) 0%, transparent 70%)",
     pointerEvents: "none"
   },
   appTopBadge: {
     display: "inline-flex",
     alignItems: "center",
     gap: "6px",
-    background: "rgba(56, 189, 248, 0.15)",
-    border: "1px solid rgba(56, 189, 248, 0.4)",
+    background: "rgba(34, 197, 94, 0.15)",
+    border: "1px solid rgba(34, 197, 94, 0.4)",
     padding: "5px 14px",
     borderRadius: "20px",
-    color: "#38bdf8",
+    color: "#4ade80",
     fontSize: "10px",
     fontWeight: "800",
-    letterSpacing: "0.5px"
+    letterSpacing: "0.6px"
   },
   appBadgePulse: {
     width: "6px",
     height: "6px",
     borderRadius: "50%",
-    background: "#38bdf8",
+    background: "#22c55e",
+    boxShadow: "0 0 8px #22c55e",
     animation: "appPulse 1.5s infinite"
   },
   appDownloadHeader: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
     textAlign: "center",
-    gap: "8px",
+    gap: "10px",
     width: "100%"
   },
   appLogoContainer: {
     position: "relative"
   },
   appLogoImg: {
-    width: "60px",
-    height: "60px",
-    borderRadius: "16px",
-    border: "2px solid #38bdf8",
+    width: "62px",
+    height: "62px",
+    borderRadius: "18px",
+    border: "2px solid #22c55e",
     objectFit: "contain",
-    boxShadow: "0 6px 20px rgba(56, 189, 248, 0.35)"
+    boxShadow: "0 6px 18px rgba(34, 197, 94, 0.3)"
   },
   appOnlineDot: {
     position: "absolute",
     bottom: "-2px",
     right: "-2px",
-    width: "12px",
-    height: "12px",
+    width: "14px",
+    height: "14px",
     borderRadius: "50%",
-    background: "#10b981",
-    border: "2px solid #060a12"
+    background: "#22c55e",
+    border: "2px solid #061826"
   },
   appInfoTextCenter: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center"
+    alignItems: "center",
+    textAlign: "center"
   },
   appDownloadTitle: {
     margin: 0,
     fontSize: "18px",
     fontWeight: "900",
-    color: "#f8fafc"
+    color: "#ffffff",
+    letterSpacing: "0.3px"
   },
   appDownloadSub: {
-    margin: "2px 0 0 0",
-    fontSize: "11px",
-    color: "#94a3b8"
+    margin: "4px 0 0 0",
+    fontSize: "12px",
+    color: "#94a3b8",
+    fontWeight: "600"
   },
   appRatingWrap: {
     display: "flex",
     alignItems: "center",
+    justifyContent: "center",
     gap: "6px",
-    marginTop: "4px",
+    marginTop: "6px",
     fontSize: "11px"
   },
   appRatingText: {
-    color: "#cbd5e1",
+    color: "#e2e8f0",
     fontWeight: "700"
   },
   appBtnGroup: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
     width: "100%"
   },
   appDownloadBtn: {
     width: "100%",
-    padding: "13px",
+    padding: "12px 18px",
     borderRadius: "16px",
-    background: "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)",
-    border: "none",
+    background: "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
+    border: "1px solid #4ade80",
     color: "#ffffff",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "10px",
-    boxShadow: "0 8px 25px rgba(56, 189, 248, 0.4)",
+    boxShadow: "0 6px 20px rgba(22, 163, 74, 0.4)",
     transition: "transform 0.2s ease"
   },
   appStoreSvg: {
-    width: "22px",
-    height: "22px",
+    width: "24px",
+    height: "24px",
     flexShrink: 0
   },
   btnTextWrapper: {
     display: "flex",
     flexDirection: "column",
-    alignItems: "center"
+    alignItems: "center",
+    textAlign: "center"
   },
   btnMiniLabel: {
     fontSize: "9px",
     fontWeight: "800",
-    color: "#e0f2fe",
+    color: "#86efac",
     letterSpacing: "0.5px"
   },
   btnMainLabel: {
@@ -1333,16 +1465,19 @@ const styles = {
     color: "#ffffff"
   },
   downloadIconSvg: {
-    width: "18px",
-    height: "18px",
+    width: "20px",
+    height: "20px",
     flexShrink: 0
   },
 
   popupOverlay: {
     position: "fixed",
-    inset: 0,
-    background: "rgba(2, 6, 23, 0.85)",
-    backdropFilter: "blur(8px)",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(2, 6, 23, 0.75)",
+    backdropFilter: "blur(6px)",
     zIndex: 100001,
     display: "flex",
     alignItems: "center",
@@ -1350,27 +1485,29 @@ const styles = {
     padding: "16px"
   },
   popupCard: {
-    background: "#060a12",
-    borderRadius: "22px",
+    background: "#0f172a",
+    borderRadius: "24px",
     padding: "20px",
     maxWidth: "90%",
-    width: "390px",
+    width: "420px",
     position: "relative",
-    boxShadow: "0 25px 60px rgba(0,0,0,0.85)",
-    border: "1px solid rgba(56, 189, 248, 0.35)",
+    boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
+    border: "1px solid #1e293b",
     textAlign: "center"
   },
   popupCloseBtn: {
     position: "absolute",
     top: "12px",
     right: "12px",
-    width: "32px",
-    height: "32px",
-    background: "rgba(255, 255, 255, 0.1)",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    borderRadius: "50%",
+    width: "34px",
+    height: "34px",
+    background: "rgba(255, 255, 255, 0.15)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
+    clipPath: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
     color: "#ffffff",
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: "bold",
     cursor: "pointer",
     display: "flex",
@@ -1382,13 +1519,14 @@ const styles = {
     width: "100%",
     height: "auto",
     objectFit: "contain",
-    borderRadius: "14px"
+    borderRadius: "16px",
+    marginBottom: "14px"
   },
 
   statusOverlayBg: {
     position: "fixed",
     inset: 0,
-    background: "rgba(2, 6, 23, 0.85)",
+    background: "rgba(2, 6, 23, 0.65)",
     backdropFilter: "blur(8px)",
     zIndex: 100000,
     display: "flex",
@@ -1396,13 +1534,13 @@ const styles = {
     justifyContent: "center"
   },
   statusOverlayCard: {
-    background: "#060a12",
-    padding: "22px 30px",
-    borderRadius: "20px",
+    background: "#0f172a",
+    padding: "24px 34px",
+    borderRadius: "24px",
     textAlign: "center",
-    boxShadow: "0 25px 50px rgba(0,0,0,0.8)",
-    border: "1px solid rgba(56, 189, 248, 0.35)",
-    maxWidth: "350px",
+    boxShadow: "0 30px 70px rgba(0,0,0,0.5)",
+    border: "1px solid #1e293b",
+    maxWidth: "380px",
     width: "85%",
     display: "flex",
     flexDirection: "column",
@@ -1410,17 +1548,17 @@ const styles = {
     gap: "14px"
   },
   statusOverlayIcon: {
-    width: "52px",
-    height: "52px",
+    width: "58px",
+    height: "58px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "26px",
+    fontSize: "28px",
     fontWeight: "bold"
   },
   statusOverlayText: {
-    fontSize: "15px",
+    fontSize: "16px",
     color: "#ffffff",
     margin: 0,
     fontWeight: "800",
@@ -1429,11 +1567,12 @@ const styles = {
 
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(180deg, #020617 0%, #040d21 50%, #020617 100%)",
+    background: "linear-gradient(180deg,#020617 0%,#031026 45%,#020617 100%)",
     color: "white",
-    padding: "0 12px 130px",
+    padding: "0 12px 140px",
     fontFamily: "system-ui, -apple-system, sans-serif"
   },
+
   loadingPage: {
     minHeight: "100vh",
     background: "#020617",
@@ -1442,79 +1581,78 @@ const styles = {
     alignItems: "center",
     justifyContent: "center"
   },
+
   loadingCard: {
-    background: "#060a12",
-    padding: "32px",
-    borderRadius: "22px",
+    background: "#0f172a",
+    padding: "30px",
+    borderRadius: "24px",
     textAlign: "center",
-    border: "1px solid rgba(56, 189, 248, 0.35)",
-    boxShadow: "0 0 35px rgba(56,189,248,0.25)"
+    border: "1px solid #1e40af",
+    boxShadow: "0 0 35px rgba(34,197,94,0.25)"
   },
+
   topHeader: {
-    height: "58px",
+    height: "60px",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     padding: "0 4px"
   },
+
   menuButton: {
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    color: "#38bdf8",
-    fontSize: "20px",
+    background: "transparent",
+    border: "none",
+    color: "white",
+    fontSize: "26px",
     cursor: "pointer",
-    width: "42px",
-    height: "42px",
-    borderRadius: "14px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
+    padding: "4px"
   },
+
   headerTitle: {
     margin: 0,
     fontSize: "15px",
-    fontWeight: "900",
+    fontWeight: "800",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
     maxWidth: "180px"
   },
+
   logoutBtn: {
-    height: "38px",
-    padding: "0 14px",
+    height: "36px",
+    padding: "0 12px",
     border: "1px solid rgba(239, 68, 68, 0.4)",
-    background: "rgba(239, 68, 68, 0.15)",
-    color: "#f87171",
+    background: "rgba(239, 68, 68, 0.2)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    clipPath: "polygon(8px 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%)",
+    color: "white",
     fontWeight: "800",
     fontSize: "12px",
-    borderRadius: "12px",
-    cursor: "pointer",
-    boxShadow: "0 4px 12px rgba(239,68,68,0.2)"
+    boxShadow: "0 4px 14px rgba(0, 0, 0, 0.35)",
+    cursor: "pointer"
   },
+
   notificationButton: {
     position: "relative",
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "transparent",
+    border: "none",
     color: "white",
-    fontSize: "16px",
+    fontSize: "20px",
     cursor: "pointer",
-    width: "42px",
-    height: "42px",
-    borderRadius: "14px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
+    padding: "4px"
   },
+
   notificationBadge: {
     position: "absolute",
     top: "-2px",
     right: "-2px",
-    background: "#ef4444",
+    background: "#ff1744",
     color: "white",
-    width: "17px",
-    height: "17px",
+    width: "18px",
+    height: "18px",
     borderRadius: "50%",
-    fontSize: "9px",
+    fontSize: "10px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -1525,107 +1663,120 @@ const styles = {
     position: "relative",
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    padding: "18px 16px",
-    borderRadius: "22px",
+    gap: "10px",
+    padding: "14px 12px",
+    borderRadius: "20px",
     overflow: "hidden",
-    background: "linear-gradient(135deg, #060a12 0%, #0d1526 50%, #1e1b4b 100%)",
-    boxShadow: "0 15px 35px rgba(0,0,0,0.6)"
+    background: "radial-gradient(circle at 90% 0%,#22ff88 0%,transparent 34%),linear-gradient(135deg,#06152d,#043858,#08c96b)",
+    border: "1px solid rgba(34,255,136,0.55)",
+    boxShadow: "0 0 38px rgba(34,255,136,0.23)"
   },
+
   heroGlow: {
     position: "absolute",
     inset: 0,
-    background: "linear-gradient(90deg,rgba(56,189,248,0.06),transparent,rgba(56,189,248,0.06))",
+    background: "linear-gradient(90deg,rgba(255,255,255,0.08),transparent,rgba(255,255,255,0.08))",
     pointerEvents: "none"
   },
+
   profilePhotoCircle: {
     width: "60px",
     height: "60px",
     borderRadius: "50%",
-    background: "#1f2937",
-    border: "2px solid #38bdf8",
+    background: "#334155",
+    border: "2px solid #e0f2fe",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
     zIndex: 2,
     flexShrink: 0,
-    boxShadow: "0 0 15px rgba(56,189,248,0.3)"
+    boxShadow: "0 0 12px rgba(255,255,255,0.35)"
   },
+
   profilePhoto: {
     width: "100%",
     height: "100%",
     objectFit: "cover"
   },
+
   defaultProfileIcon: {
-    fontSize: "28px"
+    fontSize: "30px"
   },
+
   heroUserInfo: {
     flex: 1,
     zIndex: 2,
     overflow: "hidden"
   },
+
   heroWelcome: {
     margin: 0,
-    fontSize: "10px",
+    fontSize: "11px",
     fontWeight: "700",
-    color: "#94a3b8"
+    color: "#cbd5e1"
   },
+
   heroNameRow: {
     display: "flex",
     alignItems: "center",
     gap: "5px"
   },
+
   heroName: {
     margin: "2px 0",
-    fontSize: "16px",
-    fontWeight: "900",
-    color: "#f8fafc",
+    fontSize: "15px",
+    fontWeight: "800",
+    lineHeight: "1.2",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis"
   },
+
   verifiedBadge: {
-    width: "15px",
-    height: "15px",
+    width: "16px",
+    height: "16px",
     borderRadius: "50%",
-    background: "#10b981",
+    background: "#2563eb",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "9px",
+    fontSize: "10px",
     fontWeight: "bold",
-    color: "#fff"
+    flexShrink: 0
   },
+
   heroSubtitle: {
     margin: 0,
     fontSize: "10px",
-    color: "#34d399",
-    fontWeight: "700"
+    color: "#dcfce7",
+    fontWeight: "600",
+    whiteSpace: "nowrap"
   },
+
   heroWalletCard: {
     minWidth: "90px",
-    borderRadius: "16px",
-    padding: "10px 12px",
-    background: "rgba(56, 189, 248, 0.12)",
-    border: "1px solid rgba(56, 189, 248, 0.35)",
+    borderRadius: "14px",
+    padding: "8px 10px",
+    background: "linear-gradient(135deg,#16ff75,#00b96b)",
+    boxShadow: "0 8px 18px rgba(0,0,0,0.35)",
     zIndex: 2,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    flexShrink: "0"
+    flexShrink: 0
   },
   heroWalletLabel: {
     margin: 0,
-    fontSize: "9px",
-    fontWeight: "800",
-    color: "#94a3b8"
+    fontSize: "10px",
+    fontWeight: "700",
+    color: "#000000"
   },
   heroWalletValue: {
-    margin: "3px 0",
-    fontSize: "14px",
+    margin: "2px 0",
+    fontSize: "13px",
     fontWeight: "900",
-    color: "#34d399"
+    color: "#000000"
   },
 
   statsGrid: {
@@ -1634,45 +1785,42 @@ const styles = {
     gap: "10px",
     marginTop: "14px"
   },
+
   statCard: {
     position: "relative",
-    borderRadius: "18px",
-    padding: "14px",
+    borderRadius: "16px",
+    padding: "12px",
     overflow: "hidden",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.4)",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.35)",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    minHeight: "90px",
-    border: "1px solid rgba(255,255,255,0.07)"
+    minHeight: "90px"
   },
-  statBlue: { background: "linear-gradient(135deg,#060a12,#1e3a8a)" },
-  statGreen: { background: "linear-gradient(135deg,#060a12,#065f46)" },
-  statPurple: { background: "linear-gradient(135deg,#060a12,#581c87)" },
-  statOrange: { background: "linear-gradient(135deg,#060a12,#7c2d12)" },
+
+  statBlue: { background: "linear-gradient(135deg,#2f63ff,#061b91)" },
+  statGreen: { background: "linear-gradient(135deg,#00f58a,#006b45)" },
+  statPurple: { background: "linear-gradient(135deg,#9b35ff,#4c057a)" },
+  statOrange: { background: "linear-gradient(135deg,#ff8a00,#c2410c)" },
 
   statIconWrap: { lineHeight: "1" },
   statIcon: { fontSize: "22px" },
   statTitle: {
     margin: "6px 0 2px",
-    color: "#94a3b8",
+    color: "rgba(255,255,255,0.9)",
     fontSize: "11px",
-    fontWeight: "700"
+    fontWeight: "700",
+    whiteSpace: "nowrap"
   },
-  statValue: {
-    margin: 0,
-    fontSize: "16px",
-    fontWeight: "900",
-    color: "#f8fafc"
-  },
+  statValue: { margin: 0, fontSize: "16px", fontWeight: "900" },
   statGlow: {
     position: "absolute",
     right: "-15px",
     top: "-15px",
-    width: "50px",
-    height: "50px",
+    width: "55px",
+    height: "55px",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.08)"
+    background: "rgba(255,255,255,0.18)"
   },
 
   sectionTitleWrap: {
@@ -1680,63 +1828,66 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "10px"
+    gap: "8px"
   },
   sectionLine: {
     flex: 1,
-    height: "1px",
-    background: "linear-gradient(90deg,transparent,rgba(56,189,248,0.5),transparent)"
+    height: "2px",
+    borderRadius: "10px",
+    background: "linear-gradient(90deg,transparent,#38bdf8,#facc15,transparent)"
   },
   sectionTitleText: {
     margin: 0,
-    fontSize: "13px",
+    fontSize: "14px",
     fontWeight: "900",
     letterSpacing: "0.5px"
   },
 
   actionPanel: {
-    background: "#060a12",
-    border: "1px solid rgba(56, 189, 248, 0.25)",
+    background: "linear-gradient(180deg,#061936,#07101e)",
+    border: "1.5px solid #1d4ed8",
     borderRadius: "20px",
-    padding: "12px",
+    padding: "10px",
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
     gap: "10px",
-    boxShadow: "0 12px 30px rgba(0,0,0,0.55)"
+    boxShadow: "inset 0 0 25px rgba(59,130,246,0.2)"
   },
   actionButton: {
     position: "relative",
-    border: "1px solid rgba(255, 255, 255, 0.08)",
-    background: "rgba(255, 255, 255, 0.03)",
-    borderRadius: "14px",
-    padding: "12px 6px",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    background: "rgba(255, 255, 255, 0.08)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    padding: "10px 4px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: "6px",
-    cursor: "pointer",
-    transition: "all 0.2s ease"
+    gap: "4px",
+    overflow: "hidden",
+    boxShadow: "0 6px 18px rgba(0,0,0,0.35)",
+    cursor: "pointer"
   },
   actionIconCircle: {
-    width: "38px",
-    height: "38px",
+    width: "36px",
+    height: "36px",
     borderRadius: "12px",
-    background: "rgba(56, 189, 248, 0.15)",
+    background: "rgba(255,255,255,0.18)",
+    backdropFilter: "blur(6px)",
+    WebkitBackdropFilter: "blur(6px)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: "18px"
   },
-  actionTextBox: {
-    textAlign: "center",
-    width: "100%"
-  },
+  actionTextBox: { textAlign: "center", zIndex: 2, width: "100%" },
   actionTitle: {
     margin: 0,
     fontSize: "11px",
-    fontWeight: "900",
-    color: "#f8fafc",
+    fontWeight: "800",
+    lineHeight: "1.1",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis"
@@ -1744,7 +1895,7 @@ const styles = {
   actionSubtitle: {
     margin: "2px 0 0",
     fontSize: "9px",
-    color: "#94a3b8",
+    color: "rgba(255,255,255,0.8)",
     fontWeight: "600",
     whiteSpace: "nowrap",
     overflow: "hidden",
@@ -1752,142 +1903,117 @@ const styles = {
   },
   actionShine: {
     position: "absolute",
-    right: "-12px",
-    top: "-12px",
-    width: "45px",
-    height: "45px",
+    right: "-18px",
+    top: "-18px",
+    width: "50px",
+    height: "50px",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.06)"
+    background: "rgba(255,255,255,0.12)"
   },
 
+  actionInvest: { background: "rgba(0, 255, 117, 0.12)", border: "1px solid rgba(0, 255, 117, 0.3)" },
+  actionMyInvestment: { background: "rgba(0, 180, 255, 0.12)", border: "1px solid rgba(0, 180, 255, 0.3)" },
+  actionWallet: { background: "rgba(217, 70, 239, 0.12)", border: "1px solid rgba(217, 70, 239, 0.3)" },
+  actionWithdraw: { background: "rgba(255, 107, 0, 0.12)", border: "1px solid rgba(255, 107, 0, 0.3)" },
+  actionRefer: { background: "rgba(255, 0, 122, 0.12)", border: "1px solid rgba(255, 0, 122, 0.3)" },
+  actionTransaction: { background: "rgba(0, 229, 255, 0.12)", border: "1px solid rgba(0, 229, 255, 0.3)" },
+  actionKyc: { background: "rgba(0, 245, 255, 0.12)", border: "1px solid rgba(0, 245, 255, 0.3)" },
+  actionReward: { background: "rgba(168, 85, 247, 0.12)", border: "1px solid rgba(168, 85, 247, 0.3)" },
+  actionBank: { background: "rgba(255, 183, 3, 0.12)", border: "1px solid rgba(255, 183, 3, 0.3)" },
+  actionPlan: { background: "rgba(0, 176, 255, 0.12)", border: "1px solid rgba(0, 176, 255, 0.3)" },
+  actionNotification: { background: "rgba(255, 23, 68, 0.12)", border: "1px solid rgba(255, 23, 68, 0.3)" },
+  actionSupport: { background: "rgba(0, 255, 117, 0.12)", border: "1px solid rgba(0, 255, 117, 0.3)" },
+
   promoBanner: {
-    marginTop: "18px",
-    borderRadius: "20px",
-    padding: "18px",
-    background: "linear-gradient(135deg,#060a12,#1e1b4b,#311042)",
-    border: "1px solid rgba(168, 85, 247, 0.35)",
+    marginTop: "16px",
+    borderRadius: "18px",
+    padding: "16px",
+    background: "linear-gradient(135deg,#4c1d95,#8b00ff,#9d00ff)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 12px 30px rgba(0,0,0,0.55)"
+    boxShadow: "0 8px 24px rgba(126,34,206,0.35)"
   },
   promoContent: { flex: 1 },
-  promoTitle: {
-    margin: 0,
-    fontSize: "16px",
-    fontWeight: "900",
-    color: "#f8fafc",
-    lineHeight: "1.3"
-  },
-  promoSubtitle: {
-    margin: "5px 0 0",
-    fontSize: "11px",
-    color: "#c084fc"
-  },
+  promoTitle: { margin: 0, fontSize: "16px", fontWeight: "900", lineHeight: "1.2" },
+  promoSubtitle: { margin: "4px 0 0", fontSize: "11px", color: "#e9d5ff" },
   promoButton: {
-    marginTop: "12px",
-    border: "1px solid rgba(168, 85, 247, 0.6)",
-    background: "rgba(168, 85, 247, 0.25)",
+    marginTop: "10px",
+    border: "1px solid rgba(250, 204, 21, 0.5)",
+    background: "rgba(250, 204, 21, 0.2)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    clipPath: "polygon(8px 0%, calc(100% - 8px) 0%, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%)",
     color: "#ffffff",
     fontWeight: "900",
-    fontSize: "11px",
-    borderRadius: "10px",
+    fontSize: "12px",
     cursor: "pointer",
-    padding: "7px 14px"
+    padding: "8px 14px"
   },
   promoIcon: { fontSize: "36px" },
 
   trustPanel: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "10px",
-    marginTop: "16px",
-    background: "#060a12",
+    gap: "8px",
+    marginTop: "14px",
+    background: "#071831",
     borderRadius: "18px",
-    padding: "12px",
-    border: "1px solid rgba(255,255,255,0.08)"
+    padding: "10px",
+    border: "1px solid #1e40af"
   },
   trustMiniCard: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    background: "rgba(255,255,255,0.03)",
+    gap: "8px",
+    background: "rgba(15,23,42,0.65)",
     borderRadius: "12px",
-    padding: "10px 12px",
-    border: "1px solid rgba(255,255,255,0.05)"
+    padding: "8px 10px"
   },
   trustIconCircle: { fontSize: "18px" },
-  trustTitle: {
-    margin: 0,
-    fontSize: "11px",
-    fontWeight: "900",
-    color: "#f8fafc"
-  },
-  trustSubtitle: {
-    margin: "2px 0 0",
-    color: "#94a3b8",
-    fontSize: "9px"
-  },
+  trustTitle: { margin: 0, fontSize: "11px", fontWeight: "800", whiteSpace: "nowrap" },
+  trustSubtitle: { margin: "2px 0 0", color: "#94a3b8", fontSize: "9px", whiteSpace: "nowrap" },
 
   aboutStrip: {
     width: "100%",
     marginTop: "16px",
-    padding: "14px",
-    border: "1px solid rgba(56, 189, 248, 0.35)",
-    background: "rgba(56, 189, 248, 0.12)",
-    borderRadius: "14px",
-    color: "#38bdf8",
+    padding: "12px",
+    border: "1px solid rgba(6, 182, 212, 0.4)",
+    background: "rgba(6, 182, 212, 0.2)",
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)",
+    clipPath: "polygon(12px 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0% 50%)",
+    color: "white",
     fontWeight: "900",
     fontSize: "13px",
-    cursor: "pointer",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.3)"
+    cursor: "pointer"
   },
 
   helpText: {
     textAlign: "center",
-    color: "#34d399",
+    color: "#22ff73",
     fontSize: "15px",
     fontWeight: "900",
     marginTop: "18px",
     letterSpacing: "0.5px"
   },
 
-  footer: {
-    textAlign: "center",
-    padding: "20px 4px 10px",
-    color: "#94a3b8"
-  },
-  footerLinks: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
-    justifyContent: "center",
-    marginBottom: "12px"
-  },
-  footerLinkBtn: {
-    background: "transparent",
-    border: "none",
-    color: "#38bdf8",
-    fontSize: "11px",
-    fontWeight: "700",
-    cursor: "pointer",
-    padding: "2px 6px"
-  },
-  loadingLogoImg: {
-    width: "75px",
-    height: "75px",
-    objectFit: "contain",
-    borderRadius: "16px"
-  },
+  footer: { textAlign: "center", padding: "20px 4px 10px", color: "#87CEEB" },
+  footerLinks: { display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", marginBottom: "10px" },
+  footerLinkBtn: { background: "transparent", border: "none", color: "#38bdf8", fontSize: "11px", fontWeight: "700", cursor: "pointer", padding: "2px 4px" },
+
+  loadingLogoImg: { width: "80px", height: "80px", objectFit: "contain", borderRadius: "16px" },
 
   bottomNav: {
     position: "fixed",
-    bottom: 0, left: 0, right: 0,
-    height: "58px",
-    background: "#050914",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "56px",
+    background: "#020817",
     display: "grid",
     gridTemplateColumns: "repeat(4,1fr)",
-    borderTop: "1px solid rgba(56, 189, 248, 0.25)",
+    borderTop: "1px solid #1e40af",
     zIndex: 999
   },
   bottomNavItem: {
@@ -1898,13 +2024,46 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "10px",
+    fontSize: "11px",
     cursor: "pointer"
   },
-  bottomNavItemActive: {
-    background: "rgba(56, 189, 248, 0.18)",
-    color: "#38bdf8"
-  },
+  bottomNavItemActive: { background: "#0f2a5c", color: "white" },
   bottomNavIcon: { fontSize: "18px" },
   bottomNavText: { fontSize: "10px", marginTop: "2px" }
 };
+
+const animationStyleSheet = document.createElement("style");
+animationStyleSheet.type = "text/css";
+animationStyleSheet.innerText = `
+  @keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  @keyframes appPulse {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    }
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+  }
+
+  .premium-app-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6) !important;
+  }
+
+  .premium-download-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+`;
+if (typeof document !== "undefined") {
+  document.head.appendChild(animationStyleSheet);
+}
