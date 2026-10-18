@@ -474,7 +474,7 @@ export default function Wallet() {
       const canvas = await html2canvas(receiptRef.current, {
         useCORS: true,
         scale: 2,
-        backgroundColor: "#080d1a"
+        backgroundColor: "#060913"
       });
       canvas.toBlob(async (blob) => {
         if (!blob) return;
@@ -508,7 +508,7 @@ export default function Wallet() {
       <div style={styles.loadingPage}>
         <div style={styles.loadingCard}>
           <div style={styles.loadingIcon}>💎</div>
-          <h2 style={{ color: "#38bdf8", margin: "10px 0 0 0", fontSize: "18px" }}>Loading Diamond Wallet...</h2>
+          <h2 style={{ color: "#38bdf8", margin: "12px 0 0 0", fontSize: "16px", fontWeight: "700" }}>Securing Diamond Vault...</h2>
         </div>
       </div>
     );
@@ -542,7 +542,6 @@ export default function Wallet() {
             }} 
             onClick={(e) => e.stopPropagation()}
           >
-            
             <div style={styles.drawerHeader}>
               <div style={styles.drawerBrand}>
                 <div style={styles.drawerLogoWrapper}>
@@ -555,40 +554,28 @@ export default function Wallet() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
-                  <span style={styles.drawerLogoSubtext}>Diamond Investment Suite</span>
+                  <span style={styles.drawerLogoSubtext}>Diamond Wealth Management</span>
                 </div>
               </div>
             </div>
 
             <div style={styles.drawerNavList}>
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/home" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/home"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/home" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/home"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>🏠</span>
                 <span style={styles.drawerNavText}>Dashboard</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>📈</span>
                 <span style={styles.drawerNavText}>My Investment</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>💰</span>
                 <span style={styles.drawerNavText}>Save Money</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>⚡</span>
                 <span style={styles.drawerNavText}>One Time</span>
               </button>
@@ -598,63 +585,42 @@ export default function Wallet() {
                 <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>💎</span>
                 <span style={styles.drawerNavText}>Add Fund</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/refer"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/refer"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>👥</span>
                 <span style={styles.drawerNavText}>Refer & Earn</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>➔</span>
                 <span style={styles.drawerNavText}>Withdraw</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>🎁</span>
                 <span style={styles.drawerNavText}>Daily Reward</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>📊</span>
                 <span style={styles.drawerNavText}>Investment Assistance</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/support" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/support"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/support" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/support"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>🎧</span>
                 <span style={styles.drawerNavText}>Support</span>
               </button>
 
-              <button 
-                style={{ ...styles.drawerNavItem, ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {}) }} 
-                onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}
-              >
+              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}>
                 <span style={styles.drawerNavIcon}>👤</span>
                 <span style={styles.drawerNavText}>Profile</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, background: "rgba(239, 68, 68, 0.2)", border: "1px solid rgba(239, 68, 68, 0.4)" }} onClick={() => { setIsDrawerOpen(false); handleLogout(); }}>
+              <button style={{ ...styles.drawerNavItem, background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)" }} onClick={() => { setIsDrawerOpen(false); handleLogout(); }}>
                 <span style={styles.drawerNavIcon}>🚪</span>
                 <span style={styles.drawerNavText}>Logout</span>
               </button>
@@ -665,9 +631,7 @@ export default function Wallet() {
                 src="/tree plant.png" 
                 alt="Tree Plant" 
                 style={styles.treePlantOnlyImg}
-                onError={(e) => {
-                  if (e.target.src.includes('.png')) { e.target.src = '/tree plant.jpg'; }
-                }}
+                onError={(e) => { if (e.target.src.includes('.png')) { e.target.src = '/tree plant.jpg'; } }}
               />
             </div>
           </div>
@@ -677,12 +641,12 @@ export default function Wallet() {
           <div style={styles.statusOverlayBg}>
             <div style={{
               ...styles.statusOverlayCard,
-              borderTop: statusOverlay.type === "success" ? "6px solid #10b981" : statusOverlay.type === "warning" ? "6px solid #f59e0b" : "6px solid #ef4444"
+              borderTop: statusOverlay.type === "success" ? "4px solid #10b981" : statusOverlay.type === "warning" ? "4px solid #f59e0b" : "4px solid #ef4444"
             }}>
               <div style={{
                 ...styles.statusOverlayIcon,
-                background: statusOverlay.type === "success" ? "#dcfce7" : statusOverlay.type === "warning" ? "#fef3c7" : "#fee2e2",
-                color: statusOverlay.type === "success" ? "#10b981" : statusOverlay.type === "warning" ? "#d97706" : "#ef4444"
+                background: statusOverlay.type === "success" ? "rgba(16,185,129,0.2)" : statusOverlay.type === "warning" ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.2)",
+                color: statusOverlay.type === "success" ? "#34d399" : statusOverlay.type === "warning" ? "#fbbf24" : "#f87171"
               }}>
                 {statusOverlay.type === "success" ? "✓" : statusOverlay.type === "warning" ? "⚠" : "✕"}
               </div>
@@ -691,21 +655,24 @@ export default function Wallet() {
           </div>
         )}
 
-        {/* TOP HEADER */}
+        {/* TOP NAVBAR & HEADER */}
         <div style={styles.topHeader}>
-          <div className="mobile-header-bar" style={styles.mobileHeaderBar}>
+          <div style={styles.topNavbar}>
             <button style={styles.menuButton} onClick={() => setIsDrawerOpen(true)}>
               ☰
             </button>
-            <button style={styles.notifyBtn} onClick={() => window.location.href = "/notifications"}>
-              🔔
-            </button>
-            <div style={styles.avatar}>
-              {wallet.avatar || wallet.photo || wallet.photoImage ? (
-                <img src={wallet.avatar || wallet.photo || `${API}/${wallet.photoImage}`} alt="user" style={styles.avatarImg} />
-              ) : (
-                "👨‍💼"
-              )}
+            
+            <div style={styles.navRightGroup}>
+              <button style={styles.notifyBtn} onClick={() => window.location.href = "/notifications"}>
+                🔔
+              </button>
+              <div style={styles.avatar}>
+                {wallet.avatar || wallet.photo || wallet.photoImage ? (
+                  <img src={wallet.avatar || wallet.photo || `${API}/${wallet.photoImage}`} alt="user" style={styles.avatarImg} />
+                ) : (
+                  "👤"
+                )}
+              </div>
             </div>
           </div>
 
@@ -718,18 +685,18 @@ export default function Wallet() {
           </header>
 
           {/* DIAMOND HERO WALLET CARD */}
-          <section style={styles.walletHero} className="wallet-hero-box diamond-cut-bg">
+          <section style={styles.walletHero} className="diamond-cut-bg">
             <div className="shimmer-effect"></div>
             <button style={styles.eyeBtn} onClick={() => setShowBalance(!showBalance)}>
               {showBalance ? "👁" : "🙈"}
             </button>
 
-            <div style={styles.walletLeft} className="wallet-left-content">
+            <div style={styles.walletLeft}>
               <div style={styles.heroBadgeRow}>
                 <span style={styles.verifiedBadge}>💎 SECURE VAULT ACTIVE</span>
               </div>
               <p style={styles.heroLabel}>WALLET ID</p>
-              <h2 style={styles.walletId} className="wallet-id-text">
+              <h2 style={styles.walletId}>
                 {wallet.walletId}
                 <button onClick={copyWalletId} style={styles.copyBtn}>📋</button>
               </h2>
@@ -737,9 +704,9 @@ export default function Wallet() {
               <div style={styles.dashedLine}></div>
 
               <p style={styles.heroLabel}>AVAILABLE BALANCE</p>
-              <h1 style={styles.balanceText} className="balance-text-mobile">{visibleBalance}</h1>
+              <h1 style={styles.balanceText}>{visibleBalance}</h1>
 
-              <div style={styles.heroActions} className="hero-actions-mobile">
+              <div style={styles.heroActions}>
                 <button style={styles.addCashBtn} onClick={openAddCash}>
                   <b>＋</b> Add Cash
                 </button>
@@ -755,8 +722,8 @@ export default function Wallet() {
             <WalletIllustration />
           </section>
 
-          {/* INCOME PANEL */}
-          <section style={styles.incomePanel} className="income-panel-grid">
+          {/* INCOME PANEL GRID */}
+          <section style={styles.incomePanel}>
             <IncomeCard icon="👥" title="REFERRAL" amount={wallet.referral} color="#38bdf8" />
             <IncomeCard icon="📈" title="PERFORMANCE" amount={wallet.performance} color="#f59e0b" />
             <IncomeCard icon="👥" title="TEAM" amount={wallet.team} color="#6366f1" />
@@ -765,8 +732,8 @@ export default function Wallet() {
           </section>
 
           {/* MIDDLE GRID: TRANSFER & REFER */}
-          <section style={styles.middleGrid} className="middle-grid-mobile">
-            <div style={styles.transferCard} className="card-box-mobile diamond-card-glow">
+          <section style={styles.middleGrid}>
+            <div style={styles.transferCard} className="diamond-card-glow">
               <div style={styles.transferIcon}>✈️</div>
               <h2 style={styles.transferTitle}>Wallet Transfer</h2>
               <p style={styles.transferSub}>Instant peer-to-peer secure transaction</p>
@@ -799,22 +766,22 @@ export default function Wallet() {
               </button>
             </div>
 
-            <div style={styles.inviteCard} className="card-box-mobile diamond-card-glow">
+            <div style={styles.inviteCard} className="diamond-card-glow">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%" }}>
                 <div style={{ flex: 1 }}>
                   <div style={styles.inviteTop}>💎 UNLIMITED REWARDS</div>
                   <h2 style={styles.inviteTitle}>Invite & Earn</h2>
                   <h3 style={styles.inviteTitle2}>Grow Your Network Fast</h3>
                 </div>
-                <div style={styles.giftBox} className="gift-box-mobile">🎁</div>
+                <div style={styles.giftBox}>🎁</div>
               </div>
-              <button style={styles.inviteBtn} className="invite-btn-mobile" onClick={openInvite}>Invite Now</button>
+              <button style={styles.inviteBtn} onClick={openInvite}>Invite Now</button>
             </div>
           </section>
 
           {/* HISTORY SECTION */}
-          <section style={styles.historyCard} className="card-box-mobile">
-            <div style={styles.historyHeader} className="history-header-mobile">
+          <section style={styles.historyCard}>
+            <div style={styles.historyHeader}>
               <div>
                 <h2 style={styles.historyTitle}>🛡 Transaction Ledger</h2>
                 <p style={styles.historySub}>Click any record to inspect verified digital receipt</p>
@@ -834,7 +801,7 @@ export default function Wallet() {
               </select>
             </div>
 
-            <div style={styles.tableHead} className="table-head-desktop">
+            <div style={styles.tableHead}>
               <div>TYPE</div>
               <div>DESCRIPTION</div>
               <div>AMOUNT</div>
@@ -866,7 +833,6 @@ export default function Wallet() {
                 <div
                   key={index}
                   style={styles.clickableHistoryRow}
-                  className="history-row-responsive"
                   onClick={() => setSelectedTxn({ ...item, isCredit, desc })}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -906,29 +872,29 @@ export default function Wallet() {
             )}
           </section>
 
-          {/* BOTTOM FEATURES */}
-          <section style={styles.bottomFeatures} className="features-grid-mobile">
+          {/* BOTTOM FEATURES (PERFECTLY GRIDDED 3-COLUMN LAYOUT) */}
+          <section style={styles.bottomFeatures}>
             <div style={styles.featureItem} className="diamond-feature-card">
-              🛡
+              <div style={styles.featureIconBadge}>🛡️</div>
               <div>
-                <b>Institutional Security</b>
-                <p>Military-grade encryption</p>
+                <b style={styles.featureTitle}>Institutional Security</b>
+                <p style={styles.featureSub}>Military-grade encryption</p>
               </div>
             </div>
 
             <div style={styles.featureItem} className="diamond-feature-card">
-              ⚡
+              <div style={styles.featureIconBadge}>⚡</div>
               <div>
-                <b>Instant Settlement</b>
-                <p>Lightning fast execution</p>
+                <b style={styles.featureTitle}>Instant Settlement</b>
+                <p style={styles.featureSub}>Lightning fast execution</p>
               </div>
             </div>
 
             <div style={styles.featureItem} className="diamond-feature-card">
-              🏆
+              <div style={styles.featureIconBadge}>🏆</div>
               <div>
-                <b>Elite Portfolio</b>
-                <p>Trusted by global investors</p>
+                <b style={styles.featureTitle}>Elite Portfolio</b>
+                <p style={styles.featureSub}>Trusted globally</p>
               </div>
             </div>
           </section>
@@ -936,13 +902,13 @@ export default function Wallet() {
           {/* P2P Modal */}
           {p2pModalOpen && (
             <div style={styles.modalOverlay}>
-              <div style={{ ...styles.modal, maxWidth: "600px", maxHeight: "85vh", overflowY: "auto", background: "#0b0f19", color: "#fff", border: "1px solid rgba(56,189,248,0.3)" }} className="modal-inner-mobile">
+              <div style={{ ...styles.modal, maxWidth: "600px", maxHeight: "85vh", overflowY: "auto" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
                   <h2 style={{ margin: 0, fontSize: "20px", color: "#38bdf8" }}>🤝 P2P Diamond Marketplace</h2>
                   <button style={styles.depositCloseX} onClick={() => setP2pModalOpen(false)}>×</button>
                 </div>
                 
-                <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "16px", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "10px", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <div style={{ background: "rgba(255,255,255,0.03)", padding: "14px", borderRadius: "16px", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
                   <div>
                     <h4 style={{ margin: "0 0 4px 0", fontSize: "14px", color: "#f8fafc" }}>Want to become a P2P Sender?</h4>
                     <p style={{ margin: 0, fontSize: "11px", color: "#94a3b8" }}>Requires minimum ₹2,000 wallet balance.</p>
@@ -953,29 +919,28 @@ export default function Wallet() {
                   </div>
                 </div>
 
-                <h3 style={{ fontSize: "16px", marginBottom: "10px", color: "#fbbf24" }}>Available P2P Senders</h3>
+                <h3 style={{ fontSize: "15px", marginBottom: "10px", color: "#fbbf24" }}>Available P2P Senders</h3>
                 
                 {p2pUserList.length === 0 ? (
                   <p style={{ textAlign: "center", color: "#94a3b8", padding: "20px" }}>No P2P registered users found.</p>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {p2pUserList.map((user, idx) => {
                       const uReviews = reviewsList[user.walletId] || [];
                       const avgRating = uReviews.length > 0 ? (uReviews.reduce((acc, r) => acc + (r.rating || 5), 0) / uReviews.length).toFixed(1) : "5.0";
                       
                       return (
-                        <div key={idx} style={{ ...styles.p2pUserCard, background: "#111827", border: "1px solid #1f2937", color: "#fff" }}>
+                        <div key={idx} style={{ background: "#060913", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "14px", padding: "12px", color: "#fff" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div>
-                              <h4 style={{ margin: "0 0 2px 0", fontSize: "15px", color: "#f8fafc" }}>{user.name}</h4>
+                              <h4 style={{ margin: "0 0 2px 0", fontSize: "14px", color: "#f8fafc" }}>{user.name}</h4>
                               <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
                                 <span style={{ fontSize: "12px", fontWeight: "800", color: "#f59e0b" }}>★ {avgRating}</span>
                                 <span style={{ fontSize: "11px", color: "#94a3b8" }}>({uReviews.length} reviews)</span>
                               </div>
-                              <p style={{ margin: "0 0 4px 0", fontSize: "12px", color: "#94a3b8" }}>📱 {user.mobile || "N/A"}</p>
+                              <p style={{ margin: "0 0 2px 0", fontSize: "12px", color: "#94a3b8" }}>📱 {user.mobile || "N/A"}</p>
                               <p style={{ margin: 0, fontSize: "13px", fontWeight: "700", color: "#34d399" }}>Balance: ₹{Number(user.balance).toLocaleString()}</p>
                             </div>
-                            
                             <div>
                               <button 
                                 style={styles.reviewActionBtn}
@@ -995,7 +960,7 @@ export default function Wallet() {
                 )}
 
                 <button style={styles.popupBottomCloseBtn} onClick={() => setP2pModalOpen(false)}>
-                  Close
+                  Close Window
                 </button>
               </div>
             </div>
@@ -1004,14 +969,14 @@ export default function Wallet() {
           {/* Review Modal */}
           {reviewModalOpen && selectedP2pUser && (
             <div style={styles.modalOverlay}>
-              <div style={{ ...styles.modal, maxWidth: "480px", maxHeight: "85vh", overflowY: "auto", background: "#0b0f19", color: "#fff", border: "1px solid rgba(56,189,248,0.3)" }} className="modal-inner-mobile">
+              <div style={{ ...styles.modal, maxWidth: "480px", maxHeight: "85vh", overflowY: "auto" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
                   <h2 style={{ margin: 0, fontSize: "18px", color: "#38bdf8" }}>Reviews for {selectedP2pUser.name}</h2>
                   <button style={styles.depositCloseX} onClick={() => setReviewModalOpen(false)}>×</button>
                 </div>
                 <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 15px 0" }}>Wallet ID: {selectedP2pUser.walletId}</p>
 
-                <div style={{ background: "rgba(255,255,255,0.05)", padding: "14px", borderRadius: "16px", marginBottom: "18px", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <div style={{ background: "rgba(255,255,255,0.03)", padding: "14px", borderRadius: "16px", marginBottom: "18px", border: "1px solid rgba(255,255,255,0.08)" }}>
                   <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#f8fafc" }}>Write a Review</h4>
                   
                   <div style={{ display: "flex", gap: "8px", fontSize: "22px", marginBottom: "10px", cursor: "pointer" }}>
@@ -1044,7 +1009,7 @@ export default function Wallet() {
                     <p style={{ textAlign: "center", color: "#94a3b8", padding: "15px", fontSize: "13px" }}>No reviews available yet.</p>
                   ) : (
                     reviewsList[selectedP2pUser.walletId].map((rev, rIdx) => (
-                      <div key={rIdx} style={{ background: "#111827", padding: "10px", borderRadius: "10px", border: "1px solid #1f2937" }}>
+                      <div key={rIdx} style={{ background: "#060913", padding: "10px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
                           <span style={{ fontSize: "12px", fontWeight: "700", color: "#38bdf8" }}>{rev.reviewer || "User"}</span>
                           <span style={{ fontSize: "12px", color: "#f59e0b" }}>{"★".repeat(rev.rating || 5)}</span>
@@ -1063,7 +1028,7 @@ export default function Wallet() {
           {/* Receipt Modal */}
           {selectedTxn && (
             <div style={styles.modalOverlay}>
-              <div style={styles.receiptContainer} className="modal-inner-mobile">
+              <div style={styles.receiptContainer}>
                 <div ref={receiptRef} style={styles.receiptCard}>
                   <div style={styles.receiptHeader}>
                     <div style={styles.receiptPulseIconCircle}>
@@ -1119,7 +1084,7 @@ export default function Wallet() {
                   </div>
 
                   <div style={styles.receiptFooter}>
-                    <p style={styles.receiptBrand}>💎 Save Money Private Limited - Institutional Asset Suite</p>
+                    <p style={styles.receiptBrand}>💎 Save Money Private Limited - Asset Suite</p>
                   </div>
                 </div>
 
@@ -1138,12 +1103,12 @@ export default function Wallet() {
           {/* Add Cash Modal */}
           {addOpen && (
             <div style={styles.depositOverlay}>
-              <div style={styles.depositModal} className="modal-inner-mobile">
+              <div style={styles.depositModal}>
                 <button style={styles.depositCloseX} onClick={() => setAddOpen(false)}>×</button>
 
                 <div style={styles.depositIcon}>💎</div>
                 <h2 style={styles.depositTitle}>Add Cash to Diamond Vault</h2>
-                <p style={styles.depositSub}>Enter amount, pay via PhonePe/Paytm, and submit Transaction ID.</p>
+                <p style={styles.depositSub}>Enter amount, pay via UPI, and submit Transaction ID.</p>
 
                 <label style={styles.depositLabel}>Amount (₹)</label>
                 <input
@@ -1161,7 +1126,7 @@ export default function Wallet() {
                   📱 Pay Via PhonePe / Paytm / GPay
                 </button>
 
-                <div style={{ borderTop: "1px dashed #334155", margin: "15px 0", paddingTop: "10px" }}>
+                <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", margin: "15px 0", paddingTop: "10px" }}>
                   <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center" }}>💡 Paste the 12-digit UTR/Txn ID from your payment app below.</p>
                 </div>
 
@@ -1184,18 +1149,18 @@ export default function Wallet() {
           {/* Withdraw Popup */}
           {withdrawOpen && (
             <div style={styles.modalOverlay}>
-              <div style={{ ...styles.modal, background: "#0b0f19", color: "#fff", border: "1px solid rgba(56,189,248,0.3)" }} className="modal-inner-mobile">
-                <h2 style={{ fontSize: "20px", color: "#38bdf8" }}>💳 Diamond Auto Withdrawal</h2>
+              <div style={styles.modal}>
+                <h2 style={{ fontSize: "18px", color: "#38bdf8" }}>💳 Diamond Auto Withdrawal</h2>
                 {withdrawStatus && (
-                  <div style={{ marginTop: "15px", padding: "14px", borderRadius: "12px", background: "#111827", border: "1px solid #1f2937" }}>
-                    <p style={{ fontSize: "14px" }}>Status : <b style={{ color: withdrawStatus.enabled ? "#34d399" : "#f87171" }}>{withdrawStatus.enabled ? " ✅ Active" : " ❌ Paused"}</b></p>
+                  <div style={{ marginTop: "15px", padding: "14px", borderRadius: "12px", background: "#060913", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <p style={{ fontSize: "13px" }}>Status : <b style={{ color: withdrawStatus.enabled ? "#34d399" : "#f87171" }}>{withdrawStatus.enabled ? " ✅ Active" : " ❌ Paused"}</b></p>
                     {withdrawStatus.nextWithdrawal && (
-                      <p style={{ fontSize: "14px" }}>Next Withdrawal : <b style={{ color: "#fbbf24" }}>{new Date(withdrawStatus.nextWithdrawal).toLocaleDateString("en-IN")}</b></p>
+                      <p style={{ fontSize: "13px" }}>Next Withdrawal : <b style={{ color: "#fbbf24" }}>{new Date(withdrawStatus.nextWithdrawal).toLocaleDateString("en-IN")}</b></p>
                     )}
                     {withdrawStatus.note?.length > 0 && (
                       <>
-                        <h4 style={{ marginTop: "15px", marginBottom: "8px", color: "#38bdf8", fontSize: "14px" }}>NOTE :</h4>
-                        <ul style={{ paddingLeft: "18px", lineHeight: "24px", fontSize: "13px", color: "#94a3b8" }}>
+                        <h4 style={{ marginTop: "12px", marginBottom: "6px", color: "#38bdf8", fontSize: "13px" }}>NOTE :</h4>
+                        <ul style={{ paddingLeft: "18px", lineHeight: "22px", fontSize: "12px", color: "#94a3b8" }}>
                           {withdrawStatus.note.map((item, index) => (
                             <li key={index}>{item}</li>
                           ))}
@@ -1214,25 +1179,25 @@ export default function Wallet() {
           {/* Transfer Confirm Modal */}
           {confirmTransferOpen && receiverInfo && (
             <div style={styles.modalOverlay}>
-              <div style={{ ...styles.modal, background: "#0b0f19", color: "#fff", border: "1px solid rgba(56,189,248,0.3)" }} className="modal-inner-mobile">
+              <div style={styles.modal}>
                 <div style={styles.confirmTop}>
                   <div style={styles.confirmAvatar}>💎</div>
-                  <h2 style={{ fontSize: "20px", color: "#38bdf8" }}>Confirm Transfer</h2>
+                  <h2 style={{ fontSize: "18px", color: "#38bdf8" }}>Confirm Transfer</h2>
                   <p style={{ fontSize: "12px", color: "#94a3b8" }}>Verify receiver details before executing settlement</p>
                 </div>
 
-                <div style={{ ...styles.receiverCard, background: "#111827", border: "1px solid #1f2937", color: "#fff" }}>
+                <div style={styles.receiverCard}>
                   <div>
-                    <span style={{ color: "#94a3b8", fontSize: "12px" }}>Receiver Name</span>
-                    <h3 style={{ margin: "2px 0 8px 0", color: "#f8fafc" }}>{receiverInfo.name}</h3>
+                    <span style={{ color: "#94a3b8", fontSize: "11px" }}>Receiver Name</span>
+                    <h3 style={{ margin: "2px 0 6px 0", color: "#f8fafc", fontSize: "15px" }}>{receiverInfo.name}</h3>
                   </div>
                   <div>
-                    <span style={{ color: "#94a3b8", fontSize: "12px" }}>Wallet ID</span>
-                    <h4 style={{ margin: "2px 0 8px 0", color: "#38bdf8" }}>{receiverWalletId}</h4>
+                    <span style={{ color: "#94a3b8", fontSize: "11px" }}>Wallet ID</span>
+                    <h4 style={{ margin: "2px 0 6px 0", color: "#38bdf8", fontSize: "14px" }}>{receiverWalletId}</h4>
                   </div>
                   <div>
-                    <span style={{ color: "#94a3b8", fontSize: "12px" }}>Amount</span>
-                    <h2 style={{ color: "#34d399", fontSize: "22px", margin: "2px 0 0 0" }}>₹{Number(transferAmount).toLocaleString()}</h2>
+                    <span style={{ color: "#94a3b8", fontSize: "11px" }}>Amount</span>
+                    <h2 style={{ color: "#34d399", fontSize: "20px", margin: "2px 0 0 0" }}>₹{Number(transferAmount).toLocaleString()}</h2>
                   </div>
                 </div>
 
@@ -1245,9 +1210,9 @@ export default function Wallet() {
           {/* Share Modal */}
           {shareOpen && (
             <div style={styles.modalOverlay}>
-              <div style={{ ...styles.modal, background: "#0b0f19", color: "#fff", border: "1px solid rgba(56,189,248,0.3)" }} className="modal-inner-mobile">
-                <h2 style={{ color: "#38bdf8" }}>Invite Friends</h2>
-                <p style={{ color: "#94a3b8", fontSize: "13px" }}>Share your referral diamond link</p>
+              <div style={styles.modal}>
+                <h2 style={{ color: "#38bdf8", fontSize: "18px" }}>Invite Friends</h2>
+                <p style={{ color: "#94a3b8", fontSize: "12px" }}>Share your referral diamond link</p>
                 <div style={styles.shareGrid}>
                   <a href={`https://wa.me/?text=${encodeURIComponent(inviteLink)}`} target="_blank" rel="noreferrer" style={styles.shareBtn}>WhatsApp</a>
                   <a href={`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}`} target="_blank" rel="noreferrer" style={styles.shareBtn}>Telegram</a>
@@ -1266,7 +1231,7 @@ export default function Wallet() {
 
 function WalletIllustration() {
   return (
-    <div style={styles.walletArt} className="wallet-art-mobile">
+    <div style={styles.walletArt}>
       <div style={styles.diamondShape1}></div>
       <div style={styles.diamondShape2}></div>
       <div style={styles.walletBag}>💎</div>
@@ -1278,11 +1243,11 @@ function WalletIllustration() {
 
 function IncomeCard({ icon, title, amount, color }) {
   return (
-    <div style={styles.incomeCard} className="income-card-item diamond-income-box">
-      <div style={{ ...styles.incomeIcon, background: color, boxShadow: `0 0 15px ${color}66` }}>{icon}</div>
-      <h4 style={{ color: "#94a3b8", fontSize: "11px", fontWeight: "700" }}>{title}</h4>
-      <h2 style={{ color: "#f8fafc", fontSize: "18px", fontWeight: "900" }}>₹{Number(amount).toLocaleString()}</h2>
-      <div style={{ ...styles.incomeWave, color }}>✧ ✦ ✧</div>
+    <div style={styles.incomeCard} className="diamond-income-box">
+      <div style={{ ...styles.incomeIcon, background: color, boxShadow: `0 0 12px ${color}55` }}>{icon}</div>
+      <h4 style={{ color: "#94a3b8", fontSize: "11px", fontWeight: "700", margin: "4px 0" }}>{title}</h4>
+      <h2 style={{ color: "#f8fafc", fontSize: "17px", fontWeight: "900", margin: 0 }}>₹{Number(amount).toLocaleString()}</h2>
+      <div style={{ ...styles.incomeWave, color }}>✦ ✧ ✦</div>
     </div>
   );
 }
@@ -1293,148 +1258,129 @@ const diamondCutThemeCSS = `
     100% { transform: translateX(100%); }
   }
   @keyframes floatAnim {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-8px) rotate(2deg); }
-  }
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
-    50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.6); }
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
   }
   .diamond-cut-bg {
-    background: linear-gradient(135deg, #030712 0%, #0f172a 50%, #1e1b4b 100%) !important;
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    background: linear-gradient(135deg, #090e1a 0%, #111827 50%, #1e1b4b 100%) !important;
+    border: 1px solid rgba(56, 189, 248, 0.25);
     position: relative;
     overflow: hidden;
-    animation: pulseGlow 4s infinite ease-in-out;
   }
   .shimmer-effect {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
     animation: diamondShimmer 3s infinite;
     pointer-events: none;
   }
   .diamond-card-glow {
-    background: linear-gradient(145deg, #0b0f19, #030712) !important;
-    border: 1px solid rgba(245, 158, 11, 0.25) !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    background: #090e1a !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   }
   .diamond-income-box {
-    background: #0b0f19 !important;
+    background: #090e1a !important;
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 16px;
+    padding: 12px 6px;
     transition: all 0.3s ease;
   }
-  .diamond-income-box:hover {
-    border-color: rgba(56, 189, 248, 0.5);
-    transform: translateY(-3px);
-  }
   .diamond-feature-card {
-    background: #0b0f19 !important;
+    background: #090e1a !important;
     border: 1px solid rgba(255,255,255,0.08);
-    color: #f8fafc !important;
-    border-radius: 16px;
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
   @media (max-width: 768px) {
-    .mobile-header-bar {
-      display: flex !important;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
     .wallet-hero-box {
-      padding: 20px !important;
-      min-height: auto !important;
-      border-radius: 20px !important;
+      padding: 18px !important;
     }
-    .wallet-left-content {
-      width: 100% !important;
-    }
-    .wallet-art-mobile {
+    .wallet-art {
       display: none !important;
     }
-    .balance-text-mobile {
-      font-size: 32px !important;
+    .balanceText {
+      font-size: 28px !important;
     }
-    .wallet-id-text {
-      font-size: 20px !important;
+    .middleGrid {
+      grid-template-columns: 1fr !important;
     }
-    .hero-actions-mobile {
-      display: grid !important;
-      grid-template-columns: repeat(3, 1fr) !important;
-      gap: 8px !important;
-      margin-top: 16px !important;
+    .bottomFeatures {
+      grid-template-columns: 1fr !important;
+      gap: 10px !important;
     }
-    .hero-actions-mobile button {
-      min-width: unset !important;
-      height: 42px !important;
-      font-size: 12px !important;
-      border-radius: 12px !important;
-      padding: 0 4px !important;
-    }
-    .income-panel-grid {
+    .incomePanel {
       grid-template-columns: repeat(2, 1fr) !important;
-      gap: 10px !important;
-      padding: 14px !important;
-      border-radius: 20px !important;
+      gap: 8px !important;
     }
-    .income-card-item {
-      border-right: none !important;
-      padding-bottom: 10px !important;
-    }
-    .middle-grid-mobile {
-      grid-template-columns: 1fr !important;
-      gap: 14px !important;
-    }
-    .card-box-mobile {
-      padding: 18px !important;
-      border-radius: 20px !important;
-    }
-    .gift-box-mobile {
-      font-size: 60px !important;
-    }
-    .invite-btn-mobile {
-      position: static !important;
-      width: 100% !important;
-      margin-top: 15px !important;
-    }
-    .table-head-desktop {
+    .tableHead {
       display: none !important;
-    }
-    .history-row-responsive {
-      grid-template-columns: 1fr 1fr !important;
-      padding: 12px 0 !important;
-    }
-    .history-header-mobile {
-      flex-direction: column !important;
-      align-items: flex-start !important;
-      gap: 10px !important;
-    }
-    .features-grid-mobile {
-      grid-template-columns: 1fr !important;
-      gap: 12px !important;
-    }
-    .modal-inner-mobile {
-      width: 92% !important;
-      padding: 18px !important;
-      border-radius: 20px !important;
     }
   }
 `;
 
 const styles = {
-  mobileHeaderBar: {
-    display: "none"
+  topNavbar: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "16px",
+    width: "100%"
+  },
+  navRightGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px"
+  },
+  menuButton: {
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    fontSize: "22px",
+    cursor: "pointer",
+    color: "#38bdf8",
+    width: "42px",
+    height: "42px",
+    borderRadius: "12px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  notifyBtn: {
+    width: "42px",
+    height: "42px",
+    borderRadius: "12px",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.05)",
+    fontSize: "18px",
+    cursor: "pointer",
+    color: "#fff"
+  },
+  avatar: {
+    width: "42px",
+    height: "42px",
+    borderRadius: "12px",
+    background: "rgba(56,189,248,0.15)",
+    border: "1px solid #38bdf8",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "20px",
+    overflow: "hidden"
+  },
+  avatarImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
   },
   drawerOverlay: {
     position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: "rgba(0, 0, 0, 0.8)",
-    backdropFilter: "blur(8px)",
+    top: 0, left: 0, right: 0, bottom: 0,
+    background: "rgba(3, 7, 18, 0.8)",
+    backdropFilter: "blur(6px)",
     zIndex: 100002,
     display: "flex",
     justifyContent: "flex-start",
@@ -1442,10 +1388,8 @@ const styles = {
   },
   drawerContainer: {
     position: "fixed",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    background: "#030712",
+    top: 0, bottom: 0, left: 0,
+    background: "#060913",
     width: "250px",
     height: "100vh",
     padding: "12px 10px",
@@ -1462,11 +1406,9 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
     marginBottom: "10px",
     paddingBottom: "10px",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-    flexShrink: 0
+    borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
   },
   drawerBrand: {
     display: "flex",
@@ -1475,41 +1417,35 @@ const styles = {
     gap: "6px"
   },
   drawerLogoWrapper: {
-    width: "46px",
-    height: "46px",
+    width: "44px",
+    height: "44px",
     borderRadius: "50%",
     background: "radial-gradient(circle, #0284c7 0%, #0369a1 100%)",
     border: "2px solid #38bdf8",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 0 15px rgba(56, 189, 248, 0.5)"
+    justifyContent: "center"
   },
   drawerLogoImg: {
-    width: "28px",
-    height: "28px",
+    width: "26px",
+    height: "26px",
     objectFit: "contain"
   },
   drawerLogoText: {
     margin: 0,
-    fontSize: "15px",
+    fontSize: "14px",
     fontWeight: "900",
-    color: "#ffffff",
-    letterSpacing: "1px",
-    textAlign: "center"
+    color: "#ffffff"
   },
   drawerLogoSubtext: {
     fontSize: "10px",
     color: "#38bdf8",
-    fontWeight: "700",
-    marginTop: "2px",
-    textAlign: "center"
+    fontWeight: "700"
   },
   drawerNavList: {
     display: "flex",
     flexDirection: "column",
     gap: "6px",
-    flexShrink: 0,
     overflowY: "auto",
     maxHeight: "calc(100vh - 200px)"
   },
@@ -1517,132 +1453,99 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    padding: "9px 14px",
-    background: "rgba(255, 255, 255, 0.05)",
-    backdropFilter: "blur(10px)",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    borderRadius: "12px",
+    padding: "8px 12px",
+    background: "rgba(255, 255, 255, 0.03)",
+    border: "1px solid rgba(255, 255, 255, 0.05)",
+    borderRadius: "10px",
     color: "#f8fafc",
     fontSize: "13px",
     fontWeight: "700",
-    cursor: "pointer",
-    textAlign: "left",
-    transition: "all 0.25s ease",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+    cursor: "pointer"
   },
   drawerNavItemActive: {
     background: "rgba(56, 189, 248, 0.15)",
     border: "1px solid #38bdf8",
-    boxShadow: "0 0 15px rgba(56, 189, 248, 0.3)",
     color: "#38bdf8"
   },
   drawerNavIcon: {
-    fontSize: "18px",
-    width: "22px",
-    display: "inline-block",
-    textAlign: "center"
+    fontSize: "16px"
   },
   drawerNavText: {
-    flex: 1,
-    fontSize: "13px",
-    letterSpacing: "0.3px"
+    fontSize: "12px"
   },
   treePlantOnlyWrapper: {
-    flex: 1,
-    minHeight: 0,
-    marginTop: "10px",
-    marginBottom: "4px",
+    marginTop: "auto",
     width: "100%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-    borderRadius: "16px",
-    boxShadow: "0 6px 18px rgba(0, 0, 0, 0.4)"
+    height: "100px",
+    borderRadius: "12px",
+    overflow: "hidden"
   },
   treePlantOnlyImg: {
-    width: "90%",
-    height: "65%",
-    objectFit: "cover",
-    borderRadius: "16px"
-  },
-  menuButton: {
-    background: "none",
-    border: "none",
-    fontSize: "26px",
-    cursor: "pointer",
-    color: "#38bdf8"
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
   },
   copyBtn: {
     background: "none",
     border: "none",
     cursor: "pointer",
-    fontSize: "18px"
+    fontSize: "16px"
   },
   p2pMainBtn: {
-    minWidth: "100px",
-    height: "46px",
+    minWidth: "90px",
+    height: "42px",
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "12px",
     background: "linear-gradient(135deg,#38bdf8,#2563eb)",
     color: "white",
-    fontWeight: "900",
-    fontSize: "14px",
-    boxShadow: "0 8px 20px rgba(56,189,248,.3)",
+    fontWeight: "800",
+    fontSize: "13px",
     cursor: "pointer"
   },
   iWantP2pBtn: {
-    padding: "8px 12px",
+    padding: "6px 12px",
     border: "none",
-    borderRadius: "10px",
-    background: "linear-gradient(135deg,#10b981,#059669)",
+    borderRadius: "8px",
+    background: "#10b981",
     color: "#fff",
     fontWeight: "800",
     fontSize: "12px",
     cursor: "pointer"
   },
   undoP2pBtn: {
-    padding: "8px 12px",
+    padding: "6px 12px",
     border: "none",
-    borderRadius: "10px",
+    borderRadius: "8px",
     background: "#ef4444",
     color: "#fff",
     fontWeight: "800",
     fontSize: "12px",
     cursor: "pointer"
   },
-  p2pUserCard: {
-    background: "#111827",
-    border: "1px solid #1f2937",
-    borderRadius: "16px",
-    padding: "14px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
-  },
   reviewActionBtn: {
-    padding: "8px 16px",
-    borderRadius: "12px",
+    padding: "6px 12px",
+    borderRadius: "8px",
     border: "none",
     background: "rgba(56,189,248,0.15)",
     color: "#38bdf8",
     fontWeight: "800",
-    fontSize: "13px",
+    fontSize: "12px",
     cursor: "pointer"
   },
   popupBottomCloseBtn: {
     width: "100%",
-    height: "46px",
-    marginTop: "16px",
-    borderRadius: "14px",
+    height: "42px",
+    marginTop: "14px",
+    borderRadius: "12px",
     border: "none",
-    background: "#1f2937",
+    background: "#111827",
     color: "#f8fafc",
-    fontWeight: "800",
-    fontSize: "14px",
+    fontWeight: "700",
+    fontSize: "13px",
     cursor: "pointer"
   },
   clickableHistoryRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     padding: "12px 8px",
@@ -1650,121 +1553,113 @@ const styles = {
     cursor: "pointer"
   },
   typeCircle: {
-    width: "36px",
-    height: "36px",
+    width: "34px",
+    height: "34px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontWeight: "900",
-    fontSize: "16px"
+    fontSize: "14px"
   },
   rowTitle: {
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: "700",
     color: "#f8fafc"
   },
   rowSub: {
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#94a3b8"
   },
   successBadge: {
     background: "rgba(16,185,129,0.15)",
     color: "#34d399",
-    fontSize: "10px",
+    fontSize: "9px",
     fontWeight: "800",
-    padding: "2px 8px",
-    borderRadius: "10px",
-    display: "inline-block"
+    padding: "2px 6px",
+    borderRadius: "8px"
   },
   receiptContainer: {
     width: "100%",
-    maxWidth: "380px",
+    maxWidth: "360px",
     display: "flex",
     flexDirection: "column",
-    gap: "16px",
-    padding: "10px"
+    gap: "14px"
   },
   receiptCard: {
-    background: "linear-gradient(145deg, #0b0f19, #030712)",
-    borderRadius: "24px",
-    boxShadow: "0 25px 60px rgba(0,0,0,0.8)",
-    overflow: "hidden",
-    fontFamily: "Arial, sans-serif",
+    background: "#060913",
+    borderRadius: "20px",
     border: "1px solid rgba(56, 189, 248, 0.3)",
     color: "#f8fafc"
   },
   receiptHeader: {
-    padding: "24px 16px 16px 16px",
+    padding: "20px 16px 14px 16px",
     textAlign: "center"
   },
   receiptPulseIconCircle: {
-    width: "50px",
-    height: "50px",
+    width: "44px",
+    height: "44px",
     borderRadius: "50%",
     background: "rgba(16, 185, 129, 0.15)",
     border: "1px solid rgba(16, 185, 129, 0.4)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    margin: "0 auto 10px auto"
+    margin: "0 auto 8px auto"
   },
   receiptCheckMark: {
     color: "#34d399",
-    fontSize: "24px",
+    fontSize: "20px",
     fontWeight: "900"
   },
   receiptStatusText: {
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#94a3b8",
-    margin: "0 0 6px 0",
+    margin: "0 0 4px 0",
     fontWeight: "600",
-    letterSpacing: "1px",
-    textTransform: "uppercase"
+    letterSpacing: "1px"
   },
   receiptAmountDisplay: {
-    fontSize: "28px",
+    fontSize: "26px",
     fontWeight: "800",
-    margin: "0 0 6px 0"
+    margin: "0 0 4px 0"
   },
   receiptTypeTag: {
-    display: "inline-block",
-    background: "rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.05)",
     color: "#e2e8f0",
-    padding: "4px 10px",
-    borderRadius: "20px",
+    padding: "3px 8px",
+    borderRadius: "16px",
     fontSize: "10px",
     fontWeight: "700"
   },
   receiptDivider: {
     position: "relative",
-    borderTop: "2px dashed rgba(255, 255, 255, 0.15)",
-    margin: "0 12px",
-    height: "0"
+    borderTop: "2px dashed rgba(255, 255, 255, 0.1)",
+    margin: "0 12px"
   },
   receiptNotchLeft: {
     position: "absolute",
-    left: "-20px",
-    top: "-10px",
-    width: "20px",
-    height: "20px",
+    left: "-18px",
+    top: "-9px",
+    width: "18px",
+    height: "18px",
     borderRadius: "50%",
     background: "#030712"
   },
   receiptNotchRight: {
     position: "absolute",
-    right: "-20px",
-    top: "-10px",
-    width: "20px",
-    height: "20px",
+    right: "-18px",
+    top: "-9px",
+    width: "18px",
+    height: "18px",
     borderRadius: "50%",
     background: "#030712"
   },
   receiptBody: {
-    padding: "16px",
+    padding: "14px",
     display: "flex",
     flexDirection: "column",
-    gap: "12px"
+    gap: "10px"
   },
   receiptRowItem: {
     display: "flex",
@@ -1772,29 +1667,29 @@ const styles = {
     alignItems: "center"
   },
   receiptLabelText: {
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#94a3b8"
   },
   receiptValueText: {
-    fontSize: "13px",
+    fontSize: "12px",
     color: "#ffffff",
     fontWeight: "700"
   },
   receiptStatusBadge: {
     background: "rgba(16, 185, 129, 0.2)",
     color: "#34d399",
-    padding: "3px 8px",
-    borderRadius: "6px",
-    fontSize: "10px",
+    padding: "2px 6px",
+    borderRadius: "4px",
+    fontSize: "9px",
     fontWeight: "800"
   },
   receiptFooter: {
-    background: "rgba(0, 0, 0, 0.4)",
-    padding: "12px",
+    background: "rgba(0, 0, 0, 0.3)",
+    padding: "10px",
     textAlign: "center"
   },
   receiptBrand: {
-    fontSize: "11px",
+    fontSize: "10px",
     color: "#38bdf8",
     margin: 0,
     fontWeight: "700"
@@ -1806,30 +1701,30 @@ const styles = {
   },
   receiptShareBtn: {
     width: "100%",
-    height: "46px",
+    height: "42px",
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "12px",
     background: "linear-gradient(135deg,#38bdf8,#2563eb)",
     color: "#ffffff",
-    fontWeight: "900",
-    fontSize: "14px",
+    fontWeight: "800",
+    fontSize: "13px",
     cursor: "pointer"
   },
   receiptCloseBtn: {
     width: "100%",
-    height: "44px",
+    height: "40px",
     border: "none",
-    borderRadius: "14px",
-    background: "rgba(255, 255, 255, 0.08)",
+    borderRadius: "12px",
+    background: "rgba(255, 255, 255, 0.05)",
     color: "#ffffff",
     fontWeight: "700",
-    fontSize: "13px",
+    fontSize: "12px",
     cursor: "pointer"
   },
   statusOverlayBg: {
     position: "fixed",
     inset: 0,
-    background: "rgba(3, 7, 18, 0.7)",
+    background: "rgba(3, 7, 18, 0.8)",
     backdropFilter: "blur(6px)",
     zIndex: 100000,
     display: "flex",
@@ -1837,31 +1732,30 @@ const styles = {
     justifyContent: "center"
   },
   statusOverlayCard: {
-    background: "#0b0f19",
-    border: "1px solid rgba(255,255,255,0.1)",
-    padding: "20px 24px",
-    borderRadius: "20px",
+    background: "#060913",
+    border: "1px solid rgba(255,255,255,0.08)",
+    padding: "18px 20px",
+    borderRadius: "18px",
     textAlign: "center",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
-    maxWidth: "320px",
+    maxWidth: "300px",
     width: "85%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "12px"
+    gap: "10px"
   },
   statusOverlayIcon: {
-    width: "50px",
-    height: "50px",
+    width: "44px",
+    height: "44px",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "24px",
+    fontSize: "20px",
     fontWeight: "bold"
   },
   statusOverlayText: {
-    fontSize: "16px",
+    fontSize: "14px",
     color: "#f8fafc",
     margin: 0,
     fontWeight: "800",
@@ -1872,20 +1766,17 @@ const styles = {
     background: "#030712",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    fontFamily: "Arial"
+    justifyContent: "center"
   },
   loadingCard: {
-    background: "#0b0f19",
-    border: "1px solid rgba(56,189,248,0.3)",
-    padding: "30px",
-    borderRadius: "20px",
-    textAlign: "center",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.5)"
+    background: "#060913",
+    border: "1px solid rgba(56,189,248,0.2)",
+    padding: "24px 32px",
+    borderRadius: "18px",
+    textAlign: "center"
   },
   loadingIcon: {
-    fontSize: "50px",
-    animation: "floatAnim 2s infinite ease-in-out"
+    fontSize: "42px"
   },
   page: {
     minHeight: "100vh",
@@ -1900,205 +1791,167 @@ const styles = {
     margin: "0 auto"
   },
   header: {
-    marginBottom: "16px"
+    marginBottom: "14px"
   },
   pageTitle: {
     margin: 0,
-    fontSize: "28px",
+    fontSize: "24px",
     fontWeight: "900",
-    color: "#f8fafc",
-    letterSpacing: "0.5px"
+    color: "#f8fafc"
   },
   titleWave: {
-    width: "70px",
-    height: "4px",
+    width: "60px",
+    height: "3px",
     borderRadius: "50px",
     background: "linear-gradient(90deg,#38bdf8,#10b981,#f59e0b)",
-    marginTop: "6px"
+    marginTop: "4px"
   },
   pageSub: {
     color: "#94a3b8",
-    fontSize: "13px",
-    marginTop: "6px"
-  },
-  notifyBtn: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "50%",
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "#0b0f19",
-    boxShadow: "0 6px 16px rgba(0,0,0,0.4)",
-    fontSize: "18px",
-    cursor: "pointer"
-  },
-  avatar: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "50%",
-    background: "rgba(56,189,248,0.2)",
-    border: "1px solid #38bdf8",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "22px",
-    overflow: "hidden"
-  },
-  avatarImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover"
+    fontSize: "12px",
+    marginTop: "4px"
   },
   walletHero: {
-    position: "relative",
-    borderRadius: "24px",
-    padding: "24px",
+    borderRadius: "20px",
+    padding: "20px",
     color: "white",
-    overflow: "hidden",
-    boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
-    marginBottom: "16px"
+    marginBottom: "14px"
   },
   walletLeft: {
     position: "relative",
     zIndex: 5
   },
   heroBadgeRow: {
-    marginBottom: "8px"
+    marginBottom: "6px"
   },
   verifiedBadge: {
-    background: "rgba(16,185,129,0.15)",
+    background: "rgba(16,185,129,0.12)",
     color: "#34d399",
-    border: "1px solid rgba(16,185,129,0.3)",
-    fontSize: "10px",
-    fontWeight: "900",
-    padding: "3px 10px",
-    borderRadius: "20px",
-    letterSpacing: "1px"
+    border: "1px solid rgba(16,185,129,0.25)",
+    fontSize: "9px",
+    fontWeight: "800",
+    padding: "2px 8px",
+    borderRadius: "16px",
+    letterSpacing: "0.5px"
   },
   heroLabel: {
-    letterSpacing: "1px",
-    fontSize: "11px",
-    fontWeight: "900",
-    opacity: 0.8,
-    color: "#94a3b8"
+    fontSize: "10px",
+    fontWeight: "800",
+    color: "#94a3b8",
+    margin: "4px 0"
   },
   walletId: {
-    fontSize: "22px",
-    margin: "4px 0 0",
+    fontSize: "20px",
+    margin: "2px 0 0",
     fontWeight: "900",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "6px",
     color: "#f8fafc"
   },
   dashedLine: {
-    borderTop: "1px dashed rgba(255,255,255,.2)",
-    margin: "14px 0"
+    borderTop: "1px dashed rgba(255,255,255,.15)",
+    margin: "12px 0"
   },
   balanceText: {
-    fontSize: "36px",
-    margin: "4px 0",
+    fontSize: "30px",
+    margin: "2px 0",
     fontWeight: "900",
     color: "#ffffff"
   },
   heroActions: {
     display: "flex",
-    gap: "10px",
-    marginTop: "16px",
-    flexWrap: "wrap"
+    gap: "8px",
+    marginTop: "14px"
   },
   addCashBtn: {
-    minWidth: "100px",
-    height: "46px",
+    flex: 1,
+    height: "40px",
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "10px",
     background: "#ffffff",
     color: "#030712",
-    fontWeight: "900",
-    fontSize: "14px",
-    cursor: "pointer",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+    fontWeight: "800",
+    fontSize: "13px",
+    cursor: "pointer"
   },
   withdrawBtn: {
-    minWidth: "100px",
-    height: "46px",
+    flex: 1,
+    height: "40px",
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "10px",
     background: "linear-gradient(135deg,#f59e0b,#d97706)",
     color: "white",
-    fontWeight: "900",
-    fontSize: "14px",
-    cursor: "pointer",
-    boxShadow: "0 4px 12px rgba(245,158,11,0.3)"
+    fontWeight: "800",
+    fontSize: "13px",
+    cursor: "pointer"
   },
   eyeBtn: {
     position: "absolute",
-    top: "16px",
-    right: "16px",
-    width: "38px",
-    height: "38px",
-    borderRadius: "12px",
-    border: "1px solid rgba(255,255,255,.2)",
-    background: "rgba(255,255,255,.1)",
+    top: "14px",
+    right: "14px",
+    width: "34px",
+    height: "34px",
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,.15)",
+    background: "rgba(255,255,255,.08)",
     color: "white",
-    fontSize: "16px",
+    fontSize: "14px",
     zIndex: 8,
     cursor: "pointer"
   },
   walletArt: {
     position: "absolute",
-    right: "40px",
-    top: "40px",
-    width: "220px",
-    height: "180px",
+    right: "30px",
+    top: "30px",
+    width: "180px",
+    height: "140px",
     zIndex: 2
   },
   diamondShape1: {
     position: "absolute",
-    right: "60px",
+    right: "50px",
     top: "10px",
-    width: "70px",
-    height: "70px",
+    width: "55px",
+    height: "55px",
     background: "linear-gradient(135deg,#38bdf8,#0284c7)",
     transform: "rotate(45deg)",
-    borderRadius: "8px",
-    opacity: 0.8,
-    boxShadow: "0 0 20px rgba(56,189,248,0.5)"
+    borderRadius: "6px",
+    opacity: 0.7
   },
   diamondShape2: {
     position: "absolute",
-    right: "15px",
-    top: "30px",
-    width: "60px",
-    height: "60px",
+    right: "10px",
+    top: "20px",
+    width: "45px",
+    height: "45px",
     background: "linear-gradient(135deg,#10b981,#059669)",
     transform: "rotate(45deg)",
-    borderRadius: "8px",
-    opacity: 0.8,
-    boxShadow: "0 0 20px rgba(16,185,129,0.5)"
+    borderRadius: "6px",
+    opacity: 0.7
   },
   walletBag: {
     position: "absolute",
-    right: "30px",
-    bottom: "20px",
-    width: "110px",
-    height: "90px",
-    borderRadius: "20px",
-    background: "linear-gradient(145deg,#0b0f19,#1e1b4b)",
-    border: "1px solid rgba(56,189,248,0.4)",
+    right: "20px",
+    bottom: "10px",
+    width: "90px",
+    height: "70px",
+    borderRadius: "16px",
+    background: "#060913",
+    border: "1px solid rgba(56,189,248,0.3)",
     color: "#38bdf8",
-    fontSize: "36px",
+    fontSize: "28px",
     fontWeight: "900",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    boxShadow: "0 10px 30px rgba(0,0,0,0.6)"
+    justifyContent: "center"
   },
   coin1: {
     position: "absolute",
-    right: "10px",
-    bottom: "20px",
-    width: "40px",
-    height: "40px",
+    right: "5px",
+    bottom: "10px",
+    width: "32px",
+    height: "32px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#fbbf24,#f59e0b)",
     color: "#78350f",
@@ -2106,14 +1959,14 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontWeight: "900",
-    boxShadow: "0 0 10px rgba(251,191,36,0.6)"
+    fontSize: "12px"
   },
   coin2: {
     position: "absolute",
-    right: "50px",
+    right: "40px",
     bottom: "-5px",
-    width: "42px",
-    height: "42px",
+    width: "34px",
+    height: "34px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#34d399,#10b981)",
     color: "#065f46",
@@ -2121,173 +1974,158 @@ const styles = {
     alignItems: "center",
     justifyContent: "center",
     fontWeight: "900",
-    boxShadow: "0 0 10px rgba(52,211,153,0.6)"
+    fontSize: "12px"
   },
   incomePanel: {
-    background: "#0b0f19",
-    borderRadius: "20px",
-    padding: "16px",
     display: "grid",
     gridTemplateColumns: "repeat(5,1fr)",
     gap: "8px",
-    border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "0 10px 20px rgba(0,0,0,0.4)",
-    marginBottom: "16px"
+    marginBottom: "14px"
   },
   incomeCard: {
-    textAlign: "center",
-    padding: "8px 4px"
+    textAlign: "center"
   },
   incomeIcon: {
-    width: "44px",
-    height: "44px",
-    margin: "0 auto 8px",
+    width: "36px",
+    height: "36px",
+    margin: "0 auto 4px",
     borderRadius: "50%",
     color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px"
+    fontSize: "16px"
   },
   incomeWave: {
-    fontSize: "12px",
+    fontSize: "10px",
     fontWeight: "900",
-    marginTop: "4px"
+    marginTop: "2px"
   },
   middleGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "16px",
-    marginBottom: "16px"
+    gap: "14px",
+    marginBottom: "14px"
   },
   transferCard: {
-    background: "#0b0f19",
-    color: "white",
-    borderRadius: "20px",
-    padding: "20px"
+    borderRadius: "18px",
+    padding: "16px"
   },
   transferIcon: {
-    width: "46px",
-    height: "46px",
-    borderRadius: "14px",
+    width: "38px",
+    height: "38px",
+    borderRadius: "10px",
     background: "linear-gradient(135deg,#38bdf8,#2563eb)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "22px",
-    marginBottom: "10px",
-    boxShadow: "0 0 15px rgba(56,189,248,0.4)"
+    fontSize: "18px",
+    marginBottom: "8px"
   },
   transferTitle: {
     margin: 0,
-    fontSize: "20px",
+    fontSize: "17px",
     color: "#f8fafc"
   },
   transferSub: {
     color: "#94a3b8",
-    fontSize: "12px",
-    marginBottom: "16px"
+    fontSize: "11px",
+    marginBottom: "12px"
   },
   label: {
     display: "block",
     fontWeight: "700",
-    fontSize: "12px",
-    marginBottom: "6px",
+    fontSize: "11px",
+    marginBottom: "4px",
     color: "#cbd5e1"
   },
   inputWrap: {
-    height: "46px",
-    borderRadius: "12px",
-    background: "#111827",
-    border: "1px solid #1f2937",
+    height: "40px",
+    borderRadius: "10px",
+    background: "#060913",
+    border: "1px solid rgba(255,255,255,0.08)",
     display: "flex",
     alignItems: "center",
-    padding: "0 12px",
-    marginBottom: "14px"
+    padding: "0 10px",
+    marginBottom: "10px"
   },
   transferInput: {
     flex: 1,
     border: "none",
     outline: "none",
-    fontSize: "14px",
+    fontSize: "13px",
     background: "transparent",
     color: "#fff"
   },
   inputIcon: {
-    fontSize: "18px"
+    fontSize: "14px"
   },
   transferBtn: {
     width: "100%",
-    height: "46px",
+    height: "40px",
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "10px",
     background: "linear-gradient(135deg,#38bdf8,#2563eb)",
     color: "white",
-    fontSize: "15px",
-    fontWeight: "900",
-    cursor: "pointer",
-    boxShadow: "0 6px 20px rgba(56,189,248,0.3)"
+    fontSize: "13px",
+    fontWeight: "800",
+    cursor: "pointer"
   },
   inviteCard: {
-    background: "linear-gradient(135deg,#0b0f19,#1e1b4b)",
-    borderRadius: "20px",
-    padding: "20px",
+    background: "#090e1a",
+    borderRadius: "18px",
+    padding: "16px",
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    position: "relative",
-    overflow: "hidden"
+    border: "1px solid rgba(255,255,255,0.08)"
   },
   inviteTop: {
     color: "#38bdf8",
-    fontWeight: "900",
-    fontSize: "14px",
-    letterSpacing: "0.5px"
+    fontWeight: "800",
+    fontSize: "11px"
   },
   inviteTitle: {
-    fontSize: "22px",
-    margin: "6px 0 0",
+    fontSize: "18px",
+    margin: "4px 0 0",
     color: "#f8fafc"
   },
   inviteTitle2: {
-    color: "#a7f3d0",
-    fontSize: "15px",
-    margin: "4px 0"
+    color: "#34d399",
+    fontSize: "13px",
+    margin: "2px 0"
   },
   giftBox: {
-    fontSize: "65px",
-    lineHeight: "1"
+    fontSize: "48px"
   },
   inviteBtn: {
-    height: "44px",
+    height: "40px",
     width: "100%",
     border: "none",
-    borderRadius: "14px",
+    borderRadius: "10px",
     background: "linear-gradient(135deg,#10b981,#059669)",
     color: "white",
-    fontWeight: "900",
-    fontSize: "14px",
+    fontWeight: "800",
+    fontSize: "13px",
     cursor: "pointer",
-    marginTop: "15px",
-    boxShadow: "0 6px 20px rgba(16,185,129,0.3)"
+    marginTop: "12px"
   },
   historyCard: {
-    background: "#0b0f19",
-    borderRadius: "20px",
-    padding: "16px",
+    background: "#090e1a",
+    borderRadius: "18px",
+    padding: "14px",
     border: "1px solid rgba(255,255,255,0.08)",
-    boxShadow: "0 10px 20px rgba(0,0,0,0.4)",
-    marginBottom: "16px"
+    marginBottom: "14px"
   },
   historyHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "14px"
+    marginBottom: "12px"
   },
   historyTitle: {
     margin: 0,
-    fontSize: "18px",
+    fontSize: "16px",
     color: "#f8fafc"
   },
   historySub: {
@@ -2296,52 +2134,73 @@ const styles = {
     color: "#94a3b8"
   },
   filterSelect: {
-    padding: "6px 10px",
-    borderRadius: "8px",
-    border: "1px solid #1f2937",
-    background: "#111827",
+    padding: "4px 8px",
+    borderRadius: "6px",
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "#060913",
     color: "#fff",
     outline: "none",
-    fontSize: "12px"
+    fontSize: "11px"
   },
   tableHead: {
     display: "grid",
     gridTemplateColumns: "70px 1.6fr 1fr 1fr 1.2fr",
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: "800",
     color: "#94a3b8",
-    paddingBottom: "8px",
+    paddingBottom: "6px",
     borderBottom: "1px solid rgba(255,255,255,0.08)"
   },
   emptyHistory: {
     textAlign: "center",
-    padding: "20px",
+    padding: "16px",
     color: "#94a3b8",
-    fontSize: "13px"
+    fontSize: "12px"
   },
   viewMore: {
     width: "100%",
-    padding: "10px",
+    padding: "8px",
     border: "none",
-    background: "#111827",
+    background: "#060913",
     color: "#38bdf8",
     fontWeight: "700",
-    fontSize: "12px",
-    borderRadius: "10px",
-    marginTop: "10px",
+    fontSize: "11px",
+    borderRadius: "8px",
+    marginTop: "8px",
     cursor: "pointer"
   },
   bottomFeatures: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "12px"
+    gap: "10px"
   },
   featureItem: {
-    padding: "12px",
+    background: "#090e1a",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "12px",
+    padding: "10px"
+  },
+  featureIconBadge: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "8px",
+    background: "rgba(56,189,248,0.1)",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    fontSize: "12px"
+    justifyContent: "center",
+    fontSize: "16px",
+    color: "#38bdf8",
+    flexShrink: 0
+  },
+  featureTitle: {
+    fontSize: "12px",
+    color: "#f8fafc",
+    display: "block"
+  },
+  featureSub: {
+    fontSize: "10px",
+    color: "#94a3b8",
+    margin: "2px 0 0 0"
   },
   modalOverlay: {
     position: "fixed",
@@ -2355,15 +2214,14 @@ const styles = {
     padding: "12px"
   },
   modal: {
-    background: "#0b0f19",
+    background: "#090e1a",
     color: "#fff",
-    padding: "20px",
-    borderRadius: "20px",
+    padding: "18px",
+    borderRadius: "18px",
     width: "100%",
-    maxWidth: "400px",
+    maxWidth: "380px",
     boxSizing: "border-box",
-    border: "1px solid rgba(56,189,248,0.3)",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.8)"
+    border: "1px solid rgba(56,189,248,0.2)"
   },
   depositOverlay: {
     position: "fixed",
@@ -2377,139 +2235,137 @@ const styles = {
     padding: "12px"
   },
   depositModal: {
-    background: "#0b0f19",
+    background: "#090e1a",
     color: "white",
-    padding: "20px",
-    borderRadius: "20px",
+    padding: "18px",
+    borderRadius: "18px",
     width: "100%",
-    maxWidth: "400px",
+    maxWidth: "380px",
     position: "relative",
     boxSizing: "border-box",
-    border: "1px solid rgba(56,189,248,0.3)",
-    boxShadow: "0 20px 50px rgba(0,0,0,0.8)"
+    border: "1px solid rgba(56,189,248,0.2)"
   },
   depositCloseX: {
     position: "absolute",
-    top: "12px",
-    right: "12px",
+    top: "10px",
+    right: "10px",
     background: "none",
     border: "none",
     color: "#94a3b8",
-    fontSize: "24px",
+    fontSize: "20px",
     cursor: "pointer"
   },
   depositIcon: {
-    fontSize: "32px",
+    fontSize: "28px",
     textAlign: "center",
-    marginBottom: "6px"
+    marginBottom: "4px"
   },
   depositTitle: {
-    fontSize: "18px",
+    fontSize: "16px",
     textAlign: "center",
-    margin: "0 0 6px 0",
+    margin: "0 0 4px 0",
     color: "#38bdf8"
   },
   depositSub: {
     fontSize: "11px",
     color: "#94a3b8",
     textAlign: "center",
-    marginBottom: "16px"
+    marginBottom: "14px"
   },
   depositLabel: {
     display: "block",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "700",
-    marginBottom: "6px",
+    marginBottom: "4px",
     color: "#cbd5e1"
   },
   depositInput: {
     width: "100%",
-    height: "44px",
-    borderRadius: "10px",
-    border: "1px solid #1f2937",
-    background: "#111827",
+    height: "40px",
+    borderRadius: "8px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "#060913",
     color: "white",
-    padding: "0 12px",
-    marginBottom: "12px",
+    padding: "0 10px",
+    marginBottom: "10px",
     outline: "none",
     boxSizing: "border-box"
   },
   submitDepositBtn: {
     width: "100%",
-    height: "46px",
+    height: "40px",
     border: "none",
-    borderRadius: "12px",
+    borderRadius: "10px",
     background: "linear-gradient(135deg,#10b981,#059669)",
     color: "white",
     fontWeight: "800",
-    fontSize: "14px",
-    cursor: "pointer",
-    boxShadow: "0 4px 15px rgba(16,185,129,0.3)"
+    fontSize: "13px",
+    cursor: "pointer"
   },
   confirmTop: {
     textAlign: "center",
-    marginBottom: "14px"
+    marginBottom: "12px"
   },
   confirmAvatar: {
-    fontSize: "36px"
+    fontSize: "30px"
   },
   receiverCard: {
-    background: "#111827",
-    padding: "12px",
-    borderRadius: "12px",
-    marginBottom: "14px"
+    background: "#060913",
+    border: "1px solid rgba(255,255,255,0.08)",
+    padding: "10px",
+    borderRadius: "10px",
+    marginBottom: "12px"
   },
   sendMoneyBtn: {
     width: "100%",
-    height: "44px",
+    height: "40px",
     border: "none",
-    borderRadius: "12px",
+    borderRadius: "10px",
     background: "#10b981",
     color: "white",
     fontWeight: "800",
-    fontSize: "14px",
-    marginBottom: "8px",
-    cursor: "pointer",
-    boxShadow: "0 4px 15px rgba(16,185,129,0.3)"
+    fontSize: "13px",
+    marginBottom: "6px",
+    cursor: "pointer"
   },
   cancelBtn: {
     width: "100%",
-    height: "40px",
+    height: "36px",
     border: "none",
-    borderRadius: "12px",
-    background: "#1f2937",
+    borderRadius: "10px",
+    background: "rgba(255,255,255,0.05)",
     color: "#94a3b8",
     fontWeight: "700",
-    fontSize: "13px",
+    fontSize: "12px",
     cursor: "pointer"
   },
   closeBtn: {
     width: "100%",
-    height: "40px",
+    height: "36px",
     border: "none",
-    borderRadius: "12px",
-    background: "#1f2937",
+    borderRadius: "10px",
+    background: "rgba(255,255,255,0.05)",
     color: "#94a3b8",
     fontWeight: "700",
-    fontSize: "13px",
-    marginTop: "10px",
+    fontSize: "12px",
+    marginTop: "8px",
     cursor: "pointer"
   },
   shareGrid: {
     display: "flex",
-    gap: "10px",
-    margin: "16px 0"
+    gap: "8px",
+    margin: "14px 0"
   },
   shareBtn: {
     flex: 1,
-    padding: "10px",
-    borderRadius: "10px",
+    padding: "8px",
+    borderRadius: "8px",
     border: "none",
     background: "#2563eb",
     color: "white",
     textDecoration: "none",
     textAlign: "center",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "700"
   }
 };
