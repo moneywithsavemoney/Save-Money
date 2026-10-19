@@ -1,131 +1,305 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
-import html2canvas from "html2canvas";
 import { API } from "../config";
 
-const DUMMY_P2P_USERS = [
-  { "name": "Aarav Sharma", "walletId": "WAL682410", "mobile": "+91 9718 20381", "balance": 15000 },
-  { "name": "Aditi Rao", "walletId": "WAL295174", "mobile": "+91 8142 90518", "balance": 4500 },
-  { "name": "Aditya Patel", "walletId": "WAL830219", "mobile": "+91 7029 48192", "balance": 22000 },
-  { "name": "Akash Verma", "walletId": "WAL194825", "mobile": "+91 6381 05928", "balance": 5000 },
-  { "name": "Ananya Sen", "walletId": "WAL742018", "mobile": "+91 9472 10845", "balance": 12500 },
-  { "name": "Aniket Chatterjee", "walletId": "WAL381905", "mobile": "+91 8891 30482", "balance": 30000 },
-  { "name": "Anish Das", "walletId": "WAL918234", "mobile": "+91 7402 81935", "balance": 7800 },
-  { "name": "Anjan Roy", "walletId": "WAL472910", "mobile": "+91 9152 74829", "balance": 2500 },
-  { "name": "Ankita Mukherjee", "walletId": "WAL503819", "mobile": "+91 6291 04827", "balance": 45000 },
-  { "name": "Ananya Banerjee", "walletId": "WAL829104", "mobile": "+91 8301 94820", "balance": 18200 }
-];
+if (typeof document !== "undefined") {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = `
+    @keyframes marquee {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+  `;
+  document.head.appendChild(styleSheet);
+}
 
-export default function Wallet() {
+const parseSafeDate = (dateVal) => {
+  if (!dateVal) return new Date();
+  if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
+  
+  if (typeof dateVal === "string") {
+    const parts = dateVal.split("/");
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year = parseInt(parts[2], 10);
+      const customDate = new Date(year, month, day);
+      if (!isNaN(customDate.getTime())) return customDate;
+    }
+    const d = new Date(dateVal);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  const fallback = new Date(dateVal);
+  return isNaN(fallback.getTime()) ? new Date() : fallback;
+};
+
+const formatDate = (dateVal) => {
+  const d = parseSafeDate(dateVal);
+  if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
+  return d.toLocaleDateString("en-GB");
+};
+
+const formatDateTime = (dateVal) => {
+  const d = parseSafeDate(dateVal);
+  if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
+  return d.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
+};
+
+export default function OneTime() {
   const navigate = useNavigate();
   const location = useLocation();
-  const go = navigate;
 
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
-  const [loading, setLoading] = useState(true);
-  const [showBalance, setShowBalance] = useState(true);
+  const getOrGenerateUniqueCode = () => {
+    if (user && user.bonusCode) {
+      return user.bonusCode;
+    }
 
-  const [wallet, setWallet] = useState({
-    walletId: "",
-    name: "",
-    avatar: "",
-    balance: 0,
-    todayBalance: 0,
-    referral: 0,
-    performance: 0,
-    team: 0,
-    royalty: 0
-  });
-  const [history, setHistory] = useState([]);
+    const userEmail = email.trim().toLowerCase();
+    if (!userEmail) return "ot324556";
 
-  const [addOpen, setAddOpen] = useState(false);
-  const [addAmount, setAddAmount] = useState("");
-  const [razorpayLoading, setRazorpayLoading] = useState(false);
+    const storedCodeKey = `sm_bonus_code_${userEmail}`;
+    let existingCode = localStorage.getItem(storedCodeKey);
 
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
+    if (!existingCode) {
+      const randomSuffix = Math.floor(100000 + Math.random() * 900000);
+      existingCode = `ot${randomSuffix}`;
+      localStorage.setItem(storedCodeKey, existingCode);
+    }
 
-  // --- P2P স্টেট ---
-  const [p2pModalOpen, setP2pModalOpen] = useState(false);
-  const [p2pUserList, setP2pUserList] = useState([]);
+    return existingCode;
+  };
   
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [selectedP2pUser, setSelectedP2pUser] = useState(null);
-  const [reviewText, setReviewText] = useState("");
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewsList, setReviewsList] = useState({});
-
-  const [receiverWalletId, setReceiverWalletId] = useState("");
-  const [transferAmount, setTransferAmount] = useState("");
-  const [receiverInfo, setReceiverInfo] = useState(null);
-  const [confirmTransferOpen, setConfirmTransferOpen] = useState(false);
-  const [depositTxnId, setDepositTxnId] = useState("");
-
-  const [shareOpen, setShareOpen] = useState(false);
-  const [withdrawStatus, setWithdrawStatus] = useState(null);
-
-  const [historyFilter, setHistoryFilter] = useState("all");
-  const [showAllHistory, setShowAllHistory] = useState(false);
-
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
+  const [showAllHistory, setShowAllHistory] = useState(false);
+
+  const [showBonusModal, setShowBonusModal] = useState(false);
+  const [bonusInputCode, setBonusInputCode] = useState("");
+  const [bonusList, setBonusList] = useState([]);
 
   const [selectedTxn, setSelectedTxn] = useState(null);
-  const receiptRef = useRef(null);
 
-  const [statusOverlay, setStatusOverlay] = useState({
-    show: false,
-    type: "info",
-    message: ""
+  const [user, setUser] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState([]);
+
+  const [stats, setStats] = useState({
+    totalInvested: 0,
+    totalEarnings: 0,
+    totalWithdrawn: 0,
+    availableBalance: 0
   });
 
-  useEffect(() => {
-    loadWallet();
-    loadWithdrawStatus();
-    loadP2pUsers();
-  }, []);
+  const [activeInvestment, setActiveInvestment] = useState(null);
 
-  const triggerStatusOverlay = (type, message) => {
-    setStatusOverlay({ show: true, type, message });
-    setTimeout(() => {
-      setStatusOverlay({ show: false, type: "info", message: "" });
-    }, 2200);
+  const [tenure, setTenure] = useState(15);
+  const [rate, setRate] = useState(0.6);
+  const [frequency, setFrequency] = useState("daily");
+  const [amount, setAmount] = useState(5000);
+  const [investing, setInvesting] = useState(false);
+
+  const [showAmountModal, setShowAmountModal] = useState(false);
+  const [showAddFundModal, setShowAddFundModal] = useState(false);
+  const [showBankModal, setShowBankModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  
+  const [showInvestWithdrawModal, setShowInvestWithdrawModal] = useState(false);
+  const [showReinvestModal, setShowReinvestModal] = useState(false);
+  const [reinvestTenure, setReinvestTenure] = useState(15);
+  const [reinvestRate, setReinvestRate] = useState(0.6);
+
+  const [txnId, setTxnId] = useState("");
+  const [screenshot, setScreenshot] = useState(null);
+  const [depositing, setDepositing] = useState(false);
+  const [razorpayLoading, setRazorpayLoading] = useState(false);
+
+  const [bankForm, setBankForm] = useState({
+    accountNumber: "",
+    ifsc: "",
+    bankName: "",
+    holderName: ""
+  });
+
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
+
+  const triggerToast = (msg, type = "info") => {
+    setToast({ show: true, msg, type });
+    setTimeout(() => setToast({ show: false, msg: "", type: "info" }), 3500);
   };
 
-  const loadWallet = async () => {
+  const COMPANY_WALLET_ADDRESS = "0x53D944eDA838748A92F2c361d2F71cD7EcFc8643";
+
+  const currentWalletBalance = Number(
+    stats.availableBalance || user?.otbalance || user?.otBalance || user?.availableBalance || 0
+  );
+
+  const tenurePlans = [
+    { days: 30, rate: 0.8, label: "30 Days (0.8%)" },
+    { days: 40, rate: 1.0, label: "40 Days (1.0%)" },
+    { days: 60, rate: 1.5, label: "60 Days (1.5%)" },
+    { days: 100, rate: 2.0, label: "100 Days (2.0%)" }
+  ];
+
+  const presetAmounts = [
+    { label: "7.5k", value: 7500, desc: "Basic", color: "linear-gradient(135deg, #0ea5e9, #0284c7)" },
+    { label: "10k", value: 10000, desc: "Popular", color: "linear-gradient(135deg, #8b5cf6, #7c3aed)" },
+    { label: "50k", value: 50000, desc: "Pro", color: "linear-gradient(135deg, #f59e0b, #d97706)" },
+    { label: "100k", value: 100000, desc: "VIP", color: "linear-gradient(135deg, #ec4899, #db2777)" },
+    { label: "500k", value: 500000, desc: "Master", color: "linear-gradient(135deg, #6366f1, #4f46e5)" }
+  ];
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API}/wallet-summary`, {
+      const res = await fetch(`${API}/api/onetime/dashboard`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          authorization: token || ""
+          authorization: token
         },
         body: JSON.stringify({ email })
       });
+
       const data = await res.json();
-      if (data.success) {
-        setWallet({
-          walletId: data.walletId || data.user?.walletId || "N/A",
-          name: data.name || data.user?.name || "User",
-          avatar: data.avatar || data.user?.photo || data.user?.photoImage || "",
-          photo: data.user?.photo || "",
-          photoImage: data.user?.photoImage || "",
-          balance: Number(data.balance || 0),
-          todayBalance: Number(data.todayBalance || 0),
-          referral: Number(data.referral || 0),
-          performance: Number(data.performance || 0),
-          team: Number(data.team || 0),
-          royalty: Number(data.royalty || 0)
+      if (res.ok) {
+        setUser(data.user || {});
+
+        if (data.bonusList || data.user?.bonusList || data.referrals) {
+          setBonusList(data.bonusList || data.user?.bonusList || data.referrals || []);
+        }
+
+        const rawHistory = Array.isArray(data.history)
+          ? data.history
+          : Array.isArray(data.onetimeHistory)
+          ? data.onetimeHistory
+          : Array.isArray(data.user?.onetimeHistory)
+          ? data.user.onetimeHistory
+          : [];
+
+        const rawDeposits = Array.isArray(data.deposits)
+          ? data.deposits.map((d) => ({ ...d, type: "Add Fund" }))
+          : [];
+        const rawWithdrawals = Array.isArray(data.withdrawals)
+          ? data.withdrawals.map((w) => ({ ...w, type: "Withdrawal" }))
+          : [];
+        const rawInvestments = Array.isArray(data.investments)
+          ? data.investments.map((i) => ({ ...i, type: "OneTimeInvestment" }))
+          : [];
+
+        const combined = [...rawHistory, ...rawDeposits, ...rawWithdrawals, ...rawInvestments];
+
+        const uniqueMap = new Map();
+        combined.forEach((item) => {
+          const key = item._id || `${item.type}-${item.createdAt || item.startDate}`;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, item);
+          }
         });
-        setHistory(Array.isArray(data.history) ? data.history : []);
+
+        const sortedHistory = Array.from(uniqueMap.values()).sort((a, b) => {
+          const dateA = parseSafeDate(a.createdAt || a.startDate || a.maturity);
+          const dateB = parseSafeDate(b.createdAt || b.startDate || b.maturity);
+          return dateB - dateA;
+        });
+
+        setHistory(sortedHistory);
+
+        const exactOneTimeEarnings = Number(
+          data.stats?.totalEarnings ?? data.user?.oneTimeTotalEarnings ?? data.user?.totalEarnings ?? 0
+        );
+
+        let calculatedInv = 0;
+        let calculatedWd = 0;
+
+        sortedHistory.forEach((item) => {
+          const t = (item.type || "").toLowerCase();
+          const status = (item.status || "").toLowerCase();
+          
+          const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
+          const isInvestment = t.includes("investment") || t === "onetimeinvestment";
+          const isValidStatus = status === "active" || status === "completed";
+
+          if (!isAddFund && isInvestment && isValidStatus) {
+            calculatedInv += Number(item.amount || 0);
+          }
+
+          if (t === "withdrawal" && (status === "approved" || status === "accepted" || status === "success")) {
+            calculatedWd += Number(item.amount || 0);
+          }
+        });
+
+        setStats({
+          totalInvested: calculatedInv,
+          totalEarnings: exactOneTimeEarnings,
+          totalWithdrawn: calculatedWd,
+          availableBalance: Number(data.user?.otbalance || data.user?.otBalance || 0)
+        });
+
+        const active = data.activeInvestment || sortedHistory.find(
+          (item) => {
+            const t = (item.type || "").toLowerCase();
+            const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
+            return !isAddFund && (t.includes("investment") || t === "onetimeinvestment") && (item.status || "").toLowerCase() === "active";
+          }
+        );
+        setActiveInvestment(active || null);
+
+        if (data.user?.bankDetails) {
+          setBankForm(data.user.bankDetails);
+        }
+      } else {
+        triggerToast(data.message || "Failed to load dashboard", "error");
       }
     } catch (err) {
-      console.log("WALLET LOAD ERROR:", err);
+      triggerToast("Network error. Please try again.", "error");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApplyBonusCode = async () => {
+    if (!bonusInputCode) {
+      triggerToast("Please enter a bonus code", "error");
+      return;
+    }
+    try {
+      const res = await fetch(`${API}/api/onetime/apply-bonus`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({ email, bonusCode: bonusInputCode })
+      });
+      const data = await res.json();
+      if (res.ok || data.success) {
+        triggerToast(data.message || "Bonus Code Applied Successfully!", "success");
+        setBonusInputCode("");
+        setUser((prev) => ({ ...prev, hasAppliedBonus: true }));
+        await loadDashboardData();
+      } else {
+        triggerToast(data.message || "Invalid or already used bonus code", "error");
+      }
+    } catch (err) {
+      triggerToast("Network error applying bonus code", "error");
     }
   };
 
@@ -145,148 +319,244 @@ export default function Wallet() {
     }, 1200);
   };
 
-  const loadWithdrawStatus = async () => {
+  const handleLogout = async () => {
     try {
-      const res = await fetch(`${API}/auto-withdraw-status`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token || ""
-        },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
-      if (data.success) {
-        setWithdrawStatus(data);
+      if (email) {
+        await fetch(`${API}/logout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email })
+        });
       }
     } catch (err) {
-      console.log("WITHDRAW STATUS ERROR", err);
+      console.log("Logout backend error:", err);
+    } finally {
+      localStorage.clear();
+      navigate("/login");
+      window.location.reload();
     }
   };
 
-  const loadP2pUsers = async () => {
-    try {
-      const res = await fetch(`${API}/p2p-users`, {
-        method: "GET",
-        headers: { authorization: token || "" }
-      });
-      const data = await res.json();
-      if (data.success && data.users && data.users.length > 0) {
-        setP2pUserList(data.users);
-        if (data.reviews) setReviewsList(data.reviews);
+  const { calculatedMaturityDate, isMatured } = useMemo(() => {
+    if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false };
+
+    let maturityObj = null;
+
+    if (activeInvestment.maturityDate || activeInvestment.maturity) {
+      const parsedMaturity = parseSafeDate(activeInvestment.maturityDate || activeInvestment.maturity);
+      if (!isNaN(parsedMaturity.getTime()) && parsedMaturity.getTime() > 0) {
+        maturityObj = parsedMaturity;
+      }
+    }
+
+    if (!maturityObj) {
+      const startDateRaw = activeInvestment.startDate || activeInvestment.createdAt;
+      if (startDateRaw) {
+        const startDateObj = parseSafeDate(startDateRaw);
+        if (!isNaN(startDateObj.getTime()) && startDateObj.getTime() > 0) {
+          let durationDays = 15;
+          if (typeof activeInvestment.duration === "number") {
+            durationDays = activeInvestment.duration;
+          } else if (typeof activeInvestment.duration === "string") {
+            const match = activeInvestment.duration.match(/\d+/);
+            if (match) durationDays = parseInt(match[0], 10);
+          } else if (activeInvestment.durationDays) {
+            durationDays = Number(activeInvestment.durationDays);
+          }
+
+          maturityObj = new Date(startDateObj);
+          maturityObj.setDate(maturityObj.getDate() + durationDays);
+        }
+      }
+    }
+
+    if (maturityObj) {
+      const today = new Date();
+      const matured = today >= maturityObj;
+      return {
+        calculatedMaturityDate: formatDate(maturityObj),
+        isMatured: matured
+      };
+    }
+
+    return { calculatedMaturityDate: "In Progress", isMatured: false };
+  }, [activeInvestment]);
+
+  const isInvestmentLocked = useMemo(() => {
+    return activeInvestment && !isMatured;
+  }, [activeInvestment, isMatured]);
+
+  useEffect(() => {
+    if (activeInvestment && !isMatured) {
+      if (activeInvestment.amount) {
+        setAmount(Number(activeInvestment.amount));
+      }
+
+      let days = 15;
+      if (typeof activeInvestment.duration === "number") {
+        days = activeInvestment.duration;
+      } else if (typeof activeInvestment.duration === "string") {
+        const match = activeInvestment.duration.match(/\d+/);
+        if (match) days = parseInt(match[0], 10);
+      } else if (activeInvestment.durationDays) {
+        days = Number(activeInvestment.durationDays);
+      }
+
+      const matchedPlan = tenurePlans.find((p) => p.days === days);
+      if (matchedPlan) {
+        setTenure(matchedPlan.days);
+        setRate(matchedPlan.rate);
       } else {
-        setP2pUserList(DUMMY_P2P_USERS);
+        setTenure(days);
+        if (activeInvestment.dailyReturn && activeInvestment.amount) {
+          const calcRate = (Number(activeInvestment.dailyReturn) / Number(activeInvestment.amount)) * 100;
+          setRate(calcRate);
+        }
       }
-    } catch (err) {
-      console.log("P2P LOAD ERROR:", err);
-      setP2pUserList(DUMMY_P2P_USERS);
+
+      if (activeInvestment.frequency) {
+        setFrequency(activeInvestment.frequency.toLowerCase());
+      }
+    } else if (!activeInvestment || isMatured) {
+      setTenure(30);
+      setRate(0.8);
+      setFrequency("daily");
+      setAmount(7500);
+    }
+  }, [activeInvestment, isMatured]);
+
+  const dailyReturn = useMemo(() => {
+    if (isInvestmentLocked && activeInvestment && activeInvestment.dailyReturn) {
+      return Number(activeInvestment.dailyReturn);
+    }
+    return (Number(amount) * Number(rate)) / 100;
+  }, [amount, rate, activeInvestment, isInvestmentLocked]);
+
+  const hasWithdrawnToday = useMemo(() => {
+    const todayStr = new Date().toDateString();
+    return history.some((item) => {
+      const typeStr = (item.type || "").toLowerCase();
+      if (typeStr !== "withdrawal" && !typeStr.includes("withdraw")) return false;
+
+      const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
+      const status = (item.status || "").toLowerCase();
+
+      const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
+      return itemDate === todayStr && isBlocked;
+    });
+  }, [history]);
+
+  const weeklyReturn = useMemo(() => dailyReturn * 7, [dailyReturn]);
+  const totalReturn = useMemo(() => dailyReturn * tenure, [dailyReturn, tenure]);
+  const totalPayout = useMemo(() => Number(amount) + totalReturn, [amount, totalReturn]);
+
+  const handleTenureChange = (e) => {
+    if (isInvestmentLocked) return;
+    const selectedDays = Number(e.target.value);
+    const plan = tenurePlans.find((p) => p.days === selectedDays);
+    if (plan) {
+      setTenure(plan.days);
+      setRate(plan.rate);
     }
   };
 
-  const handleIWantP2P = async () => {
-    if (Number(wallet.balance) <= 2000) {
-      return triggerStatusOverlay("warning", "Your wallet balance must be greater than ₹2,000 to register for P2P!");
+  const handleStartInvestment = async () => {
+    if (isInvestmentLocked) {
+      triggerToast("Your investment is currently ongoing. No new investments can be made until it is finished.", "error");
+      return;
     }
-    try {
-      const res = await fetch(`${API}/register-p2p`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token || ""
-        },
-        body: JSON.stringify({ email, walletId: wallet.walletId })
-      });
-      const data = await res.json();
-      if (data.success) {
-        triggerStatusOverlay("success", "Successfully registered for P2P! 🎉");
-        loadP2pUsers();
-      } else {
-        triggerStatusOverlay("error", data.msg || "P2P Registration failed");
-      }
-    } catch (err) {
-      console.log("P2P REGISTRATION ERROR:", err);
-      triggerStatusOverlay("error", "Server error during P2P registration");
-    }
-  };
 
-  const handleUndoP2P = async () => {
-    try {
-      const res = await fetch(`${API}/undo-p2p`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token || ""
-        },
-        body: JSON.stringify({ email, walletId: wallet.walletId })
-      });
-      const data = await res.json();
-      if (data.success) {
-        triggerStatusOverlay("success", "Successfully removed from P2P senders.");
-        loadP2pUsers();
-      } else {
-        triggerStatusOverlay("error", data.msg || "Failed to undo P2P");
-      }
-    } catch (err) {
-      console.log("P2P UNDO ERROR:", err);
-      triggerStatusOverlay("error", "Server error during P2P undo");
+    if (currentWalletBalance < amount) {
+      triggerToast(`Insufficient balance! Your wallet balance is ₹${currentWalletBalance}. Please Add Fund first.`, "error");
+      return;
     }
-  };
 
-  const submitP2pReview = async () => {
-    if (!reviewText.trim()) {
-      return triggerStatusOverlay("warning", "Please write a review comment");
-    }
     try {
-      const res = await fetch(`${API}/p2p-review`, {
+      setInvesting(true);
+      const res = await fetch(`${API}/api/onetime/create-investment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          authorization: token || ""
+          authorization: token
         },
         body: JSON.stringify({
-          senderWalletId: selectedP2pUser.walletId,
-          reviewerEmail: email,
-          review: reviewText.trim(),
-          rating: reviewRating
+          email,
+          amount: Number(amount),
+          duration: `${tenure} Days`,
+          frequency,
+          dailyReturn,
+          status: "Active"
         })
       });
+
       const data = await res.json();
-      if (data.success) {
-        triggerStatusOverlay("success", "Review submitted successfully! ⭐");
-        setReviewText("");
-        setReviewRating(5);
-        loadP2pUsers();
-        const updatedReviews = await fetch(`${API}/p2p-users`).then(r => r.json());
-        if(updatedReviews.success && updatedReviews.reviews) {
-          setReviewsList(updatedReviews.reviews);
-        }
+      if (res.ok || data.success) {
+        triggerToast("🚀 Investment Started Successfully!", "success");
+        await loadDashboardData();
       } else {
-        triggerStatusOverlay("error", data.msg || "Failed to submit review");
+        triggerToast(data.message || data.msg || "Failed to create investment", "error");
       }
     } catch (err) {
-      console.log("REVIEW ERROR:", err);
-      triggerStatusOverlay("error", "Server connection error");
+      triggerToast("Network error creating investment", "error");
+    } finally {
+      setInvesting(false);
     }
   };
 
-  const money = (n) => `₹ ${Number(n || 0).toLocaleString("en-IN")}.00`;
-  const visibleBalance = showBalance ? money(wallet.balance) : "₹ ••••••••";
+  const handleDepositSubmit = async (e) => {
+    e.preventDefault();
+    if (!txnId) {
+      triggerToast("Please enter Transaction ID / UTR No.", "error");
+      return;
+    }
+    if (!screenshot) {
+      triggerToast("Please select payment screenshot", "error");
+      return;
+    }
 
-  const copyWalletId = async () => {
     try {
-      await navigator.clipboard.writeText(wallet.walletId);
-      toast.success("Wallet ID copied");
-    } catch {
-      toast.error("Copy failed");
+      setDepositing(true);
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("amount", amount);
+      formData.append("transactionId", txnId);
+      formData.append("screenshot", screenshot);
+
+      const res = await fetch(`${API}/api/onetime/deposit-request`, {
+        method: "POST",
+        headers: { authorization: token },
+        body: formData
+      });
+
+      const data = await res.json();
+      if (res.ok || data.success) {
+        triggerToast("Deposit request submitted! Status: Pending", "success");
+        setShowAddFundModal(false);
+
+        const newPendingDeposit = {
+          _id: data.deposit?._id || Date.now().toString(),
+          type: "Add Fund",
+          amount: Number(amount),
+          transactionId: txnId,
+          status: "Pending",
+          createdAt: new Date().toISOString()
+        };
+
+        setHistory((prev) => [newPendingDeposit, ...prev]);
+        setTxnId("");
+        setScreenshot(null);
+        await loadDashboardData();
+      } else {
+        triggerToast(data.message || "Failed to submit deposit", "error");
+      }
+    } catch (err) {
+      triggerToast("Error uploading deposit screenshot", "error");
+    } finally {
+      setDepositing(false);
     }
   };
 
-  const openAddCash = () => {
-    setAddAmount("100");
-    setAddOpen(true);
-  };
-
-  // 🟢 RAZORPAY PAYMENT INTEGRATION FROM ONETIME
+  // 🟢 RAZORPAY PAYMENT GATEWAY INTEGRATION
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       if (window.Razorpay) {
@@ -301,396 +571,450 @@ export default function Wallet() {
     });
   };
 
-  const handleRazorpayPayment = async (amtToPay) => {
-    const finalAmount = Number(amtToPay || addAmount);
-    if (!finalAmount || finalAmount < 1) {
-      return triggerStatusOverlay("warning", "Please enter a valid amount (Minimum ₹1)");
-    }
+  const handleAddMoney = async (paymentAmount) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("https://save-money-vyv1.onrender.com/api/create-payment-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ amount: paymentAmount })
+      });
 
-    setRazorpayLoading(true);
-    const resLoaded = await loadRazorpayScript();
-    if (!resLoaded) {
-      triggerStatusOverlay("error", "Razorpay SDK failed to load. Check internet connection.");
-      setRazorpayLoading(false);
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        if (data.paymentUrl) {
+          window.location.href = data.paymentUrl;
+        }
+      } else {
+        alert(data.msg || "Payment order creation failed");
+      }
+    } catch (err) {
+      console.error("Payment Error:", err);
+      alert("Server Connection Error!");
+    }
+  };
+
+  const payViaUPI = () => {
+    if (!amount || Number(amount) <= 0) {
+      return triggerToast("Please enter a valid amount", "error");
+    }
+    handleAddMoney(amount);
+  };
+
+  const handleSaveBankDetails = async (e) => {
+    e.preventDefault();
+    if (!bankForm.accountNumber || !bankForm.ifsc || !bankForm.bankName || !bankForm.holderName) {
+      triggerToast("Please fill all bank details", "error");
       return;
     }
 
     try {
-      const orderRes = await fetch(`${API}/api/onetime/create-razorpay-order`, {
+      const res = await fetch(`${API}/api/onetime/add-bank-details`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          authorization: token || ""
+          authorization: token
         },
-        body: JSON.stringify({ email, amount: finalAmount })
+        body: JSON.stringify({ email, bankDetails: bankForm })
       });
-      const orderData = await orderRes.json();
 
-      if (!orderRes.ok || !orderData.success) {
-        triggerStatusOverlay("error", orderData.message || orderData.msg || "Failed to create payment order");
-        setRazorpayLoading(false);
-        return;
-      }
-
-      const { orderId, keyId, currency } = orderData;
-
-      const options = {
-        key: keyId,
-        amount: finalAmount * 100,
-        currency: currency || "INR",
-        name: "Save Money",
-        description: "Add Money to Diamond Vault",
-        order_id: orderId,
-        handler: async function (response) {
-          try {
-            const verifyRes = await fetch(`${API}/api/onetime/verify-razorpay-payment`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                authorization: token || ""
-              },
-              body: JSON.stringify({
-                email,
-                amount: finalAmount,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature
-              })
-            });
-
-            const verifyData = await verifyRes.json();
-            if (verifyRes.ok && verifyData.success) {
-              triggerStatusOverlay("success", "🎉 Payment Successful! Money added to wallet.");
-              setAddOpen(false);
-              loadWallet();
-            } else {
-              triggerStatusOverlay("error", verifyData.message || "Payment verification failed");
-            }
-          } catch (err) {
-            triggerStatusOverlay("error", "Error verifying payment");
-          }
-        },
-        prefill: {
-          name: wallet.name || "SaveMoney User",
-          email: email
-        },
-        theme: {
-          color: "#38bdf8"
-        }
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
-    } catch (err) {
-      console.error("Razorpay error:", err);
-      triggerStatusOverlay("error", "Payment initialization failed");
-    } finally {
-      setRazorpayLoading(false);
-    }
-  };
-
-  const submitDepositRequest = async () => {
-    if (!addAmount || Number(addAmount) <= 0) {
-      return triggerStatusOverlay("warning", "Please enter a valid amount");
-    }
-    if (!depositTxnId || !depositTxnId.trim()) {
-      return triggerStatusOverlay("warning", "Please enter the 12-digit UPI Ref No");
-    }
-    try {
-      const res = await fetch(`${API}/deposit-request`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token || ""
-        },
-        body: JSON.stringify({
-          email: email,
-          amount: Number(addAmount),
-          txnId: depositTxnId.trim()
-        })
-      });
       const data = await res.json();
-      if (!res.ok || !data.success) {
-        return triggerStatusOverlay("error", data.msg || "Deposit request failed");
-      }
-      triggerStatusOverlay("success", data.msg || "Submitted successfully! Waiting for admin approval.");
-      setAddOpen(false);
-      setAddAmount("");
-      setDepositTxnId("");
-      loadWallet();
-    } catch (err) {
-      console.log("DEPOSIT ERROR:", err);
-      triggerStatusOverlay("error", "Server connectivity error");
-    }
-  };
-
-  const checkReceiver = async () => {
-    if (!receiverWalletId.trim()) {
-      return triggerStatusOverlay("warning", "Enter receiver wallet ID");
-    }
-    if (!transferAmount || Number(transferAmount) <= 0) {
-      return triggerStatusOverlay("warning", "Enter valid amount");
-    }
-    const currentBalance = Number(wallet.balance || 0);
-    if (currentBalance <= 2000) {
-      return triggerStatusOverlay("warning", "Insufficient Balance! Minimum ₹2,000 must remain in your wallet.");
-    }
-    const maxAllowed = currentBalance - 2000;
-    if (Number(transferAmount) > maxAllowed) {
-      return triggerStatusOverlay("warning", `Limit Exceeded! You can only transfer up to ₹${maxAllowed.toLocaleString("en-IN")}`);
-    }
-    try {
-      const res = await fetch(`${API}/wallet-user`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token || ""
-        },
-        body: JSON.stringify({ walletId: receiverWalletId.trim() })
-      });
-      const data = await res.json();
-      if (!data.success) {
-        return triggerStatusOverlay("error", data.msg || "Receiver not found");
-      }
-      setReceiverInfo(data.user);
-      setConfirmTransferOpen(true);
-    } catch (err) {
-      console.log("RECEIVER CHECK ERROR:", err);
-      triggerStatusOverlay("error", "Receiver check failed");
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      if (email) {
-        await fetch(`${API}/logout`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email: email })
-        });
-      }
-    } catch (err) {
-      console.log("Logout backend error:", err);
-    } finally {
-      localStorage.clear();
-      navigate("/login");
-      window.location.reload();
-    }
-  };
-
-  const sendTransfer = async () => {
-    try {
-      const res = await fetch(`${API}/wallet-transfer`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: token || ""
-        },
-        body: JSON.stringify({
-          senderEmail: email,
-          receiverWalletId: receiverWalletId.trim(),
-          amount: Number(transferAmount)
-        })
-      });
-      const data = await res.json();
-      if (data.success) {
-        triggerStatusOverlay("success", data.msg || "Transfer Completed Successfully! 🎉");
-        setReceiverWalletId("");
-        setTransferAmount("");
-        setReceiverInfo(null);
-        setConfirmTransferOpen(false);
-        loadWallet();
+      if (res.ok) {
+        setUser((prev) => ({ ...prev, bankDetails: bankForm }));
+        setShowBankModal(false);
+        triggerToast("Bank Details Saved!", "success");
+        setShowWithdrawModal(true);
       } else {
-        triggerStatusOverlay("error", data.msg || "Transfer failed");
+        triggerToast(data.message || "Failed to save bank details", "error");
       }
     } catch (err) {
-      console.log("TRANSFER ERROR:", err);
-      triggerStatusOverlay("error", "Transfer failed due to server error");
+      triggerToast("Failed to save bank details", "error");
     }
   };
 
-  const inviteLink = useMemo(() => {
-    const ref = wallet.walletId || email;
-    return `${window.location.origin}/register?ref=${encodeURIComponent(ref)}`;
-  }, [wallet.walletId, email]);
-
-  const openInvite = async () => {
-    const text = `Join Save Money and start your saving journey.\n${inviteLink}`;
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: "Save Money", text, url: inviteLink });
-      } catch {
-        setShareOpen(true);
-      }
+  const handleWithdrawClick = () => {
+    if (!user.bankDetails || !user.bankDetails.accountNumber) {
+      setShowBankModal(true);
     } else {
-      setShareOpen(true);
+      setShowWithdrawModal(true);
     }
   };
 
-  const copyInviteLink = async () => {
-    try {
-      await navigator.clipboard.writeText(inviteLink);
-      toast.success("Referral link copied");
-    } catch {
-      toast.error("Copy failed");
-    }
-  };
+  const [selectedWithdrawAmount, setSelectedWithdrawAmount] = useState(100);
 
-  const handleShareReceipt = async () => {
-    if (!receiptRef.current) return;
+  const handleWithdrawSubmit = async (customAmt = null) => {
+    const amountToWithdraw = customAmt || (bonusList.length > 0 ? selectedWithdrawAmount : Number(dailyReturn));
+
+    if (hasWithdrawnToday) {
+      triggerToast("You have already placed a withdrawal request today!", "error");
+      return;
+    }
+
+    if (currentWalletBalance < amountToWithdraw) {
+      triggerToast(`Insufficient Wallet Balance! Your balance is ₹${currentWalletBalance}`, "error");
+      return;
+    }
+
     try {
-      const canvas = await html2canvas(receiptRef.current, {
-        useCORS: true,
-        scale: 2,
-        backgroundColor: "#060913"
+      setWithdrawing(true);
+      const res = await fetch(`${API}/api/onetime/withdraw`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ? token : ""
+        },
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(), 
+          amount: Number(amountToWithdraw),
+          bankDetails: user.bankDetails || bankForm
+        })
       });
-      canvas.toBlob(async (blob) => {
-        if (!blob) return;
-        const file = new File([blob], `Receipt-${selectedTxn._id || "Txn"}.png`, { type: "image/png" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({ files: [file], title: "Transaction Receipt", text: "Save Money Transaction Proof" });
-          } catch (e) {
-            downloadFallback(canvas);
-          }
-        } else {
-          downloadFallback(canvas);
-        }
-      }, "image/png");
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        triggerToast(data.message || "Withdrawal Request Submitted!", "success");
+        setShowWithdrawModal(false);
+        await loadDashboardData();
+      } else {
+        triggerToast(data.message || "Withdrawal Failed", "error");
+      }
     } catch (err) {
-      console.error("Receipt Generation Error:", err);
-      toast.error("Failed to generate receipt image");
+      console.error("Withdrawal error:", err);
+      triggerToast("Network error during withdrawal. Please check console.", "error");
+    } finally {
+      setWithdrawing(false);
     }
   };
 
-  const downloadFallback = (canvas) => {
-    const link = document.createElement("a");
-    link.download = `Receipt-${selectedTxn?._id || "transaction"}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-    toast.success("Receipt Image Saved!");
+  const handleWithdrawInvestAmount = async () => {
+    if (!activeInvestment) return;
+
+    if (!user.bankDetails || !user.bankDetails.accountNumber) {
+      setShowBankModal(true);
+      return;
+    }
+
+    try {
+      setWithdrawing(true);
+      const res = await fetch(`${API}/api/onetime/withdraw`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ? token : ""
+        },
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(), 
+          amount: Number(activeInvestment.amount),
+          isInvestAmountWithdrawal: true,
+          investmentId: activeInvestment._id || activeInvestment.id,
+          bankDetails: user.bankDetails || bankForm
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        triggerToast(data.message || "Invest Amount Withdrawal Request Submitted!", "success");
+        setShowInvestWithdrawModal(false);
+        await loadDashboardData();
+      } else {
+        triggerToast(data.message || "Withdrawal Failed", "error");
+      }
+    } catch (err) {
+      console.error("Invest Amount Withdrawal error:", err);
+      triggerToast("Network error during withdrawal.", "error");
+    } finally {
+      setWithdrawing(false);
+    }
   };
+
+  const handleConfirmReinvest = async () => {
+    if (!activeInvestment) return;
+
+    const reinvestAmount = Number(activeInvestment.amount || 0);
+    const calculatedDaily = (reinvestAmount * reinvestRate) / 100;
+
+    try {
+      setWithdrawing(true);
+      const res = await fetch(`${API}/api/onetime/create-investment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
+        body: JSON.stringify({
+          email,
+          amount: reinvestAmount,
+          duration: `${reinvestTenure} Days`,
+          frequency: "daily",
+          dailyReturn: calculatedDaily,
+          status: "Active"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok || data.success) {
+        triggerToast("🚀 Reinvestment Started Successfully!", "success");
+        setShowReinvestModal(false);
+        await loadDashboardData();
+      } else {
+        triggerToast(data.message || "Failed to reinvest", "error");
+      }
+    } catch (err) {
+      triggerToast("Network error during reinvestment", "error");
+    } finally {
+      setWithdrawing(false);
+    }
+  };
+
+  const handleShareToWhatsApp = () => {
+    if (!selectedTxn) return;
+
+    const txnType = selectedTxn.type ? selectedTxn.type.toUpperCase() : "TRANSACTION DETAILS";
+    const amountVal = Number(selectedTxn.amount || 0).toFixed(2);
+    const statusVal = selectedTxn.status ? selectedTxn.status.toUpperCase() : "VERIFIED";
+    const userName = user?.name || "SaveMoney User";
+    const userEmail = email || "N/A";
+    const txnIdVal = selectedTxn.transactionId || selectedTxn._id || selectedTxn.id || "N/A";
+    const dateTimeVal = formatDateTime(selectedTxn.createdAt || selectedTxn.startDate || selectedTxn.date);
+    const rejectReasonVal = selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || "";
+
+    let message = `*💎 SAVE MONEY - TRANSACTION SLIP*\n\n`;
+    message += `📌 *Type:* ${txnType}\n`;
+    message += `💰 *Amount:* ₹${amountVal}\n`;
+    message += `🟢 *Status:* ${statusVal}\n`;
+    message += `👤 *User Name:* ${userName}\n`;
+    message += `📧 *Email:* ${userEmail}\n`;
+    message += `🆔 *Transaction ID / UTR:* ${txnIdVal}\n`;
+    message += `📅 *Date & Time:* ${dateTimeVal}\n`;
+
+    if (rejectReasonVal) {
+      message += `⚠️ *Reject Reason:* ${rejectReasonVal}\n`;
+    }
+
+    message += `\n✨ *Premium SaveMoney Asset Management*`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const handleCopyWallet = () => {
+    navigator.clipboard.writeText(COMPANY_WALLET_ADDRESS);
+    triggerToast("Wallet Address Copied!", "success");
+  };
+
+  const fileUrl = (file) => {
+    if (!file) return "";
+    return file.startsWith("http") ? file : `${API}/uploads/${file}`;
+  };
+
+  const profilePhoto = fileUrl(user?.photo || user?.profilePhoto || user?.avatar || "");
 
   if (loading) {
     return (
       <div style={styles.loadingPage}>
-        <div style={styles.loadingCard}>
-          <div style={styles.loadingIcon}>💎</div>
-          <h2 style={{ color: "#38bdf8", margin: "12px 0 0 0", fontSize: "16px", fontWeight: "700" }}>Securing Diamond Vault...</h2>
+        <div style={{ textAlign: "center" }}>
+          <div style={styles.spinner}></div>
+          <h3 style={{ color: "#22c55e", marginTop: "14px", fontSize: "18px", fontWeight: "700" }}>Loading Dashboard...</h3>
         </div>
       </div>
     );
   }
 
-  const filteredHistory = history.filter((item) => {
-    if (historyFilter === "all") return true;
-    return String(item.type).toLowerCase() === historyFilter;
-  });
-
-  const visibleHistory = showAllHistory ? filteredHistory : filteredHistory.slice(0, 5);
+  const displayedHistory = showAllHistory ? history : history.slice(0, 5);
 
   return (
     <div style={styles.page}>
-      <style>{diamondCutThemeCSS}</style>
-      <div style={styles.app}>
-
-        {/* SIDEBAR DRAWER */}
+      {/* SIDEBAR DRAWER */}
+      <div 
+        style={{
+          ...styles.drawerOverlay,
+          opacity: isDrawerOpen ? 1 : 0,
+          visibility: isDrawerOpen ? "visible" : "hidden"
+        }} 
+        onClick={() => setIsDrawerOpen(false)}
+      >
         <div 
           style={{
-            ...styles.drawerOverlay,
-            opacity: isDrawerOpen ? 1 : 0,
-            visibility: isDrawerOpen ? "visible" : "hidden"
+            ...styles.drawerContainer,
+            transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
           }} 
-          onClick={() => setIsDrawerOpen(false)}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div 
-            style={{        
-              ...styles.drawerContainer,
-              transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
-            }} 
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={styles.drawerHeader}>
-              <div style={styles.drawerBrand}>
-                <div style={styles.drawerLogoWrapper}>
-                  <img 
-                    src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
-                    alt="SM Logo" 
-                    style={styles.drawerLogoImg} 
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
-                  <span style={styles.drawerLogoSubtext}>Diamond Wealth Management</span>
-                </div>
+          <div style={styles.drawerHeader}>
+            <div style={styles.drawerBrand}>
+              <div style={styles.drawerLogoWrapper}>
+                <img 
+                  src={process.env.PUBLIC_URL ? `${process.env.PUBLIC_URL}/logo512.png` : "/logo512.png"} 
+                  alt="SM Logo" 
+                  style={styles.drawerLogoImg} 
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
+                <span style={styles.drawerLogoSubtext}>Invest Small, Earn Big</span>
               </div>
             </div>
+          </div>
 
+          <div style={styles.drawerScrollArea}>
             <div style={styles.drawerNavList}>
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/home" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/home"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDashboard,
+                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/home"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>🏠</span>
                 <span style={styles.drawerNavText}>Dashboard</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/my-investment"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavMyInvestment,
+                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/my-investment"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>📈</span>
                 <span style={styles.drawerNavText}>My Investment</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/save-money"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSaveMoney,
+                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/save-money"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>💰</span>
                 <span style={styles.drawerNavText}>Save Money</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/one-time"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavOneTime,
+                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/one-time"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>⚡</span>
                 <span style={styles.drawerNavText}>One Time</span>
               </button>
 
-              <button style={styles.drawerNavItem} onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }} disabled={isDownloadingPlan}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavPlan
+                }} 
+                onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
+                disabled={isDownloadingPlan}
+              >
                 <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
                 <span style={styles.drawerNavText}>{isDownloadingPlan ? "Downloading..." : "Plan PDF"}</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/wallet"); setIsDrawerOpen(false); }}>
-                <span style={styles.drawerNavIcon}>💎</span>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavAddFund,
+                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/wallet"); setIsDrawerOpen(false); }}
+              >
+                <span style={styles.drawerNavIcon}>🌐</span>
                 <span style={styles.drawerNavText}>Add Fund</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/refer"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavRefer,
+                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/refer"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>👥</span>
                 <span style={styles.drawerNavText}>Refer & Earn</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/withdraw"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavWithdraw,
+                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/withdraw"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>➔</span>
                 <span style={styles.drawerNavText}>Withdraw</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/daily-reward"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavDailyReward,
+                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/daily-reward"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>🎁</span>
                 <span style={styles.drawerNavText}>Daily Reward</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/investment-assistant"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavInvestmentAssistant,
+                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/investment-assistant"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>📊</span>
                 <span style={styles.drawerNavText}>Investment Assistance</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/support" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/support"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavSupport,
+                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/support"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>🎧</span>
                 <span style={styles.drawerNavText}>Support</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {}) }} onClick={() => { go("/kyc"); setIsDrawerOpen(false); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavProfile,
+                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
+                }} 
+                onClick={() => { navigate("/kyc"); setIsDrawerOpen(false); }}
+              >
                 <span style={styles.drawerNavIcon}>👤</span>
                 <span style={styles.drawerNavText}>Profile</span>
               </button>
 
-              <button style={{ ...styles.drawerNavItem, background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)" }} onClick={() => { setIsDrawerOpen(false); handleLogout(); }}>
+              <button 
+                style={{
+                  ...styles.drawerNavItem,
+                  ...styles.drawerNavLogout
+                }} 
+                onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
+              >
                 <span style={styles.drawerNavIcon}>🚪</span>
                 <span style={styles.drawerNavText}>Logout</span>
               </button>
@@ -701,784 +1025,1466 @@ export default function Wallet() {
                 src="/tree plant.png" 
                 alt="Tree Plant" 
                 style={styles.treePlantOnlyImg}
-                onError={(e) => { if (e.target.src.includes('.png')) { e.target.src = '/tree plant.jpg'; } }}
+                onError={(e) => {
+                  if (e.target.src.includes('.png')) {
+                    e.target.src = '/tree plant.jpg';
+                  }
+                }}
               />
             </div>
           </div>
         </div>
+      </div>
 
-        {statusOverlay.show && (
-          <div style={styles.statusOverlayBg}>
-            <div style={{
-              ...styles.statusOverlayCard,
-              borderTop: statusOverlay.type === "success" ? "4px solid #10b981" : statusOverlay.type === "warning" ? "4px solid #f59e0b" : "4px solid #ef4444"
-            }}>
-              <div style={{
-                ...styles.statusOverlayIcon,
-                background: statusOverlay.type === "success" ? "rgba(16,185,129,0.2)" : statusOverlay.type === "warning" ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.2)",
-                color: statusOverlay.type === "success" ? "#34d399" : statusOverlay.type === "warning" ? "#fbbf24" : "#f87171"
-              }}>
-                {statusOverlay.type === "success" ? "✓" : statusOverlay.type === "warning" ? "⚠" : "✕"}
-              </div>
-              <h3 style={styles.statusOverlayText}>{statusOverlay.message}</h3>
-            </div>
+      <div style={styles.container}>
+        {/* TOAST ALERT */}
+        {toast.show && (
+          <div style={{ ...styles.toast, background: toast.type === "error" ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" : "linear-gradient(135deg, #16a34a 0%, #15803d 100%)" }}>
+            <span style={{ fontSize: "16px" }}>{toast.type === "error" ? "⚠️" : "✅"}</span>
+            <span>{toast.msg}</span>
           </div>
         )}
 
-        {/* TOP NAVBAR & HEADER */}
-        <div style={styles.topHeader}>
-          <div style={styles.topNavbar}>
-            <button style={styles.menuButton} onClick={() => setIsDrawerOpen(true)}>
+        {/* FIXED SMOOTH MARQUEE NOTICE BANNER */}
+        <div style={styles.topNoticeBanner}>
+          <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
+          <div style={styles.marqueeContainer}>
+            <div style={styles.marqueeText}>
+              Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 15% flat bonus!</span> 🎉
+            </div>
+          </div>
+        </div>
+
+        {/* HEADER */}
+        <header style={styles.header}>
+          <div style={styles.headerLeft}>
+            <button 
+              style={styles.menuButton}
+              onClick={() => setIsDrawerOpen(true)}
+            >
               ☰
             </button>
-            
-            <div style={styles.navRightGroup}>
-              <button style={styles.notifyBtn} onClick={() => window.location.href = "/notifications"}>
-                🔔
-              </button>
-              <div style={styles.avatar}>
-                {wallet.avatar || wallet.photo || wallet.photoImage ? (
-                  <img src={wallet.avatar || wallet.photo || `${API}/${wallet.photoImage}`} alt="user" style={styles.avatarImg} />
-                ) : (
-                  "👤"
-                )}
+            <div>
+              <h1 style={styles.welcomeTitle}>
+                Welcome Back! 👏
+              </h1>
+              <p style={styles.welcomeSub}>Invest smartly & secure your future</p>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <button 
+              style={styles.headerBonusBtn} 
+              onClick={() => setShowBonusModal(true)}
+            >
+              🎁 Bonus
+            </button>
+
+            <div style={styles.profileCircle} onClick={() => navigate("/kyc")}>
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
+              ) : (
+                <div style={styles.profileAvatarPlaceholder}>
+                  <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* TOP HERO BANNER */}
+        <div style={styles.topHeroBanner}>
+          <div style={styles.heroTextContent}>
+            <h2 style={styles.heroTitle}>
+              Chhote nivesh se <br />
+              <span style={{ color: "#facc15" }}>badi kamai ka safar,</span> <br />
+              <span style={{ color: "#f1f5f9" }}>har mahine ka plan, hamesha</span>
+            </h2>
+            <p style={styles.heroDesc}>
+              Invest small amounts monthly to get big returns together
+            </p>
+          </div>
+          <div style={styles.heroImgWrapper}>
+            <img 
+              src="/chhote nivesh.png" 
+              alt="Chhote Nivesh" 
+              style={styles.heroBannerImage}
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          </div>
+        </div>
+
+        {/* STAT CARDS GRID */}
+        <section style={styles.statsGridContainer}>
+          <div style={styles.darkStatCard}>
+            <div style={styles.statCardHeader}>
+              <div style={{ ...styles.iconBox, background: "rgba(34, 197, 94, 0.15)" }}>
+                <span style={{ color: "#22c55e", fontSize: "18px" }}>💼</span>
+              </div>
+              <span style={styles.statCardTitle}>Total Invested</span>
+            </div>
+            <strong style={styles.statCardValue}>
+              ₹ {Number(stats.totalInvested || 0).toLocaleString("en-IN")}
+            </strong>
+          </div>
+
+          <div style={styles.darkStatCard}>
+            <div style={styles.statCardHeader}>
+              <div style={{ ...styles.iconBox, background: "rgba(56, 189, 248, 0.15)" }}>
+                <span style={{ color: "#38bdf8", fontSize: "18px" }}>💵</span>
+              </div>
+              <span style={styles.statCardTitle}>Total Earnings</span>
+            </div>
+            <strong style={styles.statCardValue}>
+              ₹ {Number(stats.totalEarnings || 0).toLocaleString("en-IN")}
+            </strong>
+          </div>
+
+          <div style={styles.darkStatCard}>
+            <div style={styles.statCardHeader}>
+              <div style={{ ...styles.iconBox, background: "rgba(168, 85, 247, 0.15)" }}>
+                <span style={{ color: "#a855f7", fontSize: "18px" }}>💸</span>
+              </div>
+              <span style={styles.statCardTitle}>Total Withdraw</span>
+            </div>
+            <strong style={styles.statCardValue}>
+              ₹ {Number(stats.totalWithdrawn || 0).toLocaleString("en-IN")}
+            </strong>
+          </div>
+
+          <div style={styles.darkStatCard}>
+            <div style={styles.statCardHeader}>
+              <div style={{ ...styles.iconBox, background: "rgba(234, 179, 8, 0.15)" }}>
+                <span style={{ color: "#eab308", fontSize: "18px" }}>🪙</span>
+              </div>
+              <span style={styles.statCardTitle}>Available Balance</span>
+            </div>
+            <strong style={styles.statCardValue}>
+              ₹ {currentWalletBalance.toLocaleString("en-IN")}
+            </strong>
+          </div>
+        </section>
+
+        {activeInvestment && isMatured && (
+          <section style={styles.maturedWalletCard}>
+            <div style={styles.maturedCardHeader}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "20px" }}>🎉</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "14px", color: "#4ade80", fontWeight: "800" }}>
+                    Matured Investment Amount
+                  </h3>
+                  <p style={{ margin: 0, fontSize: "10px", color: "#cbd5e1" }}>
+                    Maturity date ({calculatedMaturityDate}) completed! You can withdraw or reinvest your principal.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div style={styles.maturedValueRow}>
+              <div>
+                <span style={{ fontSize: "11px", color: "#94a3b8" }}>Invest Amount</span>
+                <strong style={{ fontSize: "18px", color: "#ffffff", display: "block" }}>
+                  ₹ {Number(activeInvestment.amount || 0).toLocaleString("en-IN")}
+                </strong>
+              </div>
+              <div style={{ display: "flex", gap: "6px" }}>
+                <button 
+                  style={styles.withdrawInvestBtn} 
+                  onClick={() => setShowInvestWithdrawModal(true)}
+                >
+                  Withdraw
+                </button>
+                <button 
+                  style={styles.reinvestBtn} 
+                  onClick={() => setShowReinvestModal(true)}
+                  disabled={withdrawing}
+                >
+                  Reinvest 🚀
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section style={styles.darkMainCard}>
+          <h2 style={styles.darkCardTitle}>Make a New Investment</h2>
+
+          {activeInvestment && !isMatured && (
+            <div style={styles.activeInvestCardDark}>
+              <div style={styles.activeHeader}>
+                <div style={styles.activeBadgeGroup}>
+                  <span style={styles.activePulse}></span>
+                  <strong style={styles.activeTitle}>ACTIVE INVESTMENT RUNNING</strong>
+                </div>
+                <span style={styles.activeStatusTagDark}>
+                  🟢 Live Earning
+                </span>
+              </div>
+
+              <div style={styles.activeStatsGrid}>
+                <div style={styles.activeStatItem}>
+                  <span style={styles.activeLabel}>Invested Amount</span>
+                  <strong style={styles.activeValue}>₹{Number(activeInvestment.amount || 0).toLocaleString("en-IN")}</strong>
+                </div>
+                <div style={styles.activeStatItem}>
+                  <span style={styles.activeLabel}>Plan Duration</span>
+                  <strong style={styles.activeValue}>{activeInvestment.duration || `${activeInvestment.durationDays || tenure} Days`}</strong>
+                </div>
+                <div style={styles.activeStatItem}>
+                  <span style={styles.activeLabel}>Daily Earnings</span>
+                  <strong style={{ ...styles.activeValue, color: "#22c55e" }}>₹{Number(dailyReturn).toFixed(2)} / day</strong>
+                </div>
+                <div style={styles.activeStatItem}>
+                  <span style={styles.activeLabel}>Maturity Date</span>
+                  <strong style={{ ...styles.activeValue, color: "#38bdf8" }}>
+                    {calculatedMaturityDate}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div style={styles.formGrid}>
+            <div style={styles.fieldGroup}>
+              <label style={styles.labelDark}>
+                📌 Select Duration {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+              </label>
+              <select
+                style={{
+                  ...styles.selectDark,
+                  ...(isInvestmentLocked ? styles.lockedInputDark : {})
+                }}
+                value={tenure}
+                onChange={handleTenureChange}
+                disabled={isInvestmentLocked}
+              >
+                {tenurePlans.map((p) => (
+                  <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.labelDark}>
+                🔄 Return Frequency {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+              </label>
+              <div style={styles.frequencyToggleDark}>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.freqBtnDark,
+                    ...(frequency === "daily" ? styles.freqBtnActiveDark : {})
+                  }}
+                  onClick={() => !isInvestmentLocked && setFrequency("daily")}
+                  disabled={isInvestmentLocked}
+                >
+                  Daily
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.freqBtnDark,
+                    ...(frequency === "weekly" ? styles.freqBtnActiveDark : {})
+                  }}
+                  onClick={() => !isInvestmentLocked && setFrequency("weekly")}
+                  disabled={isInvestmentLocked}
+                >
+                  Weekly
+                </button>
+              </div>
+            </div>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.labelDark}>
+                💵 Select / Enter Amount {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+              </label>
+              <div 
+                style={styles.amountInputWrapDark} 
+                onClick={() => !isInvestmentLocked && setShowAmountModal(true)}
+              >
+                <span style={{ fontSize: "18px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
+                <input style={styles.amountInputDark} type="text" readOnly value={amount.toLocaleString("en-IN")} />
+                <span style={isInvestmentLocked ? styles.lockedBadgeDark : styles.changeBadgeDark}>
+                  {isInvestmentLocked ? "🔒 Locked" : "Change ⚙️"}
+                </span>
               </div>
             </div>
           </div>
 
-          <header style={styles.header}>
-            <div>
-              <h1 style={styles.pageTitle}>Diamond Vault Wallet</h1>
-              <div style={styles.titleWave}></div>
-              <p style={styles.pageSub}>Institutional-grade secure asset management & live P2P settlement.</p>
+          <div style={styles.returnContainerDark}>
+            <div style={styles.returnCardContent}>
+              <span style={styles.returnBoxBagIcon}>🪙</span>
+              <div>
+                <div style={styles.returnCardTitleDark}>
+                  You Will Get {frequency === "daily" ? "Daily" : "Weekly"} Return
+                </div>
+                <strong style={styles.returnCardValueDark}>
+                  ₹ {frequency === "daily" ? dailyReturn.toFixed(2) : weeklyReturn.toFixed(2)}
+                </strong>
+                <span style={styles.returnCardNoteDark}>
+                  (Approx. Return Per {frequency === "daily" ? "Day" : "Week"})
+                </span>
+              </div>
             </div>
-          </header>
+          </div>
 
-          {/* DIAMOND HERO WALLET CARD */}
-          <section style={styles.walletHero} className="diamond-cut-bg">
-            <div className="shimmer-effect"></div>
-            <button style={styles.eyeBtn} onClick={() => setShowBalance(!showBalance)}>
-              {showBalance ? "👁" : "🙈"}
+          <div style={styles.breakdownGridDark}>
+            <div style={styles.breakBoxDark}>
+              <span style={styles.breakLabelDark}>Investment Amount</span>
+              <strong style={styles.breakValueDark}>₹ {Number(amount).toLocaleString("en-IN")}</strong>
+            </div>
+            <div style={styles.breakBoxDark}>
+              <span style={styles.breakLabelDark}>Duration</span>
+              <strong style={styles.breakValueDark}>{tenure} Days ({rate}%)</strong>
+            </div>
+            <div style={styles.breakBoxDark}>
+              <span style={styles.breakLabelDark}>Total Return</span>
+              <strong style={{ ...styles.breakValueDark, color: "#22c55e" }}>₹ {totalReturn.toLocaleString("en-IN")}</strong>
+            </div>
+            <div style={styles.breakBoxDark}>
+              <span style={styles.breakLabelDark}>Total Payout</span>
+              <strong style={{ ...styles.breakValueDark, color: "#38bdf8" }}>₹ {totalPayout.toLocaleString("en-IN")}</strong>
+            </div>
+          </div>
+
+          <div style={styles.actionGridTriple}>
+            <button 
+              style={{
+                ...styles.startInvestBtnDark,
+                ...(isInvestmentLocked ? styles.disabledBtnDark : {})
+              }} 
+              onClick={handleStartInvestment} 
+              disabled={investing || isInvestmentLocked}
+            >
+              {investing ? "Processing..." : isInvestmentLocked ? "🚀 Active Running" : "🚀 Start Investment"}
             </button>
 
-            <div style={styles.walletLeft}>
-              <div style={styles.heroBadgeRow}>
-                <span style={styles.verifiedBadge}>💎 SECURE VAULT ACTIVE</span>
-              </div>
-              <p style={styles.heroLabel}>WALLET ID</p>
-              <h2 style={styles.walletId}>
-                {wallet.walletId}
-                <button onClick={copyWalletId} style={styles.copyBtn}>📋</button>
-              </h2>
+            <button style={styles.addInvestBtnDark} onClick={() => setShowAddFundModal(true)}>
+              + Add Fund
+            </button>
 
-              <div style={styles.dashedLine}></div>
+            <button style={styles.withdrawBtnDark} onClick={handleWithdrawClick}>
+              ➔ Withdraw
+            </button>
+          </div>
+        </section>
 
-              <p style={styles.heroLabel}>AVAILABLE BALANCE</p>
-              <h1 style={styles.balanceText}>{visibleBalance}</h1>
+        <section style={styles.darkHistoryCard}>
+          <div style={styles.historyHeader}>
+            <h2 style={{ margin: 0, fontSize: "16px", color: "#f8fafc", fontWeight: "800" }}>Transaction History</h2>
+            <span style={styles.refreshBtnDark} onClick={loadDashboardData}>🔄 Refresh</span>
+          </div>
 
-              <div style={styles.heroActions}>
-                <button style={styles.addCashBtn} onClick={openAddCash}>
-                  <b>＋</b> Add Cash
-                </button>
-                <button style={styles.withdrawBtn} onClick={() => setWithdrawOpen(true)}>
-                  💳 Withdraw
-                </button>
-                <button style={styles.p2pMainBtn} onClick={() => setP2pModalOpen(true)}>
-                  🤝 P2P
-                </button>
-              </div>
+          <div style={styles.tableWrapper}>
+            <table style={styles.tableDark}>
+              <thead>
+                <tr>
+                  <th style={styles.thDark}>Date</th>
+                  <th style={styles.thDark}>Type</th>
+                  <th style={styles.thDark}>Amount</th>
+                  <th style={styles.thDark}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {displayedHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" style={styles.emptyTdDark}>No history found</td>
+                  </tr>
+                ) : (
+                  displayedHistory.map((item, idx) => {
+                    const itemType = (item.type || "").toLowerCase();
+                    const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId;
+                    const isWithdraw = itemType.includes("withdraw");
+
+                    const rawStatus = item.status || "Pending";
+                    const isSuccess = ["approved", "accepted", "success", "active", "completed"].includes(rawStatus.toLowerCase());
+                    const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
+                    const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
+                    
+                    const rejectionReason = item.reason || item.rejectReason || item.note || "";
+
+                    return (
+                      <tr 
+                        key={item._id || idx} 
+                        style={{ ...styles.trDark, cursor: "pointer" }}
+                        onClick={() => setSelectedTxn(item)}
+                      >
+                        <td style={styles.tdDark}>{formatDate(item.createdAt || item.startDate)}</td>
+                        <td style={styles.tdDark}>
+                          {isDeposit ? "💳 Add Fund" : isWithdraw ? (item.isInvestAmountWithdrawal ? "🏦 Invest Principal Wd" : "💸 Withdrawal") : `🚀 ${item.duration || `${item.durationDays || tenure} Days`}`}
+                        </td>
+                        <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
+                        <td style={styles.tdDark}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
+                            <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
+                              {displayStatus}
+                            </span>
+                            {isRejected && rejectionReason && (
+                              <span style={{ fontSize: "10px", color: "#f87171", lineHeight: "1.2" }}>
+                                Reason: {rejectionReason}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={styles.viewAllFooter}>
+            <span style={styles.viewAllLink} onClick={() => setShowAllHistory(!showAllHistory)}>
+              {showAllHistory ? "Show Less 🔼" : "View All Transactions ➔"}
+            </span>
+          </div>
+        </section>
+
+        <footer style={styles.footerBar}>
+          <p style={styles.footerTagline}>
+            Chhote nivesh, badi kamai ka sapna, ab hoga sach! <strong style={{ color: "#22c55e" }}>SAVE MONEY</strong>! 💚
+          </p>
+          <div style={styles.footerCopyRow}>
+            <span>© 2026 SAVE MONEY. All Rights Reserved.</span>
+          </div>
+        </footer>
+      </div>
+
+      {/* 🎁 BONUS MODAL POPUP */}
+      {showBonusModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
+          <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>🎁 Bonus & Referral System</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowBonusModal(false)}>✕</button>
             </div>
 
-            <WalletIllustration />
-          </section>
-
-          {/* 4 BONUS INCOME CARDS */}
-          <section style={styles.incomePanel}>
-            <IncomeCard icon="👥" title="REFERRAL" amount={wallet.referral} color="#38bdf8" />
-            <IncomeCard icon="📈" title="PERFORMANCE" amount={wallet.performance} color="#f59e0b" />
-            <IncomeCard icon="👥" title="TEAM" amount={wallet.team} color="#6366f1" />
-            <IncomeCard icon="👑" title="ROYALTY" amount={wallet.royalty} color="#a855f7" />
-          </section>
-
-          {/* TODAY EARNING LONG BANNER */}
-          <section style={styles.todayBannerCard} className="diamond-card-glow">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                <div style={styles.todayBannerIcon}>👛</div>
-                <div>
-                  <h4 style={{ color: "#94a3b8", fontSize: "11px", fontWeight: "700", margin: 0, letterSpacing: "0.5px" }}>TODAY EARNING</h4>
-                  <p style={{ color: "#34d399", fontSize: "10px", margin: "2px 0 0 0" }}>Real-time daily yield</p>
+            {user?.hasAppliedBonus ? (
+              <div style={{ background: "rgba(34, 197, 94, 0.1)", border: "1px solid #22c55e", padding: "10px", borderRadius: "8px", textAlign: "center", marginBottom: "14px" }}>
+                <span style={{ fontSize: "12px", color: "#4ade80", fontWeight: "bold" }}>
+                  ✅ Bonus Code Already Applied!
+                </span>
+                <p style={{ fontSize: "10px", color: "#cbd5e1", margin: "4px 0 0 0" }}>
+                  You cannot change or apply another bonus code.
+                </p>
+              </div>
+            ) : (
+              <div style={{ marginBottom: "14px" }}>
+                <label style={styles.labelDark}>Enter Bonus / Referral Code</label>
+                <div style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
+                  <input 
+                    style={{ ...styles.inputModalDark, flex: 1 }} 
+                    placeholder="e.g. ot324556" 
+                    value={bonusInputCode} 
+                    onChange={(e) => setBonusInputCode(e.target.value)} 
+                  />
+                  <button 
+                    style={{ ...styles.submitBtnDark, width: "80px", height: "38px" }}
+                    onClick={handleApplyBonusCode}
+                  >
+                    Apply
+                  </button>
                 </div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <h2 style={{ color: "#f8fafc", fontSize: "20px", fontWeight: "900", margin: 0 }}>₹{Number(wallet.todayBalance).toLocaleString()}</h2>
-              </div>
-            </div>
-          </section>
+            )}
 
-          {/* MIDDLE GRID: TRANSFER & REFER */}
-          <section style={styles.middleGrid}>
-            <div style={styles.transferCard} className="diamond-card-glow">
-              <div style={styles.transferIcon}>✈️</div>
-              <h2 style={styles.transferTitle}>Wallet Transfer</h2>
-              <p style={styles.transferSub}>Instant peer-to-peer secure transaction</p>
-
-              <label style={styles.label}>Receiver Wallet ID</label>
-              <div style={styles.inputWrap}>
-                <input
-                  style={styles.transferInput}
-                  value={receiverWalletId}
-                  onChange={(e) => setReceiverWalletId(e.target.value)}
-                  placeholder="Enter Receiver Wallet ID"
-                />
-                <span style={styles.inputIcon}>👤</span>
-              </div>
-
-              <label style={styles.label}>Amount (₹)</label>
-              <div style={styles.inputWrap}>
-                <input
-                  type="number"
-                  style={styles.transferInput}
-                  value={transferAmount}
-                  onChange={(e) => setTransferAmount(e.target.value)}
-                  placeholder="Enter Amount"
-                />
-                <span style={styles.inputIcon}>💎</span>
-              </div>
-
-              <button style={styles.transferBtn} onClick={checkReceiver}>
-                ✈️ Transfer Now
+            <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px dashed #22c55e", marginBottom: "14px", textAlign: "center" }}>
+              <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Your Unique Bonus Code</span>
+              <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>
+                {user?.bonusCode || user?.referralCode || getOrGenerateUniqueCode()}
+              </strong>
+              <button 
+                style={{ display: "block", margin: "6px auto 0 auto", background: "transparent", border: "none", color: "#38bdf8", fontSize: "11px", cursor: "pointer", fontWeight: "bold" }}
+                onClick={() => {
+                  const codeToCopy = user?.bonusCode || user?.referralCode || getOrGenerateUniqueCode();
+                  navigator.clipboard.writeText(codeToCopy);
+                  triggerToast("Bonus Code Copied!", "success");
+                }}
+              >
+                📋 Copy Code
               </button>
             </div>
 
-            <div style={styles.inviteCard} className="diamond-card-glow">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", width: "100%", gap: "10px" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={styles.inviteTop}>💎 UNLIMITED REWARDS</div>
-                  <h2 style={styles.inviteTitle}>Invite & Earn</h2>
-                  <p style={styles.inviteSubText}>Grow your network fast & unlock elite perks.</p>
-                </div>
-                <div style={styles.giftBox}>🎁</div>
+            <div>
+              <label style={{ ...styles.labelDark, marginBottom: "6px", display: "block" }}>Users Who Used Your Code & Invested</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "150px", overflowY: "auto" }}>
+                {bonusList.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "12px", color: "#94a3b8", fontSize: "11px" }}>No users found yet</div>
+                ) : (
+                  bonusList.map((item, index) => (
+                    <div key={item._id || index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#040d1a", padding: "8px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div>
+                        <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{item.name || item.username || "User"}</strong>
+                        <span style={{ fontSize: "10px", color: "#94a3b8" }}>Joined: {formatDate(item.createdAt || item.date)}</span>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: "bold", display: "block" }}>+₹300</span>
+                        <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "4px", background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", fontWeight: "bold" }}>
+                          Success
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
-              <button style={styles.inviteBtn} onClick={openInvite}>Invite Now</button>
             </div>
-          </section>
+          </div>
+        </div>
+      )}
 
-          {/* HISTORY SECTION */}
-          <section style={styles.historyCard}>
-            <div style={styles.historyHeader}>
-              <div>
-                <h2 style={styles.historyTitle}>🛡 Transaction Ledger</h2>
-                <p style={styles.historySub}>Click any record to inspect verified digital receipt</p>
+      {/* WITHDRAW MODAL */}
+      {showWithdrawModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.withdrawModalCardDark}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Withdraw Funds</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
+            </div>
+            
+            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < (bonusList.length > 0 ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", marginBottom: "12px" }}>
+              <span style={{ fontSize: "12px", color: "#94a3b8" }}>Available Balance</span>
+              <strong style={{ fontSize: "22px", color: currentWalletBalance < (bonusList.length > 0 ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", display: "block" }}>
+                ₹ {currentWalletBalance.toLocaleString("en-IN")}
+              </strong>
+            </div>
+
+            {bonusList.length > 0 ? (
+              <>
+                <label style={{ ...styles.labelDark, display: "block", marginBottom: "6px" }}>Select Preset Withdraw Amount</label>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px", marginBottom: "10px" }}>
+                  {[100, 300, 500, 1000].map((amt) => (
+                    <button
+                      key={amt}
+                      style={{
+                        padding: "8px 4px",
+                        borderRadius: "6px",
+                        border: selectedWithdrawAmount === amt ? "2px solid #22c55e" : "1px solid #334155",
+                        background: selectedWithdrawAmount === amt ? "rgba(34, 197, 94, 0.2)" : "#0f2138",
+                        color: "#fff",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                      }}
+                      onClick={() => setSelectedWithdrawAmount(amt)}
+                    >
+                      ₹{amt}
+                    </button>
+                  ))}
+                </div>
+
+                <p style={{ fontSize: "11px", color: "#facc15", textAlign: "center", marginBottom: "12px", fontStyle: "italic" }}>
+                  Your withdrawal will be successful within 2 hours.
+                </p>
+
+                <button
+                  style={{
+                    ...styles.submitBtnDark,
+                    background: (currentWalletBalance < selectedWithdrawAmount || hasWithdrawnToday) ? "#334155" : "#16a34a"
+                  }}
+                  onClick={() => handleWithdrawSubmit(selectedWithdrawAmount)}
+                  disabled={withdrawing || currentWalletBalance < selectedWithdrawAmount || hasWithdrawnToday}
+                >
+                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : `Withdraw ₹${selectedWithdrawAmount}`}
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
+                  Withdraw Daily Return: <strong style={{ color: "#22c55e" }}>₹{dailyReturn.toFixed(2)}</strong>
+                </p>
+                <button
+                  style={{
+                    ...styles.submitBtnDark,
+                    background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "#16a34a"
+                  }}
+                  onClick={() => handleWithdrawSubmit()}
+                  disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
+                >
+                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {selectedTxn && (
+        <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
+          <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.slipHeaderCheckGroup}>
+              {["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase()) ? (
+                <div style={styles.slipCrossCircle}>✕</div>
+              ) : (
+                <div style={styles.slipCheckCircle}>✓</div>
+              )}
+              <h4 style={styles.slipHeaderTitle}>
+                {selectedTxn.type ? selectedTxn.type.toUpperCase() : "TRANSACTION DETAILS"}
+              </h4>
+              <strong style={styles.slipAmountText}>
+                ₹{Number(selectedTxn.amount || 0).toFixed(2)}
+              </strong>
+              <div style={styles.slipBadgeRow}>
+                <span style={{ ...styles.slipStatusTag, ...getStatusStyleDark(selectedTxn.status) }}>
+                  {selectedTxn.status ? selectedTxn.status.toUpperCase() : "VERIFIED"}
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.slipDottedDivider} />
+
+            <div style={styles.slipDetailsTable}>
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Receiver / User Name</span>
+                <strong style={styles.slipValue}>{user?.name || "SaveMoney User"}</strong>
               </div>
 
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Sender / Account Email</span>
+                <strong style={styles.slipValue}>{email || "N/A"}</strong>
+              </div>
+
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Transaction ID / UTR</span>
+                <strong style={{ ...styles.slipValue, color: "#facc15", wordBreak: "break-all" }}>
+                  {selectedTxn.transactionId || selectedTxn._id || selectedTxn.id || "SM-" + Math.random().toString(36).substr(2, 9)}
+                </strong>
+              </div>
+
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Date & Time</span>
+                <strong style={styles.slipValue}>
+                  {formatDateTime(selectedTxn.createdAt || selectedTxn.startDate || selectedTxn.date)}
+                </strong>
+              </div>
+
+              {(selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || ["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase())) && (
+                <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.1)", padding: "6px 8px", borderRadius: "6px" }}>
+                  <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
+                  <strong style={{ ...styles.slipValue, color: "#f87171" }}>
+                    {selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || "Request declined by system/admin."}
+                  </strong>
+                </div>
+              )}
+
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Remarks / Note</span>
+                <strong style={styles.slipValue}>
+                  {selectedTxn.type || "wallet transaction"}
+                </strong>
+              </div>
+
+              <div style={styles.slipRow}>
+                <span style={styles.slipLabel}>Security Status</span>
+                <strong style={{ ...styles.slipValue, color: "#4ade80" }}>SECURE & VERIFIED</strong>
+              </div>
+            </div>
+
+            <div style={styles.slipFooterBranding}>
+              💎 Premium SaveMoney Asset Management
+            </div>
+
+            <div style={styles.slipActionGrid}>
+              <button 
+                style={styles.slipShareBtn}
+                onClick={handleShareToWhatsApp}
+              >
+                💬 Share on WhatsApp ➔
+              </button>
+              <button 
+                style={styles.slipCloseBtn} 
+                onClick={() => setSelectedTxn(null)}
+              >
+                Close Window
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAmountModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCardDark}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Select Amount</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowAmountModal(false)}>✕</button>
+            </div>
+            <div style={styles.presetGrid}>
+              {presetAmounts.map((p) => (
+                <div
+                  key={p.value}
+                  style={{
+                    ...styles.presetCard,
+                    background: p.color,
+                    border: amount === p.value ? "2px solid #ffffff" : "none"
+                  }}
+                  onClick={() => { setAmount(p.value); setShowAmountModal(false); }}
+                >
+                  <span style={styles.presetBadge}>{p.desc}</span>
+                  <div style={styles.presetVal}>₹{p.value.toLocaleString("en-IN")}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🟢 ADD FUND MODAL - WALLET STYLE */}
+      {showAddFundModal && (
+        <div style={styles.depositOverlay}>
+          <div style={styles.depositModal}>
+            <button style={styles.depositCloseX} onClick={() => setShowAddFundModal(false)}>×</button>
+
+            <div style={styles.depositIcon}>💎</div>
+            <h2 style={styles.depositTitle}>Add Cash to Diamond Vault</h2>
+            <p style={styles.depositSub}>Enter amount, pay via UPI, and submit Transaction ID.</p>
+
+            <label style={styles.depositLabel}>Amount (₹)</label>
+            <input
+              style={styles.depositInput}
+              type="number"
+              placeholder="Enter amount (e.g. 1000)"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+
+            <button
+              style={{ ...styles.submitDepositBtn, background: "linear-gradient(135deg, #38bdf8, #2563eb)", marginBottom: "15px" }}
+              onClick={payViaUPI}
+            >
+              📱 Buy Now (Pay Via PhonePe / Paytm / GPay)
+            </button>
+
+            <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", margin: "15px 0", paddingTop: "10px" }}>
+              <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center" }}>💡 Or paste the 12-digit UTR/Txn ID from your payment app below.</p>
+            </div>
+
+            <label style={styles.depositLabel}>Transaction ID / UTR No</label>
+            <input
+              style={styles.depositInput}
+              type="text"
+              placeholder="Enter 12-digit Transaction ID"
+              value={txnId}
+              onChange={(e) => setTxnId(e.target.value)}
+            />
+
+            <div style={{ marginBottom: "10px" }}>
+              <label style={styles.depositLabel}>Screenshot Proof*</label>
+              <input type="file" accept="image/*" style={styles.fileInputDark} onChange={(e) => setScreenshot(e.target.files[0])} />
+            </div>
+
+            <button style={styles.submitDepositBtn} onClick={handleDepositSubmit} disabled={depositing}>
+              {depositing ? "Uploading..." : "Verify & Request Approval"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showBankModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCardDark}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Add Bank Details</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowBankModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleSaveBankDetails} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <input style={styles.inputModalDark} placeholder="Holder Name" value={bankForm.holderName} onChange={(e) => setBankForm({ ...bankForm, holderName: e.target.value })} required />
+              <input style={styles.inputModalDark} placeholder="Bank Name" value={bankForm.bankName} onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })} required />
+              <input style={styles.inputModalDark} placeholder="Account Number" value={bankForm.accountNumber} onChange={(e) => setBankForm({ ...bankForm, accountNumber: e.target.value })} required />
+              <input style={styles.inputModalDark} placeholder="IFSC Code" value={bankForm.ifsc} onChange={(e) => setBankForm({ ...bankForm, ifsc: e.target.value })} required />
+              <button type="submit" style={styles.submitBtnDark}>Save Details</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showInvestWithdrawModal && activeInvestment && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.withdrawModalCardDark}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>Withdraw Invested Principal</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowInvestWithdrawModal(false)}>✕</button>
+            </div>
+            <div style={{ ...styles.withdrawBalanceCard, borderColor: "#4ade80" }}>
+              <span style={{ fontSize: "12px", color: "#94a3b8" }}>Matured Invest Amount</span>
+              <strong style={{ fontSize: "22px", color: "#4ade80", display: "block" }}>
+                ₹ {Number(activeInvestment.amount || 0).toLocaleString("en-IN")}
+              </strong>
+            </div>
+            <button
+              style={{
+                ...styles.submitBtnDark,
+                marginTop: "16px",
+                background: "#16a34a"
+              }}
+              onClick={handleWithdrawInvestAmount}
+              disabled={withdrawing}
+            >
+              {withdrawing ? "Processing..." : "Confirm Invest Amount Withdrawal"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showReinvestModal && activeInvestment && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modalCardDark}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>Reinvest Principal Amount</h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowReinvestModal(false)}>✕</button>
+            </div>
+            <div style={{ marginBottom: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
+              <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Amount to Reinvest</span>
+              <strong style={{ fontSize: "18px", color: "#22c55e" }}>₹{Number(activeInvestment.amount || 0).toLocaleString("en-IN")}</strong>
+            </div>
+            <div style={styles.fieldGroup}>
+              <label style={styles.labelDark}>Select Reinvest Duration</label>
               <select
-                style={styles.filterSelect}
-                value={historyFilter}
+                style={styles.selectDark}
+                value={reinvestTenure}
                 onChange={(e) => {
-                  setHistoryFilter(e.target.value);
-                  setShowAllHistory(false);
+                  const selectedDays = Number(e.target.value);
+                  const plan = tenurePlans.find((p) => p.days === selectedDays);
+                  if (plan) {
+                    setReinvestTenure(plan.days);
+                    setReinvestRate(plan.rate);
+                  }
                 }}
               >
-                <option value="all">All</option>
-                <option value="credit">Credit</option>
-                <option value="debit">Debit</option>
+                {tenurePlans.map((p) => (
+                  <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
+                    {p.label}
+                  </option>
+                ))}
               </select>
             </div>
 
-            <div style={styles.tableHead}>
-              <div>TYPE</div>
-              <div>DESCRIPTION</div>
-              <div>AMOUNT</div>
-              <div>STATUS</div>
-              <div>DATE & TIME</div>
+            <div style={{ marginTop: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
+              <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Daily Earnings</span>
+              <strong style={{ fontSize: "14px", color: "#38bdf8" }}>
+                ₹{((Number(activeInvestment.amount || 0) * reinvestRate) / 100).toFixed(2)} / day
+              </strong>
             </div>
 
-            {history.length === 0 && (
-              <div style={styles.emptyHistory}>No Wallet Transactions Recorded Yet</div>
-            )}
-
-            {visibleHistory.map((item, index) => {
-              const rawType = String(item.type || "").toLowerCase();
-              const isCredit =
-                rawType.includes("credit") ||
-                rawType.includes("add") ||
-                rawType.includes("deposit") ||
-                rawType.includes("bonus");
-
-              const desc =
-                item.description ||
-                item.note ||
-                item.message ||
-                item.remark ||
-                item.type ||
-                "Wallet Transaction";
-
-              return (
-                <div
-                  key={index}
-                  style={styles.clickableHistoryRow}
-                  onClick={() => setSelectedTxn({ ...item, isCredit, desc })}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div
-                      style={{
-                        ...styles.typeCircle,
-                        background: isCredit ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)",
-                        color: isCredit ? "#34d399" : "#f87171"
-                      }}
-                    >
-                      {isCredit ? "↓" : "↑"}
-                    </div>
-                    <div>
-                      <div style={styles.rowTitle}>{desc}</div>
-                      <div style={styles.rowSub}>
-                        {item.createdAt || item.date
-                          ? new Date(item.createdAt || item.date).toLocaleDateString("en-IN")
-                          : "N/A"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ color: isCredit ? "#34d399" : "#f87171", fontWeight: "800", fontSize: "15px" }}>
-                      {isCredit ? "+" : "-"} ₹{Number(item.amount).toLocaleString()}
-                    </div>
-                    <span style={styles.successBadge}>SECURE</span>
-                  </div>
-                </div>
-              );
-            })}
-
-            {filteredHistory.length > 5 && (
-              <button style={styles.viewMore} onClick={() => setShowAllHistory(!showAllHistory)}>
-                {showAllHistory ? "Show Less ▲" : "View More ▼"}
-              </button>
-            )}
-          </section>
-
-          {/* BOTTOM FEATURES */}
-          <section style={styles.bottomFeatures}>
-            <div style={styles.featureItem} className="diamond-feature-card">
-              <div style={styles.featureIconBadge}>🛡️</div>
-              <div>
-                <b style={styles.featureTitle}>Institutional Security</b>
-                <p style={styles.featureSub}>Military-grade encryption</p>
-              </div>
-            </div>
-
-            <div style={styles.featureItem} className="diamond-feature-card">
-              <div style={styles.featureIconBadge}>⚡</div>
-              <div>
-                <b style={styles.featureTitle}>Instant Settlement</b>
-                <p style={styles.featureSub}>Lightning fast execution</p>
-              </div>
-            </div>
-
-            <div style={styles.featureItem} className="diamond-feature-card">
-              <div style={styles.featureIconBadge}>🏆</div>
-              <div>
-                <b style={styles.featureTitle}>Elite Portfolio</b>
-                <p style={styles.featureSub}>Trusted globally</p>
-              </div>
-            </div>
-          </section>
-
-          {/* P2P Modal */}
-          {p2pModalOpen && (
-            <div style={styles.modalOverlay}>
-              <div style={{ ...styles.modal, maxWidth: "600px", maxHeight: "85vh", overflowY: "auto" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
-                  <h2 style={{ margin: 0, fontSize: "20px", color: "#38bdf8" }}>🤝 P2P Diamond Marketplace</h2>
-                  <button style={styles.depositCloseX} onClick={() => setP2pModalOpen(false)}>×</button>
-                </div>
-                
-                <div style={{ background: "rgba(255,255,255,0.03)", padding: "14px", borderRadius: "16px", marginBottom: "16px", display: "flex", flexDirection: "column", gap: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <div>
-                    <h4 style={{ margin: "0 0 4px 0", fontSize: "14px", color: "#f8fafc" }}>Want to become a P2P Sender?</h4>
-                    <p style={{ margin: 0, fontSize: "11px", color: "#94a3b8" }}>Requires minimum ₹2,000 wallet balance.</p>
-                  </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <button style={styles.iWantP2pBtn} onClick={handleIWantP2P}>I want P2P</button>
-                    <button style={styles.undoP2pBtn} onClick={handleUndoP2P}>Undo</button>
-                  </div>
-                </div>
-
-                <h3 style={{ fontSize: "15px", marginBottom: "10px", color: "#fbbf24" }}>Available P2P Senders</h3>
-                
-                {p2pUserList.length === 0 ? (
-                  <p style={{ textAlign: "center", color: "#94a3b8", padding: "20px" }}>No P2P registered users found.</p>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    {p2pUserList.map((user, idx) => {
-                      const uReviews = reviewsList[user.walletId] || [];
-                      const avgRating = uReviews.length > 0 ? (uReviews.reduce((acc, r) => acc + (r.rating || 5), 0) / uReviews.length).toFixed(1) : "5.0";
-                      
-                      return (
-                        <div key={idx} style={{ background: "#060913", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "14px", padding: "12px", color: "#fff" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div>
-                              <h4 style={{ margin: "0 0 2px 0", fontSize: "14px", color: "#f8fafc" }}>{user.name}</h4>
-                              <div style={{ display: "flex", alignItems: "center", gap: "4px", marginBottom: "4px" }}>
-                                <span style={{ fontSize: "12px", fontWeight: "800", color: "#f59e0b" }}>★ {avgRating}</span>
-                                <span style={{ fontSize: "11px", color: "#94a3b8" }}>({uReviews.length} reviews)</span>
-                              </div>
-                              <p style={{ margin: "0 0 2px 0", fontSize: "12px", color: "#94a3b8" }}>📱 {user.mobile || "N/A"}</p>
-                              <p style={{ margin: 0, fontSize: "13px", fontWeight: "700", color: "#34d399" }}>Balance: ₹{Number(user.balance).toLocaleString()}</p>
-                            </div>
-                            <div>
-                              <button 
-                                style={styles.reviewActionBtn}
-                                onClick={() => {
-                                  setSelectedP2pUser(user);
-                                  setReviewModalOpen(true);
-                                }}
-                              >
-                                Review
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                <button style={styles.popupBottomCloseBtn} onClick={() => setP2pModalOpen(false)}>
-                  Close Window
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Review Modal */}
-          {reviewModalOpen && selectedP2pUser && (
-            <div style={styles.modalOverlay}>
-              <div style={{ ...styles.modal, maxWidth: "480px", maxHeight: "85vh", overflowY: "auto" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                  <h2 style={{ margin: 0, fontSize: "18px", color: "#38bdf8" }}>Reviews for {selectedP2pUser.name}</h2>
-                  <button style={styles.depositCloseX} onClick={() => setReviewModalOpen(false)}>×</button>
-                </div>
-                <p style={{ fontSize: "12px", color: "#94a3b8", margin: "0 0 15px 0" }}>Wallet ID: {selectedP2pUser.walletId}</p>
-
-                <div style={{ background: "rgba(255,255,255,0.03)", padding: "14px", borderRadius: "16px", marginBottom: "18px", border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <h4 style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#f8fafc" }}>Write a Review</h4>
-                  
-                  <div style={{ display: "flex", gap: "8px", fontSize: "22px", marginBottom: "10px", cursor: "pointer" }}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span 
-                        key={star} 
-                        onClick={() => setReviewRating(star)}
-                        style={{ color: star <= reviewRating ? "#f59e0b" : "#475569" }}
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-
-                  <textarea
-                    style={{ ...styles.depositInput, height: "70px", padding: "8px", resize: "none", fontSize: "13px" }}
-                    placeholder="Write your review here..."
-                    value={reviewText}
-                    onChange={(e) => setReviewText(e.target.value)}
-                  />
-
-                  <button style={{ ...styles.sendMoneyBtn, height: "42px", marginTop: "10px", fontSize: "14px" }} onClick={submitP2pReview}>
-                    Submit Review
-                  </button>
-                </div>
-
-                <h4 style={{ margin: "0 0 10px 0", fontSize: "15px", color: "#fbbf24" }}>User Reviews</h4>
-                <div style={{ maxHeight: "200px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "8px", marginBottom: "15px" }}>
-                  {(!reviewsList[selectedP2pUser.walletId] || reviewsList[selectedP2pUser.walletId].length === 0) ? (
-                    <p style={{ textAlign: "center", color: "#94a3b8", padding: "15px", fontSize: "13px" }}>No reviews available yet.</p>
-                  ) : (
-                    reviewsList[selectedP2pUser.walletId].map((rev, rIdx) => (
-                      <div key={rIdx} style={{ background: "#060913", padding: "10px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                          <span style={{ fontSize: "12px", fontWeight: "700", color: "#38bdf8" }}>{rev.reviewer || "User"}</span>
-                          <span style={{ fontSize: "12px", color: "#f59e0b" }}>{"★".repeat(rev.rating || 5)}</span>
-                        </div>
-                        <p style={{ margin: 0, fontSize: "13px", color: "#94a3b8" }}>{rev.comment}</p>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                <button style={styles.closeBtn} onClick={() => setReviewModalOpen(false)}>Close</button>
-              </div>
-            </div>
-          )}
-
-          {/* Receipt Modal */}
-          {selectedTxn && (
-            <div style={styles.modalOverlay}>
-              <div style={styles.receiptContainer}>
-                <div ref={receiptRef} style={styles.receiptCard}>
-                  <div style={styles.receiptHeader}>
-                    <div style={styles.receiptPulseIconCircle}>
-                      <span style={styles.receiptCheckMark}>✓</span>
-                    </div>
-                    <h3 style={styles.receiptStatusText}>Diamond Vault Verified Receipt</h3>
-                    <h1 style={{...styles.receiptAmountDisplay, color: selectedTxn.isCredit ? "#34d399" : "#f87171"}}>
-                      ₹{Number(selectedTxn.amount).toLocaleString("en-IN")}.00
-                    </h1>
-                    <p style={styles.receiptTypeTag}>{selectedTxn.type === 'Debit' ? "WALLET TRANSFER SENT" : "WALLET TRANSFER RECEIVED"}</p>
-                  </div>
-                  
-                  <div style={styles.receiptDivider}>
-                    <div style={styles.receiptNotchLeft}></div>
-                    <div style={styles.receiptNotchRight}></div>
-                  </div>
-
-                  <div style={styles.receiptBody}>
-                    <div style={styles.receiptRowItem}>
-                      <span style={styles.receiptLabelText}>Receiver Name</span>
-                      <span style={styles.receiptValueText}>
-                        {selectedTxn.type === 'Debit' 
-                          ? (selectedTxn.receiverName || selectedTxn.desc?.match(/\(([^)]+)\)/)?.[1] || "N/A") 
-                          : (selectedTxn.receiverName || wallet.name)}
-                      </span>
-                    </div>
-                    <div style={styles.receiptRowItem}>
-                      <span style={styles.receiptLabelText}>Sender Name</span>
-                      <span style={styles.receiptValueText}>
-                        {selectedTxn.type === 'Debit' 
-                          ? (selectedTxn.senderName || wallet.name) 
-                          : (selectedTxn.senderName || selectedTxn.desc?.match(/\(([^)]+)\)/)?.[1] || "N/A")}
-                      </span>
-                    </div>
-                    <div style={styles.receiptRowItem}>
-                      <span style={styles.receiptLabelText}>Transaction ID</span>
-                      <span style={{...styles.receiptValueText, color: "#fbbf24"}}>{selectedTxn._id || selectedTxn.txnId || "N/A"}</span>
-                    </div>
-                    <div style={styles.receiptRowItem}>
-                      <span style={styles.receiptLabelText}>Date & Time</span>
-                      <span style={styles.receiptValueText}>
-                        {new Date(selectedTxn.createdAt || selectedTxn.date).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                    <div style={styles.receiptRowItem}>
-                      <span style={styles.receiptLabelText}>Remarks</span>
-                      <span style={styles.receiptValueText}>diamond vault transfer</span>
-                    </div>
-                    <div style={styles.receiptRowItem}>
-                      <span style={styles.receiptLabelText}>Status</span>
-                      <span style={styles.receiptStatusBadge}>SECURE & VERIFIED</span>
-                    </div>
-                  </div>
-
-                  <div style={styles.receiptFooter}>
-                    <p style={styles.receiptBrand}>💎 Save Money Private Limited - Asset Suite</p>
-                  </div>
-                </div>
-
-                <div style={styles.receiptActionContainer}>
-                  <button style={styles.receiptShareBtn} onClick={handleShareReceipt}>
-                    📸 Share / Save Receipt Image
-                  </button>
-                  <button style={styles.receiptCloseBtn} onClick={() => setSelectedTxn(null)}>
-                    Close Window
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 🟢 BEAUTIFUL UPGRADED ADD CASH / ADD FUND MODAL WITH RAZORPAY BUY NOW */}
-          {addOpen && (
-            <div style={styles.depositOverlay}>
-              <div style={styles.depositModal}>
-                <button style={styles.depositCloseX} onClick={() => setAddOpen(false)}>×</button>
-
-                <div style={styles.depositIcon}>💎</div>
-                <h2 style={styles.depositTitle}>Add Cash to Diamond Vault</h2>
-                <p style={styles.depositSub}>Enter amount to add cash instantly or submit manual UTR.</p>
-
-                <label style={styles.depositLabel}>Amount (₹)</label>
-                <input
-                  style={styles.depositInput}
-                  type="number"
-                  min="1"
-                  placeholder="Enter amount (Minimum ₹1)"
-                  value={addAmount}
-                  onChange={(e) => setAddAmount(e.target.value)}
-                />
-
-                {/* 🛒 BUY NOW / INSTANT PAY BUTTON */}
-                <button
-                  style={{
-                    ...styles.submitDepositBtn,
-                    background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                    marginBottom: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    boxShadow: "0 4px 15px rgba(37, 99, 235, 0.4)"
-                  }}
-                  onClick={() => handleRazorpayPayment(addAmount)}
-                  disabled={razorpayLoading}
-                >
-                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Buy Now ₹${addAmount || 0}`}
-                </button>
-
-                <div style={{ borderTop: "1px dashed rgba(255,255,255,0.12)", margin: "14px 0", paddingTop: "10px" }}>
-                  <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", margin: "0 0 10px 0" }}>
-                    💡 Or paste 12-digit UTR/Txn ID for Manual Deposit Review.
-                  </p>
-                </div>
-
-                <label style={styles.depositLabel}>Transaction ID / UTR No</label>
-                <input
-                  style={styles.depositInput}
-                  type="text"
-                  placeholder="Enter 12-digit Transaction ID"
-                  value={depositTxnId}
-                  onChange={(e) => setDepositTxnId(e.target.value)}
-                />
-
-                <button style={styles.submitDepositBtn} onClick={submitDepositRequest}>
-                  Verify & Request Approval
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Withdraw Popup */}
-          {withdrawOpen && (
-            <div style={styles.modalOverlay}>
-              <div style={styles.modal}>
-                <h2 style={{ fontSize: "18px", color: "#38bdf8" }}>💳 Diamond Auto Withdrawal</h2>
-                {withdrawStatus && (
-                  <div style={{ marginTop: "15px", padding: "14px", borderRadius: "12px", background: "#060913", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <p style={{ fontSize: "13px" }}>Status : <b style={{ color: withdrawStatus.enabled ? "#34d399" : "#f87171" }}>{withdrawStatus.enabled ? " ✅ Active" : " ❌ Paused"}</b></p>
-                    {withdrawStatus.nextWithdrawal && (
-                      <p style={{ fontSize: "13px" }}>Next Withdrawal : <b style={{ color: "#fbbf24" }}>{new Date(withdrawStatus.nextWithdrawal).toLocaleDateString("en-IN")}</b></p>
-                    )}
-                    {withdrawStatus.note?.length > 0 && (
-                      <>
-                        <h4 style={{ marginTop: "12px", marginBottom: "6px", color: "#38bdf8", fontSize: "13px" }}>NOTE :</h4>
-                        <ul style={{ paddingLeft: "18px", lineHeight: "22px", fontSize: "12px", color: "#94a3b8" }}>
-                          {withdrawStatus.note.map((item, index) => (
-                            <li key={index}>{item}</li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
-                  </div>
-                )}
-                <button style={styles.closeBtn} onClick={() => setWithdrawOpen(false)}>
-                  Okay, I Understand
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Transfer Confirm Modal */}
-          {confirmTransferOpen && receiverInfo && (
-            <div style={styles.modalOverlay}>
-              <div style={styles.modal}>
-                <div style={styles.confirmTop}>
-                  <div style={styles.confirmAvatar}>💎</div>
-                  <h2 style={{ fontSize: "18px", color: "#38bdf8" }}>Confirm Transfer</h2>
-                  <p style={{ fontSize: "12px", color: "#94a3b8" }}>Verify receiver details before executing settlement</p>
-                </div>
-
-                <div style={styles.receiverCard}>
-                  <div>
-                    <span style={{ color: "#94a3b8", fontSize: "11px" }}>Receiver Name</span>
-                    <h3 style={{ margin: "2px 0 6px 0", color: "#f8fafc", fontSize: "15px" }}>{receiverInfo.name}</h3>
-                  </div>
-                  <div>
-                    <span style={{ color: "#94a3b8", fontSize: "11px" }}>Wallet ID</span>
-                    <h4 style={{ margin: "2px 0 6px 0", color: "#38bdf8", fontSize: "14px" }}>{receiverWalletId}</h4>
-                  </div>
-                  <div>
-                    <span style={{ color: "#94a3b8", fontSize: "11px" }}>Amount</span>
-                    <h2 style={{ color: "#34d399", fontSize: "20px", margin: "2px 0 0 0" }}>₹{Number(transferAmount).toLocaleString()}</h2>
-                  </div>
-                </div>
-
-                <button style={styles.sendMoneyBtn} onClick={sendTransfer}>Send Money</button>
-                <button style={styles.cancelBtn} onClick={() => setConfirmTransferOpen(false)}>Cancel</button>
-              </div>
-            </div>
-          )}
-
-          {/* Share Modal */}
-          {shareOpen && (
-            <div style={styles.modalOverlay}>
-              <div style={styles.modal}>
-                <h2 style={{ color: "#38bdf8", fontSize: "18px" }}>Invite Friends</h2>
-                <p style={{ color: "#94a3b8", fontSize: "12px" }}>Share your referral diamond link</p>
-                <div style={styles.shareGrid}>
-                  <a href={`https://wa.me/?text=${encodeURIComponent(inviteLink)}`} target="_blank" rel="noreferrer" style={styles.shareBtn}>WhatsApp</a>
-                  <a href={`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}`} target="_blank" rel="noreferrer" style={styles.shareBtn}>Telegram</a>
-                  <button style={styles.shareBtn} onClick={copyInviteLink}>Copy Link</button>
-                </div>
-                <button style={styles.closeBtn} onClick={() => setShareOpen(false)}>Close</button>
-              </div>
-            </div>
-          )}
-
+            <button
+              style={{
+                ...styles.submitBtnDark,
+                marginTop: "16px",
+                background: "linear-gradient(90deg, #f59e0b 0%, #d97706 100%)"
+              }}
+              onClick={handleConfirmReinvest}
+              disabled={withdrawing}
+            >
+              {withdrawing ? "Processing..." : "Confirm Reinvest 🚀"}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
-function WalletIllustration() {
-  return (
-    <div style={styles.walletArt}>
-      <div style={styles.diamondShape1}></div>
-      <div style={styles.diamondShape2}></div>
-      <div style={styles.walletBag}>💎</div>
-      <div style={styles.coin1}>₹</div>
-      <div style={styles.coin2}>₹</div>
-    </div>
-  );
-}
-
-function IncomeCard({ icon, title, amount, color }) {
-  return (
-    <div style={styles.incomeCard} className="diamond-income-box">
-      <div style={{ ...styles.incomeIcon, background: color, boxShadow: `0 0 12px ${color}55` }}>{icon}</div>
-      <h4 style={{ color: "#94a3b8", fontSize: "10px", fontWeight: "700", margin: "4px 0" }}>{title}</h4>
-      <h2 style={{ color: "#f8fafc", fontSize: "16px", fontWeight: "900", margin: 0 }}>₹{Number(amount).toLocaleString()}</h2>
-      <div style={{ ...styles.incomeWave, color }}>✦ ✧ ✦</div>
-    </div>
-  );
-}
-
-const diamondCutThemeCSS = `
-  @keyframes diamondShimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+const getStatusStyleDark = (status) => {
+  const s = (status || "").toLowerCase();
+  if (s === "success" || s === "active" || s === "approved" || s === "accepted") {
+    return { background: "rgba(34, 197, 94, 0.2)", color: "#4ade80" };
   }
-  @keyframes floatAnim {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
+  if (s === "pending") {
+    return { background: "rgba(234, 179, 8, 0.2)", color: "#facc15" };
   }
-  .diamond-cut-bg {
-    background: linear-gradient(135deg, #090e1a 0%, #111827 50%, #1e1b4b 100%) !important;
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    position: relative;
-    overflow: hidden;
-  }
-  .shimmer-effect {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-    animation: diamondShimmer 3s infinite;
-    pointer-events: none;
-  }
-  .diamond-card-glow {
-    background: #090e1a !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  }
-  .diamond-income-box {
-    background: #090e1a !important;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 12px 6px;
-    transition: all 0.3s ease;
-  }
-  .diamond-feature-card {
-    background: #090e1a !important;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  @media (max-width: 768px) {
-    .wallet-hero-box {
-      padding: 18px !important;
-    }
-    .wallet-art {
-      display: none !important;
-    }
-    .balanceText {
-      font-size: 28px !important;
-    }
-    .middleGrid {
-      grid-template-columns: 1fr !important;
-    }
-    .bottomFeatures {
-      grid-template-columns: 1fr !important;
-      gap: 10px !important;
-    }
-    .incomePanel {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 8px !important;
-    }
-    .tableHead {
-      display: none !important;
-    }
-  }
-`;
+  return { background: "rgba(239, 68, 68, 0.2)", color: "#f87171" };
+};
 
 const styles = {
-  topNavbar: {
+  page: {
+    minHeight: "100vh",
+    width: "100%",
+    background: "#030a16",
+    padding: "12px",
+    fontFamily: "system-ui, -apple-system, sans-serif",
+    color: "#f8fafc",
+    boxSizing: "border-box",
+    display: "flex",
+    justifyContent: "center"
+  },
+  container: {
+    width: "100%",
+    maxWidth: "480px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px"
+  },
+  loadingPage: {
+    minHeight: "100vh",
+    background: "#030a16",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: "16px",
-    width: "100%"
+    justifyContent: "center"
   },
-  navRightGroup: {
+  spinner: {
+    width: "36px",
+    height: "36px",
+    border: "3px solid rgba(34, 197, 94, 0.2)",
+    borderTop: "3px solid #22c55e",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite"
+  },
+  toast: {
+    position: "fixed",
+    top: "16px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    color: "white",
+    padding: "10px 20px",
+    borderRadius: "20px",
+    zIndex: 999999,
+    fontWeight: "700",
+    fontSize: "13px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
+  },
+  topNoticeBanner: {
+    background: "linear-gradient(90deg, #052e16 0%, #064e3b 100%)",
+    border: "1px solid #22c55e",
+    borderRadius: "10px",
+    padding: "8px 12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    overflow: "hidden"
+  },
+  noticeBadge: {
+    background: "#f59e0b",
+    color: "#000",
+    fontWeight: "900",
+    fontSize: "10px",
+    padding: "2px 6px",
+    borderRadius: "4px",
+    whiteSpace: "nowrap",
+    flexShrink: 0
+  },
+  marqueeContainer: {
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    flex: 1,
+    display: "flex",
+    alignItems: "center"
+  },
+  marqueeText: {
+    display: "inline-block",
+    whiteSpace: "nowrap",
+    animation: "marquee 8s linear infinite",
+    fontSize: "11px",
+    fontWeight: "600",
+    color: "#e2e8f0"
+  },
+  bonusHighlight: {
+    color: "#facc15",
+    fontWeight: "900"
+  },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  headerLeft: {
     display: "flex",
     alignItems: "center",
     gap: "12px"
   },
   menuButton: {
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    fontSize: "22px",
+    background: "transparent",
+    border: "none",
+    color: "white",
+    fontSize: "24px",
     cursor: "pointer",
-    color: "#38bdf8",
-    width: "42px",
-    height: "42px",
-    borderRadius: "12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
+    padding: "0"
   },
-  notifyBtn: {
-    width: "42px",
-    height: "42px",
-    borderRadius: "12px",
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(255,255,255,0.05)",
-    fontSize: "18px",
+  welcomeTitle: {
+    margin: 0,
+    fontSize: "16px",
+    fontWeight: "800",
+    color: "#ffffff"
+  },
+  welcomeSub: {
+    margin: 0,
+    fontSize: "11px",
+    color: "#94a3b8"
+  },
+  headerBonusBtn: {
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    border: "none",
+    color: "#fff",
+    padding: "6px 12px",
+    borderRadius: "20px",
+    fontSize: "11px",
+    fontWeight: "bold",
     cursor: "pointer",
-    color: "#fff"
+    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)"
   },
-  avatar: {
-    width: "42px",
-    height: "42px",
-    borderRadius: "12px",
-    background: "rgba(56,189,248,0.15)",
-    border: "1px solid #38bdf8",
+  profileCircle: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "50%",
+    background: "#0c1f38",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px",
-    overflow: "hidden"
+    overflow: "hidden",
+    border: "2px solid #10b981",
+    cursor: "pointer"
   },
-  avatarImg: {
+  profileImg: {
     width: "100%",
     height: "100%",
     objectFit: "cover"
   },
+  profileAvatarPlaceholder: {
+    width: "100%",
+    height: "100%",
+    background: "#10b981",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  topHeroBanner: {
+    background: "linear-gradient(135deg, #062319 0%, #06182e 100%)",
+    borderRadius: "14px",
+    padding: "14px",
+    border: "1px solid rgba(34, 197, 94, 0.3)",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "10px"
+  },
+  heroTextContent: {
+    flex: 1
+  },
+  heroTitle: {
+    margin: 0,
+    fontSize: "13px",
+    fontWeight: "700",
+    color: "#ffffff",
+    lineHeight: "1.3"
+  },
+  heroDesc: {
+    margin: "6px 0 0 0",
+    fontSize: "10px",
+    color: "#cbd5e1"
+  },
+  heroImgWrapper: {
+    width: "80px",
+    height: "60px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0
+  },
+  heroBannerImage: {
+    maxWidth: "100%",
+    maxHeight: "100%",
+    objectFit: "contain"
+  },
+  statsGridContainer: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "10px"
+  },
+  darkStatCard: {
+    background: "#081628",
+    borderRadius: "12px",
+    padding: "12px",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    display: "flex",
+    flexDirection: "column"
+  },
+  statCardHeader: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  },
+  iconBox: {
+    width: "28px",
+    height: "28px",
+    borderRadius: "6px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  statCardTitle: {
+    fontSize: "11px",
+    color: "#cbd5e1",
+    fontWeight: "600"
+  },
+  statCardValue: {
+    fontSize: "16px",
+    fontWeight: "800",
+    color: "#ffffff",
+    marginTop: "6px"
+  },
+  maturedWalletCard: {
+    background: "linear-gradient(135deg, #022c22 0%, #064e3b 100%)",
+    borderRadius: "14px",
+    padding: "12px 14px",
+    border: "1px solid #22c55e",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  maturedCardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  maturedValueRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "rgba(0,0,0,0.25)",
+    padding: "8px 12px",
+    borderRadius: "10px"
+  },
+  withdrawInvestBtn: {
+    background: "linear-gradient(90deg, #10b981 0%, #0284c7 100%)",
+    border: "none",
+    color: "#ffffff",
+    fontSize: "10px",
+    fontWeight: "bold",
+    padding: "7px 10px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)"
+  },
+  reinvestBtn: {
+    background: "linear-gradient(90deg, #f59e0b 0%, #d97706 100%)",
+    border: "none",
+    color: "#ffffff",
+    fontSize: "10px",
+    fontWeight: "bold",
+    padding: "7px 10px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)"
+  },
+  darkMainCard: {
+    background: "#081628",
+    borderRadius: "14px",
+    padding: "14px",
+    border: "1px solid rgba(255, 255, 255, 0.1)"
+  },
+  darkCardTitle: {
+    margin: "0 0 12px 0",
+    fontSize: "15px",
+    fontWeight: "800",
+    color: "#ffffff"
+  },
+  activeInvestCardDark: {
+    background: "#040d1a",
+    borderRadius: "10px",
+    padding: "10px",
+    marginBottom: "12px",
+    border: "1px solid #16a34a"
+  },
+  activeHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "8px"
+  },
+  activeBadgeGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  },
+  activePulse: {
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    background: "#22c55e"
+  },
+  activeTitle: {
+    fontSize: "10px",
+    color: "#22c55e"
+  },
+  activeStatusTagDark: {
+    fontSize: "10px",
+    background: "rgba(34, 197, 94, 0.2)",
+    color: "#4ade80",
+    padding: "2px 6px",
+    borderRadius: "8px"
+  },
+  activeStatsGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px"
+  },
+  activeStatItem: {
+    display: "flex",
+    flexDirection: "column"
+  },
+  activeLabel: {
+    fontSize: "10px",
+    color: "#94a3b8"
+  },
+  activeValue: {
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "#f8fafc"
+  },
+  formGrid: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  fieldGroup: {
+    display: "flex",
+    flexDirection: "column"
+  },
+  labelDark: {
+    fontSize: "11px",
+    fontWeight: "700",
+    marginBottom: "4px",
+    color: "#e2e8f0"
+  },
+  selectDark: {
+    height: "40px",
+    borderRadius: "8px",
+    border: "1px solid #334155",
+    background: "#0f2138",
+    color: "#ffffff",
+    padding: "0 10px",
+    fontSize: "13px"
+  },
+  lockedInputDark: {
+    opacity: 0.6,
+    cursor: "not-allowed"
+  },
+  frequencyToggleDark: {
+    display: "flex",
+    gap: "8px",
+    height: "40px"
+  },
+  freqBtnDark: {
+    flex: 1,
+    borderRadius: "8px",
+    border: "1px solid #334155",
+    background: "#0f2138",
+    color: "#cbd5e1",
+    fontSize: "12px",
+    fontWeight: "bold"
+  },
+  freqBtnActiveDark: {
+    background: "#16a34a",
+    color: "#ffffff",
+    borderColor: "#16a34a"
+  },
+  amountInputWrapDark: {
+    height: "40px",
+    borderRadius: "8px",
+    border: "1px solid #334155",
+    background: "#0f2138",
+    padding: "0 10px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  amountInputDark: {
+    border: "none",
+    background: "transparent",
+    fontSize: "14px",
+    fontWeight: "bold",
+    color: "#ffffff",
+    outline: "none",
+    width: "60%"
+  },
+  changeBadgeDark: {
+    fontSize: "11px",
+    color: "#38bdf8",
+    fontWeight: "bold"
+  },
+  lockedBadgeDark: {
+    fontSize: "11px",
+    color: "#ef4444"
+  },
+  returnContainerDark: {
+    background: "#dcfce7",
+    borderRadius: "10px",
+    padding: "12px",
+    textAlign: "center",
+    margin: "12px 0",
+    color: "#166534"
+  },
+  returnCardContent: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px"
+  },
+  returnBoxBagIcon: {
+    fontSize: "24px"
+  },
+  returnCardTitleDark: {
+    fontSize: "12px",
+    fontWeight: "700"
+  },
+  returnCardValueDark: {
+    fontSize: "20px",
+    fontWeight: "900",
+    display: "block"
+  },
+  returnCardNoteDark: {
+    fontSize: "10px"
+  },
+  breakdownGridDark: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px",
+    background: "#040d1a",
+    borderRadius: "8px",
+    padding: "8px",
+    margin: "12px 0"
+  },
+  breakBoxDark: {
+    textAlign: "center"
+  },
+  breakLabelDark: {
+    display: "block",
+    fontSize: "10px",
+    color: "#94a3b8"
+  },
+  breakValueDark: {
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "#ffffff"
+  },
+  actionGridTriple: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "8px"
+  },
+  startInvestBtnDark: {
+    height: "40px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#22c55e",
+    color: "#ffffff",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  disabledBtnDark: {
+    background: "#334155",
+    color: "#94a3b8",
+    cursor: "not-allowed"
+  },
+  addInvestBtnDark: {
+    height: "40px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#2563eb",
+    color: "white",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  withdrawBtnDark: {
+    height: "40px",
+    borderRadius: "8px",
+    background: "#0f172a",
+    border: "1px solid #334155",
+    color: "white",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  darkHistoryCard: {
+    background: "#081628",
+    borderRadius: "14px",
+    padding: "12px",
+    border: "1px solid rgba(255, 255, 255, 0.1)"
+  },
+  historyHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "10px"
+  },
+  refreshBtnDark: {
+    color: "#22c55e",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  tableWrapper: {
+    overflowX: "auto"
+  },
+  tableDark: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: "11px"
+  },
+  thDark: {
+    background: "#040d1a",
+    padding: "8px",
+    color: "#cbd5e1",
+    textAlign: "left"
+  },
+  trDark: {
+    borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
+  },
+  tdDark: {
+    padding: "8px",
+    color: "#f8fafc"
+  },
+  emptyTdDark: {
+    textAlign: "center",
+    padding: "16px",
+    color: "#94a3b8"
+  },
+  statusBadgeDark: {
+    padding: "2px 6px",
+    borderRadius: "6px",
+    fontSize: "10px",
+    fontWeight: "bold"
+  },
+  viewAllFooter: {
+    textAlign: "center",
+    marginTop: "10px"
+  },
+  viewAllLink: {
+    color: "#22c55e",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  footerBar: {
+    textAlign: "center",
+    padding: "12px 0",
+    borderTop: "1px solid rgba(255, 255, 255, 0.1)"
+  },
+  footerTagline: {
+    fontSize: "11px",
+    color: "#cbd5e1",
+    margin: "0 0 4px 0"
+  },
+  footerCopyRow: {
+    fontSize: "10px",
+    color: "#64748b"
+  },
   drawerOverlay: {
     position: "fixed",
-    top: 0, left: 0, right: 0, bottom: 0,
-    background: "rgba(3, 7, 18, 0.8)",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0, 0, 0, 0.75)",
     backdropFilter: "blur(6px)",
     zIndex: 100002,
     display: "flex",
@@ -1487,15 +2493,17 @@ const styles = {
   },
   drawerContainer: {
     position: "fixed",
-    top: 0, bottom: 0, left: 0,
-    background: "#060913",
-    width: "250px",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    background: "#08101e",
+    width: "230px",
     height: "100vh",
-    padding: "12px 10px",
+    padding: "12px 8px",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "15px 0 40px rgba(0,0,0,0.9)",
-    borderRight: "1px solid rgba(56, 189, 248, 0.2)",
+    boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
+    borderRight: "1px solid #1e293b",
     transform: "translateX(-100%)",
     transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
     overflow: "hidden",
@@ -1505,22 +2513,24 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: "10px",
-    paddingBottom: "10px",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
+    paddingBottom: "8px",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+    flexShrink: 0
   },
   drawerBrand: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "6px"
+    gap: "4px"
   },
   drawerLogoWrapper: {
-    width: "44px",
-    height: "44px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
-    background: "radial-gradient(circle, #0284c7 0%, #0369a1 100%)",
-    border: "2px solid #38bdf8",
+    background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
+    border: "2px solid #22c55e",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
@@ -1532,819 +2542,155 @@ const styles = {
   },
   drawerLogoText: {
     margin: 0,
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: "900",
-    color: "#ffffff"
+    color: "#ffffff",
+    letterSpacing: "0.6px",
+    textAlign: "center"
   },
   drawerLogoSubtext: {
     fontSize: "10px",
-    color: "#38bdf8",
-    fontWeight: "700"
+    color: "#a7f3d0",
+    fontWeight: "600",
+    marginTop: "1px",
+    textAlign: "center"
+  },
+  drawerScrollArea: {
+    flex: 1,
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    paddingRight: "2px"
   },
   drawerNavList: {
     display: "flex",
     flexDirection: "column",
     gap: "6px",
-    overflowY: "auto",
-    maxHeight: "calc(100vh - 200px)"
+    flexShrink: 0
   },
   drawerNavItem: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: "8px",
     padding: "8px 12px",
-    background: "rgba(255, 255, 255, 0.03)",
-    border: "1px solid rgba(255, 255, 255, 0.05)",
-    borderRadius: "10px",
-    color: "#f8fafc",
-    fontSize: "13px",
-    fontWeight: "700",
-    cursor: "pointer"
+    background: "rgba(255, 255, 255, 0.12)",
+    backdropFilter: "blur(10px)",
+    border: "1px solid rgba(255, 255, 255, 0.25)",
+    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
+    color: "#ffffff",
+    fontSize: "12px",
+    fontWeight: "800",
+    cursor: "pointer",
+    textAlign: "left"
   },
   drawerNavItemActive: {
-    background: "rgba(56, 189, 248, 0.15)",
-    border: "1px solid #38bdf8",
-    color: "#38bdf8"
+    background: "rgba(255, 255, 255, 0.3)",
+    border: "1px solid #ffffff",
+    fontWeight: "900"
   },
   drawerNavIcon: {
-    fontSize: "16px"
+    fontSize: "16px",
+    width: "20px",
+    display: "inline-block",
+    textAlign: "center"
   },
   drawerNavText: {
-    fontSize: "12px"
+    flex: 1,
+    fontSize: "12px",
+    letterSpacing: "0.3px"
   },
+  drawerNavDashboard: { background: "rgba(59, 130, 246, 0.25)", border: "1px solid rgba(59, 130, 246, 0.5)" },
+  drawerNavMyInvestment: { background: "rgba(16, 185, 129, 0.25)", border: "1px solid rgba(16, 185, 129, 0.5)" },
+  drawerNavSaveMoney: { background: "rgba(245, 158, 11, 0.25)", border: "1px solid rgba(245, 158, 11, 0.5)" },
+  drawerNavOneTime: { background: "rgba(168, 85, 247, 0.25)", border: "1px solid rgba(168, 85, 247, 0.5)" },
+  drawerNavPlan: { background: "rgba(6, 182, 212, 0.25)", border: "1px solid rgba(6, 182, 212, 0.5)" },
+  drawerNavAddFund: { background: "rgba(20, 184, 166, 0.25)", border: "1px solid rgba(20, 184, 166, 0.5)" },
+  drawerNavRefer: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.25)", border: "1px solid rgba(249, 115, 22, 0.5)" },
+  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.25)", border: "1px solid rgba(244, 63, 94, 0.5)" },
+  drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.25)", border: "1px solid rgba(2, 132, 199, 0.5)" },
+  drawerNavSupport: { background: "rgba(99, 102, 241, 0.25)", border: "1px solid rgba(99, 102, 241, 0.5)" },
+  drawerNavProfile: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
+  drawerNavLogout: { background: "rgba(239, 68, 68, 0.25)", border: "1px solid rgba(239, 68, 68, 0.5)" },
   treePlantOnlyWrapper: {
-    marginTop: "auto",
     width: "100%",
-    height: "100px",
-    borderRadius: "12px",
-    overflow: "hidden"
+    paddingTop: "6px",
+    paddingBottom: "10px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexShrink: 0
   },
   treePlantOnlyImg: {
     width: "100%",
-    height: "100%",
-    objectFit: "cover"
-  },
-  copyBtn: {
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    fontSize: "16px"
-  },
-  p2pMainBtn: {
-    minWidth: "90px",
-    height: "42px",
-    border: "none",
-    borderRadius: "12px",
-    background: "linear-gradient(135deg,#38bdf8,#2563eb)",
-    color: "white",
-    fontWeight: "800",
-    fontSize: "13px",
-    cursor: "pointer"
-  },
-  iWantP2pBtn: {
-    padding: "6px 12px",
-    border: "none",
-    borderRadius: "8px",
-    background: "#10b981",
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: "12px",
-    cursor: "pointer"
-  },
-  undoP2pBtn: {
-    padding: "6px 12px",
-    border: "none",
-    borderRadius: "8px",
-    background: "#ef4444",
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: "12px",
-    cursor: "pointer"
-  },
-  reviewActionBtn: {
-    padding: "6px 12px",
-    borderRadius: "8px",
-    border: "none",
-    background: "rgba(56,189,248,0.15)",
-    color: "#38bdf8",
-    fontWeight: "800",
-    fontSize: "12px",
-    cursor: "pointer"
-  },
-  popupBottomCloseBtn: {
-    width: "100%",
-    height: "42px",
-    marginTop: "14px",
-    borderRadius: "12px",
-    border: "none",
-    background: "#111827",
-    color: "#f8fafc",
-    fontWeight: "700",
-    fontSize: "13px",
-    cursor: "pointer"
-  },
-  clickableHistoryRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: "12px 8px",
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
-    cursor: "pointer"
-  },
-  typeCircle: {
-    width: "34px",
-    height: "34px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900",
-    fontSize: "14px"
-  },
-  rowTitle: {
-    fontSize: "13px",
-    fontWeight: "700",
-    color: "#f8fafc"
-  },
-  rowSub: {
-    fontSize: "11px",
-    color: "#94a3b8"
-  },
-  successBadge: {
-    background: "rgba(16,185,129,0.15)",
-    color: "#34d399",
-    fontSize: "9px",
-    fontWeight: "800",
-    padding: "2px 6px",
-    borderRadius: "8px"
-  },
-  receiptContainer: {
-    width: "100%",
-    maxWidth: "360px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "14px"
-  },
-  receiptCard: {
-    background: "#060913",
-    borderRadius: "20px",
-    border: "1px solid rgba(56, 189, 248, 0.3)",
-    color: "#f8fafc"
-  },
-  receiptHeader: {
-    padding: "20px 16px 14px 16px",
-    textAlign: "center"
-  },
-  receiptPulseIconCircle: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "50%",
-    background: "rgba(16, 185, 129, 0.15)",
-    border: "1px solid rgba(16, 185, 129, 0.4)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    margin: "0 auto 8px auto"
-  },
-  receiptCheckMark: {
-    color: "#34d399",
-    fontSize: "20px",
-    fontWeight: "900"
-  },
-  receiptStatusText: {
-    fontSize: "11px",
-    color: "#94a3b8",
-    margin: "0 0 4px 0",
-    fontWeight: "600",
-    letterSpacing: "1px"
-  },
-  receiptAmountDisplay: {
-    fontSize: "26px",
-    fontWeight: "800",
-    margin: "0 0 4px 0"
-  },
-  receiptTypeTag: {
-    background: "rgba(255,255,255,0.05)",
-    color: "#e2e8f0",
-    padding: "3px 8px",
-    borderRadius: "16px",
-    fontSize: "10px",
-    fontWeight: "700"
-  },
-  receiptDivider: {
-    position: "relative",
-    borderTop: "2px dashed rgba(255, 255, 255, 0.1)",
-    margin: "0 12px"
-  },
-  receiptNotchLeft: {
-    position: "absolute",
-    left: "-18px",
-    top: "-9px",
-    width: "18px",
-    height: "18px",
-    borderRadius: "50%",
-    background: "#030712"
-  },
-  receiptNotchRight: {
-    position: "absolute",
-    right: "-18px",
-    top: "-9px",
-    width: "18px",
-    height: "18px",
-    borderRadius: "50%",
-    background: "#030712"
-  },
-  receiptBody: {
-    padding: "14px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px"
-  },
-  receiptRowItem: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center"
-  },
-  receiptLabelText: {
-    fontSize: "11px",
-    color: "#94a3b8"
-  },
-  receiptValueText: {
-    fontSize: "12px",
-    color: "#ffffff",
-    fontWeight: "700"
-  },
-  receiptStatusBadge: {
-    background: "rgba(16, 185, 129, 0.2)",
-    color: "#34d399",
-    padding: "2px 6px",
-    borderRadius: "4px",
-    fontSize: "9px",
-    fontWeight: "800"
-  },
-  receiptFooter: {
-    background: "rgba(0, 0, 0, 0.3)",
-    padding: "10px",
-    textAlign: "center"
-  },
-  receiptBrand: {
-    fontSize: "10px",
-    color: "#38bdf8",
-    margin: 0,
-    fontWeight: "700"
-  },
-  receiptActionContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px"
-  },
-  receiptShareBtn: {
-    width: "100%",
-    height: "42px",
-    border: "none",
-    borderRadius: "12px",
-    background: "linear-gradient(135deg,#38bdf8,#2563eb)",
-    color: "#ffffff",
-    fontWeight: "800",
-    fontSize: "13px",
-    cursor: "pointer"
-  },
-  receiptCloseBtn: {
-    width: "100%",
-    height: "40px",
-    border: "none",
-    borderRadius: "12px",
-    background: "rgba(255, 255, 255, 0.05)",
-    color: "#ffffff",
-    fontWeight: "700",
-    fontSize: "12px",
-    cursor: "pointer"
-  },
-  statusOverlayBg: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(3, 7, 18, 0.8)",
-    backdropFilter: "blur(6px)",
-    zIndex: 100000,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  statusOverlayCard: {
-    background: "#060913",
-    border: "1px solid rgba(255,255,255,0.08)",
-    padding: "18px 20px",
-    borderRadius: "18px",
-    textAlign: "center",
-    maxWidth: "300px",
-    width: "85%",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "10px"
-  },
-  statusOverlayIcon: {
-    width: "44px",
-    height: "44px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "20px",
-    fontWeight: "bold"
-  },
-  statusOverlayText: {
-    fontSize: "14px",
-    color: "#f8fafc",
-    margin: 0,
-    fontWeight: "800",
-    lineHeight: "1.4"
-  },
-  loadingPage: {
-    minHeight: "100vh",
-    background: "#030712",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  loadingCard: {
-    background: "#060913",
-    border: "1px solid rgba(56,189,248,0.2)",
-    padding: "24px 32px",
-    borderRadius: "18px",
-    textAlign: "center"
-  },
-  loadingIcon: {
-    fontSize: "42px"
-  },
-  page: {
-    minHeight: "100vh",
-    background: "#030712",
-    padding: "12px",
-    fontFamily: "Arial, sans-serif",
-    color: "#f8fafc",
-    boxSizing: "border-box"
-  },
-  app: {
-    maxWidth: "1040px",
-    margin: "0 auto"
-  },
-  header: {
-    marginBottom: "14px"
-  },
-  pageTitle: {
-    margin: 0,
-    fontSize: "24px",
-    fontWeight: "900",
-    color: "#f8fafc"
-  },
-  titleWave: {
-    width: "60px",
-    height: "3px",
-    borderRadius: "50px",
-    background: "linear-gradient(90deg,#38bdf8,#10b981,#f59e0b)",
-    marginTop: "4px"
-  },
-  pageSub: {
-    color: "#94a3b8",
-    fontSize: "12px",
-    marginTop: "4px"
-  },
-  walletHero: {
-    borderRadius: "20px",
-    padding: "20px",
-    color: "white",
-    marginBottom: "14px"
-  },
-  walletLeft: {
-    position: "relative",
-    zIndex: 5
-  },
-  heroBadgeRow: {
-    marginBottom: "6px"
-  },
-  verifiedBadge: {
-    background: "rgba(16,185,129,0.12)",
-    color: "#34d399",
-    border: "1px solid rgba(16,185,129,0.25)",
-    fontSize: "9px",
-    fontWeight: "800",
-    padding: "2px 8px",
-    borderRadius: "16px",
-    letterSpacing: "0.5px"
-  },
-  heroLabel: {
-    fontSize: "10px",
-    fontWeight: "800",
-    color: "#94a3b8",
-    margin: "4px 0"
-  },
-  walletId: {
-    fontSize: "20px",
-    margin: "2px 0 0",
-    fontWeight: "900",
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    color: "#f8fafc"
-  },
-  dashedLine: {
-    borderTop: "1px dashed rgba(255,255,255,.15)",
-    margin: "12px 0"
-  },
-  balanceText: {
-    fontSize: "30px",
-    margin: "2px 0",
-    fontWeight: "900",
-    color: "#ffffff"
-  },
-  heroActions: {
-    display: "flex",
-    gap: "8px",
-    marginTop: "14px"
-  },
-  addCashBtn: {
-    flex: 1,
-    height: "40px",
-    border: "none",
-    borderRadius: "10px",
-    background: "#ffffff",
-    color: "#030712",
-    fontWeight: "800",
-    fontSize: "13px",
-    cursor: "pointer"
-  },
-  withdrawBtn: {
-    flex: 1,
-    height: "40px",
-    border: "none",
-    borderRadius: "10px",
-    background: "linear-gradient(135deg,#f59e0b,#d97706)",
-    color: "white",
-    fontWeight: "800",
-    fontSize: "13px",
-    cursor: "pointer"
-  },
-  eyeBtn: {
-    position: "absolute",
-    top: "14px",
-    right: "14px",
-    width: "34px",
-    height: "34px",
-    borderRadius: "10px",
-    border: "1px solid rgba(255,255,255,.15)",
-    background: "rgba(255,255,255,.08)",
-    color: "white",
-    fontSize: "14px",
-    zIndex: 8,
-    cursor: "pointer"
-  },
-  walletArt: {
-    position: "absolute",
-    right: "30px",
-    top: "30px",
-    width: "180px",
-    height: "140px",
-    zIndex: 2
-  },
-  diamondShape1: {
-    position: "absolute",
-    right: "50px",
-    top: "10px",
-    width: "55px",
-    height: "55px",
-    background: "linear-gradient(135deg,#38bdf8,#0284c7)",
-    transform: "rotate(45deg)",
-    borderRadius: "6px",
-    opacity: 0.7
-  },
-  diamondShape2: {
-    position: "absolute",
-    right: "10px",
-    top: "20px",
-    width: "45px",
-    height: "45px",
-    background: "linear-gradient(135deg,#10b981,#059669)",
-    transform: "rotate(45deg)",
-    borderRadius: "6px",
-    opacity: 0.7
-  },
-  walletBag: {
-    position: "absolute",
-    right: "20px",
-    bottom: "10px",
-    width: "90px",
-    height: "70px",
-    borderRadius: "16px",
-    background: "#060913",
-    border: "1px solid rgba(56,189,248,0.3)",
-    color: "#38bdf8",
-    fontSize: "28px",
-    fontWeight: "900",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  coin1: {
-    position: "absolute",
-    right: "5px",
-    bottom: "10px",
-    width: "32px",
-    height: "32px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg,#fbbf24,#f59e0b)",
-    color: "#78350f",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900",
-    fontSize: "12px"
-  },
-  coin2: {
-    position: "absolute",
-    right: "40px",
-    bottom: "-5px",
-    width: "34px",
-    height: "34px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg,#34d399,#10b981)",
-    color: "#065f46",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "900",
-    fontSize: "12px"
-  },
-  incomePanel: {
-    display: "grid",
-    gridTemplateColumns: "repeat(4, 1fr)",
-    gap: "10px",
-    marginBottom: "10px"
-  },
-  incomeCard: {
-    textAlign: "center"
-  },
-  incomeIcon: {
-    width: "36px",
-    height: "36px",
-    margin: "0 auto 4px",
-    borderRadius: "50%",
-    color: "white",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "16px"
-  },
-  incomeWave: {
-    fontSize: "10px",
-    fontWeight: "900",
-    marginTop: "2px"
-  },
-  todayBannerCard: {
-    background: "#090e1a",
-    borderRadius: "16px",
-    padding: "14px 18px",
-    marginBottom: "14px",
-    border: "1px solid rgba(16,185,129,0.3)",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.4)"
-  },
-  todayBannerIcon: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "50%",
-    background: "rgba(16, 185, 129, 0.15)",
-    border: "1px solid rgba(16, 185, 129, 0.4)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "18px"
-  },
-  middleGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "14px",
-    marginBottom: "14px"
-  },
-  transferCard: {
-    borderRadius: "18px",
-    padding: "16px"
-  },
-  transferIcon: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "10px",
-    background: "linear-gradient(135deg,#38bdf8,#2563eb)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "18px",
-    marginBottom: "8px"
-  },
-  transferTitle: {
-    margin: 0,
-    fontSize: "17px",
-    color: "#f8fafc"
-  },
-  transferSub: {
-    color: "#94a3b8",
-    fontSize: "11px",
-    marginBottom: "12px"
-  },
-  label: {
-    display: "block",
-    fontWeight: "700",
-    fontSize: "11px",
-    marginBottom: "4px",
-    color: "#cbd5e1"
-  },
-  inputWrap: {
-    height: "40px",
-    borderRadius: "10px",
-    background: "#060913",
-    border: "1px solid rgba(255,255,255,0.08)",
-    display: "flex",
-    alignItems: "center",
-    padding: "0 10px",
-    marginBottom: "10px"
-  },
-  transferInput: {
-    flex: 1,
-    border: "none",
-    outline: "none",
-    fontSize: "13px",
-    background: "transparent",
-    color: "#fff"
-  },
-  inputIcon: {
-    fontSize: "14px"
-  },
-  transferBtn: {
-    width: "100%",
-    height: "40px",
-    border: "none",
-    borderRadius: "10px",
-    background: "linear-gradient(135deg,#38bdf8,#2563eb)",
-    color: "white",
-    fontSize: "13px",
-    fontWeight: "800",
-    cursor: "pointer"
-  },
-  inviteCard: {
-    background: "#090e1a",
-    borderRadius: "18px",
-    padding: "16px",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    border: "1px solid rgba(255,255,255,0.08)"
-  },
-  inviteTop: {
-    color: "#38bdf8",
-    fontWeight: "800",
-    fontSize: "11px",
-    letterSpacing: "0.5px"
-  },
-  inviteTitle: {
-    fontSize: "18px",
-    margin: "4px 0 2px 0",
-    color: "#f8fafc",
-    fontWeight: "800"
-  },
-  inviteSubText: {
-    color: "#94a3b8",
-    fontSize: "11px",
-    margin: 0,
-    lineHeight: "1.3"
-  },
-  giftBox: {
-    fontSize: "42px",
-    lineHeight: 1
-  },
-  inviteBtn: {
-    height: "40px",
-    width: "100%",
-    border: "none",
-    borderRadius: "10px",
-    background: "linear-gradient(135deg,#10b981,#059669)",
-    color: "white",
-    fontWeight: "800",
-    fontSize: "13px",
-    cursor: "pointer",
-    marginTop: "12px"
-  },
-  historyCard: {
-    background: "#090e1a",
-    borderRadius: "18px",
-    padding: "14px",
-    border: "1px solid rgba(255,255,255,0.08)",
-    marginBottom: "14px"
-  },
-  historyHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "12px"
-  },
-  historyTitle: {
-    margin: 0,
-    fontSize: "16px",
-    color: "#f8fafc"
-  },
-  historySub: {
-    margin: "2px 0 0",
-    fontSize: "11px",
-    color: "#94a3b8"
-  },
-  filterSelect: {
-    padding: "4px 8px",
-    borderRadius: "6px",
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "#060913",
-    color: "#fff",
-    outline: "none",
-    fontSize: "11px"
-  },
-  tableHead: {
-    display: "grid",
-    gridTemplateColumns: "70px 1.6fr 1fr 1fr 1.2fr",
-    fontSize: "10px",
-    fontWeight: "800",
-    color: "#94a3b8",
-    paddingBottom: "6px",
-    borderBottom: "1px solid rgba(255,255,255,0.08)"
-  },
-  emptyHistory: {
-    textAlign: "center",
-    padding: "16px",
-    color: "#94a3b8",
-    fontSize: "12px"
-  },
-  viewMore: {
-    width: "100%",
-    padding: "8px",
-    border: "none",
-    background: "#060913",
-    color: "#38bdf8",
-    fontWeight: "700",
-    fontSize: "11px",
-    borderRadius: "8px",
-    marginTop: "8px",
-    cursor: "pointer"
-  },
-  bottomFeatures: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "10px"
-  },
-  featureItem: {
-    background: "#090e1a",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: "12px",
-    padding: "10px"
-  },
-  featureIconBadge: {
-    width: "32px",
-    height: "32px",
-    borderRadius: "8px",
-    background: "rgba(56,189,248,0.1)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "16px",
-    color: "#38bdf8",
-    flexShrink: 0
-  },
-  featureTitle: {
-    fontSize: "12px",
-    color: "#f8fafc",
-    display: "block"
-  },
-  featureSub: {
-    fontSize: "10px",
-    color: "#94a3b8",
-    margin: "2px 0 0 0"
+    maxHeight: "110px",
+    objectFit: "cover",
+    borderRadius: "12px"
   },
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(3, 7, 18, 0.8)",
+    background: "rgba(0, 0, 0, 0.82)",
     backdropFilter: "blur(6px)",
-    zIndex: 100005,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    zIndex: 99999,
     padding: "12px"
   },
-  modal: {
-    background: "#090e1a",
-    color: "#fff",
-    padding: "18px",
-    borderRadius: "18px",
+  modalCardDark: {
+    background: "#081628",
+    borderRadius: "16px",
+    padding: "16px",
     width: "100%",
-    maxWidth: "380px",
-    boxSizing: "border-box",
-    border: "1px solid rgba(56,189,248,0.2)"
+    maxWidth: "360px",
+    border: "1px solid rgba(255, 255, 255, 0.1)"
   },
+  withdrawModalCardDark: {
+    background: "#09182b",
+    borderRadius: "16px",
+    padding: "16px",
+    width: "100%",
+    maxWidth: "360px",
+    border: "1px solid rgba(56, 189, 248, 0.3)"
+  },
+  withdrawBalanceCard: {
+    padding: "12px",
+    borderRadius: "10px",
+    border: "1px solid",
+    textAlign: "center"
+  },
+  modalHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "12px"
+  },
+  closeBtnDark: {
+    border: "none",
+    background: "#0f2138",
+    color: "#fff",
+    borderRadius: "50%",
+    width: "28px",
+    height: "28px",
+    cursor: "pointer",
+    fontSize: "14px"
+  },
+  presetGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px"
+  },
+  presetCard: {
+    borderRadius: "8px",
+    padding: "10px",
+    color: "white",
+    cursor: "pointer",
+    textAlign: "center"
+  },
+  presetBadge: { fontSize: "10px", fontWeight: "bold" },
+  presetVal: { fontSize: "14px", fontWeight: "800" },
   depositOverlay: {
     position: "fixed",
     inset: 0,
@@ -2365,8 +2711,7 @@ const styles = {
     maxWidth: "380px",
     position: "relative",
     boxSizing: "border-box",
-    border: "1px solid rgba(56,189,248,0.3)",
-    boxShadow: "0 20px 40px rgba(0,0,0,0.8)"
+    border: "1px solid rgba(56,189,248,0.2)"
   },
   depositCloseX: {
     position: "absolute",
@@ -2425,70 +2770,155 @@ const styles = {
     fontSize: "13px",
     cursor: "pointer"
   },
-  confirmTop: {
-    textAlign: "center",
-    marginBottom: "12px"
-  },
-  confirmAvatar: {
-    fontSize: "30px"
-  },
-  receiverCard: {
-    background: "#060913",
-    border: "1px solid rgba(255,255,255,0.08)",
-    padding: "10px",
-    borderRadius: "10px",
-    marginBottom: "12px"
-  },
-  sendMoneyBtn: {
+  inputModalDark: {
     width: "100%",
-    height: "40px",
-    border: "none",
-    borderRadius: "10px",
-    background: "#10b981",
-    color: "white",
-    fontWeight: "800",
-    fontSize: "13px",
-    marginBottom: "6px",
-    cursor: "pointer"
-  },
-  cancelBtn: {
-    width: "100%",
-    height: "36px",
-    border: "none",
-    borderRadius: "10px",
-    background: "rgba(255,255,255,0.05)",
-    color: "#94a3b8",
-    fontWeight: "700",
+    height: "38px",
+    borderRadius: "8px",
+    border: "1px solid #334155",
+    background: "#0f2138",
+    color: "#fff",
+    padding: "0 10px",
     fontSize: "12px",
-    cursor: "pointer"
+    boxSizing: "border-box"
   },
-  closeBtn: {
-    width: "100%",
-    height: "36px",
-    border: "none",
-    borderRadius: "10px",
-    background: "rgba(255,255,255,0.05)",
-    color: "#94a3b8",
-    fontWeight: "700",
-    fontSize: "12px",
-    marginTop: "8px",
-    cursor: "pointer"
-  },
-  shareGrid: {
-    display: "flex",
-    gap: "8px",
-    margin: "14px 0"
-  },
-  shareBtn: {
-    flex: 1,
-    padding: "8px",
+  fileInputDark: { width: "100%", fontSize: "11px", color: "#cbd5e1" },
+  submitBtnDark: {
+    height: "38px",
     borderRadius: "8px",
     border: "none",
-    background: "#2563eb",
+    background: "#16a34a",
     color: "white",
-    textDecoration: "none",
-    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: "12px",
+    cursor: "pointer",
+    width: "100%"
+  },
+  slipCardDark: {
+    background: "#0b192c",
+    borderRadius: "20px",
+    padding: "20px 16px",
+    width: "100%",
+    maxWidth: "350px",
+    border: "1px solid rgba(255, 255, 255, 0.12)",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.8)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center"
+  },
+  slipHeaderCheckGroup: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "6px"
+  },
+  slipCheckCircle: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "50%",
+    background: "#0e3a2f",
+    border: "2px solid #22c55e",
+    color: "#22c55e",
+    fontSize: "24px",
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  slipCrossCircle: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "50%",
+    background: "#3f1717",
+    border: "2px solid #ef4444",
+    color: "#ef4444",
+    fontSize: "24px",
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  slipHeaderTitle: {
+    margin: "4px 0 0 0",
     fontSize: "11px",
+    letterSpacing: "1px",
+    color: "#94a3b8",
     fontWeight: "700"
+  },
+  slipAmountText: {
+    fontSize: "28px",
+    color: "#22c55e",
+    fontWeight: "900"
+  },
+  slipBadgeRow: {
+    marginTop: "2px"
+  },
+  slipStatusTag: {
+    fontSize: "10px",
+    padding: "3px 10px",
+    borderRadius: "12px",
+    fontWeight: "bold",
+    letterSpacing: "0.5px"
+  },
+  slipDottedDivider: {
+    width: "100%",
+    borderTop: "2px dashed #1e293b",
+    margin: "16px 0"
+  },
+  slipDetailsTable: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  slipRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "10px"
+  },
+  slipLabel: {
+    fontSize: "11px",
+    color: "#94a3b8",
+    fontWeight: "500"
+  },
+  slipValue: {
+    fontSize: "12px",
+    color: "#ffffff",
+    fontWeight: "700",
+    textAlign: "right"
+  },
+  slipFooterBranding: {
+    marginTop: "16px",
+    fontSize: "10px",
+    color: "#38bdf8",
+    fontWeight: "700",
+    textAlign: "center"
+  },
+  slipActionGrid: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    marginTop: "16px"
+  },
+  slipShareBtn: {
+    height: "38px",
+    background: "linear-gradient(90deg, #25D366 0%, #128C7E 100%)",
+    border: "none",
+    borderRadius: "10px",
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: "12px",
+    cursor: "pointer"
+  },
+  slipCloseBtn: {
+    height: "36px",
+    background: "rgba(255,255,255,0.08)",
+    border: "none",
+    borderRadius: "10px",
+    color: "#cbd5e1",
+    fontWeight: "700",
+    fontSize: "12px",
+    cursor: "pointer"
   }
 };
