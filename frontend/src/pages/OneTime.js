@@ -10,6 +10,16 @@ if (typeof document !== "undefined") {
       0% { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
     }
+    @keyframes burn {
+      0% { transform: scale(1); filter: drop-shadow(0 0 2px #ff4500); }
+      50% { transform: scale(1.1); filter: drop-shadow(0 0 8px #ff0000); }
+      100% { transform: scale(1); filter: drop-shadow(0 0 2px #ff4500); }
+    }
+    @keyframes blast {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(2.5); opacity: 0.8; filter: brightness(2); }
+      100% { transform: scale(4); opacity: 0; }
+    }
   `;
   document.head.appendChild(styleSheet);
 }
@@ -61,6 +71,29 @@ export default function OneTime() {
 
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
+
+  // 🟢 Firecracker Animation State (Only on fresh app launch / session start)
+  const [showSplashAnimation, setShowSplashAnimation] = useState(() => {
+    const hasSeenSplash = sessionStorage.getItem("sm_onetime_splash_seen");
+    return !hasSeenSplash;
+  });
+  const [isBurning, setIsBurning] = useState(false);
+  const [isBlasting, setIsBlasting] = useState(false);
+
+  const handleIgniteBomb = () => {
+    if (isBurning || isBlasting) return;
+    setIsBurning(true);
+
+    setTimeout(() => {
+      setIsBurning(false);
+      setIsBlasting(true);
+
+      setTimeout(() => {
+        setShowSplashAnimation(false);
+        sessionStorage.setItem("sm_onetime_splash_seen", "true");
+      }, 800);
+    }, 1500);
+  };
 
   const getOrGenerateUniqueCode = () => {
     if (user && user.bonusCode) {
@@ -362,6 +395,7 @@ export default function OneTime() {
       console.log("Logout backend error:", err);
     } finally {
       localStorage.clear();
+      sessionStorage.clear();
       navigate("/login");
       window.location.reload();
     }
@@ -917,6 +951,59 @@ export default function OneTime() {
 
   const displayedHistory = showAllHistory ? history : history.slice(0, 5);
   const hasBonusMembers = bonusList.length > 0 || user?.hasBonusMembers || user?.bonusList?.length > 0;
+
+  // 🟢 Firecracker Splash Screen Overlay
+  if (showSplashAnimation) {
+    return (
+      <div style={styles.splashOverlay}>
+        <div style={styles.splashContentCard}>
+          <h2 style={{ color: "#facc15", marginBottom: "8px", fontSize: "18px", fontWeight: "900", textAlign: "center" }}>
+            🧨 LANKA BHAJI BOMB 🔥
+          </h2>
+          <p style={{ color: "#94a3b8", fontSize: "11px", textAlign: "center", marginBottom: "20px" }}>
+            Click the matchstick to ignite the bomb and enter SaveMoney!
+          </p>
+
+          <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "15px" }}>
+            {/* Bomb Image / Icon */}
+            <div 
+              style={{
+                fontSize: "70px",
+                animation: isBurning ? "burn 0.3s ease infinite" : "none",
+                transform: isBlasting ? "scale(3)" : "scale(1)",
+                opacity: isBlasting ? 0 : 1,
+                transition: "all 0.5s ease"
+              }}
+            >
+              💣
+            </div>
+
+            {/* Burning Matchstick Button */}
+            <button
+              style={{
+                background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100% )",
+                border: "none",
+                borderRadius: "30px",
+                padding: "10px 24px",
+                color: "#fff",
+                fontWeight: "bold",
+                fontSize: "13px",
+                cursor: "pointer",
+                boxShadow: "0 4px 15px rgba(239, 68, 68, 0.4)",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px"
+              }}
+              onClick={handleIgniteBomb}
+              disabled={isBurning || isBlasting}
+            >
+              <span>🔥</span> {isBurning ? "Igniting Fuse..." : isBlasting ? "💥 BLAST!" : "Light the Match & Blast!"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.page}>
@@ -2014,6 +2101,28 @@ const getStatusStyleDark = (status) => {
 };
 
 const styles = {
+  splashOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "#030a16",
+    zIndex: 999999,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px"
+  },
+  splashContentCard: {
+    background: "#081628",
+    borderRadius: "16px",
+    padding: "24px",
+    width: "100%",
+    maxWidth: "320px",
+    border: "1px solid rgba(255, 255, 255, 0.15)",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.8)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center"
+  },
   page: {
     minHeight: "100vh",
     width: "100%",
