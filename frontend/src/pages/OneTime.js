@@ -148,9 +148,10 @@ export default function OneTime() {
     stats.availableBalance || user?.otbalance || user?.otBalance || user?.availableBalance || 0
   );
 
-  // Calculation values for Deposit Modal
+  // 🟢 Calculation values for Deposit Modal (UPI = 2% GST, Crypto = 0% GST)
   const mainAmount = Number(amount) || 0;
-  const gstAmount = paymentMethodType === "crypto" ? 0 : 0; // 0% as requested or explicit breakdown
+  const gstRate = paymentMethodType === "fiat" ? 0.02 : 0;
+  const gstAmount = Math.round(mainAmount * gstRate);
   const tdsAmount = 0;
   const platformFee = 0;
   const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
@@ -1842,7 +1843,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* 🚀 UNIQUE & PREMIUM ADD FUND MODAL WITH CALCULATION CHART & CRYPTO SUPPORT */}
+      {/* 🚀 MODIFIED ADD FUND MODAL */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={{ ...styles.modalCardDark, maxWidth: "400px", border: "1px solid rgba(16, 185, 129, 0.4)", boxShadow: "0 25px 50px rgba(0,0,0,0.8)" }}>
@@ -1871,7 +1872,7 @@ export default function OneTime() {
                 }}
                 onClick={() => setPaymentMethodType("fiat")}
               >
-                🇮🇳 UPI / Gateway (INR)
+                🇮🇳 UPI / Gateway (2% Fee)
               </button>
               <button
                 type="button"
@@ -1915,8 +1916,8 @@ export default function OneTime() {
                   <strong style={{ color: "#fff" }}>₹{mainAmount.toLocaleString("en-IN")}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
-                  <span>GST (0%):</span>
-                  <strong style={{ color: "#22c55e" }}>₹{gstAmount}</strong>
+                  <span>GST ({paymentMethodType === "fiat" ? "2%" : "0%"}):</span>
+                  <strong style={{ color: paymentMethodType === "fiat" ? "#facc15" : "#22c55e" }}>₹{gstAmount.toLocaleString("en-IN")}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
                   <span>TDS (0%):</span>
@@ -1935,47 +1936,24 @@ export default function OneTime() {
             </div>
 
             {paymentMethodType === "fiat" ? (
-              <>
-                <div style={{ marginBottom: "14px" }}>
-                  <button 
-                    type="button"
-                    style={{
-                      ...styles.submitBtnDark,
-                      background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                      marginBottom: "10px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "8px",
-                      boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)"
-                    }}
-                    onClick={handleRazorpayPayment}
-                    disabled={razorpayLoading}
-                  >
-                    <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
-                  </button>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "10px 0", color: "#64748b", fontSize: "11px" }}>
-                  <div style={{ flex: 1, height: "1px", background: "#1e293b" }}></div>
-                  <span>OR MANUAL UTR DEPOSIT</span>
-                  <div style={{ flex: 1, height: "1px", background: "#1e293b" }}></div>
-                </div>
-
-                <form onSubmit={handleDepositSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <div>
-                    <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
-                    <input style={styles.inputModalDark} placeholder="Enter UTR / Txn Hash" value={txnId} onChange={(e) => setTxnId(e.target.value)} required />
-                  </div>
-                  <div>
-                    <label style={styles.labelDark}>Screenshot Proof*</label>
-                    <input type="file" accept="image/*" style={styles.fileInputDark} onChange={(e) => setScreenshot(e.target.files[0])} required />
-                  </div>
-                  <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
-                    {depositing ? "Uploading..." : `Submit Deposit (₹${totalAddMoney.toLocaleString("en-IN")})`}
-                  </button>
-                </form>
-              </>
+              <div style={{ marginBottom: "10px" }}>
+                <button 
+                  type="button"
+                  style={{
+                    ...styles.submitBtnDark,
+                    background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)"
+                  }}
+                  onClick={handleRazorpayPayment}
+                  disabled={razorpayLoading}
+                >
+                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
+                </button>
+              </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <p style={{ fontSize: "11px", color: "#cbd5e1", margin: 0 }}>
