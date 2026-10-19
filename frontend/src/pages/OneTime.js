@@ -10,42 +10,68 @@ if (typeof document !== "undefined") {
       0% { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
     }
-    @keyframes dragInFromSide {
+    @keyframes pagePullAnimation {
       0% {
-        transform: translateX(-120%) scale(0.6) rotate(-10deg);
+        transform: translateX(350px) scale(0.3) rotate(5deg);
         opacity: 0;
+        filter: blur(8px);
       }
       50% {
-        transform: translateX(-20%) scale(0.85) rotate(-3deg);
+        transform: translateX(120px) scale(0.6) rotate(2deg);
         opacity: 0.8;
+        filter: blur(2px);
+      }
+      85% {
+        transform: translateX(-10px) scale(0.95) rotate(-1deg);
+        opacity: 1;
+        filter: blur(0px);
       }
       100% {
         transform: translateX(0) scale(1) rotate(0deg);
         opacity: 1;
+        filter: blur(0px);
       }
     }
-    @keyframes personPulling {
+    @keyframes manPullingMotion {
       0% {
-        transform: translateX(-100px) scaleX(-1);
-        opacity: 0;
+        transform: scaleX(-1) translateX(-30px);
       }
-      20% {
-        opacity: 1;
+      30% {
+        transform: scaleX(-1) translateX(10px);
       }
-      80% {
-        transform: translateX(10px) scaleX(-1);
-        opacity: 1;
+      60% {
+        transform: scaleX(-1) translateX(-20px);
+      }
+      90% {
+        transform: scaleX(-1) translateX(5px);
       }
       100% {
-        transform: translateX(60px) scaleX(-1);
+        transform: scaleX(-1) translateX(0px);
         opacity: 0;
       }
     }
-    .page-entrance-animation {
-      animation: dragInFromSide 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    @keyframes ropeTension {
+      0% { width: 320px; opacity: 1; }
+      50% { width: 180px; opacity: 1; }
+      90% { width: 20px; opacity: 0.8; }
+      100% { width: 0px; opacity: 0; }
     }
-    .person-animator {
-      animation: personPulling 1.2s ease-in-out forwards;
+    @keyframes flashEffect {
+      0% { background-color: rgba(34, 197, 94, 0); }
+      50% { background-color: rgba(34, 197, 94, 0.35); }
+      100% { background-color: transparent; }
+    }
+    .pulled-page-anim {
+      animation: pagePullAnimation 1.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    .man-puller {
+      animation: manPullingMotion 1.6s ease-in-out forwards;
+    }
+    .rope-line {
+      animation: ropeTension 1.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    .flash-screen {
+      animation: flashEffect 1.6s ease-out forwards;
     }
   `;
   document.head.appendChild(styleSheet);
@@ -99,13 +125,13 @@ export default function OneTime() {
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
-  // 🟢 State for Entrance Animation
-  const [showIntroAnimation, setShowIntroAnimation] = useState(true);
+  // 🟢 State for Rope Pulling Entrance Animation
+  const [showPullAnimation, setShowPullAnimation] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShowIntroAnimation(false);
-    }, 1300); // Animation runs for 1.3 seconds
+      setShowPullAnimation(false);
+    }, 1600); // 1.6 seconds animation duration
     return () => clearTimeout(timer);
   }, []);
 
@@ -967,17 +993,17 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
-      {/* 🟢 INTRO PULLING ANIMATION OVERLAY */}
-      {showIntroAnimation && (
-        <div style={styles.introOverlay}>
+      {/* 🟢 MAN PULLING ROPE ENTRANCE ANIMATION OVERLAY */}
+      {showPullAnimation && (
+        <div className="flash-screen" style={styles.introOverlay}>
           <div style={styles.introContentBox}>
-            <div style={styles.pullingVisualArea}>
-              <span style={styles.pullingRope}>═════════</span>
-              <span className="person-animator" style={styles.pullingPersonEmoji}>🏃‍♂️</span>
+            <div style={styles.pullingSceneArea}>
+              <span className="man-puller" style={styles.pullingPersonEmoji}>🧗‍♂️</span>
+              <span className="rope-line" style={styles.ropeStyle}>━━━━━━━━━━━━━━━━━━━━━</span>
             </div>
-            <div className="page-entrance-animation" style={styles.introPreviewCard}>
-              <h2 style={{ color: "#22c55e", margin: 0, fontSize: "20px", fontWeight: "900" }}>SAVE MONEY</h2>
-              <p style={{ color: "#cbd5e1", margin: "6px 0 0 0", fontSize: "12px" }}>Loading Premium Dashboard...</p>
+            <div className="pulled-page-anim" style={styles.introPreviewCard}>
+              <h2 style={{ color: "#22c55e", margin: 0, fontSize: "18px", fontWeight: "900" }}>SAVE MONEY</h2>
+              <p style={{ color: "#cbd5e1", margin: "4px 0 0 0", fontSize: "11px" }}>Pulling Dashboard...</p>
             </div>
           </div>
         </div>
@@ -1190,7 +1216,7 @@ export default function OneTime() {
         </div>
       </div>
 
-      <div style={styles.container} className={!showIntroAnimation ? "page-entrance-animation" : ""}>
+      <div style={styles.container} className={!showPullAnimation ? "pulled-page-anim" : ""}>
         {/* TOAST ALERT */}
         {toast.show && (
           <div style={{ ...styles.toast, background: toast.type === "error" ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" : "linear-gradient(135deg, #16a34a 0%, #15803d 100%)" }}>
@@ -1924,7 +1950,7 @@ export default function OneTime() {
                 onClick={handleRazorpayPayment}
                 disabled={razorpayLoading}
               >
-                <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${amount.toLocaleString("en-IN")} with Razorpay`}
+                <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹{amount.toLocaleString("en-IN")} with Razorpay`}
               </button>
             </div>
 
@@ -2110,30 +2136,34 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    gap: "20px"
-  },
-  pullingVisualArea: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
+    gap: "16px",
     position: "relative"
   },
-  pullingRope: {
-    color: "#38bdf8",
-    fontSize: "18px",
-    letterSpacing: "-2px",
-    fontWeight: "bold"
+  pullingSceneArea: {
+    display: "flex",
+    alignItems: "center",
+    gap: "2px",
+    position: "relative"
   },
   pullingPersonEmoji: {
-    fontSize: "36px"
+    fontSize: "38px"
+  },
+  ropeStyle: {
+    color: "#38bdf8",
+    fontSize: "16px",
+    fontWeight: "bold",
+    letterSpacing: "-1px",
+    display: "inline-block",
+    overflow: "hidden",
+    whiteSpace: "nowrap"
   },
   introPreviewCard: {
     background: "#081628",
     border: "2px solid #22c55e",
     borderRadius: "16px",
-    padding: "24px 32px",
+    padding: "20px 28px",
     textAlign: "center",
-    boxShadow: "0 15px 35px rgba(0,0,0,0.8)"
+    boxShadow: "0 20px 40px rgba(0,0,0,0.9)"
   },
   loadingPage: {
     minHeight: "100vh",
