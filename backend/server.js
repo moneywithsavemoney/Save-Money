@@ -1459,7 +1459,7 @@ async function generateShortWalletId() {
 });
 
 
-// ==================== LOGIN ====================
+// ============== LOGIN ==============
 
 app.post("/login", async (req, res) => {
   try {
@@ -1492,9 +1492,10 @@ app.post("/login", async (req, res) => {
     let isMatch = false;
 
     // পাসওয়ার্ড চেক লজিক
-    if (user.password && (user.password.startsWith("$2a") || user.password.startsWith("$2b"))) {
+    if (user.password && (user.password.startsWith("$2a") || user.password.startsWith("$2b") || user.password.startsWith("$2y"))) {
       isMatch = await bcrypt.compare(password, user.password);
     } else {
+      // ওল্ড প্লেইন পাসওয়ার্ড সাপোর্ট
       isMatch = user.password === password;
     }
 
@@ -1504,15 +1505,7 @@ app.post("/login", async (req, res) => {
       });
     }
 
-    // 🔒 মূল লজিক: রিকোয়েস্ট যদি মোবাইল অ্যাপ থেকে না আসে (যেমন সাধারণ ব্রাউজার বা ওয়েবসাইট থেকে) এবং ইউজার যদি অ্যাডমিন না হয়
-    const clientType = req.headers["x-client-type"];
-
-    if (clientType !== "mobile-app" && user.role !== "admin") {
-      return res.status(403).json({
-        isAppOnly: true, // ফ্রন্টএন্ডে পপআপ দেখানোর জন্য ফ্ল্যাগ
-        msg: "Web login is restricted. Please use our mobile application to sign in."
-      });
-    }
+    // অন্য ডিভাইসে অলরেডি লগইন আছে কিনা চেক
 
     // নতুন টোকেন তৈরি
     const token = jwt.sign(
@@ -1522,13 +1515,13 @@ app.post("/login", async (req, res) => {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: "7d"
+        expiresIn: '7d'
       }
     );
 
-    // টোকেন সেভ করা
+    // ডেটাবেসে নতুন টোকেন এবং লগইনের সময় লাস্ট অ্যাক্টিভ সেট করা
     user.current_token = token;
-    user.lastActive = new Date();
+    user.lastActive = new Date(); // লগইনের সময় অ্যাক্টিভ টাইম সেট করা
     await user.save();
 
     return res.json({
@@ -1552,6 +1545,7 @@ app.post("/login", async (req, res) => {
     });
   }
 });
+
 
 
 
