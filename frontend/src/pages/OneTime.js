@@ -149,7 +149,7 @@ export default function OneTime() {
   );
 
   // 🟢 Calculation values for Deposit Modal (UPI = 2% GST, Crypto = 0% GST)
-  const investAmount = Number(amount) || 0;
+  const mainAmount = Number(amount) || 0;
   const gstRate = paymentMethodType === "fiat" ? 0.02 : 0;
   const gstAmount = Math.round(mainAmount * gstRate);
   const tdsAmount = 0;
@@ -1843,7 +1843,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* 🚀 MODIFIED ADD FUND MODAL */}
+      {/* 🚀 MODIFIED ADD FUND MODAL WITH "Invest Amount" LABEL */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={{ ...styles.modalCardDark, maxWidth: "400px", border: "1px solid rgba(16, 185, 129, 0.4)", boxShadow: "0 25px 50px rgba(0,0,0,0.8)" }}>
@@ -1912,7 +1912,7 @@ export default function OneTime() {
               </span>
               <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
-                  <span>Main Amount:</span>
+                  <span>Invest Amount:</span>
                   <strong style={{ color: "#fff" }}>₹{mainAmount.toLocaleString("en-IN")}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
