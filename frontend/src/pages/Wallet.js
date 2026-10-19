@@ -43,6 +43,7 @@ export default function Wallet() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [addAmount, setAddAmount] = useState("");
+  const [razorpayLoading, setRazorpayLoading] = useState(false);
 
   const [withdrawOpen, setWithdrawOpen] = useState(false);
 
@@ -281,42 +282,111 @@ export default function Wallet() {
   };
 
   const openAddCash = () => {
-    setAddAmount("");
+    setAddAmount("100");
     setAddOpen(true);
   };
 
-  const handleAddMoney = async (amount) => {
+  // 🟢 RAZORPAY PAYMENT INTEGRATION FROM ONETIME
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleRazorpayPayment = async (amtToPay) => {
+    const finalAmount = Number(amtToPay || addAmount);
+    if (!finalAmount || finalAmount < 1) {
+      return triggerStatusOverlay("warning", "Please enter a valid amount (Minimum ₹1)");
+    }
+
+    setRazorpayLoading(true);
+    const resLoaded = await loadRazorpayScript();
+    if (!resLoaded) {
+      triggerStatusOverlay("error", "Razorpay SDK failed to load. Check internet connection.");
+      setRazorpayLoading(false);
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch("https://save-money-vyv1.onrender.com/api/create-payment-order", {
+      const orderRes = await fetch(`${API}/api/onetime/create-razorpay-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          authorization: token || ""
         },
-        body: JSON.stringify({ amount })
+        body: JSON.stringify({ email, amount: finalAmount })
       });
+      const orderData = await orderRes.json();
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        if (data.paymentUrl) {
-          window.location.href = data.paymentUrl;
-        }
-      } else {
-        alert(data.msg || "Payment order creation failed");
+      if (!orderRes.ok || !orderData.success) {
+        triggerStatusOverlay("error", orderData.message || orderData.msg || "Failed to create payment order");
+        setRazorpayLoading(false);
+        return;
       }
-    } catch (err) {
-      console.error("Payment Error:", err);
-      alert("Server Connection Error!");
-    }
-  };
 
-  const payViaUPI = () => {
-    if (!addAmount || Number(addAmount) <= 0) {
-      return triggerStatusOverlay("warning", "Please enter a valid amount");
+      const { orderId, keyId, currency } = orderData;
+
+      const options = {
+        key: keyId,
+        amount: finalAmount * 100,
+        currency: currency || "INR",
+        name: "Save Money",
+        description: "Add Money to Diamond Vault",
+        order_id: orderId,
+        handler: async function (response) {
+          try {
+            const verifyRes = await fetch(`${API}/api/onetime/verify-razorpay-payment`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                authorization: token || ""
+              },
+              body: JSON.stringify({
+                email,
+                amount: finalAmount,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature
+              })
+            });
+
+            const verifyData = await verifyRes.json();
+            if (verifyRes.ok && verifyData.success) {
+              triggerStatusOverlay("success", "🎉 Payment Successful! Money added to wallet.");
+              setAddOpen(false);
+              loadWallet();
+            } else {
+              triggerStatusOverlay("error", verifyData.message || "Payment verification failed");
+            }
+          } catch (err) {
+            triggerStatusOverlay("error", "Error verifying payment");
+          }
+        },
+        prefill: {
+          name: wallet.name || "SaveMoney User",
+          email: email
+        },
+        theme: {
+          color: "#38bdf8"
+        }
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (err) {
+      console.error("Razorpay error:", err);
+      triggerStatusOverlay("error", "Payment initialization failed");
+    } finally {
+      setRazorpayLoading(false);
     }
-    handleAddMoney(addAmount);
   };
 
   const submitDepositRequest = async () => {
@@ -1115,7 +1185,7 @@ export default function Wallet() {
             </div>
           )}
 
-          {/* Add Cash Modal */}
+          {/* 🟢 BEAUTIFUL UPGRADED ADD CASH / ADD FUND MODAL WITH RAZORPAY BUY NOW */}
           {addOpen && (
             <div style={styles.depositOverlay}>
               <div style={styles.depositModal}>
@@ -1123,26 +1193,40 @@ export default function Wallet() {
 
                 <div style={styles.depositIcon}>💎</div>
                 <h2 style={styles.depositTitle}>Add Cash to Diamond Vault</h2>
-                <p style={styles.depositSub}>Enter amount, pay via UPI, and submit Transaction ID.</p>
+                <p style={styles.depositSub}>Enter amount to add cash instantly or submit manual UTR.</p>
 
                 <label style={styles.depositLabel}>Amount (₹)</label>
                 <input
                   style={styles.depositInput}
                   type="number"
-                  placeholder="Enter amount (e.g. 1000)"
+                  min="1"
+                  placeholder="Enter amount (Minimum ₹1)"
                   value={addAmount}
                   onChange={(e) => setAddAmount(e.target.value)}
                 />
 
+                {/* 🛒 BUY NOW / INSTANT PAY BUTTON */}
                 <button
-                  style={{ ...styles.submitDepositBtn, background: "linear-gradient(135deg, #38bdf8, #2563eb)", marginBottom: "15px" }}
-                  onClick={payViaUPI}
+                  style={{
+                    ...styles.submitDepositBtn,
+                    background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                    marginBottom: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    boxShadow: "0 4px 15px rgba(37, 99, 235, 0.4)"
+                  }}
+                  onClick={() => handleRazorpayPayment(addAmount)}
+                  disabled={razorpayLoading}
                 >
-                  📱 Pay Via PhonePe / Paytm / GPay
+                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Buy Now ₹${addAmount || 0}`}
                 </button>
 
-                <div style={{ borderTop: "1px dashed rgba(255,255,255,0.1)", margin: "15px 0", paddingTop: "10px" }}>
-                  <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center" }}>💡 Paste the 12-digit UTR/Txn ID from your payment app below.</p>
+                <div style={{ borderTop: "1px dashed rgba(255,255,255,0.12)", margin: "14px 0", paddingTop: "10px" }}>
+                  <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", margin: "0 0 10px 0" }}>
+                    💡 Or paste 12-digit UTR/Txn ID for Manual Deposit Review.
+                  </p>
                 </div>
 
                 <label style={styles.depositLabel}>Transaction ID / UTR No</label>
@@ -2281,7 +2365,8 @@ const styles = {
     maxWidth: "380px",
     position: "relative",
     boxSizing: "border-box",
-    border: "1px solid rgba(56,189,248,0.2)"
+    border: "1px solid rgba(56,189,248,0.3)",
+    boxShadow: "0 20px 40px rgba(0,0,0,0.8)"
   },
   depositCloseX: {
     position: "absolute",
