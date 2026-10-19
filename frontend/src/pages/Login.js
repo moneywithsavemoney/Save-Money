@@ -15,7 +15,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [showAppModal, setShowAppModal] = useState(false); // পপআপের স্টেট
+  const [showAppModal, setShowAppModal] = useState(false);
 
   useEffect(() => {
     const savedRemember = localStorage.getItem("rememberMe") === "true";
@@ -91,10 +91,12 @@ export default function Login() {
       setLoading(true);
       setMessage("");
 
+      // 📱 যেহেতু এটি মোবাইল অ্যাপ (WebView থেকে রান হচ্ছে), তাই হেডার পাঠানো হলো যাতে ইউজার অ্যাপ থেকে লগইন করতে পারে
       const res = await fetch(`${API}/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-client-type": "mobile-app"
         },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
@@ -105,7 +107,6 @@ export default function Login() {
       const data = await res.json();
 
       if (!res.ok) {
-        // 🚀 ইউজার যদি অ্যাডমিন না হয় তবে পপআপ ওপেন হবে
         if (data.isAppOnly || res.status === 403) {
           setShowAppModal(true);
         } else {
@@ -136,7 +137,8 @@ export default function Login() {
       const res = await fetch(`${API}/send-login-otp`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-client-type": "mobile-app"
         },
         body: JSON.stringify({
           mobile: mobile.trim()
@@ -166,7 +168,8 @@ export default function Login() {
       const res = await fetch(`${API}/mobile-login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-client-type": "mobile-app"
         },
         body: JSON.stringify({
           mobile: mobile.trim(),
