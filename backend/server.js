@@ -1495,7 +1495,6 @@ app.post("/login", async (req, res) => {
     if (user.password && (user.password.startsWith("$2a") || user.password.startsWith("$2b"))) {
       isMatch = await bcrypt.compare(password, user.password);
     } else {
-      // প্লেন টেক্সট পাসওয়ার্ড সাপোর্ট
       isMatch = user.password === password;
     }
 
@@ -1505,7 +1504,7 @@ app.post("/login", async (req, res) => {
       });
     }
 
-    // 🔒 মূল লজিক: রিকোয়েস্ট যদি মোবাইল অ্যাপ থেকে না আসে (অর্থাৎ ওয়েবসাইট থেকে হয়) এবং ইউজার যদি অ্যাডমিন না হয়
+    // 🔒 মূল লজিক: রিকোয়েস্ট যদি মোবাইল অ্যাপ থেকে না আসে (যেমন সাধারণ ব্রাউজার বা ওয়েবসাইট থেকে) এবং ইউজার যদি অ্যাডমিন না হয়
     const clientType = req.headers["x-client-type"];
 
     if (clientType !== "mobile-app" && user.role !== "admin") {
