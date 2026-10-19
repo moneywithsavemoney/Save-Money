@@ -149,7 +149,7 @@ export default function OneTime() {
   );
 
   // 🟢 Calculation values for Deposit Modal (UPI = 2% GST, Crypto = 0% GST)
-  const mainAmount = Number(amount) || 0;
+  const investAmount = Number(amount) || 0;
   const gstRate = paymentMethodType === "fiat" ? 0.02 : 0;
   const gstAmount = Math.round(mainAmount * gstRate);
   const tdsAmount = 0;
