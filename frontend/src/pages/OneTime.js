@@ -573,7 +573,7 @@ export default function OneTime() {
 
   const handleRazorpayPayment = async () => {
     if (!amount || amount <= 0) {
-      triggerToast("Please select a valid deposit amount", "error");
+      triggerToast("Please enter a valid deposit amount", "error");
       return;
     }
 
@@ -1792,7 +1792,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* 🟢 ADD FUND MODAL WITH RAZORPAY BUTTON */}
+      {/* 🟢 ADD FUND MODAL WITH MANUAL AMOUNT INPUT & RAZORPAY BUTTON */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
@@ -1801,10 +1801,24 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
 
+            {/* MANUAL / CUSTOM AMOUNT INPUT FIELD */}
+            <div style={{ marginBottom: "14px" }}>
+              <label style={styles.labelDark}>Enter Amount to Add (₹)*</label>
+              <input 
+                type="number" 
+                min="1" 
+                style={styles.inputModalDark} 
+                value={amount} 
+                onChange={(e) => setAmount(Number(e.target.value) || 0)} 
+                placeholder="Enter amount (e.g. 100)"
+                required 
+              />
+            </div>
+
             {/* RAZORPAY INSTANT PAY BUTTON */}
             <div style={{ marginBottom: "16px" }}>
               <p style={{ fontSize: "13px", color: "#cbd5e1", margin: "0 0 10px 0" }}>
-                Pay instantly via UPI / Card / NetBanking (<strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong>):
+                Pay instantly via UPI / Card / NetBanking (<strong style={{ color: "#22c55e" }}>₹{Number(amount).toLocaleString("en-IN")}</strong>):
               </p>
               <button 
                 type="button"
@@ -1820,7 +1834,7 @@ export default function OneTime() {
                 onClick={handleRazorpayPayment}
                 disabled={razorpayLoading}
               >
-                <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${amount.toLocaleString("en-IN")} with Razorpay`}
+                <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${Number(amount).toLocaleString("en-IN")} with Razorpay`}
               </button>
             </div>
 
@@ -1831,7 +1845,7 @@ export default function OneTime() {
             </div>
 
             <p style={{ fontSize: "13px", color: "#cbd5e1", margin: "0 0 10px 0" }}>
-              Send <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong> to company wallet:
+              Send <strong style={{ color: "#22c55e" }}>₹{Number(amount).toLocaleString("en-IN")}</strong> to company wallet:
             </p>
             <div style={styles.walletBoxDark}>
               <div style={styles.walletAddrRow}>
@@ -1973,7 +1987,6 @@ const getStatusStyleDark = (status) => {
 };
 
 const styles = {
-  // আগের সব স্টাইল হুবহু রাখা হয়েছে...
   page: {
     minHeight: "100vh",
     width: "100%",
