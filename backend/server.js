@@ -1459,93 +1459,99 @@ async function generateShortWalletId() {
 });
 
 
-// ================= LOGIN =================
+// ==================== LOGIN ====================
 
 app.post("/login", async (req, res) => {
-    try {
-        console.log("LOGIN BODY:", req.body);
+  try {
+    console.log("LOGIN BODY:", req.body);
 
-        const { email, password } = req.body;
+    const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({
-                msg: "Email and password required"
-            });
-        }
-
-        const user = await User.findOne({
-            email: email.toLowerCase()
-        });
-
-        if (!user) {
-            return res.status(404).json({
-                msg: "User not found"
-            });
-        }
-
-        if (user.banned) {
-            return res.status(403).json({
-                msg: "Your account is banned"
-            });
-        }
-
-        let isMatch = false;
-
-        // পাসওয়ার্ড চেক লজিক
-        if (user.password && (user.password.startsWith("$2a") || user.password.startsWith("$2b") || user.password.startsWith("$2y"))) {
-            isMatch = await bcrypt.compare(password, user.password);
-        } else {
-            // ওল্ড প্লেইন পাসওয়ার্ড সাপোর্ট
-            isMatch = user.password === password;
-        }
-
-        if (!isMatch) {
-            return res.status(401).json({
-                msg: "Wrong password"
-            });
-        }
-
-        // অন্য ডিভাইসে অলরেডি লগইন আছে কিনা চেক
-        
-
-        // নতুন টোকেন তৈরি
-        const token = jwt.sign(
-            {
-                id: user._id,
-                role: user.role
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: '7d'
-            }
-        );
-
-        // ডেটাবেজে নতুন টোকেন এবং লগইনের সময়ে লাস্ট অ্যাক্টিভ সেট করা
-        user.current_token = token;
-        user.lastActive = new Date(); // লগইনের সময় অ্যাক্টিভ টাইম সেট হলো
-        await user.save();
-
-        return res.json({
-            success: true,
-            msg: "Login Successful",
-            token,
-            role: user.role || "user",
-            email: user.email,
-            referCode: user.referCode,
-            name: user.name,
-            kycStatus: user.kycStatus,
-            walletId: user.walletId
-        });
-
-    } catch (err) {
-        console.log("LOGIN ERROR:", err.message);
-        console.log(err);
-
-        return res.status(500).json({
-            msg: err.message || "Server error"
-        });
+    if (!email || !password) {
+      return res.status(400).json({
+        msg: "Email and password required"
+      });
     }
+
+    const user = await User.findOne({
+      email: email.toLowerCase()
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        msg: "User not found"
+      });
+    }
+
+    if (user.banned) {
+      return res.status(403).json({
+        msg: "Your account is banned"
+      });
+    }
+
+    let isMatch = false;
+
+    // পাসওয়ার্ড চেক লজিক
+    if (user.password && (user.password.startsWith("$2a") || user.password.startsWith("$2b"))) {
+      isMatch = await bcrypt.compare(password, user.password);
+    } else {
+      // প্লেন টেক্সট পাসওয়ার্ড সাপোর্ট
+      isMatch = user.password === password;
+    }
+
+    if (!isMatch) {
+      return res.status(401).json({
+        msg: "Wrong password"
+      });
+    }
+
+    // 🔒 মূল লজিক: অ্যাডমিন ছাড়া অন্য কেউ ওয়েবাসাইট থেকে লগইন করতে পারবে না
+    if (user.role !== "admin") {
+      return res.status(403).json({
+        isAppOnly: true, // ফ্রন্টএন্ডে পপআপ দেখানোর জন্য ফ্ল্যাগ
+        msg: "Web login is restricted. Please use our mobile application to sign in."
+      });
+    }
+
+    // নতুন টোকেন তৈরি
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d"
+      }
+    );
+
+    // টোকেন সেভ করা
+    user.current_token = token;
+    user.lastActive = new Date();
+    await user.save();
+
+    return res.json({
+      success: true,
+      msg: "Login Successful",
+      token,
+      role: user.role || "user",
+      email: user.email,
+      referCode: user.referCode,
+      name: user.name,
+      kycStatus: user.kycStatus,
+      walletId: user.walletId
+    });
+
+  } catch (err) {
+    console.log("LOGIN ERROR:", err.message);
+    console.log(err);
+
+    return res.status(500).json({
+      msg: err.message || "Server error"
+    });
+  }
 });
+
 
 
 
