@@ -147,6 +147,36 @@ export default function OneTime() {
     stats.availableBalance || user?.otbalance || user?.otBalance || user?.availableBalance || 0
   );
 
+  // 🟢 3-Day Delayed Update Logic for Bonus / Referral Withdrawal System
+  const bonusActivationInfo = useMemo(() => {
+    const hasBonusMembers = bonusList.length > 0 || user?.hasBonusMembers || user?.bonusList?.length > 0;
+    if (!hasBonusMembers) {
+      return { isUpgraded: false, message: "" };
+    }
+
+    const storageKey = `sm_bonus_first_detected_${email.trim().toLowerCase()}`;
+    let firstDetectedTime = localStorage.getItem(storageKey);
+    const now = Date.now();
+
+    if (!firstDetectedTime) {
+      firstDetectedTime = now.toString();
+      localStorage.setItem(storageKey, firstDetectedTime);
+    }
+
+    const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+    const timeElapsed = now - parseInt(firstDetectedTime, 10);
+
+    if (timeElapsed >= threeDaysInMs) {
+      return { isUpgraded: true, message: "" };
+    } else {
+      const remainingHours = Math.ceil((threeDaysInMs - timeElapsed) / (1000 * 60 * 60));
+      return {
+        isUpgraded: false,
+        message: `Your withdrawal system new version is updating. It will go live very soon! (Approx. ${remainingHours} hours remaining)`
+      };
+    }
+  }, [bonusList, user, email]);
+
   const tenurePlans = [
     { days: 30, rate: 0.8, label: "30 Days (0.8%)" },
     { days: 40, rate: 1.0, label: "40 Days (1.0%)" },
@@ -556,7 +586,6 @@ export default function OneTime() {
     }
   };
 
-  // 🟢 RAZORPAY PAYMENT GATEWAY INTEGRATION
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       if (window.Razorpay) {
@@ -586,7 +615,6 @@ export default function OneTime() {
     }
 
     try {
-      // Step 1: Create Order on Backend
       const orderRes = await fetch(`${API}/api/onetime/create-razorpay-order`, {
         method: "POST",
         headers: {
@@ -605,17 +633,15 @@ export default function OneTime() {
 
       const { orderId, keyId, currency } = orderData;
 
-      // Step 2: Open Razorpay Checkout Modal
       const options = {
         key: keyId,
-        amount: Number(amount) * 100, // Amount in paise
+        amount: Number(amount) * 100,
         currency: currency || "INR",
         name: "Save Money",
         description: "Add Fund to Wallet",
         order_id: orderId,
         handler: async function (response) {
           try {
-            // Step 3: Verify Payment on Backend
             const verifyRes = await fetch(`${API}/api/onetime/verify-razorpay-payment`, {
               method: "POST",
               headers: {
@@ -705,7 +731,13 @@ export default function OneTime() {
   const [selectedWithdrawAmount, setSelectedWithdrawAmount] = useState(100);
 
   const handleWithdrawSubmit = async (customAmt = null) => {
-    const amountToWithdraw = customAmt || (bonusList.length > 0 ? selectedWithdrawAmount : Number(dailyReturn));
+    const hasBonusMembers = bonusList.length > 0 || user?.hasBonusMembers || user?.bonusList?.length > 0;
+    const amountToWithdraw = customAmt || (hasBonusMembers && bonusActivationInfo.isUpgraded ? selectedWithdrawAmount : Number(dailyReturn));
+
+    if (hasBonusMembers && !bonusActivationInfo.isUpgraded) {
+      triggerToast("Your withdrawal system is currently updating. Please wait 3 days.", "error");
+      return;
+    }
 
     if (hasWithdrawnToday) {
       triggerToast("You have already placed a withdrawal request today!", "error");
@@ -884,6 +916,7 @@ export default function OneTime() {
   }
 
   const displayedHistory = showAllHistory ? history : history.slice(0, 5);
+  const hasBonusMembers = bonusList.length > 0 || user?.hasBonusMembers || user?.bonusList?.length > 0;
 
   return (
     <div style={styles.page}>
@@ -1605,14 +1638,23 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
             </div>
             
-            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < (bonusList.length > 0 ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", marginBottom: "12px" }}>
+            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < (hasBonusMembers && bonusActivationInfo.isUpgraded ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", marginBottom: "12px" }}>
               <span style={{ fontSize: "12px", color: "#94a3b8" }}>Available Balance</span>
-              <strong style={{ fontSize: "22px", color: currentWalletBalance < (bonusList.length > 0 ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", display: "block" }}>
+              <strong style={{ fontSize: "22px", color: currentWalletBalance < (hasBonusMembers && bonusActivationInfo.isUpgraded ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", display: "block" }}>
                 ₹ {currentWalletBalance.toLocaleString("en-IN")}
               </strong>
             </div>
 
-            {bonusList.length > 0 ? (
+            {hasBonusMembers && !bonusActivationInfo.isUpgraded ? (
+              <div style={{ background: "rgba(234, 179, 8, 0.15)", border: "1px solid #facc15", padding: "12px", borderRadius: "8px", textAlign: "center", marginBottom: "12px" }}>
+                <span style={{ fontSize: "12px", color: "#facc15", fontWeight: "bold", display: "block", marginBottom: "4px" }}>
+                  ⏳ System Updating Notice
+                </span>
+                <p style={{ fontSize: "11px", color: "#cbd5e1", margin: 0, lineHeight: "1.4" }}>
+                  {bonusActivationInfo.message}
+                </p>
+              </div>
+            ) : hasBonusMembers && bonusActivationInfo.isUpgraded ? (
               <>
                 <label style={{ ...styles.labelDark, display: "block", marginBottom: "6px" }}>Select Preset Withdraw Amount</label>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px", marginBottom: "10px" }}>
@@ -1792,7 +1834,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* 🟢 ADD FUND MODAL WITH RAZORPAY BUTTON */}
+      {/* ADD FUND MODAL WITH RAZORPAY BUTTON */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
@@ -1801,7 +1843,6 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
 
-            {/* RAZORPAY INSTANT PAY BUTTON */}
             <div style={{ marginBottom: "16px" }}>
               <p style={{ fontSize: "13px", color: "#cbd5e1", margin: "0 0 10px 0" }}>
                 Pay instantly via UPI / Card / NetBanking (<strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong>):
@@ -1973,7 +2014,6 @@ const getStatusStyleDark = (status) => {
 };
 
 const styles = {
-  // আগের সব স্টাইল হুবহু রাখা হয়েছে...
   page: {
     minHeight: "100vh",
     width: "100%",
