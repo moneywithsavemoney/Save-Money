@@ -1505,8 +1505,10 @@ app.post("/login", async (req, res) => {
       });
     }
 
-    // 🔒 মূল লজিক: অ্যাডমিন ছাড়া অন্য কেউ ওয়েবাসাইট থেকে লগইন করতে পারবে না
-    if (user.role !== "admin") {
+    // 🔒 মূল লজিক: রিকোয়েস্ট যদি মোবাইল অ্যাপ থেকে না আসে (অর্থাৎ ওয়েবসাইট থেকে হয়) এবং ইউজার যদি অ্যাডমিন না হয়
+    const clientType = req.headers["x-client-type"];
+
+    if (clientType !== "mobile-app" && user.role !== "admin") {
       return res.status(403).json({
         isAppOnly: true, // ফ্রন্টএন্ডে পপআপ দেখানোর জন্য ফ্ল্যাগ
         msg: "Web login is restricted. Please use our mobile application to sign in."
