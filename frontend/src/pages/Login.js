@@ -75,7 +75,6 @@ export default function Login() {
       return;
     }
 
-    // 🟢 ডেমো ইউজার চেক
     if (email.trim().toLowerCase() === "demouser@gmail.com" && password === "demo@demo") {
       const demoData = {
         token: "demo-secret-token",
@@ -105,7 +104,7 @@ export default function Login() {
 
       const data = await res.json();
 
-      // 🔒 এখানে স্ট্যাটাস কোড 403 বা isAppOnly চেক করা হচ্ছে যাতে ক্রাশ না করে পপআপ দেখায়
+      // রেসপন্স 403 বা অ্যাপ অনলি হলে পপআপ দেখাবে
       if (res.status === 403 || data.isAppOnly) {
         setShowAppModal(true);
         setLoading(false);
