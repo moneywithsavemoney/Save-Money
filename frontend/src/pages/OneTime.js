@@ -125,6 +125,7 @@ export default function OneTime() {
   const [screenshot, setScreenshot] = useState(null);
   const [depositing, setDepositing] = useState(false);
   const [razorpayLoading, setRazorpayLoading] = useState(false);
+  const [paymentMethodType, setPaymentMethodType] = useState("fiat"); // fiat or crypto
 
   const [bankForm, setBankForm] = useState({
     accountNumber: "",
@@ -146,6 +147,13 @@ export default function OneTime() {
   const currentWalletBalance = Number(
     stats.availableBalance || user?.otbalance || user?.otBalance || user?.availableBalance || 0
   );
+
+  // Calculation values for Deposit Modal
+  const mainAmount = Number(amount) || 0;
+  const gstAmount = paymentMethodType === "crypto" ? 0 : 0; // 0% as requested or explicit breakdown
+  const tdsAmount = 0;
+  const platformFee = 0;
+  const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
 
   // 🟢 3-Day Delayed Update Logic for Bonus / Referral Withdrawal System
   const bonusActivationInfo = useMemo(() => {
@@ -548,7 +556,7 @@ export default function OneTime() {
       setDepositing(true);
       const formData = new FormData();
       formData.append("email", email);
-      formData.append("amount", amount);
+      formData.append("amount", totalAddMoney);
       formData.append("transactionId", txnId);
       formData.append("screenshot", screenshot);
 
@@ -566,7 +574,7 @@ export default function OneTime() {
         const newPendingDeposit = {
           _id: data.deposit?._id || Date.now().toString(),
           type: "Add Fund",
-          amount: Number(amount),
+          amount: Number(totalAddMoney),
           transactionId: txnId,
           status: "Pending",
           createdAt: new Date().toISOString()
@@ -601,7 +609,7 @@ export default function OneTime() {
   };
 
   const handleRazorpayPayment = async () => {
-    if (!amount || amount <= 0) {
+    if (!totalAddMoney || totalAddMoney <= 0) {
       triggerToast("Please select a valid deposit amount", "error");
       return;
     }
@@ -621,7 +629,7 @@ export default function OneTime() {
           "Content-Type": "application/json",
           authorization: token
         },
-        body: JSON.stringify({ email, amount: Number(amount) })
+        body: JSON.stringify({ email, amount: Number(totalAddMoney) })
       });
       const orderData = await orderRes.json();
 
@@ -635,7 +643,7 @@ export default function OneTime() {
 
       const options = {
         key: keyId,
-        amount: Number(amount) * 100,
+        amount: Number(totalAddMoney) * 100,
         currency: currency || "INR",
         name: "Save Money",
         description: "Add Fund to Wallet",
@@ -650,7 +658,7 @@ export default function OneTime() {
               },
               body: JSON.stringify({
                 email,
-                amount: Number(amount),
+                amount: Number(totalAddMoney),
                 razorpayOrderId: response.razorpay_order_id,
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature
@@ -1834,66 +1842,167 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* ADD FUND MODAL WITH RAZORPAY BUTTON */}
+      {/* 🚀 UNIQUE & PREMIUM ADD FUND MODAL WITH CALCULATION CHART & CRYPTO SUPPORT */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
-          <div style={styles.modalCardDark}>
+          <div style={{ ...styles.modalCardDark, maxWidth: "400px", border: "1px solid rgba(16, 185, 129, 0.4)", boxShadow: "0 25px 50px rgba(0,0,0,0.8)" }}>
             <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Add Investment Fund</h3>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "20px" }}>💎</span>
+                <h3 style={{ margin: 0, fontSize: "16px", color: "#fff", fontWeight: "800" }}>Add Investment Fund</h3>
+              </div>
               <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
 
-            <div style={{ marginBottom: "16px" }}>
-              <p style={{ fontSize: "13px", color: "#cbd5e1", margin: "0 0 10px 0" }}>
-                Pay instantly via UPI / Card / NetBanking (<strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong>):
-              </p>
-              <button 
+            {/* Payment Method Switcher */}
+            <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
+              <button
                 type="button"
                 style={{
-                  ...styles.submitBtnDark,
-                  background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                  marginBottom: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px"
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: "8px",
+                  border: paymentMethodType === "fiat" ? "2px solid #22c55e" : "1px solid #334155",
+                  background: paymentMethodType === "fiat" ? "rgba(34, 197, 94, 0.2)" : "#0f2138",
+                  color: "#fff",
+                  fontSize: "11px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
                 }}
-                onClick={handleRazorpayPayment}
-                disabled={razorpayLoading}
+                onClick={() => setPaymentMethodType("fiat")}
               >
-                <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${amount.toLocaleString("en-IN")} with Razorpay`}
+                🇮🇳 UPI / Gateway (INR)
+              </button>
+              <button
+                type="button"
+                style={{
+                  flex: 1,
+                  padding: "8px",
+                  borderRadius: "8px",
+                  border: paymentMethodType === "crypto" ? "2px solid #a855f7" : "1px solid #334155",
+                  background: paymentMethodType === "crypto" ? "linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(236, 72, 153, 0.3))" : "#0f2138",
+                  color: "#fff",
+                  fontSize: "11px",
+                  fontWeight: "bold",
+                  cursor: "pointer"
+                }}
+                onClick={() => setPaymentMethodType("crypto")}
+              >
+                🪙 Crypto (0% Fee) 🔥
               </button>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "10px 0", color: "#64748b", fontSize: "12px" }}>
-              <div style={{ flex: 1, height: "1px", background: "#1e293b" }}></div>
-              <span>OR MANUAL DEPOSIT</span>
-              <div style={{ flex: 1, height: "1px", background: "#1e293b" }}></div>
+            {/* Crypto Special Colorful Banner */}
+            {paymentMethodType === "crypto" && (
+              <div style={{ background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)", borderRadius: "10px", padding: "10px", marginBottom: "14px", textAlign: "center", boxShadow: "0 4px 15px rgba(124, 58, 237, 0.4)" }}>
+                <span style={{ fontSize: "12px", color: "#fff", fontWeight: "900", display: "block" }}>
+                  🚀 CRYPTO DEPOSIT ACTIVE
+                </span>
+                <p style={{ fontSize: "11px", color: "#f3e8ff", margin: "3px 0 0 0" }}>
+                  No Charges! Zero GST & Zero Platform Fee applied when paying via Crypto.
+                </p>
+              </div>
+            )}
+
+            {/* Calculation Chart */}
+            <div style={{ background: "#040d1a", borderRadius: "10px", padding: "12px", border: "1px dashed rgba(255, 255, 255, 0.15)", marginBottom: "14px" }}>
+              <span style={{ fontSize: "11px", fontWeight: "bold", color: "#38bdf8", display: "block", marginBottom: "8px" }}>
+                📊 Deposit Calculation Summary
+              </span>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>Main Amount:</span>
+                  <strong style={{ color: "#fff" }}>₹{mainAmount.toLocaleString("en-IN")}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>GST (0%):</span>
+                  <strong style={{ color: "#22c55e" }}>₹{gstAmount}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>TDS (0%):</span>
+                  <strong style={{ color: "#22c55e" }}>₹{tdsAmount}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>Platform Fee (0%):</span>
+                  <strong style={{ color: "#22c55e" }}>₹{platformFee}</strong>
+                </div>
+                <div style={{ height: "1px", background: "#1e293b", margin: "2px 0" }}></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: "bold" }}>
+                  <span style={{ color: "#facc15" }}>Total Add Money:</span>
+                  <strong style={{ color: "#facc15", fontSize: "14px" }}>₹{totalAddMoney.toLocaleString("en-IN")}</strong>
+                </div>
+              </div>
             </div>
 
-            <p style={{ fontSize: "13px", color: "#cbd5e1", margin: "0 0 10px 0" }}>
-              Send <strong style={{ color: "#22c55e" }}>₹{amount.toLocaleString("en-IN")}</strong> to company wallet:
-            </p>
-            <div style={styles.walletBoxDark}>
-              <div style={styles.walletAddrRow}>
-                <span style={styles.walletText}>{COMPANY_WALLET_ADDRESS}</span>
-                <button style={styles.copyBtn} onClick={handleCopyWallet}>Copy</button>
-              </div>
-            </div>
+            {paymentMethodType === "fiat" ? (
+              <>
+                <div style={{ marginBottom: "14px" }}>
+                  <button 
+                    type="button"
+                    style={{
+                      ...styles.submitBtnDark,
+                      background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                      marginBottom: "10px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)"
+                    }}
+                    onClick={handleRazorpayPayment}
+                    disabled={razorpayLoading}
+                  >
+                    <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
+                  </button>
+                </div>
 
-            <form onSubmit={handleDepositSubmit} style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "12px" }}>
-              <div>
-                <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
-                <input style={styles.inputModalDark} placeholder="Enter UTR / Txn Hash" value={txnId} onChange={(e) => setTxnId(e.target.value)} required />
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "10px 0", color: "#64748b", fontSize: "11px" }}>
+                  <div style={{ flex: 1, height: "1px", background: "#1e293b" }}></div>
+                  <span>OR MANUAL UTR DEPOSIT</span>
+                  <div style={{ flex: 1, height: "1px", background: "#1e293b" }}></div>
+                </div>
+
+                <form onSubmit={handleDepositSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div>
+                    <label style={styles.labelDark}>Transaction ID / UTR No.*</label>
+                    <input style={styles.inputModalDark} placeholder="Enter UTR / Txn Hash" value={txnId} onChange={(e) => setTxnId(e.target.value)} required />
+                  </div>
+                  <div>
+                    <label style={styles.labelDark}>Screenshot Proof*</label>
+                    <input type="file" accept="image/*" style={styles.fileInputDark} onChange={(e) => setScreenshot(e.target.files[0])} required />
+                  </div>
+                  <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
+                    {depositing ? "Uploading..." : `Submit Deposit (₹${totalAddMoney.toLocaleString("en-IN")})`}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <p style={{ fontSize: "11px", color: "#cbd5e1", margin: 0 }}>
+                  Send crypto equivalent to <strong style={{ color: "#a855f7" }}>₹{totalAddMoney.toLocaleString("en-IN")}</strong> to the address below:
+                </p>
+                <div style={styles.walletBoxDark}>
+                  <div style={styles.walletAddrRow}>
+                    <span style={styles.walletText}>{COMPANY_WALLET_ADDRESS}</span>
+                    <button style={{ ...styles.copyBtn, background: "#a855f7" }} onClick={handleCopyWallet}>Copy</button>
+                  </div>
+                </div>
+
+                <form onSubmit={handleDepositSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div>
+                    <label style={styles.labelDark}>Crypto Txn Hash / ID*</label>
+                    <input style={styles.inputModalDark} placeholder="Enter Blockchain Hash" value={txnId} onChange={(e) => setTxnId(e.target.value)} required />
+                  </div>
+                  <div>
+                    <label style={styles.labelDark}>Transfer Screenshot*</label>
+                    <input type="file" accept="image/*" style={styles.fileInputDark} onChange={(e) => setScreenshot(e.target.files[0])} required />
+                  </div>
+                  <button type="submit" style={{ ...styles.submitBtnDark, background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)" }} disabled={depositing}>
+                    {depositing ? "Submitting..." : "Submit Crypto Deposit Proof"}
+                  </button>
+                </form>
               </div>
-              <div>
-                <label style={styles.labelDark}>Screenshot Proof*</label>
-                <input type="file" accept="image/*" style={styles.fileInputDark} onChange={(e) => setScreenshot(e.target.files[0])} required />
-              </div>
-              <button type="submit" style={styles.submitBtnDark} disabled={depositing}>
-                {depositing ? "Uploading..." : "Submit Manual Deposit Proof"}
-              </button>
-            </form>
+            )}
           </div>
         </div>
       )}
