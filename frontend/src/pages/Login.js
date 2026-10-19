@@ -15,7 +15,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [showAppModal, setShowAppModal] = useState(false);
 
   useEffect(() => {
     const savedRemember = localStorage.getItem("rememberMe") === "true";
@@ -75,6 +74,7 @@ export default function Login() {
       return;
     }
 
+    // 🟢 ডেমো ইউজার চেক (ব্যাকএন্ড ছাড়াই সরাসরি ইকমার্স পেজে রিডাইরেক্ট করবে)
     if (email.trim().toLowerCase() === "demouser@gmail.com" && password === "demo@demo") {
       const demoData = {
         token: "demo-secret-token",
@@ -93,8 +93,7 @@ export default function Login() {
       const res = await fetch(`${API}/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "x-client-type": "mobile-app"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
@@ -104,16 +103,8 @@ export default function Login() {
 
       const data = await res.json();
 
-      // রেসপন্স 403 বা অ্যাপ অনলি হলে পপআপ দেখাবে
-      if (res.status === 403 || data.isAppOnly) {
-        setShowAppModal(true);
-        setLoading(false);
-        return;
-      }
-
       if (!res.ok) {
         setMessage(data.msg || "Login failed");
-        setLoading(false);
         return;
       }
 
@@ -139,8 +130,7 @@ export default function Login() {
       const res = await fetch(`${API}/send-login-otp`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "x-client-type": "mobile-app"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           mobile: mobile.trim()
@@ -170,8 +160,7 @@ export default function Login() {
       const res = await fetch(`${API}/mobile-login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "x-client-type": "mobile-app"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           mobile: mobile.trim(),
@@ -181,15 +170,8 @@ export default function Login() {
 
       const data = await res.json();
 
-      if (res.status === 403 || data.isAppOnly) {
-        setShowAppModal(true);
-        setLoading(false);
-        return;
-      }
-
       if (!res.ok) {
         setMessage(data.msg || "Mobile login failed");
-        setLoading(false);
         return;
       }
 
@@ -445,57 +427,6 @@ export default function Login() {
         </div>
 
       </div>
-
-      {/* 📱 🎨 ANIMATED APP PROMOTIONAL MODAL */}
-      {showAppModal && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modalCard, animation: "popupZoom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)" }}>
-            
-            <button 
-              style={styles.modalCloseBtn}
-              onClick={() => setShowAppModal(false)}
-            >
-              ✕
-            </button>
-
-            <div style={styles.appIconWrapper}>
-              <div style={{ ...styles.appIconCircle, animation: "floatSlow 4s ease-in-out infinite" }}>
-                📱
-              </div>
-            </div>
-
-            <h2 style={styles.modalTitle}>Please Use Our App!</h2>
-            
-            <p style={styles.modalText}>
-              Website login is exclusive for <b>Admins</b>. For regular user access and a smooth experience, please use our Mobile Application.
-            </p>
-
-            <div style={styles.modalFeatures}>
-              <div style={styles.featurePill}>⚡ Fast & Secure</div>
-              <div style={styles.featurePill}>🔔 Live Notifications</div>
-              <div style={styles.featurePill}>🎁 Exclusive Rewards</div>
-            </div>
-
-            <a
-              href="https://drive.google.com/file/d/17_YbNKkOgGgM7gssgHaJlphW3FnaJwKW/view?usp=drivesdk" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              style={styles.downloadAppBtn}
-            >
-              🚀 Download App Now
-            </a>
-
-            <button 
-              style={styles.modalSecondaryBtn}
-              onClick={() => setShowAppModal(false)}
-            >
-              Got It, Thanks!
-            </button>
-
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
@@ -531,14 +462,9 @@ const animationStyles = `
     to { opacity: 1; transform: translateY(0); }
   }
 
-  @keyframes popupZoom {
-    0% { opacity: 0; transform: scale(0.6); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-
   @keyframes floatSlow {
     0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-12px) rotate(6deg); }
+    50% { transform: translateY(-15px) rotate(10deg); }
   }
 
   @keyframes pulseGlow {
@@ -1128,130 +1054,5 @@ const styles = {
   trustIcon: {
     fontSize: "22px",
     marginBottom: "4px"
-  },
-
-  // 📱 MODAL STYLES (পপআপের স্টাইলসমূহ)
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100vw",
-    height: "100vh",
-    backgroundColor: "rgba(15, 23, 42, 0.65)",
-    backdropFilter: "blur(8px)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 9999,
-    padding: "20px",
-    boxSizing: "border-box"
-  },
-
-  modalCard: {
-    width: "100%",
-    maxWidth: "420px",
-    background: "linear-gradient(180deg, #ffffff 0%, #f8f5ff 100%)",
-    borderRadius: "28px",
-    padding: "32px 24px 28px",
-    boxShadow: "0 25px 60px rgba(124, 58, 237, 0.3)",
-    textAlign: "center",
-    position: "relative",
-    border: "1px solid rgba(255, 255, 255, 0.8)"
-  },
-
-  modalCloseBtn: {
-    position: "absolute",
-    top: "16px",
-    right: "16px",
-    border: "none",
-    background: "#f1f5f9",
-    width: "32px",
-    height: "32px",
-    borderRadius: "50%",
-    fontSize: "16px",
-    color: "#64748b",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "bold"
-  },
-
-  appIconWrapper: {
-    display: "flex",
-    justifyContent: "center",
-    marginBottom: "16px"
-  },
-
-  appIconCircle: {
-    width: "80px",
-    height: "80px",
-    borderRadius: "26px",
-    background: "linear-gradient(135deg, #7c3aed, #ec4899)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "42px",
-    boxShadow: "0 12px 25px rgba(236, 72, 153, 0.35)",
-    color: "#fff"
-  },
-
-  modalTitle: {
-    margin: "0 0 10px 0",
-    fontSize: "24px",
-    fontWeight: "900",
-    color: "#0f172a"
-  },
-
-  modalText: {
-    margin: "0 0 20px 0",
-    fontSize: "14px",
-    color: "#475569",
-    lineHeight: "1.6"
-  },
-
-  modalFeatures: {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: "8px",
-    marginBottom: "24px"
-  },
-
-  featurePill: {
-    background: "white",
-    border: "1px solid #e9d5ff",
-    color: "#7c3aed",
-    padding: "6px 12px",
-    borderRadius: "20px",
-    fontSize: "12px",
-    fontWeight: "700",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.03)"
-  },
-
-  downloadAppBtn: {
-    display: "block",
-    width: "100%",
-    padding: "16px 0",
-    borderRadius: "16px",
-    background: "linear-gradient(135deg, #7c3aed, #ec4899)",
-    color: "white",
-    fontWeight: "800",
-    fontSize: "16px",
-    textDecoration: "none",
-    boxShadow: "0 10px 25px rgba(124, 58, 237, 0.35)",
-    boxSizing: "border-box",
-    marginBottom: "12px"
-  },
-
-  modalSecondaryBtn: {
-    width: "100%",
-    background: "transparent",
-    border: "none",
-    color: "#64748b",
-    fontSize: "14px",
-    fontWeight: "700",
-    cursor: "pointer",
-    padding: "8px 0"
   }
 };
