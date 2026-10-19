@@ -91,7 +91,6 @@ export default function Login() {
       setLoading(true);
       setMessage("");
 
-      // 📱 যেহেতু এটি মোবাইল অ্যাপ (WebView থেকে রান হচ্ছে), তাই হেডার পাঠানো হলো যাতে ইউজার অ্যাপ থেকে লগইন করতে পারে
       const res = await fetch(`${API}/login`, {
         method: "POST",
         headers: {
@@ -106,12 +105,16 @@ export default function Login() {
 
       const data = await res.json();
 
+      // 🔒 এখানে স্ট্যাটাস কোড 403 বা isAppOnly চেক করা হচ্ছে যাতে ক্রাশ না করে পপআপ দেখায়
+      if (res.status === 403 || data.isAppOnly) {
+        setShowAppModal(true);
+        setLoading(false);
+        return;
+      }
+
       if (!res.ok) {
-        if (data.isAppOnly || res.status === 403) {
-          setShowAppModal(true);
-        } else {
-          setMessage(data.msg || "Login failed");
-        }
+        setMessage(data.msg || "Login failed");
+        setLoading(false);
         return;
       }
 
@@ -179,12 +182,15 @@ export default function Login() {
 
       const data = await res.json();
 
+      if (res.status === 403 || data.isAppOnly) {
+        setShowAppModal(true);
+        setLoading(false);
+        return;
+      }
+
       if (!res.ok) {
-        if (data.isAppOnly || res.status === 403) {
-          setShowAppModal(true);
-        } else {
-          setMessage(data.msg || "Mobile login failed");
-        }
+        setMessage(data.msg || "Mobile login failed");
+        setLoading(false);
         return;
       }
 
