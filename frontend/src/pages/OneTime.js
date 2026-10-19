@@ -10,15 +10,42 @@ if (typeof document !== "undefined") {
       0% { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
     }
-    @keyframes burn {
-      0% { transform: scale(1); filter: drop-shadow(0 0 2px #ff4500); }
-      50% { transform: scale(1.1); filter: drop-shadow(0 0 8px #ff0000); }
-      100% { transform: scale(1); filter: drop-shadow(0 0 2px #ff4500); }
+    @keyframes dragInFromSide {
+      0% {
+        transform: translateX(-120%) scale(0.6) rotate(-10deg);
+        opacity: 0;
+      }
+      50% {
+        transform: translateX(-20%) scale(0.85) rotate(-3deg);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateX(0) scale(1) rotate(0deg);
+        opacity: 1;
+      }
     }
-    @keyframes blast {
-      0% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(2.5); opacity: 0.8; filter: brightness(2); }
-      100% { transform: scale(4); opacity: 0; }
+    @keyframes personPulling {
+      0% {
+        transform: translateX(-100px) scaleX(-1);
+        opacity: 0;
+      }
+      20% {
+        opacity: 1;
+      }
+      80% {
+        transform: translateX(10px) scaleX(-1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(60px) scaleX(-1);
+        opacity: 0;
+      }
+    }
+    .page-entrance-animation {
+      animation: dragInFromSide 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    .person-animator {
+      animation: personPulling 1.2s ease-in-out forwards;
     }
   `;
   document.head.appendChild(styleSheet);
@@ -72,28 +99,15 @@ export default function OneTime() {
   const email = localStorage.getItem("email") || "";
   const token = localStorage.getItem("token") || "";
 
-  // 🟢 Firecracker Animation State (Only on fresh app launch / session start)
-  const [showSplashAnimation, setShowSplashAnimation] = useState(() => {
-    const hasSeenSplash = sessionStorage.getItem("sm_onetime_splash_seen");
-    return !hasSeenSplash;
-  });
-  const [isBurning, setIsBurning] = useState(false);
-  const [isBlasting, setIsBlasting] = useState(false);
+  // 🟢 State for Entrance Animation
+  const [showIntroAnimation, setShowIntroAnimation] = useState(true);
 
-  const handleIgniteBomb = () => {
-    if (isBurning || isBlasting) return;
-    setIsBurning(true);
-
-    setTimeout(() => {
-      setIsBurning(false);
-      setIsBlasting(true);
-
-      setTimeout(() => {
-        setShowSplashAnimation(false);
-        sessionStorage.setItem("sm_onetime_splash_seen", "true");
-      }, 800);
-    }, 1500);
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowIntroAnimation(false);
+    }, 1300); // Animation runs for 1.3 seconds
+    return () => clearTimeout(timer);
+  }, []);
 
   const getOrGenerateUniqueCode = () => {
     if (user && user.bonusCode) {
@@ -395,7 +409,6 @@ export default function OneTime() {
       console.log("Logout backend error:", err);
     } finally {
       localStorage.clear();
-      sessionStorage.clear();
       navigate("/login");
       window.location.reload();
     }
@@ -952,61 +965,24 @@ export default function OneTime() {
   const displayedHistory = showAllHistory ? history : history.slice(0, 5);
   const hasBonusMembers = bonusList.length > 0 || user?.hasBonusMembers || user?.bonusList?.length > 0;
 
-  // 🟢 Firecracker Splash Screen Overlay
-  if (showSplashAnimation) {
-    return (
-      <div style={styles.splashOverlay}>
-        <div style={styles.splashContentCard}>
-          <h2 style={{ color: "#facc15", marginBottom: "8px", fontSize: "18px", fontWeight: "900", textAlign: "center" }}>
-            🧨 LANKA BHAJI BOMB 🔥
-          </h2>
-          <p style={{ color: "#94a3b8", fontSize: "11px", textAlign: "center", marginBottom: "20px" }}>
-            Click the matchstick to ignite the bomb and enter SaveMoney!
-          </p>
-
-          <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center", gap: "15px" }}>
-            {/* Bomb Image / Icon */}
-            <div 
-              style={{
-                fontSize: "70px",
-                animation: isBurning ? "burn 0.3s ease infinite" : "none",
-                transform: isBlasting ? "scale(3)" : "scale(1)",
-                opacity: isBlasting ? 0 : 1,
-                transition: "all 0.5s ease"
-              }}
-            >
-              💣
-            </div>
-
-            {/* Burning Matchstick Button */}
-            <button
-              style={{
-                background: "linear-gradient(135deg, #f59e0b 0%, #ef4444 100% )",
-                border: "none",
-                borderRadius: "30px",
-                padding: "10px 24px",
-                color: "#fff",
-                fontWeight: "bold",
-                fontSize: "13px",
-                cursor: "pointer",
-                boxShadow: "0 4px 15px rgba(239, 68, 68, 0.4)",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px"
-              }}
-              onClick={handleIgniteBomb}
-              disabled={isBurning || isBlasting}
-            >
-              <span>🔥</span> {isBurning ? "Igniting Fuse..." : isBlasting ? "💥 BLAST!" : "Light the Match & Blast!"}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={styles.page}>
+      {/* 🟢 INTRO PULLING ANIMATION OVERLAY */}
+      {showIntroAnimation && (
+        <div style={styles.introOverlay}>
+          <div style={styles.introContentBox}>
+            <div style={styles.pullingVisualArea}>
+              <span style={styles.pullingRope}>═════════</span>
+              <span className="person-animator" style={styles.pullingPersonEmoji}>🏃‍♂️</span>
+            </div>
+            <div className="page-entrance-animation" style={styles.introPreviewCard}>
+              <h2 style={{ color: "#22c55e", margin: 0, fontSize: "20px", fontWeight: "900" }}>SAVE MONEY</h2>
+              <p style={{ color: "#cbd5e1", margin: "6px 0 0 0", fontSize: "12px" }}>Loading Premium Dashboard...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SIDEBAR DRAWER */}
       <div 
         style={{
@@ -1214,7 +1190,7 @@ export default function OneTime() {
         </div>
       </div>
 
-      <div style={styles.container}>
+      <div style={styles.container} className={!showIntroAnimation ? "page-entrance-animation" : ""}>
         {/* TOAST ALERT */}
         {toast.show && (
           <div style={{ ...styles.toast, background: toast.type === "error" ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" : "linear-gradient(135deg, #16a34a 0%, #15803d 100%)" }}>
@@ -2101,28 +2077,6 @@ const getStatusStyleDark = (status) => {
 };
 
 const styles = {
-  splashOverlay: {
-    position: "fixed",
-    inset: 0,
-    background: "#030a16",
-    zIndex: 999999,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "16px"
-  },
-  splashContentCard: {
-    background: "#081628",
-    borderRadius: "16px",
-    padding: "24px",
-    width: "100%",
-    maxWidth: "320px",
-    border: "1px solid rgba(255, 255, 255, 0.15)",
-    boxShadow: "0 20px 40px rgba(0,0,0,0.8)",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center"
-  },
   page: {
     minHeight: "100vh",
     width: "100%",
@@ -2132,7 +2086,8 @@ const styles = {
     color: "#f8fafc",
     boxSizing: "border-box",
     display: "flex",
-    justifyContent: "center"
+    justifyContent: "center",
+    overflow: "hidden"
   },
   container: {
     width: "100%",
@@ -2140,6 +2095,45 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "16px"
+  },
+  introOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "#030a16",
+    zIndex: 9999999,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden"
+  },
+  introContentBox: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "20px"
+  },
+  pullingVisualArea: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    position: "relative"
+  },
+  pullingRope: {
+    color: "#38bdf8",
+    fontSize: "18px",
+    letterSpacing: "-2px",
+    fontWeight: "bold"
+  },
+  pullingPersonEmoji: {
+    fontSize: "36px"
+  },
+  introPreviewCard: {
+    background: "#081628",
+    border: "2px solid #22c55e",
+    borderRadius: "16px",
+    padding: "24px 32px",
+    textAlign: "center",
+    boxShadow: "0 15px 35px rgba(0,0,0,0.8)"
   },
   loadingPage: {
     minHeight: "100vh",
