@@ -261,12 +261,9 @@ export default function OneTime() {
 
         setHistory(sortedHistory);
 
-        const exactOneTimeEarnings = Number(
-          data.stats?.totalEarnings ?? data.user?.oneTimeTotalEarnings ?? data.user?.totalEarnings ?? 0
-        );
-
         let calculatedInv = 0;
         let calculatedWd = 0;
+        let calculatedEarnings = 0;
 
         sortedHistory.forEach((item) => {
           const t = (item.type || "").toLowerCase();
@@ -274,7 +271,8 @@ export default function OneTime() {
           
           const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
           const isInvestment = t.includes("investment") || t === "onetimeinvestment";
-          const isValidStatus = status === "active" || status === "completed";
+          const isEarning = t.includes("earning") || t.includes("profit") || t.includes("daily return") || t.includes("roi") || t.includes("bonus");
+          const isValidStatus = status === "active" || status === "completed" || status === "success" || status === "approved";
 
           if (!isAddFund && isInvestment && isValidStatus) {
             calculatedInv += Number(item.amount || 0);
@@ -283,11 +281,26 @@ export default function OneTime() {
           if (t === "withdrawal" && (status === "approved" || status === "accepted" || status === "success")) {
             calculatedWd += Number(item.amount || 0);
           }
+
+          if (isEarning && isValidStatus) {
+            calculatedEarnings += Number(item.amount || 0);
+          }
         });
+
+        // 🔧 FIX: Correct Total Earnings Calculation Logic
+        const backendEarnings = Number(
+          data.stats?.totalEarnings ?? 
+          data.user?.oneTimeTotalEarnings ?? 
+          data.user?.totalEarnings ?? 
+          data.totalEarnings ?? 
+          0
+        );
+
+        const finalTotalEarnings = backendEarnings > 0 ? backendEarnings : calculatedEarnings;
 
         setStats({
           totalInvested: calculatedInv,
-          totalEarnings: exactOneTimeEarnings,
+          totalEarnings: finalTotalEarnings,
           totalWithdrawn: calculatedWd,
           availableBalance: Number(data.user?.otbalance || data.user?.otBalance || 0)
         });
