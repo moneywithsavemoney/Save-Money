@@ -148,7 +148,6 @@ export default function OneTime() {
     stats.availableBalance || user?.otbalance || user?.otBalance || user?.availableBalance || 0
   );
 
-  // 🟢 Calculation values for Deposit Modal (UPI = 2% GST, Crypto = 0% GST)
   const mainAmount = Number(amount) || 0;
   const gstRate = paymentMethodType === "fiat" ? 0.02 : 0;
   const gstAmount = Math.round(mainAmount * gstRate);
@@ -156,7 +155,6 @@ export default function OneTime() {
   const platformFee = 0;
   const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
 
-  // 🟢 3-Day Delayed Update Logic for Bonus / Referral Withdrawal System
   const bonusActivationInfo = useMemo(() => {
     const hasBonusMembers = bonusList.length > 0 || user?.hasBonusMembers || user?.bonusList?.length > 0;
     if (!hasBonusMembers) {
@@ -287,7 +285,6 @@ export default function OneTime() {
           }
         });
 
-        // 🔧 FIX: Correct Total Earnings Calculation Logic
         const backendEarnings = Number(
           data.stats?.totalEarnings ?? 
           data.user?.oneTimeTotalEarnings ?? 
@@ -1163,7 +1160,7 @@ export default function OneTime() {
           <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
           <div style={styles.marqueeContainer}>
             <div style={styles.marqueeText}>
-              Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 15% flat bonus!</span> 🎉
+              Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 500 bonus!</span> 🎉
             </div>
           </div>
         </div>
@@ -1856,7 +1853,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* 🚀 MODIFIED ADD FUND MODAL WITH "Invest Amount" LABEL */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={{ ...styles.modalCardDark, maxWidth: "400px", border: "1px solid rgba(16, 185, 129, 0.4)", boxShadow: "0 25px 50px rgba(0,0,0,0.8)" }}>
@@ -1868,7 +1864,6 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
 
-            {/* Payment Method Switcher */}
             <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
               <button
                 type="button"
@@ -1906,7 +1901,6 @@ export default function OneTime() {
               </button>
             </div>
 
-            {/* Crypto Special Colorful Banner */}
             {paymentMethodType === "crypto" && (
               <div style={{ background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)", borderRadius: "10px", padding: "10px", marginBottom: "14px", textAlign: "center", boxShadow: "0 4px 15px rgba(124, 58, 237, 0.4)" }}>
                 <span style={{ fontSize: "12px", color: "#fff", fontWeight: "900", display: "block" }}>
@@ -1918,7 +1912,6 @@ export default function OneTime() {
               </div>
             )}
 
-            {/* Calculation Chart */}
             <div style={{ background: "#040d1a", borderRadius: "10px", padding: "12px", border: "1px dashed rgba(255, 255, 255, 0.15)", marginBottom: "14px" }}>
               <span style={{ fontSize: "11px", fontWeight: "bold", color: "#38bdf8", display: "block", marginBottom: "8px" }}>
                 📊 Deposit Calculation Summary
