@@ -7363,15 +7363,16 @@ app.post("/api/onetime/dashboard", async (req, res) => {
         }
       }
 
-      // ২. ডেইলি রিটার্ন / মোট আর্নিং হিসাব
-      if (!isInvestment && !isWithdrawal && (statusLower === "approved" || statusLower === "accepted" || statusLower === "success")) {
-        totalEarnings += Number(item.amount || 0);
-      }
+          // ৪. ডেইলি রিটার্ন / মোট আর্নিং হিসাব সঠিক করার জন্য
+    const isEarning = (typeLower.includes("earning") || typeLower.includes("profit") || typeLower.includes("daily") || typeLower.includes("roi") || typeLower.includes("return") || typeLower.includes("days")) && !isInvestment && !isWithdraw;
 
-      // ৩. উইথড্রয়াল হিসাব
-      if (isWithdrawal && (statusLower === "approved" || statusLower === "accepted" || statusLower === "success" || statusLower === "pending")) {
-        totalWithdraw += Number(item.amount || 0);
-      }
+    const isValidEarningStatus = ["approved", "accepted", "success", "active", "completed"].includes(statusLower);
+
+    if (isEarning && isValidEarningStatus) {
+      // শুধুমাত্র প্রকৃত প্রফিট বা ডেইলি রিটার্নের অ্যামাউন্ট যোগ হবে, মূল ইনভেস্টমেন্ট নয়
+      totalEarnings += Number(item.amount || 0);
+    }
+
 
       return item;
     });
