@@ -7294,9 +7294,9 @@ app.get("/get-vapid-key", (req, res) => {
   res.status(200).json({ publicKey: process.env.VAPID_PUBLIC_KEY });
 });
 
-// ==========================================
-// 📌 ONETIME ADMIN & USER BACKEND CONTROLLERS
-// ==========================================
+// *******************************************
+// ONETIME ADMIN & USER BACKEND CONTROLLERS
+// *******************************************
 app.post("/api/onetime/dashboard", async (req, res) => {
   try {
     const { email } = req.body;
@@ -7311,7 +7311,7 @@ app.post("/api/onetime/dashboard", async (req, res) => {
       return res.status(404).json({ success: false, message: "user not found" });
     }
 
-    // 🎁 ইউজারের ডাটাবেজে bonusCode না থাকলে জেনারেট করে সেভ করা
+    // 🎁 ইউজারদের অতিরিক্ত bonusCode না থাকলে বোনাস কোড সেভ করা
     if (!user.bonusCode) {
       const randomSuffix = Math.floor(100000 + Math.random() * 900000);
       user.bonusCode = `ot${randomSuffix}`;
@@ -7325,18 +7325,20 @@ app.post("/api/onetime/dashboard", async (req, res) => {
     let totalWithdraw = 0;
     let activeInvestment = null;
 
-    const formattedHistory = rawHistory.map((rawItem) => {
+    const formattedHistory = rawHistory.map(rawItem => {
       const item = rawItem.toObject ? rawItem.toObject() : { ...rawItem };
-      
-      // 📌 এখানে status এবং statusLower নিরাপদভাবে ডিক্লেয়ার করা হলো
+
+      // 🔍 এভাবে status এবং statusLower নিরাপদে ঘোষণা করা হলো
       const status = item.status || "";
       const statusLower = status.toLowerCase();
       const typeLower = (item.type || "").toLowerCase();
 
-      const isInvestment = typeLower.includes("onetimeinvestment") || typeLower.includes("deposit") || typeLower.includes("investment");
-      const isWithdrawal = typeLower.includes("withdrawal") || typeLower.includes("withdraw");
+      const isInvestment = typeLower.includes("onetimeinvestment") || typeLower.includes("investment");
+      
+      // 🟢 isWithdraw এখানে সঠিকভাবে ডিক্লেয়ার করা হলো যাতে ReferenceError না আসে
+      const isWithdraw = typeLower.includes("withdrawal") || typeLower.includes("withdraw");
 
-      // ১. ইনভেস্টমেন্ট হিসাব
+      // ৩. ইনভেস্টমেন্ট হিসাব
       if (isInvestment) {
         totalInvested += Number(item.amount || 0);
 
@@ -7363,21 +7365,23 @@ app.post("/api/onetime/dashboard", async (req, res) => {
         }
       }
 
-          // ৪. ডেইলি রিটার্ন / মোট আর্নিং হিসাব সঠিক করার জন্য
-    const isEarning = (typeLower.includes("earning") || typeLower.includes("profit") || typeLower.includes("daily") || typeLower.includes("roi") || typeLower.includes("return") || typeLower.includes("days")) && !isInvestment && !isWithdraw;
+      // ৪. ডেইলি রিটার্ন / মোট আর্নিং হিসাব (শুধু প্রকৃত প্রফিট যোগ হবে, মূল ইনভেস্টমেন্ট নয়)[span_4](start_span)[span_4](end_span)
+      const isEarning = (typeLower.includes("earning") || typeLower.includes("profit") || typeLower.includes("daily") || typeLower.includes("roi") || typeLower.includes("return") || typeLower.includes("days")) && !isInvestment && !isWithdraw;
+      const isValidEarningStatus = ["approved", "accepted", "success", "active", "completed"].includes(statusLower);
 
-    const isValidEarningStatus = ["approved", "accepted", "success", "active", "completed"].includes(statusLower);
+      if (isEarning && isValidEarningStatus) {
+        totalEarnings += Number(item.amount || 0);
+      }
 
-    if (isEarning && isValidEarningStatus) {
-      // শুধুমাত্র প্রকৃত প্রফিট বা ডেইলি রিটার্নের অ্যামাউন্ট যোগ হবে, মূল ইনভেস্টমেন্ট নয়
-      totalEarnings += Number(item.amount || 0);
-    }
-
+      // ৫. উইথড্রয়াল হিসাব
+      if (isWithdraw && (statusLower === "approved" || statusLower === "accepted" || statusLower === "success")) {
+        totalWithdraw += Number(item.amount || 0);
+      }
 
       return item;
     });
 
-    // MongoDB ড্যাশবোর্ডে টোটাল আর্নিং সিঙ্ক করা
+    // MongoDB ডাটাবেডে টোটাল আর্নিং সিঙ্ক করা
     let isDbModified = false;
 
     if (Number(user.totalEarnings || 0) !== totalEarnings) {
@@ -7415,7 +7419,7 @@ app.post("/api/onetime/dashboard", async (req, res) => {
         totalInvested: totalInvested,
         totalEarnings: totalEarnings,
         totalEarning: totalEarnings,
-        onetimeTotalEarnings: totalEarnings,
+        oneTimeTotalEarnings: totalEarnings,
         totalWithdraw: totalWithdraw,
         availableBalance: Number(user.otbalance || 0)
       },
