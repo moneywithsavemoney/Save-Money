@@ -44,6 +44,7 @@ const { P2PUser, P2PReview } = require("./models/p2p");
 const sendPushNotification = require("./utils/sendPush");
 const News = mongoose.model("News", new mongoose.Schema({ message: String }));
 const OneTimeInvestment = require("./models/OneTimeInvestment");
+const OneTimeBonus = require("./models/OneTimeBonus");
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -840,6 +841,79 @@ function performanceBonusRate(years) {
   if (Number(years) === 2) return 799;
   return 899;
 }
+
+// ডেইলি রিটার্ন ও রেট হিসেব করার ফাংশন
+function calculateDailyReturn(amount, tenureMonths, category) {
+  let dailyRate = 0;
+
+  if (category === "beginner") {
+    if (amount === 7500) {
+      dailyRate = 0.8;
+    } else if (amount === 15000) {
+      dailyRate = tenureMonths >= 9 ? 1.2 : 1.0;
+    } else if (amount === 22500) {
+      dailyRate = tenureMonths >= 9 ? 1.5 : 1.2;
+    } else if (amount === 30000) {
+      dailyRate = tenureMonths >= 9 ? 1.7 : 1.5;
+    } else if (amount === 37500) {
+      dailyRate = tenureMonths >= 9 ? 2.0 : 1.7;
+    }
+  } else if (category === "pro") {
+    if (amount === 99999) dailyRate = 2.0;
+    else if (amount === 139999) dailyRate = 3.0;
+    else if (amount === 189999) dailyRate = 3.5;
+    else if (amount === 249999) dailyRate = 4.5;
+    else if (amount === 500000) dailyRate = 6.0;
+  }
+
+  const dailyReturnAmount = (amount * dailyRate) / 100;
+  return { dailyRate, dailyReturnAmount };
+}
+
+// বোনাস অ্যামাউন্ট ও মাসের মেয়াদ হিসেব করার ফাংশন
+function calculateBonusConfig(amount, category) {
+  let monthlyBonus = 0;
+  let totalMonths = 1;
+
+  if (category === "beginner") {
+    if (amount === 7500) {
+      monthlyBonus = 500; // Upto 500 once
+      totalMonths = 1;
+    } else if (amount === 15000) {
+      monthlyBonus = 1500; // Upto 1500 per month (2 months)
+      totalMonths = 2;
+    } else if (amount === 22500) {
+      monthlyBonus = 2250; // Upto 2250 per month (2 months)
+      totalMonths = 2;
+    } else if (amount === 30000) {
+      monthlyBonus = 3000; // Upto 3000 per month (3 months)
+      totalMonths = 3;
+    } else if (amount === 37500) {
+      monthlyBonus = 3750; // Upto 3750 per month (3 months)
+      totalMonths = 3;
+    }
+  } else if (category === "pro") {
+    if (amount === 99999) {
+      monthlyBonus = (amount * 10) / 100; // Flat 10% (2 months)
+      totalMonths = 2;
+    } else if (amount === 139999) {
+      monthlyBonus = (amount * 13.9) / 100; // Flat 13.9% (2 months)
+      totalMonths = 2;
+    } else if (amount === 189999) {
+      monthlyBonus = (amount * 15) / 100; // Flat 15% (2 months)
+      totalMonths = 2;
+    } else if (amount === 249999) {
+      monthlyBonus = (amount * 18) / 100; // Flat 18% (3 months)
+      totalMonths = 3;
+    } else if (amount === 500000) {
+      monthlyBonus = (amount * 20) / 100; // Flat 20% (3 months)
+      totalMonths = 3;
+    }
+  }
+
+  return { monthlyBonus, totalMonths };
+}
+
 
 
 async function processFirstInvestmentBonuses(investorEmail, investment) {
@@ -7852,104 +7926,198 @@ app.get("/admin/onetime-investments", async (req, res) => {
 });
 
 // 🚀 CREATE ONETIME INVESTMENT API (Bonus credited here upon starting investment)
+
+    // নতুন ইনভেস্টমেন্ট তৈরি করার এপিআই
 app.post("/api/onetime/create-investment", async (req, res) => {
   try {
-    const { email, amount, duration, frequency, dailyReturn } = req.body;
-    const cleanEmail = String(email).trim().toLowerCase();
-    const investAmount = Number(amount);
+    const { email, amount, tenureMonths, category } = req.body;
 
-    const user = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, "i") } });
+    if (!email || !amount || !category) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+
+    const cleanEmail = String(email).trim().toLowerCase();
+    const user = await User.findOne({ email: new RegExp(`^${cleanEmail}$`, "i") });
+
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // আগের কোনো অ্যাক্টিভ ইনভেস্টমেন্ট থাকলে কমপ্লিটেড করা (যদি আপনার আগের লজিকে থাকে)
-    if (Array.isArray(user.onetimeHistory)) {
-      user.onetimeHistory.forEach((item) => {
-        if (item.status && item.status.toLowerCase() === "active") {
-          item.status = "Completed";
-        }
-      });
+    const investAmt = Number(amount);
+    const tenure = Number(tenureMonths) || 6;
+
+    // Pro প্ল্যানের জন্য মিনিমাম ১২ মাস নিশ্চিত করা
+    if (category === "pro" && tenure < 12) {
+      return res.status(400).json({ success: false, message: "Pro Investment requires a minimum 12-month tenure." });
     }
 
-    // ওয়ালেট ব্যালেন্স চেক ও ডিডাকশন
-    const currentBalance = Number(user.otbalance || 0);
-    if (currentBalance < investAmount) {
+    // ইউজার ওয়ালেট ব্যালেন্স চেক
+    const userBalance = Number(user.otbalance || user.otBalance || 0);
+    if (userBalance < investAmt) {
       return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
     }
-    user.otbalance = currentBalance - investAmount;
 
-    // 🎁 বোনাস লজিক: ইউজার যদি কারো বোনাস কোড ব্যবহার করে থাকে এবং ইতিপূর্বে বোনাস না দিয়ে থাকে
+    // ডায়নামিক ডেইলি রিটার্ন ক্যালকুলেট করা
+    const { dailyRate, dailyReturnAmount } = calculateDailyReturn(investAmt, tenure, category);
+
+    if (dailyRate === 0) {
+      return res.status(400).json({ success: false, message: "Invalid investment plan or amount" });
+    }
+
+    // ওয়ালেট থেকে টাকা কাটা
+    user.otbalance = userBalance - investAmt;
+
+    const startDate = new Date();
+    const maturityDate = new Date();
+    maturityDate.setMonth(maturityDate.getMonth() + tenure);
+
+    // ১. ইনভেস্টমেন্ট রেকর্ড ডাটাবেসে সেভ
+    const newInvestment = new OneTimeInvestment({
+      email: cleanEmail,
+      amount: investAmt,
+      duration: `${tenure} Months`,
+      durationDays: tenure * 30,
+      rate: dailyRate,
+      dailyReturn: dailyReturnAmount,
+      category,
+      startDate,
+      maturityDate,
+      status: "Active",
+    });
+
+    await newInvestment.save();
+
+    // ইউজার হিস্ট্রিতে যোগ করা
+    if (!Array.isArray(user.onetimeHistory)) user.onetimeHistory = [];
+    user.onetimeHistory.unshift({
+      type: "OneTimeInvestment",
+      amount: investAmt,
+      duration: `${tenure} Months`,
+      status: "Active",
+      createdAt: startDate,
+    });
+
+    // ২. রেফারেল বোনাস সিডিউলিং লজিক
     if (user.hasAppliedBonus && user.usedBonusCode && !user.bonusRewarded) {
       const codeOwner = await User.findOne({
         $or: [
           { bonusCode: user.usedBonusCode },
           { referralCode: user.usedBonusCode },
-          { referCode: user.usedBonusCode }
-        ]
+          { referCode: user.usedBonusCode },
+        ],
       });
 
       if (codeOwner) {
-        // কোডের মালিকের (Referrer) otbalance-এ ৩০০ টাকা যোগ করা
-        codeOwner.otbalance = (Number(codeOwner.otbalance) || 0) + 300;
+        const { monthlyBonus, totalMonths } = calculateBonusConfig(investAmt, category);
 
-        if (!codeOwner.bonusList) codeOwner.bonusList = [];
-        codeOwner.bonusList.push({
-          userId: user._id,
-          name: user.name || "User",
-          email: user.email,
-          amount: 300,
-          createdAt: new Date(),
-          status: "Success"
-        });
+        if (monthlyBonus > 0) {
 
-        await codeOwner.save();
+          // ১ম মাসের বোনাস সাথে সাথে ডিরেক্ট অ্যাকাউন্টে চলে যাবে
+          codeOwner.otbalance = Number(codeOwner.otbalance || 0) + monthlyBonus;
 
-        // যাতে পরবর্তীতে আবার ইনভেস্ট করলে বারবার বোনাস যোগ না হয়
-        user.bonusRewarded = true;
+          if (!Array.isArray(codeOwner.bonusList)) codeOwner.bonusList = [];
+          codeOwner.bonusList.unshift({
+            userId: user._id,
+            name: user.name || "User",
+            email: user.email,
+            amount: monthlyBonus,
+            createdAt: new Date(),
+            status: "Success",
+          });
+
+          await codeOwner.save();
+
+          // ২য় ও ৩য় মাসের বোনাসের জন্য শিডিউল বানিয়ে রাখা
+          if (totalMonths > 1) {
+            const nextPayout = new Date();
+            nextPayout.setMonth(nextPayout.getMonth() + 1); // এক মাস পর
+
+            const bonusRecord = new OneTimeBonus({
+              referrerEmail: codeOwner.email,
+              investorEmail: user.email,
+              investmentAmount: investAmt,
+              category,
+              monthlyBonusAmount: monthlyBonus,
+              totalMonths,
+              monthsPaid: 1, // প্রথম মাস পেইড হয়ে গেছে
+              nextPayoutDate: nextPayout,
+              status: "Active",
+            });
+
+            await bonusRecord.save();
+          }
+
+          user.bonusRewarded = true;
+        }
       }
     }
 
-    // নতুন ইনভেস্টমেন্ট অবজেক্ট তৈরি
-    const durationDays = parseInt(duration) || 15;
-    const startDate = new Date();
-    const maturityObj = new Date(startDate);
-    maturityObj.setDate(maturityObj.getDate() + durationDays);
-
-    const day = String(maturityObj.getDate()).padStart(2, "0");
-    const month = String(maturityObj.getMonth() + 1).padStart(2, "0");
-    const year = maturityObj.getFullYear();
-    const formattedMaturity = `${day}/${month}/${year}`;
-
-    const newInvestment = {
-      _id: new mongoose.Types.ObjectId(),
-      type: "OneTimeInvestment",
-      amount: investAmount,
-      duration: duration || `${durationDays} Days`,
-      durationDays: durationDays,
-      frequency: frequency || "Daily",
-      dailyReturn: Number(dailyReturn || 0),
-      status: "Active",
-      startDate: startDate,
-      maturity: formattedMaturity,
-      maturityDate: formattedMaturity
-    };
-
-    if (!Array.isArray(user.onetimeHistory)) user.onetimeHistory = [];
-    user.onetimeHistory.unshift(newInvestment);
-
-    user.markModified("onetimeHistory");
     await user.save();
 
     return res.status(200).json({
       success: true,
-      message: "INVESTMENT IS SUCCESSFULLY START!",
-      investment: newInvestment
+      message: "INVESTMENT IS SUCCESSFULLY STARTED!",
+      investment: newInvestment,
     });
-
   } catch (error) {
     console.error("Create Investment Error:", error);
     return res.status(500).json({ success: false, message: "Server error creating investment" });
+  }
+});
+
+// ==========================================
+// ৩. অটোমেটেড ব্যাকগ্রাউন্ড সার্ভিস (মাসিক বোনাস প্রসেসিং)
+// ==========================================
+// এটি প্রতি মাসে স্বয়ংক্রিয়ভাবে ২য় ও ৩য় মাসের বোনাস ডিস্ট্রিবিউট করবে
+app.get("/api/onetime/process-monthly-bonuses", async (req, res) => {
+  try {
+    const today = new Date();
+    const activeBonuses = await OneTimeBonus.find({
+      status: "Active",
+      nextPayoutDate: { $lte: today },
+    });
+
+    let processedCount = 0;
+
+    for (let bonus of activeBonuses) {
+      const referrer = await User.findOne({ email: bonus.referrerEmail });
+
+      if (referrer) {
+        // বোনাস ক্রেডিট করা
+        referrer.otbalance = Number(referrer.otbalance || 0) + bonus.monthlyBonusAmount;
+        
+        if (!Array.isArray(referrer.bonusList)) referrer.bonusList = [];
+        referrer.bonusList.unshift({
+          email: bonus.investorEmail,
+          amount: bonus.monthlyBonusAmount,
+          createdAt: new Date(),
+          status: `Success (Month ${bonus.monthsPaid + 1}/${bonus.totalMonths})`,
+        });
+
+        await referrer.save();
+
+        bonus.monthsPaid += 1;
+
+        if (bonus.monthsPaid >= bonus.totalMonths) {
+          bonus.status = "Completed";
+        } else {
+          const nextDate = new Date();
+          nextDate.setMonth(nextDate.getMonth() + 1);
+          bonus.nextPayoutDate = nextDate;
+        }
+
+        await bonus.save();
+        processedCount++;
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: `Processed ${processedCount} monthly bonuses successfully.`,
+    });
+  } catch (error) {
+    console.error("Monthly Bonus Error:", error);
+    return res.status(500).json({ success: false, message: "Server error processing monthly bonuses" });
   }
 });
 
