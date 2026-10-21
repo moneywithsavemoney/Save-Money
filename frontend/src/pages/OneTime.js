@@ -105,6 +105,9 @@ export default function OneTime() {
 
   const [activeInvestment, setActiveInvestment] = useState(null);
 
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [selectedPlanType, setSelectedPlanType] = useState("Beginner");
+
   const [tenure, setTenure] = useState(15);
   const [rate, setRate] = useState(0.6);
   const [frequency, setFrequency] = useState("daily");
@@ -495,14 +498,41 @@ export default function OneTime() {
     });
   }, [history]);
 
-  // NEW DUAL PLAN START INVESTMENT API CALL HANDLER
-  const handleStartCustomInvestment = async (planType, targetAmount, targetDuration, targetDaily) => {
+  const weeklyReturn = useMemo(() => dailyReturn * 7, [dailyReturn]);
+  const totalReturn = useMemo(() => dailyReturn * tenure, [dailyReturn, tenure]);
+  const totalPayout = useMemo(() => Number(amount) + totalReturn, [amount, totalReturn]);
+
+  const handleTenureChange = (e) => {
+    if (isInvestmentLocked) return;
+    const selectedDays = Number(e.target.value);
+    const plan = tenurePlans.find((p) => p.days === selectedDays);
+    if (plan) {
+      setTenure(plan.days);
+      setRate(plan.rate);
+    }
+  };
+
+  const openPlanModal = (planType) => {
+    setSelectedPlanType(planType);
+    if (planType === "Pro") {
+      setAmount(50000);
+      setTenure(40);
+      setRate(1.0);
+    } else {
+      setAmount(7500);
+      setTenure(30);
+      setRate(0.8);
+    }
+    setShowPlanModal(true);
+  };
+
+  const handleStartInvestment = async () => {
     if (isInvestmentLocked) {
       triggerToast("Your investment is currently ongoing. No new investments can be made until it is finished.", "error");
       return;
     }
 
-    if (currentWalletBalance < targetAmount) {
+    if (currentWalletBalance < amount) {
       triggerToast(`Insufficient balance! Your wallet balance is ₹${currentWalletBalance}. Please Add Fund first.`, "error");
       return;
     }
@@ -517,18 +547,19 @@ export default function OneTime() {
         },
         body: JSON.stringify({
           email,
-          planType, // 'Beginner' or 'Pro'
-          amount: Number(targetAmount),
-          duration: `${targetDuration} Days`,
-          frequency: "daily",
-          dailyReturn: targetDaily,
+          planType: selectedPlanType,
+          amount: Number(amount),
+          duration: `${tenure} Days`,
+          frequency,
+          dailyReturn,
           status: "Active"
         })
       });
 
       const data = await res.json();
       if (res.ok || data.success) {
-        triggerToast(`🚀 ${planType} Investment Started Successfully!`, "success");
+        triggerToast(`🚀 ${selectedPlanType} Investment Started Successfully!`, "success");
+        setShowPlanModal(false);
         await loadDashboardData();
       } else {
         triggerToast(data.message || data.msg || "Failed to create investment", "error");
@@ -1307,7 +1338,6 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* MAKE A NEW INVESTMENT SECTION WITH 2 DUAL CARDS MATCHING SCREENSHOT */}
         <section style={styles.darkMainCard}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1358,8 +1388,8 @@ export default function OneTime() {
             </div>
           )}
 
-          {/* DUAL INVESTMENT CARDS MATCHING EXACT SCREENSHOT DESIGN */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+          {/* DUAL INVESTMENT CARDS */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "14px" }}>
             {/* BEGINNER INVESTMENT CARD */}
             <div style={{ background: "#040d1a", border: "1px solid #10b981", borderRadius: "12px", padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
               <div>
@@ -1394,7 +1424,7 @@ export default function OneTime() {
                   marginTop: "8px"
                 }}
                 disabled={investing || isInvestmentLocked}
-                onClick={() => handleStartCustomInvestment("Beginner", 5000, 15, 30)}
+                onClick={() => openPlanModal("Beginner")}
               >
                 {investing ? "Processing..." : isInvestmentLocked ? "🔒 Running" : "Start Beginner ›"}
               </button>
@@ -1434,11 +1464,137 @@ export default function OneTime() {
                   marginTop: "8px"
                 }}
                 disabled={investing || isInvestmentLocked}
-                onClick={() => handleStartCustomInvestment("Pro", 50000, 30, 500)}
+                onClick={() => openPlanModal("Pro")}
               >
                 {investing ? "Processing..." : isInvestmentLocked ? "🔒 Running" : "Start Pro ›"}
               </button>
             </div>
+          </div>
+
+          <div style={styles.formGrid}>
+            <div style={styles.fieldGroup}>
+              <label style={styles.labelDark}>
+                📌 Select Duration {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+              </label>
+              <select
+                style={{
+                  ...styles.selectDark,
+                  ...(isInvestmentLocked ? styles.lockedInputDark : {})
+                }}
+                value={tenure}
+                onChange={handleTenureChange}
+                disabled={isInvestmentLocked}
+              >
+                {tenurePlans.map((p) => (
+                  <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.labelDark}>
+                🔄 Return Frequency {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+              </label>
+              <div style={styles.frequencyToggleDark}>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.freqBtnDark,
+                    ...(frequency === "daily" ? styles.freqBtnActiveDark : {})
+                  }}
+                  onClick={() => !isInvestmentLocked && setFrequency("daily")}
+                  disabled={isInvestmentLocked}
+                >
+                  Daily
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.freqBtnDark,
+                    ...(frequency === "weekly" ? styles.freqBtnActiveDark : {})
+                  }}
+                  onClick={() => !isInvestmentLocked && setFrequency("weekly")}
+                  disabled={isInvestmentLocked}
+                >
+                  Weekly
+                </button>
+              </div>
+            </div>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.labelDark}>
+                💵 Select / Enter Amount {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+              </label>
+              <div 
+                style={styles.amountInputWrapDark} 
+                onClick={() => !isInvestmentLocked && setShowAmountModal(true)}
+              >
+                <span style={{ fontSize: "18px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
+                <input style={styles.amountInputDark} type="text" readOnly value={amount.toLocaleString("en-IN")} />
+                <span style={isInvestmentLocked ? styles.lockedBadgeDark : styles.changeBadgeDark}>
+                  {isInvestmentLocked ? "🔒 Locked" : "Change ⚙️"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.returnContainerDark}>
+            <div style={styles.returnCardContent}>
+              <span style={styles.returnBoxBagIcon}>🪙</span>
+              <div>
+                <div style={styles.returnCardTitleDark}>
+                  You Will Get {frequency === "daily" ? "Daily" : "Weekly"} Return
+                </div>
+                <strong style={styles.returnCardValueDark}>
+                  ₹ {frequency === "daily" ? dailyReturn.toFixed(2) : weeklyReturn.toFixed(2)}
+                </strong>
+                <span style={styles.returnCardNoteDark}>
+                  (Approx. Return Per {frequency === "daily" ? "Day" : "Week"})
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.breakdownGridDark}>
+            <div style={styles.breakBoxDark}>
+              <span style={styles.breakLabelDark}>Investment Amount</span>
+              <strong style={styles.breakValueDark}>₹ {Number(amount).toLocaleString("en-IN")}</strong>
+            </div>
+            <div style={styles.breakBoxDark}>
+              <span style={styles.breakLabelDark}>Duration</span>
+              <strong style={styles.breakValueDark}>{tenure} Days ({rate}%)</strong>
+            </div>
+            <div style={styles.breakBoxDark}>
+              <span style={styles.breakLabelDark}>Total Return</span>
+              <strong style={{ ...styles.breakValueDark, color: "#22c55e" }}>₹ {totalReturn.toLocaleString("en-IN")}</strong>
+            </div>
+            <div style={styles.breakBoxDark}>
+              <span style={styles.breakLabelDark}>Total Payout</span>
+              <strong style={{ ...styles.breakValueDark, color: "#38bdf8" }}>₹ {totalPayout.toLocaleString("en-IN")}</strong>
+            </div>
+          </div>
+
+          <div style={styles.actionGridTriple}>
+            <button 
+              style={{
+                ...styles.startInvestBtnDark,
+                ...(isInvestmentLocked ? styles.disabledBtnDark : {})
+              }} 
+              onClick={handleStartInvestment} 
+              disabled={investing || isInvestmentLocked}
+            >
+              {investing ? "Processing..." : isInvestmentLocked ? "🚀 Active Running" : "🚀 Start Investment"}
+            </button>
+
+            <button style={styles.addInvestBtnDark} onClick={() => setShowAddFundModal(true)}>
+              + Add Fund
+            </button>
+
+            <button style={styles.withdrawBtnDark} onClick={handleWithdrawClick}>
+              ➔ Withdraw
+            </button>
           </div>
         </section>
 
@@ -1524,7 +1680,69 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* 🎁 BONUS MODAL POPUP CONNECTED TO BACKEND */}
+      {/* INVESTMENT PLAN DETAILS MODAL */}
+      {showPlanModal && (
+        <div style={styles.modalOverlay} onClick={() => setShowPlanModal(false)}>
+          <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>
+                🚀 Configure {selectedPlanType} Investment
+              </h3>
+              <button style={styles.closeBtnDark} onClick={() => setShowPlanModal(false)}>✕</button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div>
+                <label style={styles.labelDark}>📌 Select Tenure</label>
+                <select
+                  style={styles.selectDark}
+                  value={tenure}
+                  onChange={(e) => {
+                    const days = Number(e.target.value);
+                    const matched = tenurePlans.find((p) => p.days === days);
+                    if (matched) {
+                      setTenure(matched.days);
+                      setRate(matched.rate);
+                    }
+                  }}
+                >
+                  {tenurePlans.map((p) => (
+                    <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={styles.labelDark}>💵 Select / Enter Amount</label>
+                <div style={styles.amountInputWrapDark} onClick={() => setShowAmountModal(true)}>
+                  <span style={{ fontSize: "18px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
+                  <input style={styles.amountInputDark} type="text" readOnly value={amount.toLocaleString("en-IN")} />
+                  <span style={styles.changeBadgeDark}>Change ⚙️</span>
+                </div>
+              </div>
+
+              <div style={styles.returnContainerDark}>
+                <span style={{ fontSize: "11px", fontWeight: "700" }}>Estimated Daily Return</span>
+                <strong style={{ fontSize: "20px", color: "#22c55e", display: "block" }}>
+                  ₹ {dailyReturn.toFixed(2)} / day
+                </strong>
+              </div>
+
+              <button
+                style={{ ...styles.submitBtnDark, background: selectedPlanType === "Pro" ? "linear-gradient(135deg, #f59e0b, #d97706)" : "#16a34a", color: selectedPlanType === "Pro" ? "#000" : "#fff" }}
+                onClick={handleStartInvestment}
+                disabled={investing}
+              >
+                {investing ? "Processing..." : `Confirm & Start ${selectedPlanType}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🎁 BONUS MODAL POPUP */}
       {showBonusModal && (
         <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
           <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
@@ -2401,6 +2619,172 @@ const styles = {
     fontSize: "12px",
     fontWeight: "bold",
     color: "#f8fafc"
+  },
+  formGrid: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  fieldGroup: {
+    display: "flex",
+    flexDirection: "column"
+  },
+  labelDark: {
+    fontSize: "11px",
+    fontWeight: "700",
+    marginBottom: "4px",
+    color: "#e2e8f0"
+  },
+  selectDark: {
+    height: "40px",
+    borderRadius: "8px",
+    border: "1px solid #334155",
+    background: "#0f2138",
+    color: "#ffffff",
+    padding: "0 10px",
+    fontSize: "13px"
+  },
+  lockedInputDark: {
+    opacity: 0.6,
+    cursor: "not-allowed"
+  },
+  frequencyToggleDark: {
+    display: "flex",
+    gap: "8px",
+    height: "40px"
+  },
+  freqBtnDark: {
+    flex: 1,
+    borderRadius: "8px",
+    border: "1px solid #334155",
+    background: "#0f2138",
+    color: "#cbd5e1",
+    fontSize: "12px",
+    fontWeight: "bold"
+  },
+  freqBtnActiveDark: {
+    background: "#16a34a",
+    color: "#ffffff",
+    borderColor: "#16a34a"
+  },
+  amountInputWrapDark: {
+    height: "40px",
+    borderRadius: "8px",
+    border: "1px solid #334155",
+    background: "#0f2138",
+    padding: "0 10px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  amountInputDark: {
+    border: "none",
+    background: "transparent",
+    fontSize: "14px",
+    fontWeight: "bold",
+    color: "#ffffff",
+    outline: "none",
+    width: "60%"
+  },
+  changeBadgeDark: {
+    fontSize: "11px",
+    color: "#38bdf8",
+    fontWeight: "bold"
+  },
+  lockedBadgeDark: {
+    fontSize: "11px",
+    color: "#ef4444"
+  },
+  returnContainerDark: {
+    background: "#dcfce7",
+    borderRadius: "10px",
+    padding: "12px",
+    textAlign: "center",
+    margin: "12px 0",
+    color: "#166534"
+  },
+  returnCardContent: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px"
+  },
+  returnBoxBagIcon: {
+    fontSize: "24px"
+  },
+  returnCardTitleDark: {
+    fontSize: "12px",
+    fontWeight: "700"
+  },
+  returnCardValueDark: {
+    fontSize: "20px",
+    fontWeight: "900",
+    display: "block"
+  },
+  returnCardNoteDark: {
+    fontSize: "10px"
+  },
+  breakdownGridDark: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px",
+    background: "#040d1a",
+    borderRadius: "8px",
+    padding: "8px",
+    margin: "12px 0"
+  },
+  breakBoxDark: {
+    textAlign: "center"
+  },
+  breakLabelDark: {
+    display: "block",
+    fontSize: "10px",
+    color: "#94a3b8"
+  },
+  breakValueDark: {
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "#ffffff"
+  },
+  actionGridTriple: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "8px"
+  },
+  startInvestBtnDark: {
+    height: "40px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#22c55e",
+    color: "#ffffff",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  disabledBtnDark: {
+    background: "#334155",
+    color: "#94a3b8",
+    cursor: "not-allowed"
+  },
+  addInvestBtnDark: {
+    height: "40px",
+    borderRadius: "8px",
+    border: "none",
+    background: "#2563eb",
+    color: "white",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  withdrawBtnDark: {
+    height: "40px",
+    borderRadius: "8px",
+    background: "#0f172a",
+    border: "1px solid #334155",
+    color: "white",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
   },
   darkHistoryCard: {
     background: "#081628",
