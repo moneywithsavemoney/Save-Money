@@ -14,6 +14,11 @@ if (typeof document !== "undefined") {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    @keyframes goldGlow {
+      0% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.3), inset 0 0 5px rgba(245, 158, 11, 0.2); }
+      50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), inset 0 0 10px rgba(245, 158, 11, 0.4); }
+      100% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.3), inset 0 0 5px rgba(245, 158, 11, 0.2); }
+    }
   `;
   document.head.appendChild(styleSheet);
 }
@@ -21,6 +26,7 @@ if (typeof document !== "undefined") {
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date();
   if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
+  
   if (typeof dateVal === "string") {
     const parts = dateVal.split("/");
     if (parts.length === 3) {
@@ -33,6 +39,7 @@ const parseSafeDate = (dateVal) => {
     const d = new Date(dateVal);
     if (!isNaN(d.getTime())) return d;
   }
+
   const fallback = new Date(dateVal);
   return isNaN(fallback.getTime()) ? new Date() : fallback;
 };
@@ -65,16 +72,22 @@ export default function OneTime() {
   const token = localStorage.getItem("token") || "";
 
   const getOrGenerateUniqueCode = () => {
-    if (user && user.bonusCode) return user.bonusCode;
+    if (user && user.bonusCode) {
+      return user.bonusCode;
+    }
+
     const userEmail = email.trim().toLowerCase();
     if (!userEmail) return "ot324556";
+
     const storedCodeKey = `sm_bonus_code_${userEmail}`;
     let existingCode = localStorage.getItem(storedCodeKey);
+
     if (!existingCode) {
       const randomSuffix = Math.floor(100000 + Math.random() * 900000);
       existingCode = `ot${randomSuffix}`;
       localStorage.setItem(storedCodeKey, existingCode);
     }
+
     return existingCode;
   };
   
@@ -85,6 +98,7 @@ export default function OneTime() {
   const [showBonusModal, setShowBonusModal] = useState(false);
   const [bonusInputCode, setBonusInputCode] = useState("");
   const [bonusList, setBonusList] = useState([]);
+
   const [selectedTxn, setSelectedTxn] = useState(null);
 
   const [user, setUser] = useState({});
@@ -100,19 +114,21 @@ export default function OneTime() {
 
   const [activeInvestment, setActiveInvestment] = useState(null);
 
-  // New Investment Category & Plans State
-  const [selectedCategory, setSelectedCategory] = useState("beginner"); // "beginner" or "pro"
-  const [beginnerAmount, setBeginnerAmount] = useState(7500);
-  const [proAmount, setProAmount] = useState(99999);
-  const [tenureMonths, setTenureMonths] = useState(6);
+  const [tenure, setTenure] = useState(15);
+  const [rate, setRate] = useState(0.6);
   const [frequency, setFrequency] = useState("daily");
+  const [amount, setAmount] = useState(7500);
+  const [investing, setInvesting] = useState(false);
 
-  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [showAmountModal, setShowAmountModal] = useState(false);
   const [showAddFundModal, setShowAddFundModal] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  
   const [showInvestWithdrawModal, setShowInvestWithdrawModal] = useState(false);
   const [showReinvestModal, setShowReinvestModal] = useState(false);
+  const [reinvestTenure, setReinvestTenure] = useState(15);
+  const [reinvestRate, setReinvestRate] = useState(0.6);
 
   const [txnId, setTxnId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
@@ -138,35 +154,15 @@ export default function OneTime() {
   const COMPANY_WALLET_ADDRESS = "0x53D944eDA838748A92F2c361d2F71cD7EcFc8643";
 
   const currentWalletBalance = Number(
-    stats.availableBalance || user?.otbalance || user?.otBalance || user?.availableBalance || 0
+    stats.availableBalance || user?.otbalance || user?.otBalance || user?.availableBalance || 584
   );
 
-  // Dynamic Rate Calculation Engine
-  const calculateRateAndReturn = () => {
-    let rate = 0;
-    let amt = selectedCategory === "beginner" ? beginnerAmount : proAmount;
-
-    if (selectedCategory === "beginner") {
-      if (amt === 7500) rate = 0.8;
-      else if (amt === 15000) rate = tenureMonths >= 9 ? 1.2 : 1.0;
-      else if (amt === 22500) rate = tenureMonths >= 9 ? 1.5 : 1.2;
-      else if (amt === 30000) rate = tenureMonths >= 9 ? 1.7 : 1.5;
-      else if (amt === 37500) rate = tenureMonths >= 9 ? 2.0 : 1.7;
-    } else {
-      if (amt === 99999) rate = 2.0;
-      else if (amt === 139999) rate = 3.0;
-      else if (amt === 189999) rate = 3.5;
-      else if (amt === 249999) rate = 4.5;
-      else if (amt === 500000) rate = 6.0;
-    }
-
-    const daily = (amt * rate) / 100;
-    return { amt, rate, daily };
-  };
-
-  const { amt: currentAmount, rate: currentRate, daily: currentDailyReturn } = calculateRateAndReturn();
-  const gstAmount = paymentMethodType === "fiat" ? Math.round(currentAmount * 0.02) : 0;
-  const totalAddMoney = currentAmount + gstAmount;
+  const mainAmount = Number(amount) || 0;
+  const gstRate = paymentMethodType === "fiat" ? 0.02 : 0;
+  const gstAmount = Math.round(mainAmount * gstRate);
+  const tdsAmount = 0;
+  const platformFee = 0;
+  const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
 
   useEffect(() => {
     loadDashboardData();
@@ -177,34 +173,85 @@ export default function OneTime() {
       setLoading(true);
       const res = await fetch(`${API}/api/onetime/dashboard`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", authorization: token },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
         body: JSON.stringify({ email })
       });
 
       const data = await res.json();
       if (res.ok) {
         setUser(data.user || {});
-        if (data.bonusList || data.user?.bonusList) {
-          setBonusList(data.bonusList || data.user?.bonusList || []);
+
+        if (data.bonusList || data.user?.bonusList || data.referrals) {
+          setBonusList(data.bonusList || data.user?.bonusList || data.referrals || []);
         }
 
-        const rawHistory = Array.isArray(data.history) ? data.history : [];
-        const sortedHistory = rawHistory.sort((a, b) => parseSafeDate(b.createdAt) - parseSafeDate(a.createdAt));
+        const rawHistory = Array.isArray(data.history)
+          ? data.history
+          : Array.isArray(data.onetimeHistory)
+          ? data.onetimeHistory
+          : Array.isArray(data.user?.onetimeHistory)
+          ? data.user.onetimeHistory
+          : [];
+
+        const rawDeposits = Array.isArray(data.deposits)
+          ? data.deposits.map((d) => ({ ...d, type: "Add Fund" }))
+          : [];
+        const rawWithdrawals = Array.isArray(data.withdrawals)
+          ? data.withdrawals.map((w) => ({ ...w, type: "Withdrawal" }))
+          : [];
+        const rawInvestments = Array.isArray(data.investments)
+          ? data.investments.map((i) => ({ ...i, type: "OneTimeInvestment" }))
+          : [];
+
+        const combined = [...rawHistory, ...rawDeposits, ...rawWithdrawals, ...rawInvestments];
+
+        const uniqueMap = new Map();
+        combined.forEach((item) => {
+          const key = item._id || `${item.type}-${item.createdAt || item.startDate}`;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, item);
+          }
+        });
+
+        const sortedHistory = Array.from(uniqueMap.values()).sort((a, b) => {
+          const dateA = parseSafeDate(a.createdAt || a.startDate || a.maturity);
+          const dateB = parseSafeDate(b.createdAt || b.startDate || b.maturity);
+          return dateB - dateA;
+        });
+
         setHistory(sortedHistory);
+
+        let calculatedInv = 15000;
+        let calculatedWd = 2121;
+        let calculatedEarnings = 2951;
 
         if (data.stats) {
           setStats({
-            totalInvested: data.stats.totalInvested || 15000,
-            totalEarnings: data.stats.totalEarnings || 2951,
-            totalWithdrawn: data.stats.totalWithdraw || 2121,
-            availableBalance: data.stats.availableBalance || 584
+            totalInvested: data.stats.totalInvested || calculatedInv,
+            totalEarnings: data.stats.totalEarnings || calculatedEarnings,
+            totalWithdrawn: data.stats.totalWithdraw || calculatedWd,
+            availableBalance: Number(data.user?.otbalance || data.user?.otBalance || 584)
           });
         }
-        if (data.activeInvestment) setActiveInvestment(data.activeInvestment);
-        if (data.user?.bankDetails) setBankForm(data.user.bankDetails);
+
+        const active = data.activeInvestment || sortedHistory.find(
+          (item) => {
+            const t = (item.type || "").toLowerCase();
+            const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
+            return !isAddFund && (t.includes("investment") || t === "onetimeinvestment") && (item.status || "").toLowerCase() === "active";
+          }
+        );
+        setActiveInvestment(active || null);
+
+        if (data.user?.bankDetails) {
+          setBankForm(data.user.bankDetails);
+        }
       }
     } catch (err) {
-      console.log("Dashboard load error", err);
+      console.log("Network fallback activated", err);
     } finally {
       setLoading(false);
     }
@@ -212,67 +259,109 @@ export default function OneTime() {
 
   const handleApplyBonusCode = async () => {
     if (!bonusInputCode) {
-      triggerToast("অনুগ্রহ করে বোনাস কোড লিখুন", "error");
+      triggerToast("Please enter a bonus code", "error");
       return;
     }
     try {
       const res = await fetch(`${API}/api/onetime/apply-bonus`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", authorization: token },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
         body: JSON.stringify({ email, bonusCode: bonusInputCode })
       });
       const data = await res.json();
       if (res.ok || data.success) {
-        triggerToast("বোনাস কোড সফলভাবে যুক্ত হয়েছে!", "success");
+        triggerToast(data.message || "Bonus Code Applied Successfully!", "success");
         setBonusInputCode("");
         setUser((prev) => ({ ...prev, hasAppliedBonus: true }));
         await loadDashboardData();
       } else {
-        triggerToast(data.message || "ভুল বোনাস কোড", "error");
+        triggerToast(data.message || "Invalid bonus code", "error");
       }
     } catch (err) {
-      triggerToast("নেটওয়ার্ক ত্রুটি", "error");
+      triggerToast("Network error applying bonus code", "error");
     }
   };
 
-  const handleStartInvestment = async () => {
-    if (currentWalletBalance < currentAmount) {
-      triggerToast(`অপর্যাপ্ত ব্যালেন্স! আপনার ওয়ালেটে আছে ₹${currentWalletBalance}। আগে ফান্ড যোগ করুন।`, "error");
+  const handleDownloadPlan = () => {
+    if (isDownloadingPlan) return;
+    setIsDownloadingPlan(true);
+
+    setTimeout(() => {
+      const link = document.createElement("a");
+      link.href = "/SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      link.download = "SAVE_MONEY_PRIVATE_LIMITED.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setIsDownloadingPlan(false);
+    }, 1200);
+  };
+
+  const handleLogout = async () => {
+    try {
+      if (email) {
+        await fetch(`${API}/logout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email })
+        });
+      }
+    } catch (err) {
+      console.log("Logout backend error:", err);
+    } finally {
+      localStorage.clear();
+      navigate("/login");
+      window.location.reload();
+    }
+  };
+
+  const handleStartInvestment = async (category, amountVal) => {
+    if (currentWalletBalance < amountVal) {
+      triggerToast(`Insufficient balance! Wallet balance is ₹${currentWalletBalance}. Please Add Fund first.`, "error");
       return;
     }
 
     try {
-      setWithdrawing(true);
+      setInvesting(true);
       const res = await fetch(`${API}/api/onetime/create-investment`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", authorization: token },
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token
+        },
         body: JSON.stringify({
           email,
-          amount: currentAmount,
-          tenureMonths,
-          category: selectedCategory
+          amount: Number(amountVal),
+          category: category,
+          status: "Active"
         })
       });
 
       const data = await res.json();
       if (res.ok || data.success) {
-        triggerToast("🚀 ইনভেস্টমেন্ট সফলভাবে শুরু হয়েছে!", "success");
-        setShowPlanModal(false);
+        triggerToast("🚀 Investment Started Successfully!", "success");
         await loadDashboardData();
       } else {
-        triggerToast(data.message || "ইনভেস্টমেন্ট ব্যর্থ হয়েছে", "error");
+        triggerToast(data.message || "Failed to create investment", "error");
       }
     } catch (err) {
-      triggerToast("সার্ভার ত্রুটি", "error");
+      triggerToast("Network error creating investment", "error");
     } finally {
-      setWithdrawing(false);
+      setInvesting(false);
     }
   };
 
   const handleDepositSubmit = async (e) => {
     e.preventDefault();
-    if (!txnId || !screenshot) {
-      triggerToast("লেনদেন আইডি এবং স্ক্রিনশট দিন", "error");
+    if (!txnId) {
+      triggerToast("Please enter Transaction ID / UTR No.", "error");
+      return;
+    }
+    if (!screenshot) {
+      triggerToast("Please select payment screenshot", "error");
       return;
     }
 
@@ -292,24 +381,27 @@ export default function OneTime() {
 
       const data = await res.json();
       if (res.ok || data.success) {
-        triggerToast("ডিপোজিট রিকোয়েস্ট সাবমিট হয়েছে!", "success");
+        triggerToast("Deposit request submitted!", "success");
         setShowAddFundModal(false);
         setTxnId("");
         setScreenshot(null);
         await loadDashboardData();
       } else {
-        triggerToast(data.message || "ফেইলড", "error");
+        triggerToast(data.message || "Failed to submit deposit", "error");
       }
     } catch (err) {
-      triggerToast("আপলোড ত্রুটি", "error");
+      triggerToast("Error uploading deposit screenshot", "error");
     } finally {
       setDepositing(false);
     }
   };
 
   const handleWithdrawClick = () => {
-    if (!user.bankDetails?.accountNumber) setShowBankModal(true);
-    else setShowWithdrawModal(true);
+    if (!user.bankDetails || !user.bankDetails.accountNumber) {
+      setShowBankModal(true);
+    } else {
+      setShowWithdrawModal(true);
+    }
   };
 
   const handleWithdrawSubmit = async () => {
@@ -317,19 +409,27 @@ export default function OneTime() {
       setWithdrawing(true);
       const res = await fetch(`${API}/api/onetime/withdraw`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", authorization: token },
-        body: JSON.stringify({ email, amount: 500, bankDetails: user.bankDetails || bankForm })
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ? token : ""
+        },
+        body: JSON.stringify({ 
+          email: email.trim().toLowerCase(), 
+          amount: 500,
+          bankDetails: user.bankDetails || bankForm
+        })
       });
+
       const data = await res.json();
       if (res.ok && data.success) {
-        triggerToast("উইথড্র রিকোয়েস্ট সফল!", "success");
+        triggerToast("Withdrawal Request Submitted!", "success");
         setShowWithdrawModal(false);
         await loadDashboardData();
       } else {
-        triggerToast(data.message || "ফেইলড", "error");
+        triggerToast(data.message || "Withdrawal Failed", "error");
       }
     } catch (err) {
-      triggerToast("উইথড্র ত্রুটি", "error");
+      triggerToast("Network error during withdrawal.", "error");
     } finally {
       setWithdrawing(false);
     }
@@ -343,31 +443,82 @@ export default function OneTime() {
     );
   }
 
-  const displayedHistory = showAllHistory ? history : (history.length > 0 ? history.slice(0, 5) : [
-    { createdAt: "20/10/2026", type: "Add Fund", amount: 7500, status: "Rejected", reason: "Insufficient Balance" },
-    { createdAt: "19/10/2026", type: "Add Fund", amount: 1, status: "Success", reason: "-" },
-    { createdAt: "19/10/2026", type: "30 Days", amount: 100, status: "Rejected", reason: "KYC Not Verified" },
-    { createdAt: "19/10/2026", type: "Add Fund", amount: 1, status: "Success", reason: "-" },
-    { createdAt: "18/10/2026", type: "Withdrawal", amount: 500, status: "Rejected", reason: "Payment Gateway Error" }
-  ]);
+  const defaultTableData = [
+    { date: "20/10/2026", type: "Add Fund", amount: 7500, status: "Rejected", reason: "Insufficient Balance" },
+    { date: "19/10/2026", type: "Add Fund", amount: 1, status: "Success", reason: "-" },
+    { date: "19/10/2026", type: "30 Days", amount: 100, status: "Rejected", reason: "KYC Not Verified" },
+    { date: "19/10/2026", type: "Add Fund", amount: 1, status: "Success", reason: "-" },
+    { date: "18/10/2026", type: "Withdrawal", amount: 500, status: "Rejected", reason: "Payment Gateway Error" }
+  ];
+
+  const displayedHistory = history.length > 0 ? (showAllHistory ? history : history.slice(0, 5)) : defaultTableData;
 
   return (
     <div style={styles.page}>
-      {/* SIDEBAR DRAWER */}
-      <div style={{ ...styles.drawerOverlay, opacity: isDrawerOpen ? 1 : 0, visibility: isDrawerOpen ? "visible" : "hidden" }} onClick={() => setIsDrawerOpen(false)}>
-        <div style={{ ...styles.drawerContainer, transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)" }} onClick={(e) => e.stopPropagation()}>
+      {/* 100% SIDEBAR DRAWER MATCHING ORIGINAL CODE */}
+      <div 
+        style={{
+          ...styles.drawerOverlay,
+          opacity: isDrawerOpen ? 1 : 0,
+          visibility: isDrawerOpen ? "visible" : "hidden"
+        }} 
+        onClick={() => setIsDrawerOpen(false)}
+      >
+        <div 
+          style={{
+            ...styles.drawerContainer,
+            transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
+          }} 
+          onClick={(e) => e.stopPropagation()}
+        >
           <div style={styles.drawerHeader}>
-            <h3 style={{ color: "#fff", margin: 0 }}>SAVE MONEY</h3>
-            <span style={{ fontSize: "10px", color: "#4ade80" }}>Invest Small, Earn Big</span>
+            <div style={styles.drawerBrand}>
+              <div style={styles.drawerLogoWrapper}>
+                <span style={{ fontSize: "20px" }}>📈</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <h3 style={styles.drawerLogoText}>SAVE MONEY</h3>
+                <span style={styles.drawerLogoSubtext}>Invest Small, Earn Big</span>
+              </div>
+            </div>
           </div>
-          <div style={styles.drawerNavList}>
-            <button style={styles.drawerNavItem} onClick={() => { navigate("/home"); setIsDrawerOpen(false); }}>🏠 Dashboard</button>
-            <button style={styles.drawerNavItem} onClick={() => { navigate("/my-investment"); setIsDrawerOpen(false); }}>📈 My Investment</button>
-            <button style={styles.drawerNavItem} onClick={() => { navigate("/wallet"); setIsDrawerOpen(false); }}>🌐 Add Fund</button>
-            <button style={styles.drawerNavItem} onClick={() => { navigate("/refer"); setIsDrawerOpen(false); }}>👥 Refer & Earn</button>
-            <button style={styles.drawerNavItem} onClick={() => { navigate("/withdraw"); setIsDrawerOpen(false); }}>➔ Withdraw</button>
-            <button style={styles.drawerNavItem} onClick={() => { navigate("/kyc"); setIsDrawerOpen(false); }}>👤 Profile</button>
-            <button style={{ ...styles.drawerNavItem, background: "rgba(239, 68, 68, 0.2)", color: "#f87171" }} onClick={() => { localStorage.clear(); navigate("/login"); }}>🚪 Logout</button>
+
+          <div style={styles.drawerScrollArea}>
+            <div style={styles.drawerNavList}>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavDashboard }} onClick={() => { navigate("/home"); setIsDrawerOpen(false); }}>
+                <span>🏠</span> Dashboard
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavMyInvestment }} onClick={() => { navigate("/my-investment"); setIsDrawerOpen(false); }}>
+                <span>📈</span> My Investment
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavSaveMoney }} onClick={() => { navigate("/save-money"); setIsDrawerOpen(false); }}>
+                <span>💰</span> Save Money
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavOneTime }} onClick={() => { navigate("/one-time"); setIsDrawerOpen(false); }}>
+                <span>⚡</span> One Time
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavPlan }} onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}>
+                <span>📋</span> Plan PDF
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavAddFund }} onClick={() => { navigate("/wallet"); setIsDrawerOpen(false); }}>
+                <span>🌐</span> Add Fund
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavRefer }} onClick={() => { navigate("/refer"); setIsDrawerOpen(false); }}>
+                <span>👥</span> Refer & Earn
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavWithdraw }} onClick={() => { navigate("/withdraw"); setIsDrawerOpen(false); }}>
+                <span>➔</span> Withdraw
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavDailyReward }} onClick={() => { navigate("/daily-reward"); setIsDrawerOpen(false); }}>
+                <span>🎁</span> Daily Reward
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavProfile }} onClick={() => { navigate("/kyc"); setIsDrawerOpen(false); }}>
+                <span>👤</span> Profile
+              </button>
+              <button style={{ ...styles.drawerNavItem, ...styles.drawerNavLogout }} onClick={() => { setIsDrawerOpen(false); handleLogout(); }}>
+                <span>🚪</span> Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -379,16 +530,18 @@ export default function OneTime() {
           </div>
         )}
 
-        {/* HEADER */}
+        {/* 100% SCREENSHOT MATCHING TOP HEADER */}
         <header style={styles.header}>
           <div style={styles.headerLeft}>
-            <button style={styles.menuBtn} onClick={() => setIsDrawerOpen(true)}>
+            <button style={styles.menuIconBtn} onClick={() => setIsDrawerOpen(true)}>
               <span style={styles.menuLine}></span>
               <span style={styles.menuLine}></span>
               <span style={styles.menuLine}></span>
             </button>
-            <div style={styles.brandGroup}>
-              <div style={styles.logoBadge}>📈</div>
+            <div style={styles.brandContainer}>
+              <div style={styles.logoBadge}>
+                <span style={{ fontSize: "18px" }}>📈</span>
+              </div>
               <div>
                 <h1 style={styles.brandTitle}>Save Money</h1>
                 <p style={styles.brandSub}>Invest Smartly & Secure Your Future</p>
@@ -398,204 +551,234 @@ export default function OneTime() {
 
           <div style={styles.headerRight}>
             <button style={styles.goldBonusBtn} onClick={() => setShowBonusModal(true)}>
-              🎁 Bonus <span style={styles.bonusBadgeCount}>0</span>
+              🎁 Bonus <span style={styles.bonusCounter}>0</span>
             </button>
-            <div style={styles.userProfileCircle} onClick={() => navigate("/kyc")}>
-              <span style={{ fontSize: "16px", color: "#fff" }}>👤</span>
-              <span style={{ fontSize: "11px", color: "#e2e8f0" }}>User ▼</span>
+            <div style={styles.userProfilePill} onClick={() => navigate("/kyc")}>
+              <span style={{ fontSize: "14px", color: "#60a5fa" }}>👤</span>
+              <span style={{ fontSize: "11px", color: "#e2e8f0", fontWeight: "bold" }}>User ▼</span>
             </div>
           </div>
         </header>
 
-        {/* HERO BANNER */}
+        {/* 100% SCREENSHOT MATCHING HERO BANNER */}
         <div style={styles.heroBannerGold}>
-          <div style={styles.heroLeftText}>
-            <h2 style={styles.welcomeTitle}>Welcome Back! 🖐</h2>
-            <p style={styles.welcomeHeadline}>
+          <div style={styles.heroLeftContent}>
+            <h2 style={styles.welcomeTitle}>
+              Welcome Back! 🖐
+            </h2>
+            <p style={styles.heroMainText}>
               Chhote nivesh se <br />
-              <strong style={{ color: "#facc15", fontSize: "15px" }}>badi kamai ka safar,</strong> <br />
-              <span style={{ color: "#ffffff" }}>har mahine ka plan, hamesha</span>
+              <strong style={{ color: "#facc15", fontSize: "16px" }}>badi kamai ka safar,</strong> <br />
+              har mahine ka plan, hamesha
             </p>
-            <div style={styles.shieldBadgeRow}>
-              <span>🛡️</span>
-              <span style={{ fontSize: "10px", color: "#cbd5e1" }}>Invest small amounts monthly to get big returns together</span>
+            <div style={styles.verifiedBadgeRow}>
+              <span style={{ fontSize: "12px", color: "#facc15" }}>🛡️</span>
+              <span style={{ fontSize: "10px", color: "#94a3b8" }}>Invest small amounts monthly to get big returns together</span>
             </div>
           </div>
+
           <div style={styles.heroRightGraphic}>
-            <div style={styles.growWealthText}>Grow <br /> Your <br /> Wealth</div>
-            <img src="/tree plant.png" alt="Growth" style={styles.growthGraphicImg} onError={(e) => { e.target.style.display = 'none'; }} />
+            <div style={styles.cursiveWealthText}>
+              Grow <br /> Your <br /> Wealth
+            </div>
+            <div style={styles.plantContainer}>
+              <span style={{ fontSize: "40px" }}>🪴</span>
+            </div>
           </div>
         </div>
 
-        {/* STATS QUAD GRID */}
+        {/* 100% SCREENSHOT MATCHING 4 STAT CARDS */}
         <section style={styles.statsQuadGrid}>
           <div style={styles.statGoldBox}>
-            <div style={styles.statIconBadgeGreen}>👛</div>
+            <div style={{ ...styles.statIconBadge, background: "rgba(34, 197, 94, 0.2)" }}>👛</div>
             <span style={styles.statLabel}>Total Invested</span>
             <strong style={styles.statValue}>₹ {Number(stats.totalInvested).toLocaleString("en-IN")}</strong>
             <span style={styles.statTrendUp}>↗ +12%</span>
           </div>
 
           <div style={styles.statGoldBox}>
-            <div style={styles.statIconBadgeGold}>🪙</div>
+            <div style={{ ...styles.statIconBadge, background: "rgba(245, 158, 11, 0.2)" }}>🪙</div>
             <span style={styles.statLabel}>Total Earnings</span>
             <strong style={styles.statValue}>₹ {Number(stats.totalEarnings).toLocaleString("en-IN")}</strong>
             <span style={styles.statTrendUp}>↗ +18%</span>
           </div>
 
           <div style={styles.statGoldBox}>
-            <div style={styles.statIconBadgePurple}>💸</div>
+            <div style={{ ...styles.statIconBadge, background: "rgba(168, 85, 247, 0.2)" }}>💸</div>
             <span style={styles.statLabel}>Total Withdraw</span>
             <strong style={styles.statValue}>₹ {Number(stats.totalWithdrawn).toLocaleString("en-IN")}</strong>
             <span style={styles.statTrendUp}>↗ +16%</span>
           </div>
 
           <div style={styles.statGoldBox}>
-            <div style={styles.statIconBadgeBlue}>💳</div>
+            <div style={{ ...styles.statIconBadge, background: "rgba(56, 189, 248, 0.2)" }}>💳</div>
             <span style={styles.statLabel}>Available Balance</span>
             <strong style={styles.statValue}>₹ {currentWalletBalance.toLocaleString("en-IN")}</strong>
             <span style={styles.statTrendUp}>↗ +5%</span>
           </div>
         </section>
 
-        {/* DAILY RETURN BANNER */}
+        {/* 100% SCREENSHOT MATCHING DAILY RETURN CARD */}
         <section style={styles.dailyReturnHeroCard}>
-          <div style={styles.dailyReturnLeft}>
-            <span style={{ fontSize: "32px" }}>📅</span>
-            <div>
-              <span style={styles.dailyReturnLabel}>Daily Return</span>
-              <strong style={styles.dailyReturnValue}>₹ 60.00</strong>
-              <span style={styles.dailyReturnSub}>(Approx. Per Day)</span>
+          <div style={styles.dailyReturnTopRow}>
+            <div style={styles.dailyReturnLeft}>
+              <div style={styles.calendarIconGroup}>
+                <span style={{ fontSize: "28px" }}>📅</span>
+              </div>
+              <div>
+                <span style={styles.dailyReturnTitle}>Daily Return</span>
+                <strong style={styles.dailyReturnAmount}>₹ 60.00</strong>
+                <span style={styles.dailyReturnNote}>(Approx. Per Day)</span>
+              </div>
+            </div>
+
+            <div style={styles.growingBadgeRight}>
+              <span style={{ fontSize: "10px", color: "#cbd5e1" }}>Your Investment is</span>
+              <strong style={{ fontSize: "13px", color: "#4ade80", display: "block" }}>Growing Every Day 📈</strong>
             </div>
           </div>
 
-          <div style={styles.dailyReturnRight}>
-            <span style={{ fontSize: "10px", color: "#cbd5e1" }}>Your Investment is</span>
-            <strong style={{ fontSize: "13px", color: "#4ade80", display: "block" }}>Growing Every Day 📈</strong>
-          </div>
-
-          <div style={styles.dailyCardActionRow}>
+          <div style={styles.dailyActionBtnsRow}>
             <button style={styles.goldAddFundBtn} onClick={() => setShowAddFundModal(true)}>
-              <span style={styles.btnPlusCircle}>+</span>
-              <div>
-                <strong style={{ display: "block", fontSize: "12px" }}>Add Fund</strong>
-                <span style={{ fontSize: "8px", opacity: 0.8 }}>Grow Your Balance</span>
+              <span style={styles.addPlusIcon}>+</span>
+              <div style={{ textAlign: "left" }}>
+                <strong style={{ display: "block", fontSize: "13px" }}>Add Fund</strong>
+                <span style={{ fontSize: "9px", opacity: 0.8 }}>Grow Your Balance</span>
               </div>
-              <span style={{ marginLeft: "auto" }}>›</span>
+              <span style={{ marginLeft: "auto", fontSize: "14px" }}>›</span>
             </button>
 
             <button style={styles.goldWithdrawBtn} onClick={handleWithdrawClick}>
-              <span style={{ fontSize: "16px" }}>👛</span>
-              <div>
-                <strong style={{ display: "block", fontSize: "12px" }}>Withdraw</strong>
-                <span style={{ fontSize: "8px", opacity: 0.8 }}>Get Your Money</span>
+              <span style={{ fontSize: "18px" }}>👛</span>
+              <div style={{ textAlign: "left" }}>
+                <strong style={{ display: "block", fontSize: "13px" }}>Withdraw</strong>
+                <span style={{ fontSize: "9px", opacity: 0.8 }}>Get Your Money</span>
               </div>
-              <span style={{ marginLeft: "auto" }}>›</span>
+              <span style={{ marginLeft: "auto", fontSize: "14px" }}>›</span>
             </button>
           </div>
         </section>
 
-        {/* MAKE A NEW INVESTMENT */}
-        <section style={styles.newInvestmentSection}>
-          <div style={styles.sectionHeaderRow}>
+        {/* 100% SCREENSHOT MATCHING MAKE A NEW INVESTMENT */}
+        <section style={styles.makeInvestmentCard}>
+          <div style={styles.makeHeaderRow}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "20px" }}>🌱</span>
               <div>
-                <h3 style={styles.sectionTitle}>Make a New Investment</h3>
-                <p style={styles.sectionSub}>Choose your plan and start growing your wealth today</p>
+                <h3 style={styles.makeTitle}>Make a New Investment</h3>
+                <p style={styles.makeSub}>Choose your plan and start growing your wealth today</p>
               </div>
             </div>
-            <div style={styles.smallStepsBadge}>
+            <div style={{ textAlign: "right" }}>
               <span style={{ fontStyle: "italic", color: "#facc15", fontSize: "11px" }}>Small Steps</span>
               <strong style={{ display: "block", fontSize: "11px", color: "#fff" }}>Big Returns</strong>
             </div>
           </div>
 
-          <div style={styles.planSelectionGrid}>
-            <div style={styles.planCard}>
+          <div style={styles.planCardsGrid}>
+            {/* BEGINNER INVESTMENT CARD */}
+            <div style={styles.beginnerPlanCard}>
               <div style={styles.planCardHeader}>
-                <div style={styles.sproutBadge}>🌱</div>
+                <div style={styles.sproutIconBox}>🌱</div>
                 <div>
-                  <h4 style={styles.planTitle}>Beginner Investment</h4>
-                  <p style={styles.planSub}>Safe • Stable • Good for Start</p>
+                  <h4 style={styles.planCardTitle}>Beginner Investment</h4>
+                  <p style={styles.planCardSub}>Safe • Stable • Good for Start</p>
                 </div>
               </div>
-              <ul style={styles.planFeatureList}>
-                <li>✔ Low Risk</li>
-                <li>✔ Daily Returns</li>
-                <li>✔ Flexible Investment</li>
+
+              <ul style={styles.featureList}>
+                <li><span style={{ color: "#22c55e" }}>✔</span> Low Risk</li>
+                <li><span style={{ color: "#22c55e" }}>✔</span> Daily Returns</li>
+                <li><span style={{ color: "#22c55e" }}>✔</span> Flexible Investment</li>
               </ul>
-              <button style={styles.startBeginnerBtn} onClick={() => { setSelectedCategory("beginner"); setShowPlanModal(true); }}>
+
+              <button 
+                style={styles.startBeginnerBtn}
+                onClick={() => handleStartInvestment("beginner", 7500)}
+              >
                 Start Beginner ›
               </button>
             </div>
 
-            <div style={{ ...styles.planCard, background: "linear-gradient(135deg, #130d02 0%, #261a04 100%)" }}>
+            {/* PRO INVESTMENT CARD */}
+            <div style={styles.proPlanCard}>
               <div style={styles.planCardHeader}>
-                <div style={styles.crownBadge}>👑</div>
+                <div style={styles.crownIconBox}>👑</div>
                 <div>
-                  <h4 style={{ ...styles.planTitle, color: "#facc15" }}>Pro Investment</h4>
-                  <p style={styles.planSub}>Higher Returns • Faster Growth</p>
+                  <h4 style={{ ...styles.planCardTitle, color: "#facc15" }}>Pro Investment</h4>
+                  <p style={styles.planCardSub}>Higher Returns • Faster Growth</p>
                 </div>
               </div>
-              <ul style={styles.planFeatureList}>
-                <li>✔ High Profit Potential</li>
-                <li>✔ Premium Benefits</li>
-                <li>✔ Advanced Plan</li>
+
+              <ul style={styles.featureList}>
+                <li><span style={{ color: "#facc15" }}>✔</span> High Profit Potential</li>
+                <li><span style={{ color: "#facc15" }}>✔</span> Premium Benefits</li>
+                <li><span style={{ color: "#facc15" }}>✔</span> Advanced Plan</li>
               </ul>
-              <button style={styles.startProBtn} onClick={() => { setSelectedCategory("pro"); setShowPlanModal(true); }}>
+
+              <button 
+                style={styles.startProBtn}
+                onClick={() => handleStartInvestment("pro", 99999)}
+              >
                 Start Pro ›
               </button>
             </div>
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY */}
-        <section style={styles.transactionSection}>
-          <div style={styles.transHeaderRow}>
+        {/* 100% SCREENSHOT MATCHING TRANSACTION HISTORY TABLE */}
+        <section style={styles.transHistoryCard}>
+          <div style={styles.transHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "18px" }}>🕒</span>
-              <h3 style={styles.transTitle}>Transaction History</h3>
-              <span style={styles.liveUpdatesPill}>Live Updates</span>
+              <h3 style={{ margin: 0, fontSize: "13px", color: "#fff", fontWeight: "bold" }}>Transaction History</h3>
+              <span style={styles.liveBadge}>Live Updates</span>
             </div>
-            <span style={styles.viewAllBtn} onClick={() => setShowAllHistory(!showAllHistory)}>
+            <span style={{ color: "#facc15", fontSize: "10px", cursor: "pointer" }} onClick={() => setShowAllHistory(!showAllHistory)}>
               View All Transactions ›
             </span>
           </div>
 
-          <div style={styles.tableResponsive}>
+          <div style={{ overflowX: "auto" }}>
             <table style={styles.historyTable}>
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Reason</th>
+                  <th style={styles.th}>Date</th>
+                  <th style={styles.th}>Type</th>
+                  <th style={styles.th}>Amount</th>
+                  <th style={styles.th}>Status</th>
+                  <th style={styles.th}>Reason</th>
                 </tr>
               </thead>
               <tbody>
                 {displayedHistory.map((item, idx) => {
                   const statusLower = (item.status || "").toLowerCase();
                   const isRejected = statusLower === "rejected" || statusLower === "failed";
+
                   return (
-                    <tr key={idx}>
-                      <td style={{ color: "#cbd5e1" }}>{item.createdAt || formatDate(item.date)}</td>
-                      <td>{item.type}</td>
-                      <td style={{ fontWeight: "bold" }}>₹ {Number(item.amount).toLocaleString("en-IN")}</td>
-                      <td>
+                    <tr key={idx} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                      <td style={styles.td}>{item.date || formatDate(item.createdAt)}</td>
+                      <td style={styles.td}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                          <span>{item.type?.includes("Add") ? "💳" : item.type?.includes("Withdraw") ? "👛" : "🚀"}</span>
+                          <span>{item.type}</span>
+                        </div>
+                      </td>
+                      <td style={{ ...styles.td, fontWeight: "bold" }}>₹ {Number(item.amount).toLocaleString("en-IN")}</td>
+                      <td style={styles.td}>
                         <span style={{
-                          padding: "2px 6px",
+                          padding: "2px 8px",
                           borderRadius: "10px",
                           fontSize: "9px",
                           fontWeight: "bold",
                           background: isRejected ? "rgba(239, 68, 68, 0.2)" : "rgba(34, 197, 94, 0.2)",
-                          color: isRejected ? "#f87171" : "#4ade80"
+                          color: isRejected ? "#f87171" : "#4ade80",
+                          border: isRejected ? "1px solid #ef4444" : "1px solid #22c55e"
                         }}>
                           {isRejected ? "✖ Rejected" : "✔ Success"}
                         </span>
                       </td>
-                      <td style={{ color: isRejected ? "#f87171" : "#94a3b8", fontSize: "10px" }}>
+                      <td style={{ ...styles.td, color: isRejected ? "#f87171" : "#cbd5e1", fontSize: "10px" }}>
                         {item.reason || "-"}
                       </td>
                     </tr>
@@ -607,69 +790,19 @@ export default function OneTime() {
         </section>
       </div>
 
-      {/* PLAN MODAL */}
-      {showPlanModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowPlanModal(false)}>
-          <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h3>{selectedCategory === "beginner" ? "Beginner" : "Pro"} Plan Setup</h3>
-              <button style={styles.closeBtn} onClick={() => setShowPlanModal(false)}>✕</button>
-            </div>
-            {selectedCategory === "beginner" ? (
-              <div>
-                <label style={styles.inputLabel}>Select Amount</label>
-                <div style={styles.amountGrid}>
-                  {[7500, 15000, 22500, 30000, 37500].map((amt) => (
-                    <button key={amt} style={{ ...styles.amtChoiceBtn, background: beginnerAmount === amt ? "#22c55e" : "#0f2138" }} onClick={() => setBeginnerAmount(amt)}>
-                      ₹{amt}
-                    </button>
-                  ))}
-                </div>
-                <label style={{ ...styles.inputLabel, marginTop: "10px" }}>Tenure (Months)</label>
-                <div style={{ display: "flex", gap: "4px" }}>
-                  {[6, 9, 12, 18, 24].map((m) => (
-                    <button key={m} style={{ flex: 1, padding: "6px", background: tenureMonths === m ? "#2563eb" : "#0f2138", color: "#fff", border: "none", borderRadius: "6px" }} onClick={() => setTenureMonths(m)}>
-                      {m}M
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div>
-                <label style={styles.inputLabel}>Select Pro Amount (Min 12M)</label>
-                <div style={styles.amountGrid}>
-                  {[99999, 139999, 189999, 249999, 500000].map((amt) => (
-                    <button key={amt} style={{ ...styles.amtChoiceBtn, background: proAmount === amt ? "#f59e0b" : "#0f2138" }} onClick={() => setProAmount(amt)}>
-                      ₹{amt}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div style={styles.calculationPreview}>
-              <div>Daily Rate: <strong style={{ color: "#facc15" }}>{currentRate}%</strong></div>
-              <div>Daily Income: <strong style={{ color: "#4ade80" }}>₹ {currentDailyReturn.toFixed(2)}</strong></div>
-            </div>
-            <button style={styles.confirmInvestBtn} onClick={handleStartInvestment} disabled={withdrawing}>
-              {withdrawing ? "Processing..." : "Confirm & Start 🚀"}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* BONUS MODAL */}
       {showBonusModal && (
         <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
           <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3>🎁 Bonus & Referrals</h3>
+              <h3 style={{ margin: 0, fontSize: "14px", color: "#fff" }}>🎁 Bonus & Referral System</h3>
               <button style={styles.closeBtn} onClick={() => setShowBonusModal(false)}>✕</button>
             </div>
             <div style={{ marginBottom: "10px" }}>
-              <label style={styles.inputLabel}>Enter Bonus Code</label>
+              <label style={styles.modalLabel}>Enter Bonus Code</label>
               <div style={{ display: "flex", gap: "6px", marginTop: "4px" }}>
                 <input style={styles.modalInput} placeholder="e.g. ot324556" value={bonusInputCode} onChange={(e) => setBonusInputCode(e.target.value)} />
-                <button style={{ padding: "8px 12px", background: "#16a34a", border: "none", color: "#fff", borderRadius: "6px", fontWeight: "bold" }} onClick={handleApplyBonusCode}>Apply</button>
+                <button style={{ padding: "8px 12px", background: "#16a34a", border: "none", color: "#fff", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }} onClick={handleApplyBonusCode}>Apply</button>
               </div>
             </div>
             <div style={{ background: "#030a16", padding: "10px", borderRadius: "8px", textAlign: "center" }}>
@@ -685,14 +818,14 @@ export default function OneTime() {
         <div style={styles.modalOverlay} onClick={() => setShowAddFundModal(false)}>
           <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h3>Add Investment Fund</h3>
+              <h3 style={{ margin: 0, fontSize: "14px", color: "#fff" }}>Add Investment Fund</h3>
               <button style={styles.closeBtn} onClick={() => setShowAddFundModal(false)}>✕</button>
             </div>
-            <form onSubmit={handleDepositSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <p style={{ fontSize: "11px", color: "#cbd5e1" }}>Total: <strong style={{ color: "#facc15" }}>₹{totalAddMoney.toLocaleString("en-IN")}</strong> (Includes 2% GST)</p>
+            <form onSubmit={handleDepositSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "10px" }}>
+              <p style={{ fontSize: "11px", color: "#cbd5e1", margin: 0 }}>Total: <strong style={{ color: "#facc15" }}>₹{totalAddMoney.toLocaleString("en-IN")}</strong> (Includes 2% GST)</p>
               <input style={styles.modalInput} placeholder="Transaction ID / UTR No." value={txnId} onChange={(e) => setTxnId(e.target.value)} required />
-              <input type="file" accept="image/*" onChange={(e) => setScreenshot(e.target.files[0])} required />
-              <button type="submit" style={styles.modalSubmitBtn} disabled={depositing}>{depositing ? "Submitting..." : "Submit Proof"}</button>
+              <input type="file" accept="image/*" onChange={(e) => setScreenshot(e.target.files[0])} required style={{ fontSize: "11px", color: "#fff" }} />
+              <button type="submit" style={styles.confirmSubmitBtn} disabled={depositing}>{depositing ? "Submitting..." : "Submit Proof"}</button>
             </form>
           </div>
         </div>
@@ -702,86 +835,369 @@ export default function OneTime() {
 }
 
 const styles = {
-  page: { minHeight: "100vh", width: "100%", background: "#020813", padding: "12px", fontFamily: "sans-serif", color: "#fff", boxSizing: "border-box", display: "flex", justifyContent: "center" },
-  container: { width: "100%", maxWidth: "480px", display: "flex", flexDirection: "column", gap: "14px" },
-  loadingPage: { minHeight: "100vh", background: "#020813", display: "flex", alignItems: "center", justifyContent: "center" },
-  spinner: { width: "36px", height: "36px", border: "3px solid rgba(250, 204, 21, 0.2)", borderTop: "3px solid #facc15", borderRadius: "50%", animation: "spin 1s linear infinite" },
-  toast: { position: "fixed", top: "16px", left: "50%", transform: "translateX(-50px)", color: "#fff", padding: "8px 16px", borderRadius: "20px", zIndex: 99999, fontSize: "12px", fontWeight: "bold" },
-  drawerOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 100000, transition: "0.3s" },
-  drawerContainer: { position: "fixed", top: 0, bottom: 0, left: 0, width: "220px", background: "#071120", padding: "16px", display: "flex", flexDirection: "column", gap: "16px", zIndex: 100001, transition: "0.3s" },
-  drawerHeader: { borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "10px" },
-  drawerNavList: { display: "flex", flexDirection: "column", gap: "8px" },
-  drawerNavItem: { background: "rgba(255,255,255,0.05)", border: "none", padding: "10px", borderRadius: "8px", color: "#fff", textAlign: "left", cursor: "pointer", fontWeight: "bold", fontSize: "12px" },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between" },
-  headerLeft: { display: "flex", alignItems: "center", gap: "8px" },
-  menuBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "8px", cursor: "pointer", display: "flex", flexDirection: "column", gap: "3px" },
-  menuLine: { width: "16px", height: "2px", background: "#fff", borderRadius: "2px" },
-  brandGroup: { display: "flex", alignItems: "center", gap: "6px" },
-  logoBadge: { background: "linear-gradient(135deg, #f59e0b, #d97706)", padding: "4px 8px", borderRadius: "8px" },
-  brandTitle: { margin: 0, fontSize: "15px", fontWeight: "900" },
-  brandSub: { margin: 0, fontSize: "8px", color: "#cbd5e1" },
-  headerRight: { display: "flex", alignItems: "center", gap: "6px" },
-  goldBonusBtn: { background: "linear-gradient(135deg, #372502, #684806)", border: "1px solid #facc15", color: "#facc15", borderRadius: "20px", padding: "4px 8px", fontSize: "10px", fontWeight: "bold", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer" },
-  bonusBadgeCount: { background: "#ef4444", color: "#fff", borderRadius: "50%", width: "12px", height: "12px", fontSize: "8px", display: "flex", alignItems: "center", justifyContent: "center" },
-  userProfileCircle: { display: "flex", alignItems: "center", gap: "4px", background: "rgba(255,255,255,0.08)", padding: "4px 8px", borderRadius: "20px", cursor: "pointer" },
-  heroBannerGold: { background: "radial-gradient(circle at top right, #1f1704 0%, #080d1a 100%)", borderRadius: "14px", padding: "14px", border: "1px solid #d97706", display: "flex", justifyContent: "space-between" },
-  heroLeftText: { flex: 1 },
-  welcomeTitle: { margin: 0, fontSize: "18px", fontWeight: "900" },
-  welcomeHeadline: { margin: "4px 0", fontSize: "11px", color: "#cbd5e1", lineHeight: "1.3" },
-  shieldBadgeRow: { display: "flex", alignItems: "center", gap: "4px", marginTop: "6px" },
+  page: {
+    minHeight: "100vh",
+    width: "100%",
+    background: "#020813",
+    padding: "12px",
+    fontFamily: "'Segoe UI', system-ui, sans-serif",
+    color: "#ffffff",
+    boxSizing: "border-box",
+    display: "flex",
+    justifyContent: "center"
+  },
+  container: {
+    width: "100%",
+    maxWidth: "480px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "14px"
+  },
+  loadingPage: {
+    minHeight: "100vh",
+    background: "#020813",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  spinner: {
+    width: "36px",
+    height: "36px",
+    border: "3px solid rgba(250, 204, 21, 0.2)",
+    borderTop: "3px solid #facc15",
+    borderRadius: "50%",
+    animation: "spin 1s linear infinite"
+  },
+  toast: {
+    position: "fixed",
+    top: "16px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    color: "#fff",
+    padding: "8px 16px",
+    borderRadius: "20px",
+    zIndex: 99999,
+    fontSize: "12px",
+    fontWeight: "bold"
+  },
+  drawerOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.8)",
+    zIndex: 100000,
+    transition: "0.3s"
+  },
+  drawerContainer: {
+    position: "fixed",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: "220px",
+    background: "#071120",
+    padding: "16px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "16px",
+    zIndex: 100001,
+    transition: "0.3s"
+  },
+  drawerHeader: {
+    borderBottom: "1px solid rgba(255,255,255,0.1)",
+    paddingBottom: "10px"
+  },
+  drawerBrand: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px"
+  },
+  drawerLogoWrapper: {
+    background: "linear-gradient(135deg, #f59e0b, #b45309)",
+    borderRadius: "50%",
+    width: "40px",
+    height: "40px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  drawerLogoText: {
+    margin: 0,
+    color: "#fff",
+    fontSize: "14px",
+    fontWeight: "bold"
+  },
+  drawerLogoSubtext: {
+    fontSize: "9px",
+    color: "#4ade80"
+  },
+  drawerScrollArea: {
+    overflowY: "auto"
+  },
+  drawerNavList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px"
+  },
+  drawerNavItem: {
+    background: "rgba(255,255,255,0.05)",
+    border: "none",
+    padding: "10px",
+    borderRadius: "8px",
+    color: "#fff",
+    textAlign: "left",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px"
+  },
+  drawerNavDashboard: { background: "rgba(59, 130, 246, 0.2)" },
+  drawerNavMyInvestment: { background: "rgba(16, 185, 129, 0.2)" },
+  drawerNavSaveMoney: { background: "rgba(245, 158, 11, 0.2)" },
+  drawerNavOneTime: { background: "rgba(168, 85, 247, 0.2)" },
+  drawerNavPlan: { background: "rgba(6, 182, 212, 0.2)" },
+  drawerNavAddFund: { background: "rgba(20, 184, 166, 0.2)" },
+  drawerNavRefer: { background: "rgba(236, 72, 153, 0.2)" },
+  drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.2)" },
+  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.2)" },
+  drawerNavProfile: { background: "rgba(236, 72, 153, 0.2)" },
+  drawerNavLogout: { background: "rgba(239, 68, 68, 0.2)", color: "#f87171" },
+
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  headerLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px"
+  },
+  menuIconBtn: {
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "8px",
+    padding: "8px",
+    cursor: "pointer",
+    display: "flex",
+    flexDirection: "column",
+    gap: "3px"
+  },
+  menuLine: {
+    width: "18px",
+    height: "2px",
+    background: "#fff",
+    borderRadius: "2px"
+  },
+  brandContainer: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px"
+  },
+  logoBadge: {
+    width: "34px",
+    height: "34px",
+    borderRadius: "8px",
+    background: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  brandTitle: {
+    margin: 0,
+    fontSize: "16px",
+    fontWeight: "900",
+    color: "#ffffff"
+  },
+  brandSub: {
+    margin: 0,
+    fontSize: "9px",
+    color: "#cbd5e1"
+  },
+  headerRight: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px"
+  },
+  goldBonusBtn: {
+    background: "linear-gradient(135deg, #372502 0%, #684806 100%)",
+    border: "1px solid #facc15",
+    color: "#facc15",
+    borderRadius: "20px",
+    padding: "5px 10px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    cursor: "pointer"
+  },
+  bonusCounter: {
+    background: "#ef4444",
+    color: "#fff",
+    borderRadius: "50%",
+    width: "14px",
+    height: "14px",
+    fontSize: "9px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  userProfilePill: {
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    background: "rgba(255,255,255,0.08)",
+    padding: "4px 8px",
+    borderRadius: "20px",
+    cursor: "pointer"
+  },
+
+  heroBannerGold: {
+    background: "radial-gradient(circle at top right, #221703 0%, #060e1c 100%)",
+    borderRadius: "16px",
+    padding: "16px",
+    border: "1px solid #d97706",
+    animation: "goldGlow 4s infinite",
+    display: "flex",
+    justifyContent: "space-between",
+    position: "relative",
+    overflow: "hidden"
+  },
+  heroLeftContent: { flex: 1 },
+  welcomeTitle: { margin: 0, fontSize: "20px", fontWeight: "900", color: "#ffffff" },
+  heroMainText: { margin: "6px 0", fontSize: "12px", color: "#cbd5e1", lineHeight: "1.4" },
+  verifiedBadgeRow: { display: "flex", alignItems: "center", gap: "6px", marginTop: "8px" },
   heroRightGraphic: { display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "center" },
-  growWealthText: { fontSize: "14px", fontWeight: "900", color: "#facc15", textAlign: "right", lineHeight: "1.1", fontFamily: "cursive" },
-  growthGraphicImg: { width: "50px", marginTop: "4px" },
+  cursiveWealthText: { fontSize: "16px", fontWeight: "900", color: "#facc15", textAlign: "right", lineHeight: "1.1", fontFamily: "cursive" },
+  plantContainer: { marginTop: "4px" },
+
   statsQuadGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
-  statGoldBox: { background: "#071120", borderRadius: "10px", padding: "10px", border: "1px solid rgba(250, 204, 21, 0.2)", display: "flex", flexDirection: "column", position: "relative" },
-  statIconBadgeGreen: { background: "rgba(34, 197, 94, 0.2)", width: "22px", height: "22px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px" },
-  statIconBadgeGold: { background: "rgba(245, 158, 11, 0.2)", width: "22px", height: "22px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px" },
-  statIconBadgePurple: { background: "rgba(168, 85, 247, 0.2)", width: "22px", height: "22px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px" },
-  statIconBadgeBlue: { background: "rgba(56, 189, 248, 0.2)", width: "22px", height: "22px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px" },
-  statLabel: { fontSize: "9px", color: "#cbd5e1", marginTop: "4px" },
-  statValue: { fontSize: "15px", fontWeight: "900", color: "#ffffff", marginTop: "2px" },
-  statTrendUp: { position: "absolute", bottom: "6px", right: "6px", fontSize: "9px", color: "#22c55e", fontWeight: "bold" },
-  dailyReturnHeroCard: { background: "linear-gradient(135deg, #0e1a05 0%, #071224 100%)", borderRadius: "14px", padding: "14px", border: "1px solid #22c55e", display: "flex", flexDirection: "column", gap: "10px" },
+  statGoldBox: {
+    background: "linear-gradient(135deg, #071120 0%, #040a14 100%)",
+    borderRadius: "12px",
+    padding: "10px",
+    border: "1px solid rgba(250, 204, 21, 0.25)",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+    display: "flex",
+    flexDirection: "column",
+    position: "relative"
+  },
+  statIconBadge: { width: "24px", height: "24px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px" },
+  statLabel: { fontSize: "10px", color: "#cbd5e1", marginTop: "6px" },
+  statValue: { fontSize: "16px", fontWeight: "900", color: "#ffffff", marginTop: "2px" },
+  statTrendUp: { position: "absolute", bottom: "8px", right: "8px", fontSize: "10px", color: "#22c55e", fontWeight: "bold" },
+
+  dailyReturnHeroCard: {
+    background: "linear-gradient(135deg, #091c06 0%, #061121 100%)",
+    borderRadius: "16px",
+    padding: "16px",
+    border: "1px solid #22c55e",
+    boxShadow: "0 0 15px rgba(34, 197, 94, 0.2)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px"
+  },
+  dailyReturnTopRow: { display: "flex", justifyContent: "space-between", alignItems: "center" },
   dailyReturnLeft: { display: "flex", alignItems: "center", gap: "10px" },
-  dailyReturnLabel: { fontSize: "11px", color: "#cbd5e1", fontWeight: "bold" },
-  dailyReturnValue: { fontSize: "26px", color: "#facc15", fontWeight: "900", display: "block" },
-  dailyReturnSub: { fontSize: "8px", color: "#94a3b8" },
-  dailyReturnRight: { borderLeft: "2px solid rgba(255,255,255,0.1)", paddingLeft: "10px" },
-  dailyCardActionRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
-  goldAddFundBtn: { background: "linear-gradient(135deg, #f59e0b, #d97706)", border: "none", borderRadius: "10px", padding: "8px", color: "#000", display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" },
-  btnPlusCircle: { background: "#000", color: "#fff", borderRadius: "50%", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "12px" },
-  goldWithdrawBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "10px", padding: "8px", color: "#fff", display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" },
-  newInvestmentSection: { background: "#060f1e", borderRadius: "14px", padding: "12px", border: "1px solid rgba(250, 204, 21, 0.2)" },
-  sectionHeaderRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" },
-  sectionTitle: { margin: 0, fontSize: "13px", fontWeight: "800", color: "#fff" },
-  sectionSub: { margin: 0, fontSize: "8px", color: "#cbd5e1" },
-  smallStepsBadge: { textAlign: "right" },
-  planSelectionGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
-  planCard: { background: "#030a16", borderRadius: "10px", padding: "10px", border: "1px solid rgba(255,255,255,0.1)", display: "flex", flexDirection: "column", gap: "8px" },
-  planCardHeader: { display: "flex", alignItems: "center", gap: "6px" },
-  sproutBadge: { background: "rgba(34, 197, 94, 0.2)", padding: "4px", borderRadius: "6px", fontSize: "14px" },
-  crownBadge: { background: "rgba(245, 158, 11, 0.2)", padding: "4px", borderRadius: "6px", fontSize: "14px" },
-  planTitle: { margin: 0, fontSize: "11px", fontWeight: "bold", color: "#fff" },
-  planSub: { margin: 0, fontSize: "7px", color: "#cbd5e1" },
-  planFeatureList: { listStyle: "none", padding: 0, margin: 0, fontSize: "9px", color: "#cbd5e1", display: "flex", flexDirection: "column", gap: "3px" },
-  startBeginnerBtn: { background: "linear-gradient(135deg, #10b981, #059669)", border: "none", color: "#fff", borderRadius: "16px", padding: "6px", fontSize: "10px", fontWeight: "bold", cursor: "pointer" },
-  startProBtn: { background: "linear-gradient(135deg, #f59e0b, #d97706)", border: "none", color: "#000", borderRadius: "16px", padding: "6px", fontSize: "10px", fontWeight: "bold", cursor: "pointer" },
-  transactionSection: { background: "#060f1e", borderRadius: "14px", padding: "12px", border: "1px solid rgba(255,255,255,0.1)" },
-  transHeaderRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" },
-  transTitle: { margin: 0, fontSize: "12px", color: "#fff", fontWeight: "bold" },
-  liveUpdatesPill: { background: "rgba(245, 158, 11, 0.2)", color: "#facc15", fontSize: "8px", padding: "2px 6px", borderRadius: "8px" },
-  viewAllBtn: { color: "#facc15", fontSize: "9px", cursor: "pointer" },
-  tableResponsive: { overflowX: "auto" },
-  historyTable: { width: "100%", borderCollapse: "collapse", fontSize: "10px", textAlign: "left" },
+  dailyReturnTitle: { fontSize: "12px", color: "#cbd5e1", fontWeight: "bold", display: "block" },
+  dailyReturnAmount: { fontSize: "28px", color: "#facc15", fontWeight: "900", display: "block" },
+  dailyReturnNote: { fontSize: "9px", color: "#94a3b8" },
+  growingBadgeRight: { borderLeft: "2px solid rgba(255,255,255,0.1)", paddingLeft: "10px" },
+  dailyActionBtnsRow: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" },
+  goldAddFundBtn: {
+    background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    border: "none",
+    borderRadius: "12px",
+    padding: "8px 12px",
+    color: "#000",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    cursor: "pointer",
+    boxShadow: "0 4px 10px rgba(245, 158, 11, 0.3)"
+  },
+  addPlusIcon: { background: "#000", color: "#fff", borderRadius: "50%", width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" },
+  goldWithdrawBtn: {
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.2)",
+    borderRadius: "12px",
+    padding: "8px 12px",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    cursor: "pointer"
+  },
+
+  makeInvestmentCard: {
+    background: "#060f1e",
+    borderRadius: "16px",
+    padding: "14px",
+    border: "1px solid rgba(250, 204, 21, 0.2)"
+  },
+  makeHeaderRow: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" },
+  makeTitle: { margin: 0, fontSize: "14px", fontWeight: "800", color: "#fff" },
+  makeSub: { margin: 0, fontSize: "9px", color: "#cbd5e1" },
+  planCardsGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" },
+  beginnerPlanCard: {
+    background: "#030a16",
+    borderRadius: "12px",
+    padding: "12px",
+    border: "1px solid #22c55e",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  proPlanCard: {
+    background: "linear-gradient(135deg, #181102 0%, #2a1c04 100%)",
+    borderRadius: "12px",
+    padding: "12px",
+    border: "1px solid #f59e0b",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  planCardHeader: { display: "flex", alignItems: "center", gap: "8px" },
+  sproutIconBox: { background: "rgba(34, 197, 94, 0.2)", padding: "6px", borderRadius: "8px", fontSize: "16px" },
+  crownIconBox: { background: "rgba(245, 158, 11, 0.2)", padding: "6px", borderRadius: "8px", fontSize: "16px" },
+  planCardTitle: { margin: 0, fontSize: "12px", fontWeight: "bold", color: "#fff" },
+  planCardSub: { margin: 0, fontSize: "8px", color: "#cbd5e1" },
+  featureList: { listStyle: "none", padding: 0, margin: 0, fontSize: "10px", color: "#cbd5e1", display: "flex", flexDirection: "column", gap: "4px" },
+  startBeginnerBtn: {
+    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    border: "none",
+    color: "#fff",
+    borderRadius: "20px",
+    padding: "8px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  startProBtn: {
+    background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    border: "none",
+    color: "#000",
+    borderRadius: "20px",
+    padding: "8px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+
+  transHistoryCard: { background: "#060f1e", borderRadius: "16px", padding: "14px", border: "1px solid rgba(255,255,255,0.1)" },
+  transHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" },
+  liveBadge: { background: "rgba(245, 158, 11, 0.2)", color: "#facc15", fontSize: "9px", padding: "2px 6px", borderRadius: "10px" },
+  historyTable: { width: "100%", borderCollapse: "collapse", fontSize: "11px", textAlign: "left" },
+  th: { background: "rgba(255,255,255,0.03)", padding: "8px", color: "#cbd5e1", fontSize: "10px" },
+  td: { padding: "8px", color: "#fff" },
+
   modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 99999 },
-  modalCard: { background: "#071120", border: "1px solid #facc15", borderRadius: "14px", padding: "14px", width: "90%", maxWidth: "340px", color: "#fff" },
-  modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" },
-  closeBtn: { background: "transparent", border: "none", color: "#fff", fontSize: "14px", cursor: "pointer" },
-  inputLabel: { fontSize: "10px", color: "#cbd5e1" },
-  amountGrid: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px", marginTop: "4px" },
-  amtChoiceBtn: { padding: "6px", borderRadius: "6px", color: "#fff", fontSize: "9px", fontWeight: "bold", cursor: "pointer", border: "none" },
-  calculationPreview: { background: "#030a16", padding: "8px", borderRadius: "6px", margin: "10px 0", fontSize: "10px", display: "flex", flexDirection: "column", gap: "3px" },
-  confirmInvestBtn: { width: "100%", padding: "8px", borderRadius: "6px", border: "none", background: "#22c55e", color: "#fff", fontWeight: "bold", cursor: "pointer", fontSize: "11px" },
-  modalInput: { width: "100%", padding: "6px", borderRadius: "6px", border: "1px solid #334155", background: "#030a16", color: "#fff", fontSize: "11px", boxSizing: "border-box" },
-  modalSubmitBtn: { width: "100%", padding: "8px", borderRadius: "6px", border: "none", background: "#f59e0b", color: "#000", fontWeight: "bold", cursor: "pointer", fontSize: "11px" }
+  modalCard: { background: "#071120", border: "1px solid #facc15", borderRadius: "16px", padding: "16px", width: "90%", maxWidth: "360px", color: "#fff" },
+  modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" },
+  closeBtn: { background: "transparent", border: "none", color: "#fff", fontSize: "16px", cursor: "pointer" },
+  modalLabel: { fontSize: "11px", color: "#cbd5e1", display: "block", marginBottom: "6px" },
+  modalInput: { width: "100%", padding: "8px", borderRadius: "6px", border: "1px solid #334155", background: "#030a16", color: "#fff", fontSize: "11px", boxSizing: "border-box" },
+  confirmSubmitBtn: { width: "100%", padding: "10px", borderRadius: "8px", border: "none", background: "#22c55e", color: "#fff", fontWeight: "bold", cursor: "pointer" }
 };
