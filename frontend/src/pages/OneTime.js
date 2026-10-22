@@ -63,36 +63,24 @@ const formatDateTime = (dateVal) => {
   });
 };
 
-// ডেইলি রিটার্ন হিসাবের ফাংশন
+// ডেইলি রিটার্ন হিসাবের ফাংশন (সংশোধিত লজিক)
 function calculateDailyReturn(amount, tenureMonths, category) {
   let dailyRate = 0;
 
   if (category === "beginner") {
-    // 6 ও 9 মাসের জন্য স্ট্যান্ডার্ড বেসিক রেট
-    let baseRate = 1.0;
     if (amount === 7500) {
-      baseRate = 0.8;
+      // 7500 টাকায় কোনো টেনিউরেই পার্সেন্টেজ বাড়বে না
+      dailyRate = 0.8;
     } else if (amount === 15000) {
-      baseRate = 1.2;
+      dailyRate = tenureMonths >= 12 ? 1.2 : 1.0;
     } else if (amount === 22500) {
-      baseRate = 1.5;
+      dailyRate = tenureMonths >= 12 ? 1.5 : 1.2;
     } else if (amount === 30000) {
-      baseRate = 1.7;
+      dailyRate = tenureMonths >= 12 ? 1.7 : 1.5;
     } else if (amount === 37500) {
-      baseRate = 2.0;
-    }
-
-    // 9 মাসের উপরে গেলে (১২, ১৮, ২৪ মাসে) পার্সেন্টেজ বৃদ্ধি পাবে
-    if (tenureMonths > 9) {
-      if (tenureMonths === 12) {
-        dailyRate = baseRate + 0.3;
-      } else if (tenureMonths === 18) {
-        dailyRate = baseRate + 0.5;
-      } else if (tenureMonths >= 24) {
-        dailyRate = baseRate + 0.8;
-      }
+      dailyRate = tenureMonths >= 12 ? 2.0 : 1.7;
     } else {
-      dailyRate = baseRate;
+      dailyRate = tenureMonths >= 12 ? 1.2 : 1.0;
     }
   } else if (category === "pro") {
     if (amount === 99999) dailyRate = 2.0;
@@ -166,7 +154,7 @@ export default function OneTime() {
   const [category, setCategory] = useState("beginner"); // "beginner" or "pro"
   const [amount, setAmount] = useState(15000);
   const [tenureMonths, setTenureMonths] = useState(9);
-  const [customProTenure, setCustomProTenure] = useState(12);
+  const [customProTenure, setCustomProTenure] = useState("12");
   const [investing, setInvesting] = useState(false);
 
   // Modals
@@ -221,7 +209,8 @@ export default function OneTime() {
   const proAmounts = [99999, 139999, 189999, 249999, 500000];
 
   // Dynamic Tenure calculation
-  const activeTenureMonths = category === "beginner" ? tenureMonths : Math.max(12, Number(customProTenure) || 12);
+  const parsedProTenure = Math.max(12, Number(customProTenure) || 12);
+  const activeTenureMonths = category === "beginner" ? tenureMonths : parsedProTenure;
 
   // Calculate Rate and Daily Return
   const { dailyRate: currentRate, dailyReturnAmount: calculatedDailyReturn } = useMemo(() => {
@@ -522,7 +511,7 @@ export default function OneTime() {
       setTenureMonths(9);
     } else {
       setAmount(99999);
-      setCustomProTenure(12);
+      setCustomProTenure("12");
     }
     setShowInvestmentModal(true);
   };
@@ -1491,7 +1480,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY SECTION */}
+        {/* TRANSACTION HISTORY SECTION (সংশোধিত রিজন লজিক) */}
         <section style={styles.historyCard}>
           <div style={styles.historyCardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1544,12 +1533,8 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    let rejectionReason = item.reason || item.rejectReason || item.note || item.adminNote || item.message || "";
-                    if (!rejectionReason && isRejected) {
-                      rejectionReason = "you are inactive member";
-                    } else if (!rejectionReason) {
-                      rejectionReason = "-";
-                    }
+                    // সংশোধিত আসল রিজন লজিক
+                    const actualReason = item.reason || item.rejectReason || item.note || item.adminNote || item.message || "-";
 
                     return (
                       <tr key={item._id || idx} style={styles.goldTr} onClick={() => setSelectedTxn(item)}>
@@ -1572,7 +1557,7 @@ export default function OneTime() {
                           </span>
                         </td>
                         <td style={{ ...styles.goldTd, color: isRejected ? "#f87171" : "#9ca3af", fontSize: "10px" }}>
-                          {rejectionReason}
+                          {actualReason}
                         </td>
                       </tr>
                     );
@@ -1645,7 +1630,7 @@ export default function OneTime() {
                 onClick={() => {
                   setCategory("pro");
                   setAmount(99999);
-                  setCustomProTenure(12);
+                  setCustomProTenure("12");
                 }}
               >
                 Pro Plan
@@ -1673,7 +1658,7 @@ export default function OneTime() {
               </div>
             </div>
 
-            {/* Tenure Selection */}
+            {/* Tenure Selection (সংশোধিত ইনপুট এডিটিং লজিক) */}
             <div style={{ marginTop: "12px" }}>
               <label style={styles.inputSectionLabel}>
                 Select Tenure {category === "pro" && "(Min. 12 Months)"}
@@ -1703,7 +1688,12 @@ export default function OneTime() {
                     min="12"
                     style={styles.proTenureInput}
                     value={customProTenure}
-                    onChange={(e) => setCustomProTenure(Math.max(12, Number(e.target.value)))}
+                    onChange={(e) => setCustomProTenure(e.target.value)}
+                    onBlur={() => {
+                      if (!customProTenure || Number(customProTenure) < 12) {
+                        setCustomProTenure("12");
+                      }
+                    }}
                   />
                   <span style={{ fontSize: "13px", color: "#facc15", fontWeight: "bold" }}>Months</span>
                 </div>
@@ -1959,7 +1949,7 @@ export default function OneTime() {
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.1)", padding: "6px 8px", borderRadius: "6px" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
                   <strong style={{ ...styles.slipValue, color: "#f87171" }}>
-                    {selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || selectedTxn.adminNote || "you are inactive member"}
+                    {selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || selectedTxn.adminNote || "-"}
                   </strong>
                 </div>
               )}
