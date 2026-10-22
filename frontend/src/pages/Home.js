@@ -114,7 +114,6 @@ export default function Home() {
     return outputArray;
   }
 
-  // 🟢 অ্যাপ্লিকেশন ও ওয়েবসাইট উভয় জায়গায় পিডিএফ ডাউনলোডের জন্য ফিক্সড মেথড
   const handleDownloadPlan = async () => {
     if (isDownloadingPlan) return;
     setIsDownloadingPlan(true);
@@ -134,7 +133,6 @@ export default function Home() {
       triggerStatusOverlay("success", "Plan PDF downloaded successfully!");
     } catch (err) {
       console.log("PDF download error:", err);
-      // Fallback direct link
       const link = document.createElement("a");
       link.href = "/SAVE_MONEY_PRIVATE_LIMITED.pdf";
       link.target = "_blank";
@@ -144,7 +142,6 @@ export default function Home() {
     }
   };
 
-  // 🟢 অ্যাপ্লিকেশন ও ওয়েবসাইট উভয় জায়গায় এপিকে (APK) ডাউনলোডের জন্য ফিক্সড মেথড
   const handleDownloadApp = () => {
     if (isDownloadingApp) return;
     setIsDownloadingApp(true);
@@ -272,7 +269,6 @@ export default function Home() {
     }
   };
 
-  // 🟢 লগআউট ফিক্স: অ্যাপ্লিকেশনের ভেতরেই রিডাইরেক্ট করে লগইন পেজে নিয়ে যাওয়া নিশ্চিত করা হয়েছে
   const handleLogout = async () => {
     try {
       if (email) {
@@ -285,7 +281,7 @@ export default function Home() {
         });
       }
     } catch (err) {
-      console.log("Logout backend error:", err);
+      console.log("Logout backend_ error:", err);
     } finally {
       localStorage.clear();
       navigate("/login", { replace: true });
@@ -323,6 +319,9 @@ export default function Home() {
     navigate(path);
   };
 
+  // 👇 এডমিন চেক করার লজিক (আপনার ডাটাবেজ ফিল্ড অনুযায়ী role বা email চেক করতে পারেন)
+  const isAdmin = user?.role === "admin" || email === "admin@gmail.com"; 
+
   if (loading) {
     return (
       <div style={styles.loadingPage}>
@@ -335,6 +334,27 @@ export default function Home() {
           />
           <h2 style={{ marginTop: "15px", fontSize: "20px", fontWeight: "800" }}>Save Money</h2>
           <p style={{ color: "#94a3b8", fontSize: "14px" }}>Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 👇 যদি ইউজার এডমিন না হয়, তবে সিস্টেম আপগ্রেড স্ক্রিন দেখাবে (সম্পূর্ণ ইংলিশে এবং অ্যানিমেশনসহ)
+  if (!isAdmin) {
+    return (
+      <div style={styles.upgradePage}>
+        <div style={styles.upgradeCard}>
+          <div style={styles.upgradeAnimationIcon}>⚙️</div>
+          <h1 style={styles.upgradeTitle}>System Upgrade in Progress</h1>
+          <p style={styles.upgradeText}>
+            Our system is currently undergoing scheduled maintenance and upgrades to provide you with a better experience. Please wait and stay with us.
+          </p>
+          <div style={styles.upgradeLoadingBar}>
+            <div style={styles.upgradeProgressFill}></div>
+          </div>
+          <button style={styles.upgradeLogoutBtn} onClick={handleLogout}>
+            Logout
+          </button>
         </div>
       </div>
     );
@@ -1111,6 +1131,76 @@ function BottomNavItem({ icon, title, active, onClick }) {
 }
 
 const styles = {
+  // 👇 আপগ্রেড স্ক্রিনের স্টাইল এবং অ্যানিমেশন
+  upgradePage: {
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #020617 0%, #0f172a 100%)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "20px",
+    fontFamily: "system-ui, -apple-system, sans-serif"
+  },
+  upgradeCard: {
+    background: "rgba(15, 23, 42, 0.85)",
+    backdropFilter: "blur(12px)",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
+    borderRadius: "24px",
+    padding: "32px 24px",
+    maxWidth: "400px",
+    width: "100%",
+    textAlign: "center",
+    boxShadow: "0 20px 50px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.2)"
+  },
+  upgradeAnimationIcon: {
+    fontSize: "55px",
+    marginBottom: "16px",
+    animation: "spinGear 4s linear infinite",
+    display: "inline-block"
+  },
+  upgradeTitle: {
+    color: "#ffffff",
+    fontSize: "22px",
+    fontWeight: "900",
+    marginBottom: "12px",
+    letterSpacing: "0.5px"
+  },
+  upgradeText: {
+    color: "#94a3b8",
+    fontSize: "14px",
+    lineHeight: "1.6",
+    marginBottom: "24px"
+  },
+  upgradeLoadingBar: {
+    width: "100%",
+    height: "6px",
+    background: "#1e293b",
+    borderRadius: "4px",
+    overflow: "hidden",
+    marginBottom: "24px",
+    position: "relative"
+  },
+  upgradeProgressFill: {
+    position: "absolute",
+    top: 0,
+    left: "-100%",
+    width: "100%",
+    height: "100%",
+    background: "linear-gradient(90deg, transparent, #38bdf8, transparent)",
+    animation: "shimmerProgress 2s infinite linear"
+  },
+  upgradeLogoutBtn: {
+    background: "rgba(239, 68, 68, 0.2)",
+    border: "1px solid rgba(239, 68, 68, 0.5)",
+    color: "#f87171",
+    padding: "10px 20px",
+    borderRadius: "12px",
+    fontWeight: "800",
+    fontSize: "13px",
+    cursor: "pointer",
+    transition: "all 0.2s ease"
+  },
+
   limitedOfferBar: {
     marginTop: "16px",
     background: "linear-gradient(180deg, #022013 0%, #043820 100%)",
@@ -2053,6 +2143,16 @@ animationStyleSheet.innerText = `
       transform: scale(0.95);
       box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
     }
+  }
+
+  @keyframes spinGear {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes shimmerProgress {
+    0% { left: -100%; }
+    100% { left: 100%; }
   }
 
   .premium-app-btn:hover {
