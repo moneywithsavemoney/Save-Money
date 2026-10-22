@@ -119,9 +119,9 @@ export default function OneTime() {
 
   // States
   const [category, setCategory] = useState("beginner");
-  const [tenureMonths, setTenureMonths] = useState(9);
+  const [tenureMonths, setTenureMonths] = useState(6);
   const [rate, setRate] = useState(1.2);
-  const [amount, setAmount] = useState(15000);
+  const [amount, setAmount] = useState(7500);
   const [investing, setInvesting] = useState(false);
 
   // Popups & Modals
@@ -169,21 +169,43 @@ export default function OneTime() {
   const platformFee = 0;
   const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
 
-  const beginnerPlans = [
-    { value: 7500, rate: 0.8, tenureOptions: [1], defaultTenure: 1, bonusDesc: "Up to ₹500 Once", icon: "🌱" },
-    { value: 15000, rate: 1.2, tenureOptions: [6, 9], defaultTenure: 9, bonusDesc: "Up to ₹1,500/mo (2 Mos)", icon: "☘️" },
-    { value: 22500, rate: 1.5, tenureOptions: [6, 9], defaultTenure: 9, bonusDesc: "Up to ₹2,250/mo (2 Mos)", icon: "🌿" },
-    { value: 30000, rate: 1.7, tenureOptions: [6, 9], defaultTenure: 9, bonusDesc: "Up to ₹3,000/mo (3 Mos)", icon: "🌾" },
-    { value: 37500, rate: 2.0, tenureOptions: [6, 9], defaultTenure: 9, bonusDesc: "Up to ₹3,750/mo (3 Mos)", icon: "🌳" }
-  ];
+  // Beginner Amount Presets
+  const beginnerAmounts = [7500, 15000, 22500, 30000, 37500];
+  const beginnerTenures = [6, 9, 12, 18, 24];
 
-  const proPlans = [
-    { value: 99999, rate: 2.0, tenureOptions: [2], defaultTenure: 2, bonusDesc: "Flat 10% (2 Mos)", icon: "🔥" },
-    { value: 139999, rate: 3.0, tenureOptions: [2], defaultTenure: 2, bonusDesc: "Flat 13.9% (2 Mos)", icon: "⚡" },
-    { value: 189999, rate: 3.5, tenureOptions: [2], defaultTenure: 2, bonusDesc: "Flat 15% (2 Mos)", icon: "💎" },
-    { value: 249999, rate: 4.5, tenureOptions: [3], defaultTenure: 3, bonusDesc: "Flat 18% (3 Mos)", icon: "👑" },
-    { value: 500000, rate: 6.0, tenureOptions: [3], defaultTenure: 3, bonusDesc: "Flat 20% (3 Mos)", icon: "🚀" }
-  ];
+  // Helper to calculate rate dynamically
+  const calculateRate = (cat, amt, tenure) => {
+    let baseRate = 1.2;
+    if (cat === "beginner") {
+      if (amt <= 7500) baseRate = 0.8;
+      else if (amt <= 15000) baseRate = 1.2;
+      else if (amt <= 22500) baseRate = 1.5;
+      else if (amt <= 30000) baseRate = 1.7;
+      else baseRate = 2.0;
+
+      // Higher percentage if tenure is greater than 9 months
+      if (tenure > 9) {
+        baseRate += 0.5; // Bonus percentage for long term
+      }
+    } else {
+      // Pro Investment Logic
+      if (amt < 100000) baseRate = 2.0;
+      else if (amt < 150000) baseRate = 3.0;
+      else if (amt < 200000) baseRate = 3.5;
+      else if (amt < 300000) baseRate = 4.5;
+      else baseRate = 6.0;
+
+      if (tenure > 12) {
+        baseRate += 0.5;
+      }
+    }
+    return baseRate;
+  };
+
+  useEffect(() => {
+    const currentRate = calculateRate(modalCategory, amount, tenureMonths);
+    setRate(currentRate);
+  }, [modalCategory, amount, tenureMonths]);
 
   useEffect(() => {
     loadDashboardData();
@@ -461,20 +483,30 @@ export default function OneTime() {
       return;
     }
     setModalCategory(cat);
-    setShowPlanModal(true);
-  };
-
-  const selectPlanFromModal = (p, cat) => {
     setCategory(cat);
-    setAmount(p.value);
-    setRate(p.rate);
-    setTenureMonths(p.defaultTenure);
-    setShowPlanModal(false);
+    if (cat === "beginner") {
+      setAmount(7500);
+      setTenureMonths(6);
+    } else {
+      setAmount(100000);
+      setTenureMonths(12);
+    }
+    setShowPlanModal(true);
   };
 
   const handleStartInvestment = async () => {
     if (isInvestmentLocked) {
       triggerToast("Your investment is currently ongoing. No new investments can be made until it is finished.", "error");
+      return;
+    }
+
+    if (modalCategory === "pro" && tenureMonths < 12) {
+      triggerToast("Pro Investment minimum tenure is 12 Months.", "error");
+      return;
+    }
+
+    if (modalCategory === "beginner" && tenureMonths < 6) {
+      triggerToast("Beginner Investment minimum tenure is 6 Months.", "error");
       return;
     }
 
@@ -493,7 +525,7 @@ export default function OneTime() {
         },
         body: JSON.stringify({
           email,
-          category,
+          category: modalCategory,
           amount: Number(amount),
           duration: `${tenureMonths} Months`,
           durationDays: tenureMonths * 30,
@@ -507,6 +539,7 @@ export default function OneTime() {
       const data = await res.json();
       if (res.ok || data.success) {
         triggerToast("🚀 Investment Started Successfully!", "success");
+        setShowPlanModal(false);
         await loadDashboardData();
       } else {
         triggerToast(data.message || data.msg || "Failed to create investment", "error");
@@ -894,6 +927,14 @@ export default function OneTime() {
   }
 
   const displayedHistory = showAllHistory ? history : history.slice(0, 5);
+
+  // Calculations for Investment Preview in Modal
+  const calculatedDailyReturn = (Number(amount) * Number(rate)) / 100;
+  const totalDays = Number(tenureMonths) * 30;
+  const calculatedTotalReturn = calculatedDailyReturn * totalDays;
+  const calculatedTotalPayout = Number(amount) + calculatedTotalReturn;
+  const estimatedExpiryDate = new Date();
+  estimatedExpiryDate.setDate(estimatedExpiryDate.getDate() + totalDays);
 
   return (
     <div style={styles.page}>
@@ -1551,66 +1592,129 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* MODALS */}
+      {/* INVESTMENT FORM MODAL (NEW DYNAMIC DESIGN WITHOUT PRESET TILES) */}
       {showPlanModal && (
         <div style={styles.modalOverlay} onClick={() => setShowPlanModal(false)}>
           <div style={styles.planModalCardDark} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "20px" }}>{modalCategory === "beginner" ? "🌱" : "🔥"}</span>
+                <span style={{ fontSize: "20px" }}>{modalCategory === "beginner" ? "🌱" : "👑"}</span>
                 <h3 style={{ margin: 0, fontSize: "16px", color: "#fff", fontWeight: "800" }}>
-                  {modalCategory === "beginner" ? "Beginner Investment Plans" : "Pro Investment Plans"}
+                  {modalCategory === "beginner" ? "Beginner Investment Plan" : "Pro Investment Plan"}
                 </h3>
               </div>
               <button style={styles.closeBtnDark} onClick={() => setShowPlanModal(false)}>✕</button>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", maxHeight: "380px", overflowY: "auto", paddingRight: "4px" }}>
-              {(modalCategory === "beginner" ? beginnerPlans : proPlans).map((p) => {
-                const isSelected = amount === p.value;
-                const dailyAmt = (p.value * p.rate) / 100;
-                const totReturn = dailyAmt * (p.defaultTenure * 30);
-                const totPayout = p.value + totReturn;
-
-                return (
-                  <div
-                    key={p.value}
-                    style={{
-                      background: isSelected 
-                        ? "linear-gradient(135deg, #78350f 0%, #451a03 100%)"
-                        : "#0f172a",
-                      border: isSelected ? "2px solid #facc15" : "1px solid rgba(255, 255, 255, 0.1)",
-                      borderRadius: "12px",
-                      padding: "12px",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease"
-                    }}
-                    onClick={() => selectPlanFromModal(p, modalCategory)}
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              
+              {/* SELECT AMOUNT */}
+              <div>
+                <label style={styles.labelDark}>Select Investment Amount (₹)</label>
+                {modalCategory === "beginner" ? (
+                  <select 
+                    style={styles.inputModalDark} 
+                    value={amount} 
+                    onChange={(e) => setAmount(Number(e.target.value))}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span style={{ fontSize: "16px" }}>{p.icon}</span>
-                        <strong style={{ fontSize: "16px", color: "#fff" }}>₹{p.value.toLocaleString("en-IN")}</strong>
-                      </div>
-                      <span style={{ background: "rgba(250, 204, 21, 0.2)", color: "#facc15", fontSize: "11px", fontWeight: "bold", padding: "2px 8px", borderRadius: "12px" }}>
-                        {p.rate}% Daily
-                      </span>
-                    </div>
+                    {beginnerAmounts.map((amt) => (
+                      <option key={amt} value={amt}>₹{amt.toLocaleString("en-IN")}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input 
+                    type="number" 
+                    style={styles.inputModalDark} 
+                    placeholder="Enter Amount (e.g. 100000)" 
+                    value={amount} 
+                    onChange={(e) => setAmount(Number(e.target.value))} 
+                    min="99999"
+                  />
+                )}
+              </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "11px", color: "#cbd5e1", marginTop: "8px", background: "rgba(0,0,0,0.3)", padding: "8px", borderRadius: "8px" }}>
-                      <div>Daily Return: <strong style={{ color: "#facc15" }}>₹{dailyAmt.toFixed(2)}</strong></div>
-                      <div>Tenure: <strong style={{ color: "#38bdf8" }}>{p.defaultTenure} Months</strong></div>
-                      <div>Total Return: <strong style={{ color: "#4ade80" }}>₹{totReturn.toLocaleString("en-IN")}</strong></div>
-                      <div>Total Payout: <strong style={{ color: "#facc15" }}>₹{totPayout.toLocaleString("en-IN")}</strong></div>
-                    </div>
+              {/* SELECT TENURE */}
+              <div>
+                <label style={styles.labelDark}>Select Tenure (Months)</label>
+                {modalCategory === "beginner" ? (
+                  <select 
+                    style={styles.inputModalDark} 
+                    value={tenureMonths} 
+                    onChange={(e) => setTenureMonths(Number(e.target.value))}
+                  >
+                    {beginnerTenures.map((m) => (
+                      <option key={m} value={m}>{m} Months {m > 9 ? "🔥 (Higher Return Rate)" : ""}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input 
+                    type="number" 
+                    style={styles.inputModalDark} 
+                    placeholder="Tenure in Months (Min 12 Months)" 
+                    value={tenureMonths} 
+                    onChange={(e) => setTenureMonths(Number(e.target.value))} 
+                    min="12"
+                  />
+                )}
+              </div>
 
-                    <div style={{ marginTop: "6px", fontSize: "10px", color: "#fef08a", display: "flex", justifyContent: "space-between" }}>
-                      <span>🎁 Bonus: {p.bonusDesc}</span>
-                      <strong style={{ color: isSelected ? "#facc15" : "#38bdf8" }}>{isSelected ? "✓ Selected" : "Click to Select ➔"}</strong>
-                    </div>
-                  </div>
-                );
-              })}
+              {/* INVESTMENT SUMMARY DETAILS */}
+              <div style={{ background: "#040d1a", border: "1px solid rgba(250, 204, 21, 0.3)", borderRadius: "10px", padding: "12px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span style={{ fontSize: "11px", fontWeight: "bold", color: "#facc15", textTransform: "uppercase" }}>
+                  📊 Investment Details Preview
+                </span>
+
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>Total Duration:</span>
+                  <strong style={{ color: "#38bdf8" }}>{tenureMonths} Months ({totalDays} Days)</strong>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>Daily Return Rate:</span>
+                  <strong style={{ color: "#facc15" }}>{rate.toFixed(1)}% / day</strong>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>Daily Return Amount:</span>
+                  <strong style={{ color: "#4ade80" }}>₹{calculatedDailyReturn.toFixed(2)}</strong>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>Expiry Date:</span>
+                  <strong style={{ color: "#e2e8f0" }}>{formatDate(estimatedExpiryDate)}</strong>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>Total Invested:</span>
+                  <strong style={{ color: "#fff" }}>₹{Number(amount).toLocaleString("en-IN")}</strong>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
+                  <span>Tenure Return Profit:</span>
+                  <strong style={{ color: "#4ade80" }}>₹{calculatedTotalReturn.toLocaleString("en-IN")}</strong>
+                </div>
+
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.1)", margin: "4px 0" }} />
+
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: "bold" }}>
+                  <span style={{ color: "#facc15" }}>Total Payout:</span>
+                  <strong style={{ color: "#facc15", fontSize: "15px" }}>₹{calculatedTotalPayout.toLocaleString("en-IN")}</strong>
+                </div>
+              </div>
+
+              {/* START INVESTMENT BUTTON */}
+              <button 
+                style={{
+                  ...styles.goldSubmitBtn,
+                  background: investing ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
+                  marginTop: "6px"
+                }} 
+                onClick={handleStartInvestment}
+                disabled={investing}
+              >
+                {investing ? "Starting Investment..." : "Start Investment 🚀"}
+              </button>
+
             </div>
           </div>
         </div>
@@ -2775,7 +2879,9 @@ const styles = {
   labelDark: {
     fontSize: "11px",
     fontWeight: "700",
-    color: "#e2e8f0"
+    color: "#e2e8f0",
+    marginBottom: "4px",
+    display: "block"
   },
   inputModalDark: {
     width: "100%",
