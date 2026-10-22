@@ -14,6 +14,10 @@ if (typeof document !== "undefined") {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    @keyframes popupZoomIn {
+      0% { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
   `;
   document.head.appendChild(styleSheet);
 }
@@ -91,19 +95,10 @@ export default function OneTime() {
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // AUTO IMAGE POPUP ON PAGE LOAD
+  const [showImagePopup, setShowImagePopup] = useState(true);
+
   const [showBonusModal, setShowBonusModal] = useState(false);
-  
-  // Auto popup for referral bonus on page load
-  const [showReferralPopup, setShowReferralPopup] = useState(false);
-
-  useEffect(() => {
-    const hasSeenPopup = sessionStorage.getItem("sm_referral_popup_shown");
-    if (!hasSeenPopup) {
-      setShowReferralPopup(true);
-      sessionStorage.setItem("sm_referral_popup_shown", "true");
-    }
-  }, []);
-
   const [bonusInputCode, setBonusInputCode] = useState("");
   const [bonusList, setBonusList] = useState([]);
 
@@ -122,12 +117,14 @@ export default function OneTime() {
 
   const [activeInvestment, setActiveInvestment] = useState(null);
 
+  // States
   const [category, setCategory] = useState("beginner");
   const [tenureMonths, setTenureMonths] = useState(9);
   const [rate, setRate] = useState(1.2);
   const [amount, setAmount] = useState(15000);
   const [investing, setInvesting] = useState(false);
 
+  // Popups & Modals
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [modalCategory, setModalCategory] = useState("beginner");
 
@@ -394,7 +391,7 @@ export default function OneTime() {
       }
     }
 
-    let durationDays = 60;
+    let durationDays = 60; // Default fallback to 60 days
     if (typeof activeInvestment.duration === "number") {
       durationDays = activeInvestment.duration;
     } else if (typeof activeInvestment.duration === "string") {
@@ -900,53 +897,23 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
-      {/* REFERRAL SYSTEM POPUP ON LOAD */}
-      {showReferralPopup && (
-        <div style={styles.modalOverlay} onClick={() => setShowReferralPopup(false)}>
-          <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "20px" }}>🎁</span>
-                <h3 style={{ margin: 0, fontSize: "16px", color: "#fff", fontWeight: "800" }}>
-                  Exclusive Referral & Bonus System
-                </h3>
-              </div>
-              <button style={styles.closeBtnDark} onClick={() => setShowReferralPopup(false)}>✕</button>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px", fontSize: "12px", color: "#cbd5e1" }}>
-              <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid #f59e0b", padding: "10px", borderRadius: "8px" }}>
-                <strong style={{ color: "#facc15", display: "block", marginBottom: "4px" }}>🚀 How It Works:</strong>
-                <p style={{ margin: 0, lineHeight: "1.4" }}>
-                  Share your unique bonus code with friends and network. When they register, apply your code, and make an active investment, you earn attractive recurring monthly rewards!
-                </p>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
-                  <span style={{ fontSize: "10px", color: "#94a3b8", display: "block" }}>Your Bonus Code</span>
-                  <strong style={{ fontSize: "14px", color: "#facc15", marginTop: "2px", display: "block" }}>
-                    {user?.bonusCode || user?.referralCode || getOrGenerateUniqueCode()}
-                  </strong>
-                </div>
-                <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.08)", textAlign: "center" }}>
-                  <span style={{ fontSize: "10px", color: "#94a3b8", display: "block" }}>Reward per Referral</span>
-                  <strong style={{ fontSize: "14px", color: "#4ade80", marginTop: "2px", display: "block" }}>
-                    Up to ₹300 / mo
-                  </strong>
-                </div>
-              </div>
-
-              <p style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", margin: "4px 0 0 0" }}>
-                Tap below to check your full referral network and stats anytime under the Bonus section.
-              </p>
-            </div>
-
-            <button 
-              style={{ ...styles.goldSubmitBtn, marginTop: "14px" }}
-              onClick={() => setShowReferralPopup(false)}
-            >
-              Got It, Let's Start 🚀
+      {/* ON PAGE LOAD AUTOMATIC PROMOTIONAL BONUS RULES POPUP */}
+      {showImagePopup && (
+        <div style={styles.modalOverlay} onClick={() => setShowImagePopup(false)}>
+          <div style={styles.animatedPopupCard} onClick={(e) => e.stopPropagation()}>
+            <button style={styles.closeImagePopupBtn} onClick={() => setShowImagePopup(false)}>
+              ✕
+            </button>
+            <img 
+              src="/179571.png" 
+              alt="Bonus Rules" 
+              style={styles.bonusRulesImage}
+              onError={(e) => {
+                e.target.src = "https://i.ibb.co/Y4x20Jg/179571.png";
+              }}
+            />
+            <button style={styles.gotItBtn} onClick={() => setShowImagePopup(false)}>
+              Understand & Continue ➔
             </button>
           </div>
         </div>
@@ -1197,7 +1164,7 @@ export default function OneTime() {
               <span style={{ display: "inline-block", animation: refreshing ? "spin 1s linear infinite" : "none" }}>🔄</span>
             </button>
 
-            {/* ONLY CIRCULAR PROFILE PHOTO */}
+            {/* CIRCULAR PROFILE PHOTO ONLY */}
             <div style={styles.userProfileCircleBtn} onClick={() => navigate("/kyc")}>
               {profilePhoto ? (
                 <img 
@@ -1213,24 +1180,31 @@ export default function OneTime() {
           </div>
         </header>
 
-        {/* HERO WELCOME BANNER (ENGLISH MOTIVATIONAL TEXT & RESTORED LIMITED OFFER BADGE) */}
+        {/* HERO WELCOME BANNER (IN ENGLISH & WITH LIMITED OFFER RESTORED) */}
         <div style={styles.heroBanner}>
           <div style={styles.heroLeftContent}>
-            <div style={styles.limitedOfferBadge}>🔥 Limited Time Special Offer</div>
             <h2 style={styles.heroWelcomeTitle}>
               Welcome Back! 👋
             </h2>
             <div style={styles.heroSubtitle}>
               <strong style={{ color: "#78350f", fontSize: "12px", display: "block", marginBottom: "3px" }}>
-                Small savings pave the way
+                Small steps today lead to
               </strong>
               <span style={{ color: "#451a03", fontWeight: "900", fontSize: "13px" }}>
-                to a brilliant financial future ✨
+                a bright financial freedom tomorrow ✨
               </span>
             </div>
+
+            {/* RESTORED LIMITED TIME OFFER BADGE */}
+            <div style={styles.limitedOfferPill}>
+              ⚡ Limited Time Offer: Get High Returns Today!
+            </div>
+
             <div style={styles.heroBadgeRow}>
               <span style={styles.shieldIcon}>🛡️</span>
-              <span style={{ fontSize: "10px", color: "#374151", fontWeight: "bold" }}>Invest small amounts monthly to get big returns together</span>
+              <span style={{ fontSize: "10px", color: "#374151", fontWeight: "bold" }}>
+                Invest small amounts monthly to unlock high exponential returns
+              </span>
             </div>
           </div>
           <div style={styles.heroRightGraphic}>
@@ -1278,7 +1252,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* ACTIVE LIVE INVESTMENT CARD (SHOWING DURATION / DAYS) */}
+        {/* ACTIVE LIVE INVESTMENT CARD */}
         {activeInvestment && (
           <section style={styles.liveActiveInvestCard}>
             <div style={styles.liveInvestHeader}>
@@ -1556,6 +1530,7 @@ export default function OneTime() {
             </table>
           </div>
 
+          {/* VIEW MORE & VIEW LESS BUTTONS */}
           {history.length > 5 && (
             <div style={{ textAlign: "center", marginTop: "12px" }}>
               <button 
@@ -1570,7 +1545,7 @@ export default function OneTime() {
 
         <footer style={styles.footerBar}>
           <p style={styles.footerTagline}>
-            Small investments, big dreams come true with <strong style={{ color: "#facc15" }}>SAVE MONEY</strong>! 💚
+            Chhote nivesh, badi kamai ka sapna, ab hoga sach! <strong style={{ color: "#facc15" }}>SAVE MONEY</strong>! 💚
           </p>
           <div style={styles.footerCopyRow}>
             <span>© 2026 SAVE MONEY. All Rights Reserved.</span>
@@ -1957,7 +1932,7 @@ export default function OneTime() {
                   onClick={handleRazorpayPayment}
                   disabled={razorpayLoading}
                 >
-                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹{totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
+                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
                 </button>
               </div>
             ) : (
@@ -2214,6 +2189,8 @@ const styles = {
     padding: "1px 5px",
     fontSize: "9px"
   },
+
+  /* CIRCULAR PROFILE PHOTO ONLY STYLES */
   userProfileCircleBtn: {
     width: "32px",
     height: "32px",
@@ -2241,6 +2218,7 @@ const styles = {
     fontSize: "14px",
     color: "#fff"
   },
+
   heroBanner: {
     background: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
     border: "2px solid #facc15",
@@ -2255,18 +2233,6 @@ const styles = {
   heroLeftContent: {
     flex: 1
   },
-  limitedOfferBadge: {
-    display: "inline-block",
-    background: "#78350f",
-    color: "#fef08a",
-    fontSize: "9px",
-    fontWeight: "800",
-    padding: "2px 8px",
-    borderRadius: "6px",
-    marginBottom: "6px",
-    letterSpacing: "0.5px",
-    border: "1px solid #facc15"
-  },
   heroWelcomeTitle: {
     margin: 0,
     fontSize: "18px",
@@ -2279,6 +2245,20 @@ const styles = {
     marginTop: "4px",
     lineHeight: "1.3"
   },
+
+  /* RESTORED LIMITED OFFER PILL STYLE */
+  limitedOfferPill: {
+    display: "inline-block",
+    background: "#000000",
+    color: "#facc15",
+    padding: "3px 8px",
+    borderRadius: "20px",
+    fontSize: "10px",
+    fontWeight: "bold",
+    marginTop: "6px",
+    boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
+  },
+
   heroBadgeRow: {
     display: "flex",
     alignItems: "center",
@@ -2300,6 +2280,62 @@ const styles = {
     fontSize: "28px",
     marginTop: "4px"
   },
+
+  /* AUTOMATIC POPUP CARD STYLES */
+  animatedPopupCard: {
+    background: "#0f172a",
+    border: "2px solid #facc15",
+    borderRadius: "20px",
+    padding: "12px",
+    width: "100%",
+    maxWidth: "380px",
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    boxShadow: "0 20px 50px rgba(0, 0, 0, 0.9)",
+    animation: "popupZoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
+  },
+  closeImagePopupBtn: {
+    position: "absolute",
+    top: "-12px",
+    right: "-12px",
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    background: "#ef4444",
+    border: "2px solid #ffffff",
+    color: "#ffffff",
+    fontWeight: "bold",
+    fontSize: "14px",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
+    zIndex: 10
+  },
+  bonusRulesImage: {
+    width: "100%",
+    height: "auto",
+    borderRadius: "12px",
+    objectFit: "contain",
+    maxHeight: "80vh"
+  },
+  gotItBtn: {
+    width: "100%",
+    marginTop: "12px",
+    padding: "10px",
+    background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
+    border: "none",
+    borderRadius: "10px",
+    color: "#000",
+    fontWeight: "bold",
+    fontSize: "13px",
+    cursor: "pointer",
+    boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)"
+  },
+
   statsGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -3009,8 +3045,7 @@ const styles = {
     fontSize: "12px",
     color: "#ffffff",
     fontWeight: "700",
-    textAlign: "true",
-    textAlignRight: "right"
+    textAlign: "right"
   },
   slipFooterBranding: {
     marginTop: "16px",
