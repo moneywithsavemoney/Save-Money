@@ -63,6 +63,37 @@ const formatDateTime = (dateVal) => {
   });
 };
 
+// ডেইলি রিটার্ন হিসাবের ফাংশন (আপনার সরবরাহিত লজিক অনুযায়ী)
+function calculateDailyReturn(amount, tenureMonths, category) {
+  let dailyRate = 0;
+
+  if (category === "beginner") {
+    if (amount === 7500) {
+      dailyRate = 0.8;
+    } else if (amount === 15000) {
+      dailyRate = tenureMonths >= 9 ? 1.2 : 1.0;
+    } else if (amount === 22500) {
+      dailyRate = tenureMonths >= 9 ? 1.5 : 1.2;
+    } else if (amount === 30000) {
+      dailyRate = tenureMonths >= 9 ? 1.7 : 1.5;
+    } else if (amount === 37500) {
+      dailyRate = tenureMonths >= 9 ? 2.0 : 1.7;
+    } else {
+      dailyRate = tenureMonths >= 9 ? 1.2 : 1.0;
+    }
+  } else if (category === "pro") {
+    if (amount === 99999) dailyRate = 2.0;
+    else if (amount === 139999) dailyRate = 3.0;
+    else if (amount === 189999) dailyRate = 3.5;
+    else if (amount === 249999) dailyRate = 4.5;
+    else if (amount === 500000) dailyRate = 6.0;
+    else dailyRate = 2.0;
+  }
+
+  const dailyReturnAmount = (amount * dailyRate) / 100;
+  return { dailyRate, dailyReturnAmount };
+}
+
 export default function OneTime() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -89,13 +120,13 @@ export default function OneTime() {
 
     return existingCode;
   };
-  
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // AUTO IMAGE POPUP ON PAGE LOAD (SET TO TRUE)
+  // AUTO IMAGE POPUP ON PAGE LOAD
   const [showImagePopup, setShowImagePopup] = useState(true);
 
   const [showBonusModal, setShowBonusModal] = useState(false);
@@ -117,21 +148,21 @@ export default function OneTime() {
 
   const [activeInvestment, setActiveInvestment] = useState(null);
 
-  // States
-  const [category, setCategory] = useState("beginner");
-  const [tenureMonths, setTenureMonths] = useState(6);
-  const [rate, setRate] = useState(1.2);
-  const [amount, setAmount] = useState(7500);
+  // Form States for Investment
+  const [category, setCategory] = useState("beginner"); // "beginner" or "pro"
+  const [amount, setAmount] = useState(15000);
+  const [tenureMonths, setTenureMonths] = useState(9);
+  const [customProTenure, setCustomProTenure] = useState(12);
   const [investing, setInvesting] = useState(false);
 
-  // Popups & Modals
-  const [showPlanModal, setShowPlanModal] = useState(false);
-  const [modalCategory, setModalCategory] = useState("beginner");
-
+  // Modals
   const [showAddFundModal, setShowAddFundModal] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  
+
+  // Custom Withdrawal State
+  const [withdrawAmountInput, setWithdrawAmountInput] = useState("");
+
   const [showInvestWithdrawModal, setShowInvestWithdrawModal] = useState(false);
   const [showReinvestModal, setShowReinvestModal] = useState(false);
 
@@ -169,43 +200,30 @@ export default function OneTime() {
   const platformFee = 0;
   const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
 
-  // Beginner Amount Presets
+  // Presets
   const beginnerAmounts = [7500, 15000, 22500, 30000, 37500];
-  const beginnerTenures = [6, 9, 12, 18, 24];
+  const beginnerTenureOptions = [6, 9, 12, 18, 24];
 
-  // Helper to calculate rate dynamically
-  const calculateRate = (cat, amt, tenure) => {
-    let baseRate = 1.2;
-    if (cat === "beginner") {
-      if (amt <= 7500) baseRate = 0.8;
-      else if (amt <= 15000) baseRate = 1.2;
-      else if (amt <= 22500) baseRate = 1.5;
-      else if (amt <= 30000) baseRate = 1.7;
-      else baseRate = 2.0;
+  const proAmounts = [99999, 139999, 189999, 249999, 500000];
 
-      // Higher percentage if tenure is greater than 9 months
-      if (tenure > 9) {
-        baseRate += 0.5; // Bonus percentage for long term
-      }
-    } else {
-      // Pro Investment Logic
-      if (amt < 100000) baseRate = 2.0;
-      else if (amt < 150000) baseRate = 3.0;
-      else if (amt < 200000) baseRate = 3.5;
-      else if (amt < 300000) baseRate = 4.5;
-      else baseRate = 6.0;
+  // Dynamic Tenure calculation
+  const activeTenureMonths = category === "beginner" ? tenureMonths : Math.max(12, Number(customProTenure) || 12);
 
-      if (tenure > 12) {
-        baseRate += 0.5;
-      }
-    }
-    return baseRate;
-  };
+  // Calculate Rate and Daily Return
+  const { dailyRate: currentRate, dailyReturnAmount: calculatedDailyReturn } = useMemo(() => {
+    return calculateDailyReturn(amount, activeTenureMonths, category);
+  }, [amount, activeTenureMonths, category]);
 
-  useEffect(() => {
-    const currentRate = calculateRate(modalCategory, amount, tenureMonths);
-    setRate(currentRate);
-  }, [modalCategory, amount, tenureMonths]);
+  // Investment Detail Calculations
+  const totalDays = activeTenureMonths * 30;
+  const totalProfit = calculatedDailyReturn * totalDays;
+  const totalPayout = amount + totalProfit;
+  
+  const expiryDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + totalDays);
+    return formatDate(d);
+  }, [totalDays]);
 
   useEffect(() => {
     loadDashboardData();
@@ -460,8 +478,8 @@ export default function OneTime() {
     if (isInvestmentLocked && activeInvestment && activeInvestment.dailyReturn) {
       return Number(activeInvestment.dailyReturn);
     }
-    return (Number(amount) * Number(rate)) / 100;
-  }, [amount, rate, activeInvestment, isInvestmentLocked]);
+    return calculatedDailyReturn;
+  }, [calculatedDailyReturn, activeInvestment, isInvestmentLocked]);
 
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
@@ -477,36 +495,21 @@ export default function OneTime() {
     });
   }, [history]);
 
-  const openPlanModal = (cat) => {
-    if (isInvestmentLocked) {
-      triggerToast("Your investment is currently locked.", "error");
-      return;
-    }
-    setModalCategory(cat);
+  // Handle Switching Plan Category
+  const handleCategorySwitch = (cat) => {
     setCategory(cat);
     if (cat === "beginner") {
-      setAmount(7500);
-      setTenureMonths(6);
+      setAmount(15000);
+      setTenureMonths(9);
     } else {
-      setAmount(100000);
-      setTenureMonths(12);
+      setAmount(99999);
+      setCustomProTenure(12);
     }
-    setShowPlanModal(true);
   };
 
   const handleStartInvestment = async () => {
     if (isInvestmentLocked) {
       triggerToast("Your investment is currently ongoing. No new investments can be made until it is finished.", "error");
-      return;
-    }
-
-    if (modalCategory === "pro" && tenureMonths < 12) {
-      triggerToast("Pro Investment minimum tenure is 12 Months.", "error");
-      return;
-    }
-
-    if (modalCategory === "beginner" && tenureMonths < 6) {
-      triggerToast("Beginner Investment minimum tenure is 6 Months.", "error");
       return;
     }
 
@@ -525,21 +528,24 @@ export default function OneTime() {
         },
         body: JSON.stringify({
           email,
-          category: modalCategory,
+          category,
           amount: Number(amount),
-          duration: `${tenureMonths} Months`,
-          durationDays: tenureMonths * 30,
-          tenureMonths: tenureMonths,
-          dailyReturn,
-          rate,
-          status: "Active"
+          duration: `${activeTenureMonths} Months`,
+          durationDays: totalDays,
+          tenureMonths: activeTenureMonths,
+          dailyReturn: calculatedDailyReturn,
+          rate: currentRate,
+          status: "Active",
+          withdrawLogicUpdatePending: bonusList.length > 0 // উইথড্র লজিক ৭২ ঘণ্টা আপডেটে রাখার ফ্ল্যাগ
         })
       });
 
       const data = await res.json();
       if (res.ok || data.success) {
         triggerToast("🚀 Investment Started Successfully!", "success");
-        setShowPlanModal(false);
+        if (bonusList.length > 0) {
+          triggerToast(" Your withdrawal logic update is in progress. Minimum 72 hours required.", "info");
+        }
         await loadDashboardData();
       } else {
         triggerToast(data.message || data.msg || "Failed to create investment", "error");
@@ -747,7 +753,12 @@ export default function OneTime() {
   };
 
   const handleWithdrawSubmit = async (customAmt = null) => {
-    const amountToWithdraw = customAmt || Number(dailyReturn);
+    const amountToWithdraw = customAmt || (withdrawAmountInput ? Number(withdrawAmountInput) : Number(dailyReturn));
+
+    if (!amountToWithdraw || amountToWithdraw <= 0) {
+      triggerToast("Please enter a valid amount to withdraw", "error");
+      return;
+    }
 
     if (hasWithdrawnToday) {
       triggerToast("You have already placed a withdrawal request today!", "error");
@@ -778,6 +789,7 @@ export default function OneTime() {
       if (res.ok && data.success) {
         triggerToast(data.message || "Withdrawal Request Submitted!", "success");
         setShowWithdrawModal(false);
+        setWithdrawAmountInput("");
         await loadDashboardData();
       } else {
         triggerToast(data.message || "Withdrawal Failed", "error");
@@ -848,10 +860,10 @@ export default function OneTime() {
           email,
           category,
           amount: reinvestAmount,
-          duration: `${tenureMonths} Months`,
-          durationDays: tenureMonths * 30,
-          dailyReturn: (reinvestAmount * rate) / 100,
-          rate: rate,
+          duration: `${activeTenureMonths} Months`,
+          durationDays: activeTenureMonths * 30,
+          dailyReturn: (reinvestAmount * currentRate) / 100,
+          rate: currentRate,
           status: "Active"
         })
       });
@@ -928,17 +940,9 @@ export default function OneTime() {
 
   const displayedHistory = showAllHistory ? history : history.slice(0, 5);
 
-  // Calculations for Investment Preview in Modal
-  const calculatedDailyReturn = (Number(amount) * Number(rate)) / 100;
-  const totalDays = Number(tenureMonths) * 30;
-  const calculatedTotalReturn = calculatedDailyReturn * totalDays;
-  const calculatedTotalPayout = Number(amount) + calculatedTotalReturn;
-  const estimatedExpiryDate = new Date();
-  estimatedExpiryDate.setDate(estimatedExpiryDate.getDate() + totalDays);
-
   return (
     <div style={styles.page}>
-      {/* AUTOMATIC PROMOTIONAL BONUS RULES POPUP WITH ONETIME.PNG */}
+      {/* AUTOMATIC PROMOTIONAL BONUS RULES POPUP */}
       {showImagePopup && (
         <div style={styles.modalOverlay} onClick={() => setShowImagePopup(false)}>
           <div style={styles.animatedPopupCard} onClick={(e) => e.stopPropagation()}>
@@ -1176,7 +1180,7 @@ export default function OneTime() {
           </div>
         )}
 
-        {/* TOP HEADER WITH CIRCULAR USER AVATAR ONLY */}
+        {/* TOP HEADER */}
         <header style={styles.header}>
           <div style={styles.headerLeft}>
             <button style={styles.menuButton} onClick={() => setIsDrawerOpen(true)}>
@@ -1193,10 +1197,9 @@ export default function OneTime() {
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button style={styles.bonusPillBtn} onClick={() => setShowBonusModal(true)}>
-              🎁 Bonus <span style={styles.notificationDot}>0</span>
+              🎁 Bonus <span style={styles.notificationDot}>{bonusList.length}</span>
             </button>
 
-            {/* REFRESH BUTTON */}
             <button 
               style={styles.refreshIconBtn} 
               onClick={handleRefreshPage} 
@@ -1205,7 +1208,6 @@ export default function OneTime() {
               <span style={{ display: "inline-block", animation: refreshing ? "spin 1s linear infinite" : "none" }}>🔄</span>
             </button>
 
-            {/* CIRCULAR PROFILE PHOTO ONLY */}
             <div style={styles.userProfileCircleBtn} onClick={() => navigate("/kyc")}>
               {profilePhoto ? (
                 <img 
@@ -1221,7 +1223,7 @@ export default function OneTime() {
           </div>
         </header>
 
-        {/* HERO WELCOME BANNER (IN ENGLISH WITH LIMITED OFFER) */}
+        {/* HERO WELCOME BANNER */}
         <div style={styles.heroBanner}>
           <div style={styles.heroLeftContent}>
             <h2 style={styles.heroWelcomeTitle}>
@@ -1253,7 +1255,7 @@ export default function OneTime() {
           </div>
         </div>
 
-        {/* 4 STATS CARDS IN 2x2 GRID */}
+        {/* 4 STATS CARDS */}
         <section style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statHeader}>
@@ -1423,59 +1425,155 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* MAKE A NEW INVESTMENT SECTION */}
+        {/* MAKE A NEW INVESTMENT SECTION (INLINE SELECTION FORM) */}
         <section style={styles.makeInvestmentCard}>
           <div style={styles.makeInvestHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span style={{ fontSize: "20px" }}>🌱</span>
               <div>
                 <h3 style={{ margin: 0, fontSize: "15px", color: "#fff", fontWeight: "800" }}>Make a New Investment</h3>
-                <p style={{ margin: 0, fontSize: "10px", color: "#9ca3af" }}>Choose your plan and start growing your wealth today</p>
+                <p style={{ margin: 0, fontSize: "10px", color: "#9ca3af" }}>Select your plan, amount & tenure directly</p>
               </div>
             </div>
-            <span style={styles.smallStepsTag}>⚡ Small Steps Big Returns</span>
+            <span style={styles.smallStepsTag}>⚡ Dynamic Selection</span>
           </div>
 
-          <div style={styles.planCardGrid}>
-            <div style={styles.beginnerCard}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                <span style={styles.beginnerIconBadge}>🌱</span>
-                <div>
-                  <strong style={{ display: "block", fontSize: "14px", color: "#fff" }}>Beginner Investment</strong>
-                  <span style={{ fontSize: "10px", color: "#a7f3d0" }}>Safe • Stable • Good for Start</span>
-                </div>
+          {/* Category Selector Tabs */}
+          <div style={styles.categoryTabRow}>
+            <button
+              style={{
+                ...styles.categoryTabBtn,
+                background: category === "beginner" ? "linear-gradient(135deg, #10b981 0%, #059669 100%)" : "rgba(255,255,255,0.05)",
+                color: category === "beginner" ? "#fff" : "#9ca3af",
+                border: category === "beginner" ? "1px solid #34d399" : "1px solid rgba(255,255,255,0.1)"
+              }}
+              onClick={() => handleCategorySwitch("beginner")}
+            >
+              🌱 Beginner Investment
+            </button>
+            <button
+              style={{
+                ...styles.categoryTabBtn,
+                background: category === "pro" ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "rgba(255,255,255,0.05)",
+                color: category === "pro" ? "#000" : "#9ca3af",
+                border: category === "pro" ? "1px solid #facc15" : "1px solid rgba(255,255,255,0.1)"
+              }}
+              onClick={() => handleCategorySwitch("pro")}
+            >
+              👑 Pro Investment
+            </button>
+          </div>
+
+          {/* Amount Presets */}
+          <div style={{ marginTop: "14px" }}>
+            <label style={styles.inputSectionLabel}>Select Amount (Preset)</label>
+            <div style={styles.presetChipGrid}>
+              {(category === "beginner" ? beginnerAmounts : proAmounts).map((amtVal) => (
+                <button
+                  key={amtVal}
+                  style={{
+                    ...styles.presetChip,
+                    background: amount === amtVal ? (category === "beginner" ? "#059669" : "#f59e0b") : "rgba(255,255,255,0.05)",
+                    color: amount === amtVal ? (category === "beginner" ? "#fff" : "#000") : "#cbd5e1",
+                    border: amount === amtVal ? "1.5px solid #facc15" : "1px solid rgba(255,255,255,0.1)"
+                  }}
+                  onClick={() => setAmount(amtVal)}
+                >
+                  ₹{amtVal.toLocaleString("en-IN")}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tenure Selection */}
+          <div style={{ marginTop: "14px" }}>
+            <label style={styles.inputSectionLabel}>
+              Select Tenure {category === "pro" && "(Min. 12 Months - Editable)"}
+            </label>
+
+            {category === "beginner" ? (
+              <div style={styles.presetChipGrid}>
+                {beginnerTenureOptions.map((m) => (
+                  <button
+                    key={m}
+                    style={{
+                      ...styles.presetChip,
+                      background: tenureMonths === m ? "#0284c7" : "rgba(255,255,255,0.05)",
+                      color: tenureMonths === m ? "#fff" : "#cbd5e1",
+                      border: tenureMonths === m ? "1.5px solid #38bdf8" : "1px solid rgba(255,255,255,0.1)"
+                    }}
+                    onClick={() => setTenureMonths(m)}
+                  >
+                    {m} Months {m > 9 ? "🔥 High Rate" : ""}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <input
+                  type="number"
+                  min="12"
+                  style={styles.proTenureInput}
+                  value={customProTenure}
+                  onChange={(e) => setCustomProTenure(Math.max(12, Number(e.target.value)))}
+                />
+                <span style={{ fontSize: "13px", color: "#facc15", fontWeight: "bold" }}>Months</span>
+              </div>
+            )}
+          </div>
+
+          {/* Detailed Calculations Card */}
+          <div style={styles.calculationSummaryCard}>
+            <h4 style={styles.summaryTitle}>📋 Investment Summary & Return Details</h4>
+
+            <div style={styles.summaryGrid}>
+              <div style={styles.summaryRow}>
+                <span style={styles.summaryLabel}>Total Investment Amount:</span>
+                <strong style={styles.summaryValue}>₹{amount.toLocaleString("en-IN")}</strong>
               </div>
 
-              <div style={styles.featureList}>
-                <div style={styles.featureItem}>✓ Low Risk</div>
-                <div style={styles.featureItem}>✓ Daily Returns</div>
-                <div style={styles.featureItem}>✓ Flexible Investment</div>
+              <div style={styles.summaryRow}>
+                <span style={styles.summaryLabel}>Investment Duration:</span>
+                <strong style={{ ...styles.summaryValue, color: "#38bdf8" }}>{totalDays} Days ({activeTenureMonths} Months)</strong>
               </div>
 
-              <button style={styles.startBeginnerBtn} onClick={() => openPlanModal("beginner")}>
-                Start Beginner ➔
-              </button>
+              <div style={styles.summaryRow}>
+                <span style={styles.summaryLabel}>Daily Return Rate:</span>
+                <strong style={{ ...styles.summaryValue, color: "#facc15" }}>{currentRate}% Daily</strong>
+              </div>
+
+              <div style={styles.summaryRow}>
+                <span style={styles.summaryLabel}>Daily Return Amount:</span>
+                <strong style={{ ...styles.summaryValue, color: "#4ade80" }}>₹{calculatedDailyReturn.toFixed(2)} / day</strong>
+              </div>
+
+              <div style={styles.summaryRow}>
+                <span style={styles.summaryLabel}>Expiry Date:</span>
+                <strong style={{ ...styles.summaryValue, color: "#f472b6" }}>{expiryDate}</strong>
+              </div>
+
+              <div style={styles.summaryRow}>
+                <span style={styles.summaryLabel}>Total Profit Return:</span>
+                <strong style={{ ...styles.summaryValue, color: "#4ade80" }}>₹{totalProfit.toLocaleString("en-IN")}</strong>
+              </div>
+
+              <div style={{ ...styles.summaryRow, borderTop: "1px dashed rgba(255,255,255,0.2)", paddingTop: "8px", marginTop: "4px" }}>
+                <span style={{ ...styles.summaryLabel, color: "#facc15", fontWeight: "bold", fontSize: "13px" }}>Total Return Payout:</span>
+                <strong style={{ color: "#facc15", fontSize: "16px", fontWeight: "900" }}>₹{totalPayout.toLocaleString("en-IN")}</strong>
+              </div>
             </div>
 
-            <div style={styles.proCard}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                <span style={styles.proIconBadge}>👑</span>
-                <div>
-                  <strong style={{ display: "block", fontSize: "14px", color: "#fff" }}>Pro Investment</strong>
-                  <span style={{ fontSize: "10px", color: "#fef08a" }}>Higher Returns • Faster Growth</span>
-                </div>
-              </div>
-
-              <div style={styles.featureList}>
-                <div style={styles.featureItem}>✓ High Profit Potential</div>
-                <div style={styles.featureItem}>✓ Premium Benefits</div>
-                <div style={styles.featureItem}>✓ Advanced Plan</div>
-              </div>
-
-              <button style={styles.startProBtn} onClick={() => openPlanModal("pro")}>
-                Start Pro ➔
-              </button>
-            </div>
+            <button
+              style={{
+                ...styles.startInvestmentSubmitBtn,
+                opacity: (isInvestmentLocked || investing) ? 0.6 : 1,
+                cursor: (isInvestmentLocked || investing) ? "not-allowed" : "pointer"
+              }}
+              onClick={handleStartInvestment}
+              disabled={isInvestmentLocked || investing}
+            >
+              {investing ? "Processing..." : isInvestmentLocked ? "Active Plan Running" : "Start Investment 🚀"}
+            </button>
           </div>
         </section>
 
@@ -1592,134 +1690,6 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* INVESTMENT FORM MODAL (NEW DYNAMIC DESIGN WITHOUT PRESET TILES) */}
-      {showPlanModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowPlanModal(false)}>
-          <div style={styles.planModalCardDark} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "20px" }}>{modalCategory === "beginner" ? "🌱" : "👑"}</span>
-                <h3 style={{ margin: 0, fontSize: "16px", color: "#fff", fontWeight: "800" }}>
-                  {modalCategory === "beginner" ? "Beginner Investment Plan" : "Pro Investment Plan"}
-                </h3>
-              </div>
-              <button style={styles.closeBtnDark} onClick={() => setShowPlanModal(false)}>✕</button>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-              
-              {/* SELECT AMOUNT */}
-              <div>
-                <label style={styles.labelDark}>Select Investment Amount (₹)</label>
-                {modalCategory === "beginner" ? (
-                  <select 
-                    style={styles.inputModalDark} 
-                    value={amount} 
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                  >
-                    {beginnerAmounts.map((amt) => (
-                      <option key={amt} value={amt}>₹{amt.toLocaleString("en-IN")}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input 
-                    type="number" 
-                    style={styles.inputModalDark} 
-                    placeholder="Enter Amount (e.g. 100000)" 
-                    value={amount} 
-                    onChange={(e) => setAmount(Number(e.target.value))} 
-                    min="99999"
-                  />
-                )}
-              </div>
-
-              {/* SELECT TENURE */}
-              <div>
-                <label style={styles.labelDark}>Select Tenure (Months)</label>
-                {modalCategory === "beginner" ? (
-                  <select 
-                    style={styles.inputModalDark} 
-                    value={tenureMonths} 
-                    onChange={(e) => setTenureMonths(Number(e.target.value))}
-                  >
-                    {beginnerTenures.map((m) => (
-                      <option key={m} value={m}>{m} Months {m > 9 ? "🔥 (Higher Return Rate)" : ""}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input 
-                    type="number" 
-                    style={styles.inputModalDark} 
-                    placeholder="Tenure in Months (Min 12 Months)" 
-                    value={tenureMonths} 
-                    onChange={(e) => setTenureMonths(Number(e.target.value))} 
-                    min="12"
-                  />
-                )}
-              </div>
-
-              {/* INVESTMENT SUMMARY DETAILS */}
-              <div style={{ background: "#040d1a", border: "1px solid rgba(250, 204, 21, 0.3)", borderRadius: "10px", padding: "12px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                <span style={{ fontSize: "11px", fontWeight: "bold", color: "#facc15", textTransform: "uppercase" }}>
-                  📊 Investment Details Preview
-                </span>
-
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
-                  <span>Total Duration:</span>
-                  <strong style={{ color: "#38bdf8" }}>{tenureMonths} Months ({totalDays} Days)</strong>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
-                  <span>Daily Return Rate:</span>
-                  <strong style={{ color: "#facc15" }}>{rate.toFixed(1)}% / day</strong>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
-                  <span>Daily Return Amount:</span>
-                  <strong style={{ color: "#4ade80" }}>₹{calculatedDailyReturn.toFixed(2)}</strong>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
-                  <span>Expiry Date:</span>
-                  <strong style={{ color: "#e2e8f0" }}>{formatDate(estimatedExpiryDate)}</strong>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
-                  <span>Total Invested:</span>
-                  <strong style={{ color: "#fff" }}>₹{Number(amount).toLocaleString("en-IN")}</strong>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
-                  <span>Tenure Return Profit:</span>
-                  <strong style={{ color: "#4ade80" }}>₹{calculatedTotalReturn.toLocaleString("en-IN")}</strong>
-                </div>
-
-                <div style={{ height: "1px", background: "rgba(255,255,255,0.1)", margin: "4px 0" }} />
-
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: "bold" }}>
-                  <span style={{ color: "#facc15" }}>Total Payout:</span>
-                  <strong style={{ color: "#facc15", fontSize: "15px" }}>₹{calculatedTotalPayout.toLocaleString("en-IN")}</strong>
-                </div>
-              </div>
-
-              {/* START INVESTMENT BUTTON */}
-              <button 
-                style={{
-                  ...styles.goldSubmitBtn,
-                  background: investing ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
-                  marginTop: "6px"
-                }} 
-                onClick={handleStartInvestment}
-                disabled={investing}
-              >
-                {investing ? "Starting Investment..." : "Start Investment 🚀"}
-              </button>
-
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* BONUS MODAL */}
       {showBonusModal && (
         <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
@@ -1802,7 +1772,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL */}
+      {/* WITHDRAW MODAL (UPDATED WITH CUSTOM CHIPS & EDITABLE AMOUNT IF REFERRALS EXIST) */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1818,16 +1788,81 @@ export default function OneTime() {
               </strong>
             </div>
 
-            <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
-              Withdraw Daily Return: <strong style={{ color: "#facc15" }}>₹{dailyReturn.toFixed(2)}</strong>
-            </p>
+            {/* ৭২ ঘন্টা উইথড্র লজিক আপডেটিং পপআপ নোটিশ */}
+            {bonusList.length > 0 && (
+              <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", padding: "10px", borderRadius: "8px", marginBottom: "12px", textAlign: "center" }}>
+                <strong style={{ fontSize: "11px", color: "#38bdf8", display: "block" }}>
+                  ⏳ Your withdrawal logic update in progress!
+                </strong>
+                <span style={{ fontSize: "10px", color: "#cbd5e1" }}>
+                  Minimum 72 hours needed for automated live synchronization.
+                </span>
+              </div>
+            )}
+
+            {/* বোনাস মেম্বার থাকলে কাস্টম উইথড্র প্রিসেট চিপস */}
+            {bonusList.length > 0 ? (
+              <div style={{ marginBottom: "12px" }}>
+                <label style={styles.labelDark}>Select or Edit Withdrawal Amount:</label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px", margin: "8px 0" }}>
+                  {[100, 300, 500, 1000].map((amt) => (
+                    <button
+                      key={amt}
+                      type="button"
+                      style={{
+                        padding: "6px",
+                        background: withdrawAmountInput == amt ? "#f59e0b" : "rgba(255,255,255,0.05)",
+                        color: withdrawAmountInput == amt ? "#000" : "#fff",
+                        border: "1px solid #facc15",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                      }}
+                      onClick={() => setWithdrawAmountInput(amt)}
+                    >
+                      ₹{amt}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    style={{
+                      padding: "6px",
+                      background: withdrawAmountInput == currentWalletBalance ? "#f59e0b" : "rgba(255,255,255,0.05)",
+                      color: withdrawAmountInput == currentWalletBalance ? "#000" : "#fff",
+                      border: "1px solid #facc15",
+                      borderRadius: "6px",
+                      fontSize: "11px",
+                      fontWeight: "bold",
+                      cursor: "pointer"
+                    }}
+                    onClick={() => setWithdrawAmountInput(currentWalletBalance)}
+                  >
+                    100% (All)
+                  </button>
+                </div>
+
+                <input
+                  type="number"
+                  placeholder="Or enter custom amount to withdraw"
+                  style={{ ...styles.inputModalDark, marginTop: "6px" }}
+                  value={withdrawAmountInput}
+                  onChange={(e) => setWithdrawAmountInput(e.target.value)}
+                />
+              </div>
+            ) : (
+              <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
+                Withdraw Daily Return: <strong style={{ color: "#facc15" }}>₹{dailyReturn.toFixed(2)}</strong>
+              </p>
+            )}
+
             <button
               style={{
                 ...styles.goldSubmitBtn,
-                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
+                background: (currentWalletBalance < (withdrawAmountInput || dailyReturn) || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
               }}
               onClick={() => handleWithdrawSubmit()}
-              disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
+              disabled={withdrawing || currentWalletBalance < (withdrawAmountInput || dailyReturn) || hasWithdrawnToday}
             >
               {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
             </button>
@@ -2131,7 +2166,7 @@ export default function OneTime() {
             <div style={{ marginTop: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
               <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Daily Earnings</span>
               <strong style={{ fontSize: "14px", color: "#38bdf8" }}>
-                ₹{((Number(activeInvestment.amount || 0) * rate) / 100).toFixed(2)} / day
+                ₹{((Number(activeInvestment.amount || 0) * currentRate) / 100).toFixed(2)} / day
               </strong>
             </div>
 
@@ -2684,60 +2719,94 @@ const styles = {
     color: "#facc15",
     fontStyle: "italic"
   },
-  planCardGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "10px"
+  categoryTabRow: {
+    display: "flex",
+    gap: "8px"
   },
-  beginnerCard: {
-    background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
-    border: "1px solid #10b981",
+  categoryTabBtn: {
+    flex: 1,
+    padding: "10px",
+    borderRadius: "10px",
+    fontSize: "12px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    transition: "all 0.2s ease"
+  },
+  inputSectionLabel: {
+    fontSize: "11px",
+    color: "#9ca3af",
+    fontWeight: "bold",
+    display: "block",
+    marginBottom: "6px"
+  },
+  presetChipGrid: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "6px"
+  },
+  presetChip: {
+    padding: "8px 12px",
+    borderRadius: "8px",
+    fontSize: "12px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    transition: "all 0.2s ease"
+  },
+  proTenureInput: {
+    width: "100px",
+    height: "38px",
+    borderRadius: "8px",
+    border: "1px solid #facc15",
+    background: "#0f2138",
+    color: "#fff",
+    padding: "0 10px",
+    fontSize: "14px",
+    fontWeight: "bold"
+  },
+  calculationSummaryCard: {
+    background: "#0a1120",
+    border: "1px solid rgba(250, 204, 21, 0.3)",
     borderRadius: "12px",
-    padding: "12px"
+    padding: "12px",
+    marginTop: "14px"
   },
-  beginnerIconBadge: {
-    fontSize: "18px"
+  summaryTitle: {
+    margin: "0 0 10px 0",
+    fontSize: "13px",
+    color: "#fff",
+    fontWeight: "800"
   },
-  proCard: {
-    background: "linear-gradient(135deg, #78350f 0%, #451a03 100%)",
-    border: "1px solid #f59e0b",
-    borderRadius: "12px",
-    padding: "12px"
-  },
-  proIconBadge: {
-    fontSize: "18px"
-  },
-  featureList: {
+  summaryGrid: {
     display: "flex",
     flexDirection: "column",
-    gap: "4px",
-    margin: "10px 0"
+    gap: "6px",
+    marginBottom: "14px"
   },
-  featureItem: {
-    fontSize: "10px",
-    color: "#e5e7eb"
+  summaryRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center"
   },
-  startBeginnerBtn: {
-    width: "100%",
-    background: "#10b981",
-    border: "none",
-    color: "#fff",
-    padding: "8px",
-    borderRadius: "20px",
+  summaryLabel: {
     fontSize: "11px",
-    fontWeight: "bold",
-    cursor: "pointer"
+    color: "#cbd5e1"
   },
-  startProBtn: {
+  summaryValue: {
+    fontSize: "12px",
+    color: "#fff",
+    fontWeight: "700"
+  },
+  startInvestmentSubmitBtn: {
     width: "100%",
+    padding: "12px",
     background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
     border: "none",
+    borderRadius: "10px",
     color: "#000",
-    padding: "8px",
-    borderRadius: "20px",
-    fontSize: "11px",
-    fontWeight: "bold",
-    cursor: "pointer"
+    fontSize: "14px",
+    fontWeight: "900",
+    cursor: "pointer",
+    boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)"
   },
   historyCard: {
     background: "#111827",
@@ -2830,14 +2899,6 @@ const styles = {
     width: "100%",
     maxWidth: "360px"
   },
-  planModalCardDark: {
-    background: "#111827",
-    border: "1px solid #facc15",
-    borderRadius: "16px",
-    padding: "16px",
-    width: "100%",
-    maxWidth: "400px"
-  },
   withdrawModalCardDark: {
     background: "#111827",
     borderRadius: "16px",
@@ -2879,9 +2940,7 @@ const styles = {
   labelDark: {
     fontSize: "11px",
     fontWeight: "700",
-    color: "#e2e8f0",
-    marginBottom: "4px",
-    display: "block"
+    color: "#e2e8f0"
   },
   inputModalDark: {
     width: "100%",
