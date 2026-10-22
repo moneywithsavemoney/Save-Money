@@ -1385,9 +1385,24 @@ export default function OneTime() {
                   </tr>
                 ) : (
                   displayedHistory.map((item, idx) => {
-                    const itemType = (item.type || "").toLowerCase();
-                    const isDeposit = itemType.includes("add fund") || itemType.includes("deposit") || !!item.transactionId;
-                    const isWithdraw = itemType.includes("withdraw");
+                    const itemTypeRaw = (item.type || "").toLowerCase();
+                    const isDeposit = itemTypeRaw.includes("add fund") || itemTypeRaw.includes("deposit") || !!item.transactionId;
+                    const isWithdraw = itemTypeRaw.includes("withdraw");
+                    const isEarning = itemTypeRaw.includes("earning") || itemTypeRaw.includes("return") || itemTypeRaw.includes("profit") || itemTypeRaw.includes("daily");
+
+                    // Dynamic label for Transaction History Type
+                    let displayType = "🚀 OneTime";
+                    if (isDeposit) {
+                      displayType = "💳 Add Fund";
+                    } else if (isWithdraw) {
+                      displayType = item.isInvestAmountWithdrawal ? "🏦 Invest Principal Wd" : "💸 Withdrawal";
+                    } else if (isEarning || item.type === "Daily Return" || item.type === "Profit") {
+                      displayType = "🪙 Daily Return";
+                    } else if (item.duration) {
+                      displayType = `🚀 ${item.duration}`;
+                    } else if (item.durationDays) {
+                      displayType = `🚀 ${item.durationDays} Days`;
+                    }
 
                     const rawStatus = item.status || "Pending";
                     const isSuccess = ["approved", "accepted", "success", "active", "completed"].includes(rawStatus.toLowerCase());
@@ -1403,9 +1418,7 @@ export default function OneTime() {
                         onClick={() => setSelectedTxn(item)}
                       >
                         <td style={styles.tdDark}>{formatDate(item.createdAt || item.startDate)}</td>
-                        <td style={styles.tdDark}>
-                          {isDeposit ? "💳 Add Fund" : isWithdraw ? (item.isInvestAmountWithdrawal ? "🏦 Invest Principal Wd" : "💸 Withdrawal") : `🚀 ${item.duration || `${item.durationDays || (tenureMonths * 30)} Days`}`}
-                        </td>
+                        <td style={styles.tdDark}>{displayType}</td>
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
                           <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
@@ -1821,7 +1834,7 @@ export default function OneTime() {
                   onClick={handleRazorpayPayment}
                   disabled={razorpayLoading}
                 >
-                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹{totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
+                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
                 </button>
               </div>
             ) : (
