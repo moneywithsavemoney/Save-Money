@@ -105,13 +105,12 @@ export default function OneTime() {
 
   const [activeInvestment, setActiveInvestment] = useState(null);
 
-  const [showPlanModal, setShowPlanModal] = useState(false);
-  const [selectedPlanType, setSelectedPlanType] = useState("Beginner");
-
-  const [tenure, setTenure] = useState(15);
-  const [rate, setRate] = useState(0.6);
+  // Category & Investment States matching backend calculation rules
+  const [category, setCategory] = useState("beginner"); // "beginner" or "pro"
+  const [tenure, setTenure] = useState(9); // months or tenure mapping
+  const [rate, setRate] = useState(1.2);
   const [frequency, setFrequency] = useState("daily");
-  const [amount, setAmount] = useState(5000);
+  const [amount, setAmount] = useState(15000);
   const [investing, setInvesting] = useState(false);
 
   const [showAmountModal, setShowAmountModal] = useState(false);
@@ -121,8 +120,8 @@ export default function OneTime() {
   
   const [showInvestWithdrawModal, setShowInvestWithdrawModal] = useState(false);
   const [showReinvestModal, setShowReinvestModal] = useState(false);
-  const [reinvestTenure, setReinvestTenure] = useState(15);
-  const [reinvestRate, setReinvestRate] = useState(0.6);
+  const [reinvestTenure, setReinvestTenure] = useState(9);
+  const [reinvestRate, setReinvestRate] = useState(1.2);
 
   const [txnId, setTxnId] = useState("");
   const [screenshot, setScreenshot] = useState(null);
@@ -158,49 +157,24 @@ export default function OneTime() {
   const platformFee = 0;
   const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
 
-  const bonusActivationInfo = useMemo(() => {
-    const hasBonusMembers = bonusList.length > 0 || user?.hasBonusMembers || user?.bonusList?.length > 0;
-    if (!hasBonusMembers) {
-      return { isUpgraded: false, message: "" };
-    }
-
-    const storageKey = `sm_bonus_first_detected_${email.trim().toLowerCase()}`;
-    let firstDetectedTime = localStorage.getItem(storageKey);
-    const now = Date.now();
-
-    if (!firstDetectedTime) {
-      firstDetectedTime = now.toString();
-      localStorage.setItem(storageKey, firstDetectedTime);
-    }
-
-    const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
-    const timeElapsed = now - parseInt(firstDetectedTime, 10);
-
-    if (timeElapsed >= threeDaysInMs) {
-      return { isUpgraded: true, message: "" };
-    } else {
-      const remainingHours = Math.ceil((threeDaysInMs - timeElapsed) / (1000 * 60 * 60));
-      return {
-        isUpgraded: false,
-        message: `Your withdrawal system new version is updating. It will go live very soon! (Approx. ${remainingHours} hours remaining)`
-      };
-    }
-  }, [bonusList, user, email]);
-
-  const tenurePlans = [
-    { days: 30, rate: 0.8, label: "30 Days (0.8%)" },
-    { days: 40, rate: 1.0, label: "40 Days (1.0%)" },
-    { days: 60, rate: 1.5, label: "60 Days (1.5%)" },
-    { days: 100, rate: 2.0, label: "100 Days (2.0%)" }
+  // Beginner and Pro Plans based on backend calculateDailyReturn & calculateBonusConfig
+  const beginnerPlans = [
+    { value: 7500, rate: 0.8, tenureMonths: 1, label: "₹7,500 (0.8% Daily)" },
+    { value: 15000, rate: 1.2, tenureMonths: 9, label: "₹15,000 (1.2% Daily)" },
+    { value: 22500, rate: 1.5, tenureMonths: 9, label: "₹22,500 (1.5% Daily)" },
+    { value: 30000, rate: 1.7, tenureMonths: 9, label: "₹30,000 (1.7% Daily)" },
+    { value: 37500, rate: 2.0, tenureMonths: 9, label: "₹37,500 (2.0% Daily)" }
   ];
 
-  const presetAmounts = [
-    { label: "7.5k", value: 7500, desc: "Basic", color: "linear-gradient(135deg, #0ea5e9, #0284c7)" },
-    { label: "10k", value: 10000, desc: "Popular", color: "linear-gradient(135deg, #8b5cf6, #7c3aed)" },
-    { label: "50k", value: 50000, desc: "Pro", color: "linear-gradient(135deg, #f59e0b, #d97706)" },
-    { label: "100k", value: 100000, desc: "VIP", color: "linear-gradient(135deg, #ec4899, #db2777)" },
-    { label: "500k", value: 500000, desc: "Master", color: "linear-gradient(135deg, #6366f1, #4f46e5)" }
+  const proPlans = [
+    { value: 99999, rate: 2.0, tenureMonths: 2, label: "₹99,999 (2.0% Daily)" },
+    { value: 139999, rate: 3.0, tenureMonths: 2, label: "₹139,999 (3.0% Daily)" },
+    { value: 189999, rate: 3.5, tenureMonths: 2, label: "₹189,999 (3.5% Daily)" },
+    { value: 249999, rate: 4.5, tenureMonths: 2, label: "₹249,999 (4.5% Daily)" },
+    { value: 500000, rate: 6.0, tenureMonths: 3, label: "₹500,000 (6.0% Daily)" }
   ];
+
+  const currentPresetList = category === "beginner" ? beginnerPlans : proPlans;
 
   useEffect(() => {
     loadDashboardData();
@@ -406,7 +380,7 @@ export default function OneTime() {
       if (startDateRaw) {
         const startDateObj = parseSafeDate(startDateRaw);
         if (!isNaN(startDateObj.getTime()) && startDateObj.getTime() > 0) {
-          let durationDays = 15;
+          let durationDays = 30;
           if (typeof activeInvestment.duration === "number") {
             durationDays = activeInvestment.duration;
           } else if (typeof activeInvestment.duration === "string") {
@@ -438,45 +412,7 @@ export default function OneTime() {
     return activeInvestment && !isMatured;
   }, [activeInvestment, isMatured]);
 
-  useEffect(() => {
-    if (activeInvestment && !isMatured) {
-      if (activeInvestment.amount) {
-        setAmount(Number(activeInvestment.amount));
-      }
-
-      let days = 15;
-      if (typeof activeInvestment.duration === "number") {
-        days = activeInvestment.duration;
-      } else if (typeof activeInvestment.duration === "string") {
-        const match = activeInvestment.duration.match(/\d+/);
-        if (match) days = parseInt(match[0], 10);
-      } else if (activeInvestment.durationDays) {
-        days = Number(activeInvestment.durationDays);
-      }
-
-      const matchedPlan = tenurePlans.find((p) => p.days === days);
-      if (matchedPlan) {
-        setTenure(matchedPlan.days);
-        setRate(matchedPlan.rate);
-      } else {
-        setTenure(days);
-        if (activeInvestment.dailyReturn && activeInvestment.amount) {
-          const calcRate = (Number(activeInvestment.dailyReturn) / Number(activeInvestment.amount)) * 100;
-          setRate(calcRate);
-        }
-      }
-
-      if (activeInvestment.frequency) {
-        setFrequency(activeInvestment.frequency.toLowerCase());
-      }
-    } else if (!activeInvestment || isMatured) {
-      setTenure(30);
-      setRate(0.8);
-      setFrequency("daily");
-      setAmount(7500);
-    }
-  }, [activeInvestment, isMatured]);
-
+  // Daily return calculation matching backend calculateDailyReturn(amount, tenureMonths, category)
   const dailyReturn = useMemo(() => {
     if (isInvestmentLocked && activeInvestment && activeInvestment.dailyReturn) {
       return Number(activeInvestment.dailyReturn);
@@ -499,31 +435,28 @@ export default function OneTime() {
   }, [history]);
 
   const weeklyReturn = useMemo(() => dailyReturn * 7, [dailyReturn]);
-  const totalReturn = useMemo(() => dailyReturn * tenure, [dailyReturn, tenure]);
+  const totalReturn = useMemo(() => dailyReturn * (tenure * 30), [dailyReturn, tenure]);
   const totalPayout = useMemo(() => Number(amount) + totalReturn, [amount, totalReturn]);
 
-  const handleTenureChange = (e) => {
+  const handleCategoryChange = (cat) => {
     if (isInvestmentLocked) return;
-    const selectedDays = Number(e.target.value);
-    const plan = tenurePlans.find((p) => p.days === selectedDays);
-    if (plan) {
-      setTenure(plan.days);
-      setRate(plan.rate);
+    setCategory(cat);
+    if (cat === "beginner") {
+      setAmount(15000);
+      setRate(1.2);
+      setTenure(9);
+    } else {
+      setAmount(99999);
+      setRate(2.0);
+      setTenure(2);
     }
   };
 
-  const openPlanModal = (planType) => {
-    setSelectedPlanType(planType);
-    if (planType === "Pro") {
-      setAmount(50000);
-      setTenure(40);
-      setRate(1.0);
-    } else {
-      setAmount(7500);
-      setTenure(30);
-      setRate(0.8);
-    }
-    setShowPlanModal(true);
+  const handlePresetSelect = (plan) => {
+    if (isInvestmentLocked) return;
+    setAmount(plan.value);
+    setRate(plan.rate);
+    setTenure(plan.tenureMonths);
   };
 
   const handleStartInvestment = async () => {
@@ -547,19 +480,20 @@ export default function OneTime() {
         },
         body: JSON.stringify({
           email,
-          planType: selectedPlanType,
+          category,
           amount: Number(amount),
-          duration: `${tenure} Days`,
+          duration: `${tenure} Months`,
+          durationDays: tenure * 30,
           frequency,
           dailyReturn,
+          rate,
           status: "Active"
         })
       });
 
       const data = await res.json();
       if (res.ok || data.success) {
-        triggerToast(`🚀 ${selectedPlanType} Investment Started Successfully!`, "success");
-        setShowPlanModal(false);
+        triggerToast("🚀 Investment Started Successfully!", "success");
         await loadDashboardData();
       } else {
         triggerToast(data.message || data.msg || "Failed to create investment", "error");
@@ -769,13 +703,7 @@ export default function OneTime() {
   const [selectedWithdrawAmount, setSelectedWithdrawAmount] = useState(100);
 
   const handleWithdrawSubmit = async (customAmt = null) => {
-    const hasBonusMembers = bonusList.length > 0 || user?.hasBonusMembers || user?.bonusList?.length > 0;
-    const amountToWithdraw = customAmt || (hasBonusMembers && bonusActivationInfo.isUpgraded ? selectedWithdrawAmount : Number(dailyReturn));
-
-    if (hasBonusMembers && !bonusActivationInfo.isUpgraded) {
-      triggerToast("Your withdrawal system is currently updating. Please wait 3 days.", "error");
-      return;
-    }
+    const amountToWithdraw = customAmt || Number(dailyReturn);
 
     if (hasWithdrawnToday) {
       triggerToast("You have already placed a withdrawal request today!", "error");
@@ -812,7 +740,7 @@ export default function OneTime() {
       }
     } catch (err) {
       console.error("Withdrawal error:", err);
-      triggerToast("Network error during withdrawal. Please check console.", "error");
+      triggerToast("Network error during withdrawal.", "error");
     } finally {
       setWithdrawing(false);
     }
@@ -863,7 +791,6 @@ export default function OneTime() {
     if (!activeInvestment) return;
 
     const reinvestAmount = Number(activeInvestment.amount || 0);
-    const calculatedDaily = (reinvestAmount * reinvestRate) / 100;
 
     try {
       setWithdrawing(true);
@@ -875,10 +802,13 @@ export default function OneTime() {
         },
         body: JSON.stringify({
           email,
+          category,
           amount: reinvestAmount,
-          duration: `${reinvestTenure} Days`,
+          duration: `${reinvestTenure} Months`,
+          durationDays: reinvestTenure * 30,
           frequency: "daily",
-          dailyReturn: calculatedDaily,
+          dailyReturn: (reinvestAmount * reinvestRate) / 100,
+          rate: reinvestRate,
           status: "Active"
         })
       });
@@ -954,7 +884,6 @@ export default function OneTime() {
   }
 
   const displayedHistory = showAllHistory ? history : history.slice(0, 5);
-  const hasBonusMembers = bonusList.length > 0 || user?.hasBonusMembers || user?.bonusList?.length > 0;
 
   return (
     <div style={styles.page}>
@@ -1179,7 +1108,7 @@ export default function OneTime() {
           <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
           <div style={styles.marqueeContainer}>
             <div style={styles.marqueeText}>
-              Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>up to 500 bonus!</span> 🎉
+              Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>bonus rewards!</span> 🎉
             </div>
           </div>
         </div>
@@ -1232,7 +1161,7 @@ export default function OneTime() {
               <span style={{ color: "#f1f5f9" }}>har mahine ka plan, hamesha</span>
             </h2>
             <p style={styles.heroDesc}>
-              Invest small amounts monthly to get big returns together
+              Invest in Beginner or Pro plans to get maximum returns
             </p>
           </div>
           <div style={styles.heroImgWrapper}>
@@ -1339,19 +1268,7 @@ export default function OneTime() {
         )}
 
         <section style={styles.darkMainCard}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "20px" }}>🌱</span>
-              <div>
-                <h2 style={{ ...styles.darkCardTitle, margin: 0 }}>Make a New Investment</h2>
-                <p style={{ margin: 0, fontSize: "10px", color: "#94a3b8" }}>Choose your plan and start growing your wealth today</p>
-              </div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <span style={{ fontSize: "10px", color: "#facc15", display: "block", fontStyle: "italic" }}>Small Steps</span>
-              <strong style={{ fontSize: "11px", color: "#ffffff" }}>Big Returns</strong>
-            </div>
-          </div>
+          <h2 style={styles.darkCardTitle}>Make a New Investment</h2>
 
           {activeInvestment && !isMatured && (
             <div style={styles.activeInvestCardDark}>
@@ -1372,7 +1289,7 @@ export default function OneTime() {
                 </div>
                 <div style={styles.activeStatItem}>
                   <span style={styles.activeLabel}>Plan Duration</span>
-                  <strong style={styles.activeValue}>{activeInvestment.duration || `${activeInvestment.durationDays || tenure} Days`}</strong>
+                  <strong style={styles.activeValue}>{activeInvestment.duration || `${activeInvestment.durationDays || (tenure * 30)} Days`}</strong>
                 </div>
                 <div style={styles.activeStatItem}>
                   <span style={styles.activeLabel}>Daily Earnings</span>
@@ -1388,155 +1305,63 @@ export default function OneTime() {
             </div>
           )}
 
-          {/* DUAL INVESTMENT CARDS */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "14px" }}>
-            {/* BEGINNER INVESTMENT CARD */}
-            <div style={{ background: "#040d1a", border: "1px solid #10b981", borderRadius: "12px", padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                  <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(16, 185, 129, 0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "18px" }}>🌱</span>
-                  </div>
-                  <div>
-                    <strong style={{ fontSize: "12px", color: "#ffffff", display: "block" }}>Beginner Investment</strong>
-                    <span style={{ fontSize: "9px", color: "#94a3b8" }}>Safe • Stable • Good for Start</span>
-                  </div>
-                </div>
-
-                <ul style={{ listStyle: "none", padding: 0, margin: "10px 0", display: "flex", flexDirection: "column", gap: "6px", fontSize: "10px", color: "#cbd5e1" }}>
-                  <li style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ color: "#22c55e" }}>✔</span> Low Risk</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ color: "#22c55e" }}>✔</span> Daily Returns</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ color: "#22c55e" }}>✔</span> Flexible Investment</li>
-                </ul>
-              </div>
-
+          {/* TWO INVESTMENT OPTIONS: BEGINNER & PRO */}
+          <div style={styles.fieldGroup}>
+            <label style={styles.labelDark}>
+              📌 Select Investment Category {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+            </label>
+            <div style={styles.frequencyToggleDark}>
               <button
+                type="button"
                 style={{
-                  width: "100%",
-                  height: "36px",
-                  borderRadius: "20px",
-                  border: "none",
-                  background: isInvestmentLocked ? "#334155" : "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                  color: "#ffffff",
-                  fontSize: "11px",
-                  fontWeight: "bold",
-                  cursor: isInvestmentLocked ? "not-allowed" : "pointer",
-                  marginTop: "8px"
+                  ...styles.freqBtnDark,
+                  ...(category === "beginner" ? styles.freqBtnActiveDark : {})
                 }}
-                disabled={investing || isInvestmentLocked}
-                onClick={() => openPlanModal("Beginner")}
+                onClick={() => !isInvestmentLocked && handleCategoryChange("beginner")}
+                disabled={isInvestmentLocked}
               >
-                {investing ? "Processing..." : isInvestmentLocked ? "🔒 Running" : "Start Beginner ›"}
+                🌱 Beginner Investment
               </button>
-            </div>
-
-            {/* PRO INVESTMENT CARD */}
-            <div style={{ background: "linear-gradient(135deg, #1e1300 0%, #080f1e 100%)", border: "1px solid #f59e0b", borderRadius: "12px", padding: "12px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                  <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(245, 158, 11, 0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: "18px" }}>👑</span>
-                  </div>
-                  <div>
-                    <strong style={{ fontSize: "12px", color: "#facc15", display: "block" }}>Pro Investment</strong>
-                    <span style={{ fontSize: "9px", color: "#94a3b8" }}>Higher Returns • Faster Growth</span>
-                  </div>
-                </div>
-
-                <ul style={{ listStyle: "none", padding: 0, margin: "10px 0", display: "flex", flexDirection: "column", gap: "6px", fontSize: "10px", color: "#cbd5e1" }}>
-                  <li style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ color: "#facc15" }}>✔</span> High Profit Potential</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ color: "#facc15" }}>✔</span> Premium Benefits</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ color: "#facc15" }}>✔</span> Advanced Plan</li>
-                </ul>
-              </div>
-
               <button
+                type="button"
                 style={{
-                  width: "100%",
-                  height: "36px",
-                  borderRadius: "20px",
-                  border: "none",
-                  background: isInvestmentLocked ? "#334155" : "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                  color: "#000000",
-                  fontSize: "11px",
-                  fontWeight: "bold",
-                  cursor: isInvestmentLocked ? "not-allowed" : "pointer",
-                  marginTop: "8px"
+                  ...styles.freqBtnDark,
+                  ...(category === "pro" ? styles.freqBtnActiveDark : {})
                 }}
-                disabled={investing || isInvestmentLocked}
-                onClick={() => openPlanModal("Pro")}
+                onClick={() => !isInvestmentLocked && handleCategoryChange("pro")}
+                disabled={isInvestmentLocked}
               >
-                {investing ? "Processing..." : isInvestmentLocked ? "🔒 Running" : "Start Pro ›"}
+                🔥 Pro Investment
               </button>
             </div>
           </div>
 
-          <div style={styles.formGrid}>
-            <div style={styles.fieldGroup}>
-              <label style={styles.labelDark}>
-                📌 Select Duration {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
-              </label>
-              <select
-                style={{
-                  ...styles.selectDark,
-                  ...(isInvestmentLocked ? styles.lockedInputDark : {})
-                }}
-                value={tenure}
-                onChange={handleTenureChange}
-                disabled={isInvestmentLocked}
-              >
-                {tenurePlans.map((p) => (
-                  <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.labelDark}>
-                🔄 Return Frequency {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
-              </label>
-              <div style={styles.frequencyToggleDark}>
+          <div style={styles.fieldGroup} style={{ marginTop: "10px" }}>
+            <label style={styles.labelDark}>
+              💵 Select Amount Package {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "4px" }}>
+              {currentPresetList.map((plan) => (
                 <button
+                  key={plan.value}
                   type="button"
                   style={{
-                    ...styles.freqBtnDark,
-                    ...(frequency === "daily" ? styles.freqBtnActiveDark : {})
+                    padding: "10px",
+                    borderRadius: "8px",
+                    border: amount === plan.value ? "2px solid #22c55e" : "1px solid #334155",
+                    background: amount === plan.value ? "rgba(34, 197, 94, 0.2)" : "#0f2138",
+                    color: "#fff",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                    cursor: isInvestmentLocked ? "not-allowed" : "pointer",
+                    textAlign: "center"
                   }}
-                  onClick={() => !isInvestmentLocked && setFrequency("daily")}
+                  onClick={() => !isInvestmentLocked && handlePresetSelect(plan)}
                   disabled={isInvestmentLocked}
                 >
-                  Daily
+                  {plan.label}
                 </button>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.freqBtnDark,
-                    ...(frequency === "weekly" ? styles.freqBtnActiveDark : {})
-                  }}
-                  onClick={() => !isInvestmentLocked && setFrequency("weekly")}
-                  disabled={isInvestmentLocked}
-                >
-                  Weekly
-                </button>
-              </div>
-            </div>
-
-            <div style={styles.fieldGroup}>
-              <label style={styles.labelDark}>
-                💵 Select / Enter Amount {isInvestmentLocked && <span style={{ color: "#ef4444" }}>(🔒Active)</span>}
-              </label>
-              <div 
-                style={styles.amountInputWrapDark} 
-                onClick={() => !isInvestmentLocked && setShowAmountModal(true)}
-              >
-                <span style={{ fontSize: "18px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
-                <input style={styles.amountInputDark} type="text" readOnly value={amount.toLocaleString("en-IN")} />
-                <span style={isInvestmentLocked ? styles.lockedBadgeDark : styles.changeBadgeDark}>
-                  {isInvestmentLocked ? "🔒 Locked" : "Change ⚙️"}
-                </span>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -1545,13 +1370,13 @@ export default function OneTime() {
               <span style={styles.returnBoxBagIcon}>🪙</span>
               <div>
                 <div style={styles.returnCardTitleDark}>
-                  You Will Get {frequency === "daily" ? "Daily" : "Weekly"} Return
+                  You Will Get Daily Return ({rate}%)
                 </div>
                 <strong style={styles.returnCardValueDark}>
-                  ₹ {frequency === "daily" ? dailyReturn.toFixed(2) : weeklyReturn.toFixed(2)}
+                  ₹ {dailyReturn.toFixed(2)}
                 </strong>
                 <span style={styles.returnCardNoteDark}>
-                  (Approx. Return Per {frequency === "daily" ? "Day" : "Week"})
+                  (Approx. Return Per Day)
                 </span>
               </div>
             </div>
@@ -1564,7 +1389,7 @@ export default function OneTime() {
             </div>
             <div style={styles.breakBoxDark}>
               <span style={styles.breakLabelDark}>Duration</span>
-              <strong style={styles.breakValueDark}>{tenure} Days ({rate}%)</strong>
+              <strong style={styles.breakValueDark}>{tenure} Months ({rate}%)</strong>
             </div>
             <div style={styles.breakBoxDark}>
               <span style={styles.breakLabelDark}>Total Return</span>
@@ -1640,7 +1465,7 @@ export default function OneTime() {
                       >
                         <td style={styles.tdDark}>{formatDate(item.createdAt || item.startDate)}</td>
                         <td style={styles.tdDark}>
-                          {isDeposit ? "💳 Add Fund" : isWithdraw ? (item.isInvestAmountWithdrawal ? "🏦 Invest Principal Wd" : "💸 Withdrawal") : `🚀 ${item.duration || `${item.durationDays || tenure} Days`}`}
+                          {isDeposit ? "💳 Add Fund" : isWithdraw ? (item.isInvestAmountWithdrawal ? "🏦 Invest Principal Wd" : "💸 Withdrawal") : `🚀 ${item.duration || `${item.durationDays || (tenure * 30)} Days`}`}
                         </td>
                         <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
                         <td style={styles.tdDark}>
@@ -1679,68 +1504,6 @@ export default function OneTime() {
           </div>
         </footer>
       </div>
-
-      {/* INVESTMENT PLAN DETAILS MODAL */}
-      {showPlanModal && (
-        <div style={styles.modalOverlay} onClick={() => setShowPlanModal(false)}>
-          <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>
-                🚀 Configure {selectedPlanType} Investment
-              </h3>
-              <button style={styles.closeBtnDark} onClick={() => setShowPlanModal(false)}>✕</button>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <div>
-                <label style={styles.labelDark}>📌 Select Tenure</label>
-                <select
-                  style={styles.selectDark}
-                  value={tenure}
-                  onChange={(e) => {
-                    const days = Number(e.target.value);
-                    const matched = tenurePlans.find((p) => p.days === days);
-                    if (matched) {
-                      setTenure(matched.days);
-                      setRate(matched.rate);
-                    }
-                  }}
-                >
-                  {tenurePlans.map((p) => (
-                    <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
-                      {p.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label style={styles.labelDark}>💵 Select / Enter Amount</label>
-                <div style={styles.amountInputWrapDark} onClick={() => setShowAmountModal(true)}>
-                  <span style={{ fontSize: "18px", fontWeight: "bold", color: "#22c55e" }}>₹</span>
-                  <input style={styles.amountInputDark} type="text" readOnly value={amount.toLocaleString("en-IN")} />
-                  <span style={styles.changeBadgeDark}>Change ⚙️</span>
-                </div>
-              </div>
-
-              <div style={styles.returnContainerDark}>
-                <span style={{ fontSize: "11px", fontWeight: "700" }}>Estimated Daily Return</span>
-                <strong style={{ fontSize: "20px", color: "#22c55e", display: "block" }}>
-                  ₹ {dailyReturn.toFixed(2)} / day
-                </strong>
-              </div>
-
-              <button
-                style={{ ...styles.submitBtnDark, background: selectedPlanType === "Pro" ? "linear-gradient(135deg, #f59e0b, #d97706)" : "#16a34a", color: selectedPlanType === "Pro" ? "#000" : "#fff" }}
-                onClick={handleStartInvestment}
-                disabled={investing}
-              >
-                {investing ? "Processing..." : `Confirm & Start ${selectedPlanType}`}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 🎁 BONUS MODAL POPUP */}
       {showBonusModal && (
@@ -1806,13 +1569,13 @@ export default function OneTime() {
                   bonusList.map((item, index) => (
                     <div key={item._id || index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#040d1a", padding: "8px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
                       <div>
-                        <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{item.name || item.username || "User"}</strong>
+                        <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{item.name || item.username || item.investorEmail || "User"}</strong>
                         <span style={{ fontSize: "10px", color: "#94a3b8" }}>Joined: {formatDate(item.createdAt || item.date)}</span>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: "bold", display: "block" }}>+₹300</span>
+                        <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: "bold", display: "block" }}>+₹{item.monthlyBonusAmount || 300}</span>
                         <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "4px", background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", fontWeight: "bold" }}>
-                          Success
+                          {item.status || "Success"}
                         </span>
                       </div>
                     </div>
@@ -1833,78 +1596,26 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
             </div>
             
-            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < (hasBonusMembers && bonusActivationInfo.isUpgraded ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", marginBottom: "12px" }}>
+            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80", marginBottom: "12px" }}>
               <span style={{ fontSize: "12px", color: "#94a3b8" }}>Available Balance</span>
-              <strong style={{ fontSize: "22px", color: currentWalletBalance < (hasBonusMembers && bonusActivationInfo.isUpgraded ? selectedWithdrawAmount : dailyReturn) ? "#f87171" : "#4ade80", display: "block" }}>
+              <strong style={{ fontSize: "22px", color: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80", display: "block" }}>
                 ₹ {currentWalletBalance.toLocaleString("en-IN")}
               </strong>
             </div>
 
-            {hasBonusMembers && !bonusActivationInfo.isUpgraded ? (
-              <div style={{ background: "rgba(234, 179, 8, 0.15)", border: "1px solid #facc15", padding: "12px", borderRadius: "8px", textAlign: "center", marginBottom: "12px" }}>
-                <span style={{ fontSize: "12px", color: "#facc15", fontWeight: "bold", display: "block", marginBottom: "4px" }}>
-                  ⏳ System Updating Notice
-                </span>
-                <p style={{ fontSize: "11px", color: "#cbd5e1", margin: 0, lineHeight: "1.4" }}>
-                  {bonusActivationInfo.message}
-                </p>
-              </div>
-            ) : hasBonusMembers && bonusActivationInfo.isUpgraded ? (
-              <>
-                <label style={{ ...styles.labelDark, display: "block", marginBottom: "6px" }}>Select Preset Withdraw Amount</label>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px", marginBottom: "10px" }}>
-                  {[100, 300, 500, 1000].map((amt) => (
-                    <button
-                      key={amt}
-                      style={{
-                        padding: "8px 4px",
-                        borderRadius: "6px",
-                        border: selectedWithdrawAmount === amt ? "2px solid #22c55e" : "1px solid #334155",
-                        background: selectedWithdrawAmount === amt ? "rgba(34, 197, 94, 0.2)" : "#0f2138",
-                        color: "#fff",
-                        fontSize: "11px",
-                        fontWeight: "bold",
-                        cursor: "pointer"
-                      }}
-                      onClick={() => setSelectedWithdrawAmount(amt)}
-                    >
-                      ₹{amt}
-                    </button>
-                  ))}
-                </div>
-
-                <p style={{ fontSize: "11px", color: "#facc15", textAlign: "center", marginBottom: "12px", fontStyle: "italic" }}>
-                  Your withdrawal will be successful within 2 hours.
-                </p>
-
-                <button
-                  style={{
-                    ...styles.submitBtnDark,
-                    background: (currentWalletBalance < selectedWithdrawAmount || hasWithdrawnToday) ? "#334155" : "#16a34a"
-                  }}
-                  onClick={() => handleWithdrawSubmit(selectedWithdrawAmount)}
-                  disabled={withdrawing || currentWalletBalance < selectedWithdrawAmount || hasWithdrawnToday}
-                >
-                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : `Withdraw ₹${selectedWithdrawAmount}`}
-                </button>
-              </>
-            ) : (
-              <>
-                <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
-                  Withdraw Daily Return: <strong style={{ color: "#22c55e" }}>₹{dailyReturn.toFixed(2)}</strong>
-                </p>
-                <button
-                  style={{
-                    ...styles.submitBtnDark,
-                    background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "#16a34a"
-                  }}
-                  onClick={() => handleWithdrawSubmit()}
-                  disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
-                >
-                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
-                </button>
-              </>
-            )}
+            <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
+              Withdraw Daily Return: <strong style={{ color: "#22c55e" }}>₹{dailyReturn.toFixed(2)}</strong>
+            </p>
+            <button
+              style={{
+                ...styles.submitBtnDark,
+                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "#16a34a"
+              }}
+              onClick={() => handleWithdrawSubmit()}
+              disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
+            >
+              {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
+            </button>
           </div>
         </div>
       )}
@@ -1997,33 +1708,6 @@ export default function OneTime() {
               >
                 Close Window
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showAmountModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modalCardDark}>
-            <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, fontSize: "18px", color: "#fff" }}>Select Amount</h3>
-              <button style={styles.closeBtnDark} onClick={() => setShowAmountModal(false)}>✕</button>
-            </div>
-            <div style={styles.presetGrid}>
-              {presetAmounts.map((p) => (
-                <div
-                  key={p.value}
-                  style={{
-                    ...styles.presetCard,
-                    background: p.color,
-                    border: amount === p.value ? "2px solid #ffffff" : "none"
-                  }}
-                  onClick={() => { setAmount(p.value); setShowAmountModal(false); }}
-                >
-                  <span style={styles.presetBadge}>{p.desc}</span>
-                  <div style={styles.presetVal}>₹{p.value.toLocaleString("en-IN")}</div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
@@ -2223,27 +1907,6 @@ export default function OneTime() {
             <div style={{ marginBottom: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
               <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Amount to Reinvest</span>
               <strong style={{ fontSize: "18px", color: "#22c55e" }}>₹{Number(activeInvestment.amount || 0).toLocaleString("en-IN")}</strong>
-            </div>
-            <div style={styles.fieldGroup}>
-              <label style={styles.labelDark}>Select Reinvest Duration</label>
-              <select
-                style={styles.selectDark}
-                value={reinvestTenure}
-                onChange={(e) => {
-                  const selectedDays = Number(e.target.value);
-                  const plan = tenurePlans.find((p) => p.days === selectedDays);
-                  if (plan) {
-                    setReinvestTenure(plan.days);
-                    setReinvestRate(plan.rate);
-                  }
-                }}
-              >
-                {tenurePlans.map((p) => (
-                  <option key={p.days} value={p.days} style={{ background: "#0c1829", color: "#fff" }}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div style={{ marginTop: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
@@ -2620,11 +2283,6 @@ const styles = {
     fontWeight: "bold",
     color: "#f8fafc"
   },
-  formGrid: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px"
-  },
   fieldGroup: {
     display: "flex",
     flexDirection: "column"
@@ -2634,19 +2292,6 @@ const styles = {
     fontWeight: "700",
     marginBottom: "4px",
     color: "#e2e8f0"
-  },
-  selectDark: {
-    height: "40px",
-    borderRadius: "8px",
-    border: "1px solid #334155",
-    background: "#0f2138",
-    color: "#ffffff",
-    padding: "0 10px",
-    fontSize: "13px"
-  },
-  lockedInputDark: {
-    opacity: 0.6,
-    cursor: "not-allowed"
   },
   frequencyToggleDark: {
     display: "flex",
@@ -2659,41 +2304,14 @@ const styles = {
     border: "1px solid #334155",
     background: "#0f2138",
     color: "#cbd5e1",
-    fontSize: "12px",
-    fontWeight: "bold"
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
   },
   freqBtnActiveDark: {
     background: "#16a34a",
     color: "#ffffff",
     borderColor: "#16a34a"
-  },
-  amountInputWrapDark: {
-    height: "40px",
-    borderRadius: "8px",
-    border: "1px solid #334155",
-    background: "#0f2138",
-    padding: "0 10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between"
-  },
-  amountInputDark: {
-    border: "none",
-    background: "transparent",
-    fontSize: "14px",
-    fontWeight: "bold",
-    color: "#ffffff",
-    outline: "none",
-    width: "60%"
-  },
-  changeBadgeDark: {
-    fontSize: "11px",
-    color: "#38bdf8",
-    fontWeight: "bold"
-  },
-  lockedBadgeDark: {
-    fontSize: "11px",
-    color: "#ef4444"
   },
   returnContainerDark: {
     background: "#dcfce7",
@@ -3059,20 +2677,6 @@ const styles = {
     cursor: "pointer",
     fontSize: "14px"
   },
-  presetGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "8px"
-  },
-  presetCard: {
-    borderRadius: "8px",
-    padding: "10px",
-    color: "white",
-    cursor: "pointer",
-    textAlign: "center"
-  },
-  presetBadge: { fontSize: "10px", fontWeight: "bold" },
-  presetVal: { fontSize: "14px", fontWeight: "800" },
   walletBoxDark: {
     background: "#040d1a",
     padding: "10px",
