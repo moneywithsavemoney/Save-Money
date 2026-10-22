@@ -10,6 +10,10 @@ if (typeof document !== "undefined") {
       0% { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
     }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   `;
   document.head.appendChild(styleSheet);
 }
@@ -85,6 +89,7 @@ export default function OneTime() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDownloadingPlan, setIsDownloadingPlan] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [showBonusModal, setShowBonusModal] = useState(false);
   const [bonusInputCode, setBonusInputCode] = useState("");
@@ -295,7 +300,14 @@ export default function OneTime() {
       triggerToast("Network error. Please try again.", "error");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  };
+
+  const handleRefreshPage = async () => {
+    setRefreshing(true);
+    triggerToast("Refreshing data...", "info");
+    await loadDashboardData();
   };
 
   const handleApplyBonusCode = async () => {
@@ -868,7 +880,7 @@ export default function OneTime() {
     );
   }
 
-  const displayedHistory = showAllHistory ? history : history.slice(0, 15);
+  const displayedHistory = showAllHistory ? history : history.slice(0, 5);
 
   return (
     <div style={styles.page}>
@@ -1088,7 +1100,7 @@ export default function OneTime() {
           </div>
         )}
 
-        {/* TOP HEADER WITH USER PROFILE PHOTO FIX */}
+        {/* TOP HEADER WITH REFRESH BUTTON */}
         <header style={styles.header}>
           <div style={styles.headerLeft}>
             <button style={styles.menuButton} onClick={() => setIsDrawerOpen(true)}>
@@ -1103,12 +1115,21 @@ export default function OneTime() {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <button style={styles.bonusPillBtn} onClick={() => setShowBonusModal(true)}>
               🎁 Bonus <span style={styles.notificationDot}>0</span>
             </button>
 
-            {/* DYNAMIC USER PROFILE PHOTO FIX */}
+            {/* REFRESH BUTTON ADDED */}
+            <button 
+              style={styles.refreshIconBtn} 
+              onClick={handleRefreshPage} 
+              title="Refresh Dashboard"
+            >
+              <span style={{ display: "inline-block", animation: refreshing ? "spin 1s linear infinite" : "none" }}>🔄</span>
+            </button>
+
+            {/* DYNAMIC USER PROFILE PHOTO */}
             <div style={styles.userDropdownBtn} onClick={() => navigate("/kyc")}>
               {profilePhoto ? (
                 <img 
@@ -1127,7 +1148,7 @@ export default function OneTime() {
           </div>
         </header>
 
-        {/* HERO WELCOME BANNER */}
+        {/* HERO WELCOME BANNER (GOLDEN THEMED) */}
         <div style={styles.heroBanner}>
           <div style={styles.heroLeftContent}>
             <h2 style={styles.heroWelcomeTitle}>
@@ -1149,7 +1170,7 @@ export default function OneTime() {
           </div>
         </div>
 
-        {/* 4 STATS CARDS IN 2x2 GRID MATCHING SCREENSHOT */}
+        {/* 4 STATS CARDS IN 2x2 GRID (GOLDEN THEMED) */}
         <section style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statHeader}>
@@ -1188,7 +1209,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* 🚀 ACTIVE LIVE INVESTMENT CARD FIX */}
+        {/* ACTIVE LIVE INVESTMENT CARD (GOLDEN THEMED) */}
         {activeInvestment && (
           <section style={styles.liveActiveInvestCard}>
             <div style={styles.liveInvestHeader}>
@@ -1278,11 +1299,10 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* DAILY RETURN WITH 3D MONEY BADGE MATCHING SCREENSHOT */}
+        {/* DAILY RETURN CARD (GOLDEN THEMED) */}
         <section style={styles.dailyReturnCard}>
           <div style={styles.dailyReturnTopRow}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              {/* SCREENSHOT MATCHED 3D RUPEE BADGE */}
               <div style={styles.goldRupee3DBox}>
                 <span style={{ fontSize: "22px", fontWeight: "900", color: "#facc15" }}>₹</span>
               </div>
@@ -1320,7 +1340,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* MAKE A NEW INVESTMENT SECTION */}
+        {/* MAKE A NEW INVESTMENT SECTION (GOLDEN THEMED) */}
         <section style={styles.makeInvestmentCard}>
           <div style={styles.makeInvestHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1376,7 +1396,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY WITH REASON FIX MATCHING SCREENSHOT */}
+        {/* TRANSACTION HISTORY SECTION (GOLDEN THEMED & VIEW MORE/LESS BUTTONS) */}
         <section style={styles.historyCard}>
           <div style={styles.historyCardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1384,9 +1404,6 @@ export default function OneTime() {
               <h3 style={{ margin: 0, fontSize: "14px", color: "#fff", fontWeight: "800" }}>Transaction History</h3>
               <span style={styles.liveUpdatesPill}>Live Updates</span>
             </div>
-            <span style={styles.viewAllGoldLink} onClick={() => setShowAllHistory(!showAllHistory)}>
-              View All Transactions ➔
-            </span>
           </div>
 
           <div style={styles.tableResponsiveWrapper}>
@@ -1432,7 +1449,6 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // REASON EXTRACTION FIX MATCHING SCREENSHOT
                     let rejectionReason = item.reason || item.rejectReason || item.note || item.adminNote || item.message || "";
                     if (!rejectionReason && isRejected) {
                       rejectionReason = "you are inactive member";
@@ -1470,6 +1486,18 @@ export default function OneTime() {
               </tbody>
             </table>
           </div>
+
+          {/* VIEW MORE & VIEW LESS BUTTONS */}
+          {history.length > 5 && (
+            <div style={{ textAlign: "center", marginTop: "12px" }}>
+              <button 
+                style={styles.viewToggleBtn}
+                onClick={() => setShowAllHistory(!showAllHistory)}
+              >
+                {showAllHistory ? "View Less ▲" : "View More ▼"}
+              </button>
+            </div>
+          )}
         </section>
 
         <footer style={styles.footerBar}>
@@ -2098,6 +2126,19 @@ const styles = {
     alignItems: "center",
     gap: "4px"
   },
+  refreshIconBtn: {
+    background: "linear-gradient(135deg, #d97706 0%, #78350f 100%)",
+    border: "1px solid #facc15",
+    color: "#fff",
+    padding: "6px 9px",
+    borderRadius: "50%",
+    fontSize: "12px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
   notificationDot: {
     background: "#ef4444",
     color: "#fff",
@@ -2140,7 +2181,7 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 0 15px rgba(250, 204, 21, 0.15)"
+    boxShadow: "0 0 15px rgba(250, 204, 21, 0.2)"
   },
   heroLeftContent: {
     flex: 1
@@ -2185,11 +2226,12 @@ const styles = {
   },
   statCard: {
     background: "#111827",
-    border: "1px solid rgba(250, 204, 21, 0.3)",
+    border: "1px solid #facc15",
     borderRadius: "12px",
     padding: "12px",
     display: "flex",
-    flexDirection: "column"
+    flexDirection: "column",
+    boxShadow: "0 0 10px rgba(250, 204, 21, 0.1)"
   },
   statHeader: {
     display: "flex",
@@ -2227,7 +2269,7 @@ const styles = {
     border: "1px solid #facc15",
     borderRadius: "14px",
     padding: "12px",
-    boxShadow: "0 0 15px rgba(250, 204, 21, 0.15)"
+    boxShadow: "0 0 15px rgba(250, 204, 21, 0.2)"
   },
   liveInvestHeader: {
     display: "flex",
@@ -2320,7 +2362,7 @@ const styles = {
     border: "1px solid #facc15",
     borderRadius: "16px",
     padding: "14px",
-    boxShadow: "0 0 20px rgba(245, 158, 11, 0.1)"
+    boxShadow: "0 0 20px rgba(245, 158, 11, 0.15)"
   },
   dailyReturnTopRow: {
     display: "flex",
@@ -2413,9 +2455,10 @@ const styles = {
   },
   makeInvestmentCard: {
     background: "#111827",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: "1px solid #facc15",
     borderRadius: "16px",
-    padding: "14px"
+    padding: "14px",
+    boxShadow: "0 0 15px rgba(250, 204, 21, 0.1)"
   },
   makeInvestHeader: {
     display: "flex",
@@ -2485,9 +2528,10 @@ const styles = {
   },
   historyCard: {
     background: "#111827",
-    border: "1px solid rgba(250, 204, 21, 0.2)",
+    border: "1px solid #facc15",
     borderRadius: "16px",
-    padding: "12px"
+    padding: "12px",
+    boxShadow: "0 0 15px rgba(250, 204, 21, 0.1)"
   },
   historyCardHeader: {
     display: "flex",
@@ -2503,9 +2547,14 @@ const styles = {
     borderRadius: "10px",
     fontWeight: "bold"
   },
-  viewAllGoldLink: {
-    fontSize: "10px",
+  viewToggleBtn: {
+    background: "rgba(250, 204, 21, 0.15)",
+    border: "1px solid #facc15",
     color: "#facc15",
+    padding: "6px 16px",
+    borderRadius: "20px",
+    fontSize: "11px",
+    fontWeight: "bold",
     cursor: "pointer"
   },
   tableResponsiveWrapper: {
