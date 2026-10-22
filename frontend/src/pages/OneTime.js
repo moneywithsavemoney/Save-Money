@@ -68,18 +68,31 @@ function calculateDailyReturn(amount, tenureMonths, category) {
   let dailyRate = 0;
 
   if (category === "beginner") {
+    // 6 ও 9 মাসের জন্য স্ট্যান্ডার্ড বেসিক রেট
+    let baseRate = 1.0;
     if (amount === 7500) {
-      dailyRate = 0.8;
+      baseRate = 0.8;
     } else if (amount === 15000) {
-      dailyRate = tenureMonths >= 9 ? 1.2 : 1.0;
+      baseRate = 1.2;
     } else if (amount === 22500) {
-      dailyRate = tenureMonths >= 9 ? 1.5 : 1.2;
+      baseRate = 1.5;
     } else if (amount === 30000) {
-      dailyRate = tenureMonths >= 9 ? 1.7 : 1.5;
+      baseRate = 1.7;
     } else if (amount === 37500) {
-      dailyRate = tenureMonths >= 9 ? 2.0 : 1.7;
+      baseRate = 2.0;
+    }
+
+    // 9 মাসের উপরে গেলে (১২, ১৮, ২৪ মাসে) পার্সেন্টেজ বৃদ্ধি পাবে
+    if (tenureMonths > 9) {
+      if (tenureMonths === 12) {
+        dailyRate = baseRate + 0.3;
+      } else if (tenureMonths === 18) {
+        dailyRate = baseRate + 0.5;
+      } else if (tenureMonths >= 24) {
+        dailyRate = baseRate + 0.8;
+      }
     } else {
-      dailyRate = tenureMonths >= 9 ? 1.2 : 1.0;
+      dailyRate = baseRate;
     }
   } else if (category === "pro") {
     if (amount === 99999) dailyRate = 2.0;
@@ -475,12 +488,13 @@ export default function OneTime() {
     return activeInvestment && !isMatured;
   }, [activeInvestment, isMatured]);
 
+  // হোম পেজের ডেইলি রিটার্ন লজিক: ইনভেস্টমেন্ট স্টার্ট না থাকলে বা রানিং না থাকলে সরাসরি 0.00 দেখাবে
   const dailyReturn = useMemo(() => {
-    if (isInvestmentLocked && activeInvestment && activeInvestment.dailyReturn) {
-      return Number(activeInvestment.dailyReturn);
+    if (activeInvestment && (activeInvestment.status || "").toLowerCase() === "active") {
+      return Number(activeInvestment.dailyReturn || 0);
     }
-    return calculatedDailyReturn;
-  }, [calculatedDailyReturn, activeInvestment, isInvestmentLocked]);
+    return 0;
+  }, [activeInvestment]);
 
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
@@ -1678,7 +1692,7 @@ export default function OneTime() {
                       }}
                       onClick={() => setTenureMonths(m)}
                     >
-                      {m} Months {m > 9 ? "🔥" : ""}
+                      {m} Months {m >= 12 ? "🔥" : ""}
                     </button>
                   ))}
                 </div>
@@ -1713,12 +1727,16 @@ export default function OneTime() {
 
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Daily Return Rate:</span>
-                  <strong style={{ ...styles.summaryValue, color: "#facc15" }}>{currentRate}% Daily</strong>
+                  <strong style={{ ...styles.summaryValue, color: "#facc15" }}>
+                    {category === "pro" ? "Up to " : ""}{currentRate}% Daily
+                  </strong>
                 </div>
 
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Daily Return Amount:</span>
-                  <strong style={{ ...styles.summaryValue, color: "#4ade80" }}>₹{calculatedDailyReturn.toFixed(2)} / day</strong>
+                  <strong style={{ ...styles.summaryValue, color: "#4ade80" }}>
+                    {category === "pro" ? "Up to " : ""}₹{calculatedDailyReturn.toFixed(2)} / day
+                  </strong>
                 </div>
 
                 <div style={styles.summaryRow}>
@@ -1728,12 +1746,16 @@ export default function OneTime() {
 
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Total Profit Return:</span>
-                  <strong style={{ ...styles.summaryValue, color: "#4ade80" }}>₹{totalProfit.toLocaleString("en-IN")}</strong>
+                  <strong style={{ ...styles.summaryValue, color: "#4ade80" }}>
+                    {category === "pro" ? "Up to " : ""}₹{totalProfit.toLocaleString("en-IN")}
+                  </strong>
                 </div>
 
                 <div style={{ ...styles.summaryRow, borderTop: "1px dashed rgba(255,255,255,0.2)", paddingTop: "6px", marginTop: "4px" }}>
                   <span style={{ ...styles.summaryLabel, color: "#facc15", fontWeight: "bold", fontSize: "12px" }}>Total Payout:</span>
-                  <strong style={{ color: "#facc15", fontSize: "15px", fontWeight: "900" }}>₹{totalPayout.toLocaleString("en-IN")}</strong>
+                  <strong style={{ color: "#facc15", fontSize: "15px", fontWeight: "900" }}>
+                    {category === "pro" ? "Up to " : ""}₹{totalPayout.toLocaleString("en-IN")}
+                  </strong>
                 </div>
               </div>
 
