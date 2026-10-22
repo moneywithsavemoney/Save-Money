@@ -95,7 +95,7 @@ export default function OneTime() {
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // AUTO IMAGE POPUP ON PAGE LOAD
+  // AUTO IMAGE POPUP ON PAGE LOAD (SET TO TRUE)
   const [showImagePopup, setShowImagePopup] = useState(true);
 
   const [showBonusModal, setShowBonusModal] = useState(false);
@@ -391,7 +391,7 @@ export default function OneTime() {
       }
     }
 
-    let durationDays = 60; // Default fallback to 60 days
+    let durationDays = 60;
     if (typeof activeInvestment.duration === "number") {
       durationDays = activeInvestment.duration;
     } else if (typeof activeInvestment.duration === "string") {
@@ -897,7 +897,7 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
-      {/* ON PAGE LOAD AUTOMATIC PROMOTIONAL BONUS RULES POPUP */}
+      {/* AUTOMATIC PROMOTIONAL BONUS RULES POPUP WITH ONETIME.PNG */}
       {showImagePopup && (
         <div style={styles.modalOverlay} onClick={() => setShowImagePopup(false)}>
           <div style={styles.animatedPopupCard} onClick={(e) => e.stopPropagation()}>
@@ -905,7 +905,7 @@ export default function OneTime() {
               ✕
             </button>
             <img 
-              src="/179571.png" 
+              src="/onetime.png" 
               alt="Bonus Rules" 
               style={styles.bonusRulesImage}
               onError={(e) => {
@@ -1180,7 +1180,7 @@ export default function OneTime() {
           </div>
         </header>
 
-        {/* HERO WELCOME BANNER (IN ENGLISH & WITH LIMITED OFFER RESTORED) */}
+        {/* HERO WELCOME BANNER (IN ENGLISH WITH LIMITED OFFER) */}
         <div style={styles.heroBanner}>
           <div style={styles.heroLeftContent}>
             <h2 style={styles.heroWelcomeTitle}>
@@ -1195,7 +1195,6 @@ export default function OneTime() {
               </span>
             </div>
 
-            {/* RESTORED LIMITED TIME OFFER BADGE */}
             <div style={styles.limitedOfferPill}>
               ⚡ Limited Time Offer: Get High Returns Today!
             </div>
@@ -1530,7 +1529,6 @@ export default function OneTime() {
             </table>
           </div>
 
-          {/* VIEW MORE & VIEW LESS BUTTONS */}
           {history.length > 5 && (
             <div style={{ textAlign: "center", marginTop: "12px" }}>
               <button 
@@ -1545,7 +1543,7 @@ export default function OneTime() {
 
         <footer style={styles.footerBar}>
           <p style={styles.footerTagline}>
-            Chhote nivesh, badi kamai ka sapna, ab hoga sach! <strong style={{ color: "#facc15" }}>SAVE MONEY</strong>! 💚
+            Small steps, big returns! Build your wealth with <strong style={{ color: "#facc15" }}>SAVE MONEY</strong>! 💚
           </p>
           <div style={styles.footerCopyRow}>
             <span>© 2026 SAVE MONEY. All Rights Reserved.</span>
@@ -2189,8 +2187,6 @@ const styles = {
     padding: "1px 5px",
     fontSize: "9px"
   },
-
-  /* CIRCULAR PROFILE PHOTO ONLY STYLES */
   userProfileCircleBtn: {
     width: "32px",
     height: "32px",
@@ -2218,7 +2214,6 @@ const styles = {
     fontSize: "14px",
     color: "#fff"
   },
-
   heroBanner: {
     background: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
     border: "2px solid #facc15",
@@ -2245,8 +2240,6 @@ const styles = {
     marginTop: "4px",
     lineHeight: "1.3"
   },
-
-  /* RESTORED LIMITED OFFER PILL STYLE */
   limitedOfferPill: {
     display: "inline-block",
     background: "#000000",
@@ -2258,7 +2251,6 @@ const styles = {
     marginTop: "6px",
     boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
   },
-
   heroBadgeRow: {
     display: "flex",
     alignItems: "center",
@@ -2280,8 +2272,6 @@ const styles = {
     fontSize: "28px",
     marginTop: "4px"
   },
-
-  /* AUTOMATIC POPUP CARD STYLES */
   animatedPopupCard: {
     background: "#0f172a",
     border: "2px solid #facc15",
@@ -2335,7 +2325,6 @@ const styles = {
     cursor: "pointer",
     boxShadow: "0 4px 12px rgba(245, 158, 11, 0.4)"
   },
-
   statsGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
