@@ -27,7 +27,8 @@ const parseSafeDate = (dateVal) => {
   if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
   
   if (typeof dateVal === "string") {
-    const parts = dateVal.split("/");
+    // Check DD/MM/YYYY or DD-MM-YYYY
+    const parts = dateVal.split(/[/|-]/);
     if (parts.length === 3) {
       const day = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10) - 1;
@@ -63,13 +64,12 @@ const formatDateTime = (dateVal) => {
   });
 };
 
-// ডেইলি রিটার্ন হিসাবের ফাংশন (সংশোধিত লজিক)
+// ডেইলি রিটার্ন হিসাবের ফাংশন
 function calculateDailyReturn(amount, tenureMonths, category) {
   let dailyRate = 0;
 
   if (category === "beginner") {
     if (amount === 7500) {
-      // 7500 টাকায় কোনো টেনিউরেই পার্সেন্টেজ বাড়বে না
       dailyRate = 0.8;
     } else if (amount === 15000) {
       dailyRate = tenureMonths >= 12 ? 1.2 : 1.0;
@@ -422,68 +422,72 @@ export default function OneTime() {
     }
   };
 
-  const { calculatedMaturityDate, isMatured, investmentDurationDays } = useMemo(() => {
-    if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false, investmentDurationDays: "60 Days" };
-
-    let maturityObj = null;
-
-    if (activeInvestment.maturityDate || activeInvestment.maturity) {
-      const parsedMaturity = parseSafeDate(activeInvestment.maturityDate || activeInvestment.maturity);
-      if (!isNaN(parsedMaturity.getTime()) && parsedMaturity.getTime() > 0) {
-        maturityObj = parsedMaturity;
-      }
+  // MATURITY DATE & DURATION CALCULATION (FIXED 180 DAYS LOGIC)
+  const { calculatedMaturityDate, isMatured, investmentDurationDays, activeDailyReturnVal } = useMemo(() => {
+    if (!activeInvestment) {
+      return { 
+        calculatedMaturityDate: "In Progress", 
+        isMatured: false, 
+        investmentDurationDays: "180 Days",
+        activeDailyReturnVal: 0
+      };
     }
 
-    let durationDays = 60;
-    if (typeof activeInvestment.duration === "number") {
-      durationDays = activeInvestment.duration;
+    let durationDays = 180;
+    if (typeof activeInvestment.durationDays === "number" && activeInvestment.durationDays > 0) {
+      durationDays = activeInvestment.durationDays;
+    } else if (activeInvestment.tenureMonths) {
+      durationDays = Number(activeInvestment.tenureMonths) * 30;
     } else if (typeof activeInvestment.duration === "string") {
       const match = activeInvestment.duration.match(/\d+/);
       if (match) {
         const val = parseInt(match[0], 10);
         durationDays = activeInvestment.duration.toLowerCase().includes("month") ? val * 30 : val;
       }
-    } else if (activeInvestment.durationDays) {
-      durationDays = Number(activeInvestment.durationDays);
-    } else if (activeInvestment.tenureMonths) {
-      durationDays = Number(activeInvestment.tenureMonths) * 30;
     }
 
-    if (!maturityObj) {
-      const startDateRaw = activeInvestment.startDate || activeInvestment.createdAt;
-      if (startDateRaw) {
-        const startDateObj = parseSafeDate(startDateRaw);
-        if (!isNaN(startDateObj.getTime()) && startDateObj.getTime() > 0) {
-          maturityObj = new Date(startDateObj);
-          maturityObj.setDate(maturityObj.getDate() + durationDays);
-        }
-      }
+    let startDateObj = parseSafeDate(activeInvestment.startDate || activeInvestment.createdAt);
+    if (isNaN(startDateObj.getTime())) {
+      startDateObj = new Date();
     }
 
-    if (maturityObj) {
-      const today = new Date();
-      const matured = today >= maturityObj;
-      return {
-        calculatedMaturityDate: formatDate(maturityObj),
-        isMatured: matured,
-        investmentDurationDays: `${durationDays} Days`
-      };
+    let maturityObj = new Date(startDateObj.getTime());
+    maturityObj.setDate(maturityObj.getDate() + durationDays);
+
+    // Active Investment Daily Return Amount Calculation
+    let returnVal = 0;
+    if (activeInvestment.dailyReturn && Number(activeInvestment.dailyReturn) > 0) {
+      returnVal = Number(activeInvestment.dailyReturn);
+    } else {
+      const amt = Number(activeInvestment.amount || 0);
+      const cat = (activeInvestment.category || "beginner").toLowerCase();
+      const tenure = activeInvestment.tenureMonths || (durationDays / 30);
+      const calc = calculateDailyReturn(amt, tenure, cat);
+      returnVal = calc.dailyReturnAmount;
     }
 
-    return { calculatedMaturityDate: "In Progress", isMatured: false, investmentDurationDays: `${durationDays} Days` };
+    const today = new Date();
+    const matured = today >= maturityObj;
+
+    return {
+      calculatedMaturityDate: formatDate(maturityObj),
+      isMatured: matured,
+      investmentDurationDays: `${durationDays} Days`,
+      activeDailyReturnVal: returnVal
+    };
   }, [activeInvestment]);
 
   const isInvestmentLocked = useMemo(() => {
     return activeInvestment && !isMatured;
   }, [activeInvestment, isMatured]);
 
-  // হোম পেজের ডেইলি রিটার্ন লজিক: ইনভেস্টমেন্ট স্টার্ট না থাকলে বা রানিং না থাকলে সরাসরি 0.00 দেখাবে
+  // DAILY RETURN CARD DISPLAY LINKED TO ACTIVE INVESTMENT
   const dailyReturn = useMemo(() => {
     if (activeInvestment && (activeInvestment.status || "").toLowerCase() === "active") {
-      return Number(activeInvestment.dailyReturn || 0);
+      return activeDailyReturnVal;
     }
     return 0;
-  }, [activeInvestment]);
+  }, [activeInvestment, activeDailyReturnVal]);
 
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
@@ -1310,7 +1314,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* ACTIVE LIVE INVESTMENT CARD */}
+        {/* ACTIVE LIVE INVESTMENT CARD (ADDED DAILY RETURN FIELD & FIXED MATURITY DATE) */}
         {activeInvestment && (
           <section style={styles.liveActiveInvestCard}>
             <div style={styles.liveInvestHeader}>
@@ -1341,13 +1345,20 @@ export default function OneTime() {
               </div>
 
               <div style={styles.liveInvestDetailItem}>
+                <span style={styles.liveDetailLabel}>Daily Return</span>
+                <strong style={{ ...styles.liveDetailValue, color: "#16a34a" }}>
+                  ₹ {activeDailyReturnVal.toFixed(2)} / day
+                </strong>
+              </div>
+
+              <div style={styles.liveInvestDetailItem}>
                 <span style={styles.liveDetailLabel}>Start Date</span>
                 <strong style={{ ...styles.liveDetailValue, color: "#1e293b" }}>
                   {formatDate(activeInvestment.startDate || activeInvestment.createdAt)}
                 </strong>
               </div>
 
-              <div style={styles.liveInvestDetailItem}>
+              <div style={{ ...styles.liveInvestDetailItem, gridColumn: "span 2" }}>
                 <span style={styles.liveDetailLabel}>Maturity Date</span>
                 <strong style={{ ...styles.liveDetailValue, color: "#1e3a8a" }}>
                   {calculatedMaturityDate}
@@ -1441,7 +1452,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* MAKE A NEW INVESTMENT SECTION (TWO BUTTONS DISPLAYED ON MAIN PAGE) */}
+        {/* MAKE A NEW INVESTMENT SECTION */}
         <section style={styles.makeInvestmentCard}>
           <div style={styles.makeInvestHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1454,7 +1465,6 @@ export default function OneTime() {
             <span style={styles.smallStepsTag}>⚡ Select Plan</span>
           </div>
 
-          {/* TWO MAIN BUTTONS TO OPEN POPUP MODAL */}
           <div style={styles.planButtonGrid}>
             <button 
               style={styles.beginnerPlanMainBtn} 
@@ -1480,7 +1490,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY SECTION (সংশোধিত রিজন লজিক) */}
+        {/* TRANSACTION HISTORY SECTION (REASON DISLAY FIXED) */}
         <section style={styles.historyCard}>
           <div style={styles.historyCardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1533,8 +1543,11 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // সংশোধিত আসল রিজন লজিক
-                    const actualReason = item.reason || item.rejectReason || item.note || item.adminNote || item.message || "-";
+                    // সংশোধিত রিজন রিডিং লজিক (সব ফিল্ড থেকে সঠিক ডাটা রিড করবে)
+                    let actualReason = item.reason || item.rejectReason || item.note || item.adminNote || item.message || "";
+                    if (!actualReason || actualReason.trim() === "") {
+                      actualReason = "-";
+                    }
 
                     return (
                       <tr key={item._id || idx} style={styles.goldTr} onClick={() => setSelectedTxn(item)}>
@@ -1603,7 +1616,6 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowInvestmentModal(false)}>✕</button>
             </div>
 
-            {/* Category Selector Tabs inside Modal */}
             <div style={styles.categoryTabRow}>
               <button
                 style={{
@@ -1637,7 +1649,6 @@ export default function OneTime() {
               </button>
             </div>
 
-            {/* Amount Presets */}
             <div style={{ marginTop: "12px" }}>
               <label style={styles.inputSectionLabel}>Select Amount (Preset)</label>
               <div style={styles.presetChipGrid}>
@@ -1658,7 +1669,6 @@ export default function OneTime() {
               </div>
             </div>
 
-            {/* Tenure Selection (সংশোধিত ইনপুট এডিটিং লজিক) */}
             <div style={{ marginTop: "12px" }}>
               <label style={styles.inputSectionLabel}>
                 Select Tenure {category === "pro" && "(Min. 12 Months)"}
@@ -1700,7 +1710,6 @@ export default function OneTime() {
               )}
             </div>
 
-            {/* Detailed Calculations */}
             <div style={styles.calculationSummaryCard}>
               <h4 style={styles.summaryTitle}>📋 Investment Summary Details</h4>
 
@@ -1847,7 +1856,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL (PROTECTED BY 72 HOURS RULE) */}
+      {/* WITHDRAW MODAL */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1863,7 +1872,6 @@ export default function OneTime() {
               </strong>
             </div>
 
-            {/* ৭২ ঘন্টা উইথড্র লজিক আপডেটিং পপআপ নোটিশ ও বাটন ব্লক */}
             {bonusList.length > 0 ? (
               <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", padding: "14px", borderRadius: "10px", textAlign: "center", margin: "10px 0" }}>
                 <span style={{ fontSize: "22px", display: "block", marginBottom: "4px" }}>⏳</span>
