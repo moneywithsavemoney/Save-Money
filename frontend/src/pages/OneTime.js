@@ -372,8 +372,8 @@ export default function OneTime() {
     }
   };
 
-  const { calculatedMaturityDate, isMatured } = useMemo(() => {
-    if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false };
+  const { calculatedMaturityDate, isMatured, investmentDurationDays } = useMemo(() => {
+    if (!activeInvestment) return { calculatedMaturityDate: "In Progress", isMatured: false, investmentDurationDays: "60 Days" };
 
     let maturityObj = null;
 
@@ -384,21 +384,26 @@ export default function OneTime() {
       }
     }
 
+    let durationDays = 60; // Default fallback to 60 days
+    if (typeof activeInvestment.duration === "number") {
+      durationDays = activeInvestment.duration;
+    } else if (typeof activeInvestment.duration === "string") {
+      const match = activeInvestment.duration.match(/\d+/);
+      if (match) {
+        const val = parseInt(match[0], 10);
+        durationDays = activeInvestment.duration.toLowerCase().includes("month") ? val * 30 : val;
+      }
+    } else if (activeInvestment.durationDays) {
+      durationDays = Number(activeInvestment.durationDays);
+    } else if (activeInvestment.tenureMonths) {
+      durationDays = Number(activeInvestment.tenureMonths) * 30;
+    }
+
     if (!maturityObj) {
       const startDateRaw = activeInvestment.startDate || activeInvestment.createdAt;
       if (startDateRaw) {
         const startDateObj = parseSafeDate(startDateRaw);
         if (!isNaN(startDateObj.getTime()) && startDateObj.getTime() > 0) {
-          let durationDays = 30;
-          if (typeof activeInvestment.duration === "number") {
-            durationDays = activeInvestment.duration;
-          } else if (typeof activeInvestment.duration === "string") {
-            const match = activeInvestment.duration.match(/\d+/);
-            if (match) durationDays = parseInt(match[0], 10);
-          } else if (activeInvestment.durationDays) {
-            durationDays = Number(activeInvestment.durationDays);
-          }
-
           maturityObj = new Date(startDateObj);
           maturityObj.setDate(maturityObj.getDate() + durationDays);
         }
@@ -410,11 +415,12 @@ export default function OneTime() {
       const matured = today >= maturityObj;
       return {
         calculatedMaturityDate: formatDate(maturityObj),
-        isMatured: matured
+        isMatured: matured,
+        investmentDurationDays: `${durationDays} Days`
       };
     }
 
-    return { calculatedMaturityDate: "In Progress", isMatured: false };
+    return { calculatedMaturityDate: "In Progress", isMatured: false, investmentDurationDays: `${durationDays} Days` };
   }, [activeInvestment]);
 
   const isInvestmentLocked = useMemo(() => {
@@ -1100,7 +1106,7 @@ export default function OneTime() {
           </div>
         )}
 
-        {/* TOP HEADER WITH REFRESH BUTTON */}
+        {/* TOP HEADER WITH CIRCULAR USER AVATAR ONLY (NO NAME) */}
         <header style={styles.header}>
           <div style={styles.headerLeft}>
             <button style={styles.menuButton} onClick={() => setIsDrawerOpen(true)}>
@@ -1115,7 +1121,7 @@ export default function OneTime() {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <button style={styles.bonusPillBtn} onClick={() => setShowBonusModal(true)}>
               🎁 Bonus <span style={styles.notificationDot}>0</span>
             </button>
@@ -1129,39 +1135,39 @@ export default function OneTime() {
               <span style={{ display: "inline-block", animation: refreshing ? "spin 1s linear infinite" : "none" }}>🔄</span>
             </button>
 
-            {/* DYNAMIC USER PROFILE PHOTO */}
-            <div style={styles.userDropdownBtn} onClick={() => navigate("/kyc")}>
+            {/* ONLY CIRCULAR PROFILE PHOTO (NO USER NAME) */}
+            <div style={styles.userProfileCircleBtn} onClick={() => navigate("/kyc")}>
               {profilePhoto ? (
                 <img 
                   src={profilePhoto} 
                   alt="User Avatar" 
-                  style={styles.userAvatarImg} 
+                  style={styles.userAvatarImgOnly} 
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               ) : (
-                <div style={styles.userAvatarIcon}>👤</div>
+                <div style={styles.userAvatarIconOnly}>👤</div>
               )}
-              <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600" }}>
-                {user?.name ? user.name.split(" ")[0] : "User"} ▼
-              </span>
             </div>
           </div>
         </header>
 
-        {/* 1. HERO WELCOME BANNER (GOLDEN BACKGROUND FIXED) */}
+        {/* HERO WELCOME BANNER (UNIQUE MOTIVATIONAL TEXT FIXED) */}
         <div style={styles.heroBanner}>
           <div style={styles.heroLeftContent}>
             <h2 style={styles.heroWelcomeTitle}>
               Welcome Back! 👋
             </h2>
             <div style={styles.heroSubtitle}>
-              Chhote nivesh se <br />
-              <strong style={{ color: "#78350f" }}>badi kamai ka safar,</strong> <br />
-              har mahine ka plan, hamesha
+              <strong style={{ color: "#78350f", fontSize: "12px", display: "block", marginBottom: "3px" }}>
+                ছোট ছোট সঞ্চয় থেকেই তৈরি হয়
+              </strong>
+              <span style={{ color: "#451a03", fontWeight: "900", fontSize: "13px" }}>
+                এক উজ্জ্বল অর্থনৈতিক ভবিষ্যৎ ✨
+              </span>
             </div>
             <div style={styles.heroBadgeRow}>
               <span style={styles.shieldIcon}>🛡️</span>
-              <span style={{ fontSize: "10px", color: "#374151", fontWeight: "bold" }}>Invest small amounts monthly to get big returns together</span>
+              <span style={{ fontSize: "10px", color: "#374151", fontWeight: "bold" }}>আজকের ছোট্ট বিনিয়োগ, কালকের আর্থিক স্বাধীনতার পথ প্রদর্শক</span>
             </div>
           </div>
           <div style={styles.heroRightGraphic}>
@@ -1170,7 +1176,7 @@ export default function OneTime() {
           </div>
         </div>
 
-        {/* 2. 4 STATS CARDS IN 2x2 GRID (GOLDEN BACKGROUND FIXED) */}
+        {/* 4 STATS CARDS IN 2x2 GRID */}
         <section style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statHeader}>
@@ -1209,7 +1215,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* 3. ACTIVE LIVE INVESTMENT CARD (INSIDE BOX GOLDEN BACKGROUND FIXED) */}
+        {/* ACTIVE LIVE INVESTMENT CARD (SHOWING DURATION / DAYS INSTEAD OF DAILY RETURN) */}
         {activeInvestment && (
           <section style={styles.liveActiveInvestCard}>
             <div style={styles.liveInvestHeader}>
@@ -1224,7 +1230,6 @@ export default function OneTime() {
               </span>
             </div>
 
-            {/* INSIDE DETAILS GRID GOLDEN BACKGROUND */}
             <div style={styles.liveInvestDetailsGrid}>
               <div style={styles.liveInvestDetailItem}>
                 <span style={styles.liveDetailLabel}>Principal Amount</span>
@@ -1233,10 +1238,11 @@ export default function OneTime() {
                 </strong>
               </div>
 
+              {/* DURATION / DAYS SHOWING HERE */}
               <div style={styles.liveInvestDetailItem}>
-                <span style={styles.liveDetailLabel}>Daily Return</span>
+                <span style={styles.liveDetailLabel}>Investment Duration</span>
                 <strong style={{ ...styles.liveDetailValue, color: "#166534" }}>
-                  ₹ {Number(activeInvestment.dailyReturn || dailyReturn || 0).toFixed(2)}
+                  ⏳ {investmentDurationDays}
                 </strong>
               </div>
 
@@ -1300,7 +1306,7 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* DAILY RETURN CARD (4. WITHDRAW BUTTON GOLDEN BACKGROUND FIXED) */}
+        {/* DAILY RETURN CARD */}
         <section style={styles.dailyReturnCard}>
           <div style={styles.dailyReturnTopRow}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -1330,7 +1336,6 @@ export default function OneTime() {
               <span style={{ marginLeft: "auto", color: "#000", fontWeight: "bold" }}>➔</span>
             </button>
 
-            {/* WITHDRAW BUTTON GOLDEN BACKGROUND */}
             <button style={styles.withdrawGoldBtn} onClick={handleWithdrawClick}>
               <span style={styles.walletIconBgGold}>👛</span>
               <div>
@@ -2148,35 +2153,36 @@ const styles = {
     padding: "1px 5px",
     fontSize: "9px"
   },
-  userDropdownBtn: {
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.15)",
-    borderRadius: "20px",
-    padding: "4px 10px",
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    cursor: "pointer"
-  },
-  userAvatarImg: {
-    width: "24px",
-    height: "24px",
+  
+  /* ONLY CIRCULAR PROFILE BUTTON STYLES */
+  userProfileCircleBtn: {
+    width: "32px",
+    height: "32px",
     borderRadius: "50%",
-    objectFit: "cover",
-    border: "1px solid #facc15"
-  },
-  userAvatarIcon: {
-    width: "22px",
-    height: "22px",
-    borderRadius: "50%",
-    background: "#374151",
+    border: "2px solid #facc15",
+    overflow: "hidden",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "11px"
+    cursor: "pointer",
+    background: "#1f2937",
+    boxShadow: "0 0 8px rgba(250, 204, 21, 0.3)"
+  },
+  userAvatarImgOnly: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  },
+  userAvatarIconOnly: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    color: "#fff"
   },
 
-  /* 1. HERO BANNER GOLDEN BACKGROUND FIXED */
   heroBanner: {
     background: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
     border: "2px solid #facc15",
@@ -2201,8 +2207,7 @@ const styles = {
     fontSize: "12px",
     color: "#1f2937",
     marginTop: "4px",
-    lineHeight: "1.3",
-    fontWeight: "600"
+    lineHeight: "1.3"
   },
   heroBadgeRow: {
     display: "flex",
@@ -2225,8 +2230,6 @@ const styles = {
     fontSize: "28px",
     marginTop: "4px"
   },
-
-  /* 2. 4 STATS CARDS GOLDEN BACKGROUND FIXED */
   statsGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
@@ -2273,8 +2276,6 @@ const styles = {
     fontWeight: "bold",
     marginTop: "2px"
   },
-
-  /* 3. ACTIVE LIVE INVESTMENT CARD (INSIDE BOX GOLDEN BACKGROUND FIXED) */
   liveActiveInvestCard: {
     background: "linear-gradient(135deg, #111827 0%, #030712 100%)",
     border: "1px solid #facc15",
@@ -2326,7 +2327,6 @@ const styles = {
     fontWeight: "900",
     color: "#000000"
   },
-
   maturedWalletCard: {
     background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)",
     borderRadius: "14px",
@@ -2448,8 +2448,6 @@ const styles = {
     justifyContent: "center",
     fontWeight: "bold"
   },
-
-  /* 4. WITHDRAW BUTTON GOLDEN BACKGROUND FIXED */
   withdrawGoldBtn: {
     background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
     border: "none",
@@ -2469,7 +2467,6 @@ const styles = {
     alignItems: "center",
     justifyContent: "center"
   },
-
   makeInvestmentCard: {
     background: "#111827",
     border: "1px solid #facc15",
