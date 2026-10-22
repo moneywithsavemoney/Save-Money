@@ -1120,7 +1120,7 @@ export default function OneTime() {
               🎁 Bonus <span style={styles.notificationDot}>0</span>
             </button>
 
-            {/* REFRESH BUTTON ADDED */}
+            {/* REFRESH BUTTON */}
             <button 
               style={styles.refreshIconBtn} 
               onClick={handleRefreshPage} 
@@ -1148,7 +1148,7 @@ export default function OneTime() {
           </div>
         </header>
 
-        {/* HERO WELCOME BANNER (GOLDEN THEMED) */}
+        {/* 1. HERO WELCOME BANNER (GOLDEN BACKGROUND FIXED) */}
         <div style={styles.heroBanner}>
           <div style={styles.heroLeftContent}>
             <h2 style={styles.heroWelcomeTitle}>
@@ -1156,12 +1156,12 @@ export default function OneTime() {
             </h2>
             <div style={styles.heroSubtitle}>
               Chhote nivesh se <br />
-              <strong style={{ color: "#facc15" }}>badi kamai ka safar,</strong> <br />
+              <strong style={{ color: "#78350f" }}>badi kamai ka safar,</strong> <br />
               har mahine ka plan, hamesha
             </div>
             <div style={styles.heroBadgeRow}>
               <span style={styles.shieldIcon}>🛡️</span>
-              <span style={{ fontSize: "10px", color: "#d1d5db" }}>Invest small amounts monthly to get big returns together</span>
+              <span style={{ fontSize: "10px", color: "#374151", fontWeight: "bold" }}>Invest small amounts monthly to get big returns together</span>
             </div>
           </div>
           <div style={styles.heroRightGraphic}>
@@ -1170,7 +1170,7 @@ export default function OneTime() {
           </div>
         </div>
 
-        {/* 4 STATS CARDS IN 2x2 GRID (GOLDEN THEMED) */}
+        {/* 2. 4 STATS CARDS IN 2x2 GRID (GOLDEN BACKGROUND FIXED) */}
         <section style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statHeader}>
@@ -1209,7 +1209,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* ACTIVE LIVE INVESTMENT CARD (GOLDEN THEMED) */}
+        {/* 3. ACTIVE LIVE INVESTMENT CARD (INSIDE BOX GOLDEN BACKGROUND FIXED) */}
         {activeInvestment && (
           <section style={styles.liveActiveInvestCard}>
             <div style={styles.liveInvestHeader}>
@@ -1224,6 +1224,7 @@ export default function OneTime() {
               </span>
             </div>
 
+            {/* INSIDE DETAILS GRID GOLDEN BACKGROUND */}
             <div style={styles.liveInvestDetailsGrid}>
               <div style={styles.liveInvestDetailItem}>
                 <span style={styles.liveDetailLabel}>Principal Amount</span>
@@ -1234,21 +1235,21 @@ export default function OneTime() {
 
               <div style={styles.liveInvestDetailItem}>
                 <span style={styles.liveDetailLabel}>Daily Return</span>
-                <strong style={{ ...styles.liveDetailValue, color: "#4ade80" }}>
+                <strong style={{ ...styles.liveDetailValue, color: "#166534" }}>
                   ₹ {Number(activeInvestment.dailyReturn || dailyReturn || 0).toFixed(2)}
                 </strong>
               </div>
 
               <div style={styles.liveInvestDetailItem}>
                 <span style={styles.liveDetailLabel}>Start Date</span>
-                <strong style={{ ...styles.liveDetailValue, color: "#cbd5e1" }}>
+                <strong style={{ ...styles.liveDetailValue, color: "#1e293b" }}>
                   {formatDate(activeInvestment.startDate || activeInvestment.createdAt)}
                 </strong>
               </div>
 
               <div style={styles.liveInvestDetailItem}>
                 <span style={styles.liveDetailLabel}>Maturity Date</span>
-                <strong style={{ ...styles.liveDetailValue, color: "#38bdf8" }}>
+                <strong style={{ ...styles.liveDetailValue, color: "#1e3a8a" }}>
                   {calculatedMaturityDate}
                 </strong>
               </div>
@@ -1299,7 +1300,7 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* DAILY RETURN CARD (GOLDEN THEMED) */}
+        {/* DAILY RETURN CARD (4. WITHDRAW BUTTON GOLDEN BACKGROUND FIXED) */}
         <section style={styles.dailyReturnCard}>
           <div style={styles.dailyReturnTopRow}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -1329,18 +1330,19 @@ export default function OneTime() {
               <span style={{ marginLeft: "auto", color: "#000", fontWeight: "bold" }}>➔</span>
             </button>
 
-            <button style={styles.withdrawDarkBtn} onClick={handleWithdrawClick}>
-              <span style={styles.walletIconBg}>👛</span>
+            {/* WITHDRAW BUTTON GOLDEN BACKGROUND */}
+            <button style={styles.withdrawGoldBtn} onClick={handleWithdrawClick}>
+              <span style={styles.walletIconBgGold}>👛</span>
               <div>
-                <strong style={{ display: "block", fontSize: "14px", color: "#fff" }}>Withdraw</strong>
-                <span style={{ fontSize: "10px", color: "#9ca3af" }}>Get Your Money</span>
+                <strong style={{ display: "block", fontSize: "14px", color: "#000" }}>Withdraw</strong>
+                <span style={{ fontSize: "10px", color: "#374151" }}>Get Your Money</span>
               </div>
-              <span style={{ marginLeft: "auto", color: "#fff", fontWeight: "bold" }}>➔</span>
+              <span style={{ marginLeft: "auto", color: "#000", fontWeight: "bold" }}>➔</span>
             </button>
           </div>
         </section>
 
-        {/* MAKE A NEW INVESTMENT SECTION (GOLDEN THEMED) */}
+        {/* MAKE A NEW INVESTMENT SECTION */}
         <section style={styles.makeInvestmentCard}>
           <div style={styles.makeInvestHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1396,7 +1398,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY SECTION (GOLDEN THEMED & VIEW MORE/LESS BUTTONS) */}
+        {/* TRANSACTION HISTORY SECTION */}
         <section style={styles.historyCard}>
           <div style={styles.historyCardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -2173,15 +2175,18 @@ const styles = {
     justifyContent: "center",
     fontSize: "11px"
   },
+
+  /* 1. HERO BANNER GOLDEN BACKGROUND FIXED */
   heroBanner: {
-    background: "linear-gradient(135deg, #111827 0%, #030712 100%)",
-    border: "1px solid #facc15",
+    background: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
+    border: "2px solid #facc15",
     borderRadius: "16px",
     padding: "14px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 0 15px rgba(250, 204, 21, 0.2)"
+    boxShadow: "0 0 20px rgba(245, 158, 11, 0.4)",
+    color: "#000"
   },
   heroLeftContent: {
     flex: 1
@@ -2190,13 +2195,14 @@ const styles = {
     margin: 0,
     fontSize: "18px",
     fontWeight: "900",
-    color: "#fff"
+    color: "#000"
   },
   heroSubtitle: {
     fontSize: "12px",
-    color: "#e5e7eb",
+    color: "#1f2937",
     marginTop: "4px",
-    lineHeight: "1.3"
+    lineHeight: "1.3",
+    fontWeight: "600"
   },
   heroBadgeRow: {
     display: "flex",
@@ -2212,26 +2218,28 @@ const styles = {
   },
   growWealthTag: {
     fontSize: "11px",
-    color: "#facc15",
-    fontWeight: "bold"
+    color: "#451a03",
+    fontWeight: "900"
   },
   graphicCoinsContainer: {
     fontSize: "28px",
     marginTop: "4px"
   },
+
+  /* 2. 4 STATS CARDS GOLDEN BACKGROUND FIXED */
   statsGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "10px"
   },
   statCard: {
-    background: "#111827",
-    border: "1px solid #facc15",
+    background: "linear-gradient(135deg, #d97706 0%, #78350f 100%)",
+    border: "1.5px solid #facc15",
     borderRadius: "12px",
     padding: "12px",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "0 0 10px rgba(250, 204, 21, 0.1)"
+    boxShadow: "0 0 12px rgba(245, 158, 11, 0.25)"
   },
   statHeader: {
     display: "flex",
@@ -2250,20 +2258,23 @@ const styles = {
   },
   statTitle: {
     fontSize: "11px",
-    color: "#9ca3af"
+    color: "#fef3c7",
+    fontWeight: "600"
   },
   statValue: {
     fontSize: "17px",
     fontWeight: "900",
-    color: "#fff",
+    color: "#ffffff",
     marginTop: "6px"
   },
   statGrowthPositive: {
     fontSize: "10px",
-    color: "#34d399",
+    color: "#a7f3d0",
     fontWeight: "bold",
     marginTop: "2px"
   },
+
+  /* 3. ACTIVE LIVE INVESTMENT CARD (INSIDE BOX GOLDEN BACKGROUND FIXED) */
   liveActiveInvestCard: {
     background: "linear-gradient(135deg, #111827 0%, #030712 100%)",
     border: "1px solid #facc15",
@@ -2296,9 +2307,10 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "8px",
-    background: "rgba(0,0,0,0.4)",
+    background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
     padding: "10px",
-    borderRadius: "10px"
+    borderRadius: "10px",
+    border: "1px solid #facc15"
   },
   liveInvestDetailItem: {
     display: "flex",
@@ -2306,13 +2318,15 @@ const styles = {
   },
   liveDetailLabel: {
     fontSize: "10px",
-    color: "#9ca3af"
+    color: "#78350f",
+    fontWeight: "700"
   },
   liveDetailValue: {
     fontSize: "13px",
-    fontWeight: "bold",
-    color: "#ffffff"
+    fontWeight: "900",
+    color: "#000000"
   },
+
   maturedWalletCard: {
     background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)",
     borderRadius: "14px",
@@ -2434,9 +2448,11 @@ const styles = {
     justifyContent: "center",
     fontWeight: "bold"
   },
-  withdrawDarkBtn: {
-    background: "rgba(255,255,255,0.05)",
-    border: "1px solid rgba(255,255,255,0.2)",
+
+  /* 4. WITHDRAW BUTTON GOLDEN BACKGROUND FIXED */
+  withdrawGoldBtn: {
+    background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
+    border: "none",
     borderRadius: "25px",
     padding: "8px 12px",
     display: "flex",
@@ -2444,15 +2460,16 @@ const styles = {
     gap: "8px",
     cursor: "pointer"
   },
-  walletIconBg: {
+  walletIconBgGold: {
     width: "24px",
     height: "24px",
-    background: "rgba(255,255,255,0.1)",
+    background: "#000",
     borderRadius: "50%",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
   },
+
   makeInvestmentCard: {
     background: "#111827",
     border: "1px solid #facc15",
