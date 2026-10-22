@@ -432,7 +432,10 @@ export default function OneTime() {
   }, [history]);
 
   const openPlanModal = (cat) => {
-    if (isInvestmentLocked) return;
+    if (isInvestmentLocked) {
+      triggerToast("Your investment is currently locked.", "error");
+      return;
+    }
     setModalCategory(cat);
     setShowPlanModal(true);
   };
@@ -1298,7 +1301,6 @@ export default function OneTime() {
                 type="button"
                 style={styles.beginnerPopupBtn}
                 onClick={() => openPlanModal("beginner")}
-                disabled={isInvestmentLocked}
               >
                 <span style={{ fontSize: "18px" }}>🌱</span>
                 <div>
@@ -1311,7 +1313,6 @@ export default function OneTime() {
                 type="button"
                 style={styles.proPopupBtn}
                 onClick={() => openPlanModal("pro")}
-                disabled={isInvestmentLocked}
               >
                 <span style={{ fontSize: "18px" }}>🔥</span>
                 <div>
@@ -1820,7 +1821,7 @@ export default function OneTime() {
                   onClick={handleRazorpayPayment}
                   disabled={razorpayLoading}
                 >
-                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
+                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹{totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
                 </button>
               </div>
             ) : (
