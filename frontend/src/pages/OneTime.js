@@ -157,7 +157,6 @@ export default function OneTime() {
   const platformFee = 0;
   const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
 
-  // Exact Backend Matching Investment Packages
   const beginnerPlans = [
     { value: 7500, rate: 0.8, tenureOptions: [1], defaultTenure: 1, bonusDesc: "Up to ₹500 Once", icon: "🌱" },
     { value: 15000, rate: 1.2, tenureOptions: [6, 9], defaultTenure: 9, bonusDesc: "Up to ₹1,500/mo (2 Mos)", icon: "☘️" },
@@ -824,7 +823,7 @@ export default function OneTime() {
     const userEmail = email || "N/A";
     const txnIdVal = selectedTxn.transactionId || selectedTxn._id || selectedTxn.id || "N/A";
     const dateTimeVal = formatDateTime(selectedTxn.createdAt || selectedTxn.startDate || selectedTxn.date);
-    const rejectReasonVal = selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || "";
+    const rejectReasonVal = selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || selectedTxn.adminNote || selectedTxn.message || "";
 
     let message = `*💎 SAVE MONEY - TRANSACTION SLIP*\n\n`;
     message += `📌 *Type:* ${txnType}\n`;
@@ -856,7 +855,7 @@ export default function OneTime() {
     return file.startsWith("http") ? file : `${API}/uploads/${file}`;
   };
 
-  const profilePhoto = fileUrl(user?.photo || user?.profilePhoto || user?.avatar || "");
+  const profilePhoto = fileUrl(user?.photo || user?.profilePhoto || user?.avatar || user?.image || "");
 
   if (loading) {
     return (
@@ -869,7 +868,7 @@ export default function OneTime() {
     );
   }
 
-  const displayedHistory = showAllHistory ? history : history.slice(0, 5);
+  const displayedHistory = showAllHistory ? history : history.slice(0, 15);
 
   return (
     <div style={styles.page}>
@@ -1089,7 +1088,7 @@ export default function OneTime() {
           </div>
         )}
 
-        {/* TOP HEADER MATCHING SCREENSHOT */}
+        {/* TOP HEADER WITH USER PROFILE PHOTO FIX */}
         <header style={styles.header}>
           <div style={styles.headerLeft}>
             <button style={styles.menuButton} onClick={() => setIsDrawerOpen(true)}>
@@ -1108,14 +1107,27 @@ export default function OneTime() {
             <button style={styles.bonusPillBtn} onClick={() => setShowBonusModal(true)}>
               🎁 Bonus <span style={styles.notificationDot}>0</span>
             </button>
+
+            {/* DYNAMIC USER PROFILE PHOTO FIX */}
             <div style={styles.userDropdownBtn} onClick={() => navigate("/kyc")}>
-              <div style={styles.userAvatarIcon}>👤</div>
-              <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600" }}>User ▼</span>
+              {profilePhoto ? (
+                <img 
+                  src={profilePhoto} 
+                  alt="User Avatar" 
+                  style={styles.userAvatarImg} 
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : (
+                <div style={styles.userAvatarIcon}>👤</div>
+              )}
+              <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600" }}>
+                {user?.name ? user.name.split(" ")[0] : "User"} ▼
+              </span>
             </div>
           </div>
         </header>
 
-        {/* HERO WELCOME BANNER MATCHING SCREENSHOT */}
+        {/* HERO WELCOME BANNER */}
         <div style={styles.heroBanner}>
           <div style={styles.heroLeftContent}>
             <h2 style={styles.heroWelcomeTitle}>
@@ -1137,7 +1149,7 @@ export default function OneTime() {
           </div>
         </div>
 
-        {/* STATS CARDS GRID WITH GOLDEN GLOW */}
+        {/* 4 STATS CARDS IN 2x2 GRID MATCHING SCREENSHOT */}
         <section style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statHeader}>
@@ -1176,6 +1188,54 @@ export default function OneTime() {
           </div>
         </section>
 
+        {/* 🚀 ACTIVE LIVE INVESTMENT CARD FIX */}
+        {activeInvestment && (
+          <section style={styles.liveActiveInvestCard}>
+            <div style={styles.liveInvestHeader}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={styles.livePulseDot}></span>
+                <strong style={{ fontSize: "14px", color: "#facc15", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                  Active Investment Running ⚡
+                </strong>
+              </div>
+              <span style={styles.activePlanTag}>
+                {activeInvestment.category ? activeInvestment.category.toUpperCase() : "ACTIVE PLAN"}
+              </span>
+            </div>
+
+            <div style={styles.liveInvestDetailsGrid}>
+              <div style={styles.liveInvestDetailItem}>
+                <span style={styles.liveDetailLabel}>Principal Amount</span>
+                <strong style={styles.liveDetailValue}>
+                  ₹ {Number(activeInvestment.amount || 0).toLocaleString("en-IN")}
+                </strong>
+              </div>
+
+              <div style={styles.liveInvestDetailItem}>
+                <span style={styles.liveDetailLabel}>Daily Return</span>
+                <strong style={{ ...styles.liveDetailValue, color: "#4ade80" }}>
+                  ₹ {Number(activeInvestment.dailyReturn || dailyReturn || 0).toFixed(2)}
+                </strong>
+              </div>
+
+              <div style={styles.liveInvestDetailItem}>
+                <span style={styles.liveDetailLabel}>Start Date</span>
+                <strong style={{ ...styles.liveDetailValue, color: "#cbd5e1" }}>
+                  {formatDate(activeInvestment.startDate || activeInvestment.createdAt)}
+                </strong>
+              </div>
+
+              <div style={styles.liveInvestDetailItem}>
+                <span style={styles.liveDetailLabel}>Maturity Date</span>
+                <strong style={{ ...styles.liveDetailValue, color: "#38bdf8" }}>
+                  {calculatedMaturityDate}
+                </strong>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* MATURED INVESTMENT CARD */}
         {activeInvestment && isMatured && (
           <section style={styles.maturedWalletCard}>
             <div style={styles.maturedCardHeader}>
@@ -1218,11 +1278,14 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* DAILY RETURN & ACTION BUTTONS CONTAINER */}
+        {/* DAILY RETURN WITH 3D MONEY BADGE MATCHING SCREENSHOT */}
         <section style={styles.dailyReturnCard}>
           <div style={styles.dailyReturnTopRow}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div style={styles.dailyReturnCalendarIcon}>📅</div>
+              {/* SCREENSHOT MATCHED 3D RUPEE BADGE */}
+              <div style={styles.goldRupee3DBox}>
+                <span style={{ fontSize: "22px", fontWeight: "900", color: "#facc15" }}>₹</span>
+              </div>
               <div>
                 <span style={styles.dailyReturnLabel}>Daily Return</span>
                 <strong style={styles.dailyReturnAmount}>₹ {dailyReturn.toFixed(2)}</strong>
@@ -1271,7 +1334,6 @@ export default function OneTime() {
           </div>
 
           <div style={styles.planCardGrid}>
-            {/* BEGINNER INVESTMENT CARD */}
             <div style={styles.beginnerCard}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
                 <span style={styles.beginnerIconBadge}>🌱</span>
@@ -1292,7 +1354,6 @@ export default function OneTime() {
               </button>
             </div>
 
-            {/* PRO INVESTMENT CARD */}
             <div style={styles.proCard}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
                 <span style={styles.proIconBadge}>👑</span>
@@ -1315,7 +1376,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY SECTION */}
+        {/* TRANSACTION HISTORY WITH REASON FIX MATCHING SCREENSHOT */}
         <section style={styles.historyCard}>
           <div style={styles.historyCardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1371,7 +1432,13 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    const rejectionReason = item.reason || item.rejectReason || item.note || "-";
+                    // REASON EXTRACTION FIX MATCHING SCREENSHOT
+                    let rejectionReason = item.reason || item.rejectReason || item.note || item.adminNote || item.message || "";
+                    if (!rejectionReason && isRejected) {
+                      rejectionReason = "you are inactive member";
+                    } else if (!rejectionReason) {
+                      rejectionReason = "-";
+                    }
 
                     return (
                       <tr key={item._id || idx} style={styles.goldTr} onClick={() => setSelectedTxn(item)}>
@@ -1393,7 +1460,7 @@ export default function OneTime() {
                             {isSuccess ? "✓ " : isRejected ? "✕ " : "⏳ "}{displayStatus}
                           </span>
                         </td>
-                        <td style={{ ...styles.goldTd, color: isRejected ? "#f87171" : "#9ca3af" }}>
+                        <td style={{ ...styles.goldTd, color: isRejected ? "#f87171" : "#9ca3af", fontSize: "10px" }}>
                           {rejectionReason}
                         </td>
                       </tr>
@@ -1415,7 +1482,7 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* 🚀 COLORFUL POPUP MODAL FOR BEGINNER & PRO INVESTMENT PLANS */}
+      {/* MODALS */}
       {showPlanModal && (
         <div style={styles.modalOverlay} onClick={() => setShowPlanModal(false)}>
           <div style={styles.planModalCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1480,7 +1547,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* 🎁 BONUS MODAL POPUP */}
+      {/* BONUS MODAL */}
       {showBonusModal && (
         <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
           <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1645,11 +1712,11 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              {(selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || ["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase())) && (
+              {(selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || selectedTxn.adminNote || ["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase())) && (
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.1)", padding: "6px 8px", borderRadius: "6px" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
                   <strong style={{ ...styles.slipValue, color: "#f87171" }}>
-                    {selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || "Request declined by system/admin."}
+                    {selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || selectedTxn.adminNote || "you are inactive member"}
                   </strong>
                 </div>
               )}
@@ -2048,6 +2115,13 @@ const styles = {
     gap: "6px",
     cursor: "pointer"
   },
+  userAvatarImg: {
+    width: "24px",
+    height: "24px",
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "1px solid #facc15"
+  },
   userAvatarIcon: {
     width: "22px",
     height: "22px",
@@ -2148,6 +2222,55 @@ const styles = {
     fontWeight: "bold",
     marginTop: "2px"
   },
+  liveActiveInvestCard: {
+    background: "linear-gradient(135deg, #111827 0%, #030712 100%)",
+    border: "1px solid #facc15",
+    borderRadius: "14px",
+    padding: "12px",
+    boxShadow: "0 0 15px rgba(250, 204, 21, 0.15)"
+  },
+  liveInvestHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "10px"
+  },
+  livePulseDot: {
+    width: "8px",
+    height: "8px",
+    borderRadius: "50%",
+    background: "#22c55e",
+    boxShadow: "0 0 8px #22c55e"
+  },
+  activePlanTag: {
+    background: "rgba(250, 204, 21, 0.2)",
+    color: "#facc15",
+    fontSize: "9px",
+    padding: "2px 8px",
+    borderRadius: "10px",
+    fontWeight: "bold"
+  },
+  liveInvestDetailsGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "8px",
+    background: "rgba(0,0,0,0.4)",
+    padding: "10px",
+    borderRadius: "10px"
+  },
+  liveInvestDetailItem: {
+    display: "flex",
+    flexDirection: "column"
+  },
+  liveDetailLabel: {
+    fontSize: "10px",
+    color: "#9ca3af"
+  },
+  liveDetailValue: {
+    fontSize: "13px",
+    fontWeight: "bold",
+    color: "#ffffff"
+  },
   maturedWalletCard: {
     background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)",
     borderRadius: "14px",
@@ -2204,16 +2327,16 @@ const styles = {
     justifyContent: "space-between",
     alignItems: "center"
   },
-  dailyReturnCalendarIcon: {
+  goldRupee3DBox: {
     width: "44px",
     height: "44px",
-    background: "rgba(245, 158, 11, 0.15)",
-    border: "1px solid #f59e0b",
+    background: "linear-gradient(135deg, #78350f 0%, #451a03 100%)",
+    border: "2px solid #facc15",
     borderRadius: "12px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "22px"
+    boxShadow: "0 0 10px rgba(250, 204, 21, 0.3)"
   },
   dailyReturnLabel: {
     fontSize: "12px",
