@@ -636,7 +636,7 @@ export default function OneTime() {
           contact: user?.mobile || user?.phone || ""
         },
         theme: {
-          color: "#16a34a"
+          color: "#f59e0b"
         }
       };
 
@@ -863,7 +863,7 @@ export default function OneTime() {
       <div style={styles.loadingPage}>
         <div style={{ textAlign: "center" }}>
           <div style={styles.spinner}></div>
-          <h3 style={{ color: "#22c55e", marginTop: "14px", fontSize: "18px", fontWeight: "700" }}>Loading Dashboard...</h3>
+          <h3 style={{ color: "#f59e0b", marginTop: "14px", fontSize: "18px", fontWeight: "700" }}>Loading Dashboard...</h3>
         </div>
       </div>
     );
@@ -909,10 +909,10 @@ export default function OneTime() {
           <div style={styles.drawerScrollArea}>
             <div style={styles.drawerNavList}>
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavDashboard,
-                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavDashboard, 
+                  ...(location.pathname === "/home" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/home"); setIsDrawerOpen(false); }}
               >
@@ -921,10 +921,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavMyInvestment,
-                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavMyInvestment, 
+                  ...(location.pathname === "/my-investment" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/my-investment"); setIsDrawerOpen(false); }}
               >
@@ -933,10 +933,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavSaveMoney,
-                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavSaveMoney, 
+                  ...(location.pathname === "/save-money" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/save-money"); setIsDrawerOpen(false); }}
               >
@@ -945,10 +945,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavOneTime,
-                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavOneTime, 
+                  ...(location.pathname === "/one-time" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/one-time"); setIsDrawerOpen(false); }}
               >
@@ -957,11 +957,11 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavPlan
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavPlan 
                 }} 
-                onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }}
+                onClick={() => { handleDownloadPlan(); setIsDrawerOpen(false); }} 
                 disabled={isDownloadingPlan}
               >
                 <span style={styles.drawerNavIcon}>{isDownloadingPlan ? "⏳" : "📋"}</span>
@@ -969,10 +969,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavAddFund,
-                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavAddFund, 
+                  ...(location.pathname === "/wallet" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/wallet"); setIsDrawerOpen(false); }}
               >
@@ -981,10 +981,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavRefer,
-                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavRefer, 
+                  ...(location.pathname === "/refer" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/refer"); setIsDrawerOpen(false); }}
               >
@@ -993,10 +993,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavWithdraw,
-                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavWithdraw, 
+                  ...(location.pathname === "/withdraw" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/withdraw"); setIsDrawerOpen(false); }}
               >
@@ -1005,10 +1005,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavDailyReward,
-                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavDailyReward, 
+                  ...(location.pathname === "/daily-reward" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/daily-reward"); setIsDrawerOpen(false); }}
               >
@@ -1017,10 +1017,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavInvestmentAssistant,
-                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavInvestmentAssistant, 
+                  ...(location.pathname === "/investment-assistant" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/investment-assistant"); setIsDrawerOpen(false); }}
               >
@@ -1029,10 +1029,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavSupport,
-                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavSupport, 
+                  ...(location.pathname === "/support" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/support"); setIsDrawerOpen(false); }}
               >
@@ -1041,10 +1041,10 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavProfile,
-                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {})
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavProfile, 
+                  ...(location.pathname === "/kyc" ? styles.drawerNavItemActive : {}) 
                 }} 
                 onClick={() => { navigate("/kyc"); setIsDrawerOpen(false); }}
               >
@@ -1053,9 +1053,9 @@ export default function OneTime() {
               </button>
 
               <button 
-                style={{
-                  ...styles.drawerNavItem,
-                  ...styles.drawerNavLogout
+                style={{ 
+                  ...styles.drawerNavItem, 
+                  ...styles.drawerNavLogout 
                 }} 
                 onClick={() => { setIsDrawerOpen(false); handleLogout(); }}
               >
@@ -1063,7 +1063,7 @@ export default function OneTime() {
                 <span style={styles.drawerNavText}>Logout</span>
               </button>
             </div>
-
+            
             <div style={styles.treePlantOnlyWrapper}>
               <img 
                 src="/tree plant.png" 
@@ -1083,131 +1083,96 @@ export default function OneTime() {
       <div style={styles.container}>
         {/* TOAST ALERT */}
         {toast.show && (
-          <div style={{ ...styles.toast, background: toast.type === "error" ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" : "linear-gradient(135deg, #16a34a 0%, #15803d 100%)" }}>
+          <div style={{ ...styles.toast, background: toast.type === "error" ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" : "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" }}>
             <span style={{ fontSize: "16px" }}>{toast.type === "error" ? "⚠️" : "✅"}</span>
             <span>{toast.msg}</span>
           </div>
         )}
 
-        {/* FIXED SMOOTH MARQUEE NOTICE BANNER */}
-        <div style={styles.topNoticeBanner}>
-          <span style={styles.noticeBadge}>LIMITED OFFER 🔥</span>
-          <div style={styles.marqueeContainer}>
-            <div style={styles.marqueeText}>
-              Thank you for choosing <strong style={{ color: "#4ade80" }}>Save Money</strong>! Refer your friend to invest today and get <span style={styles.bonusHighlight}>bonus rewards!</span> 🎉
-            </div>
-          </div>
-        </div>
-
-        {/* HEADER */}
+        {/* TOP HEADER MATCHING SCREENSHOT */}
         <header style={styles.header}>
           <div style={styles.headerLeft}>
-            <button 
-              style={styles.menuButton}
-              onClick={() => setIsDrawerOpen(true)}
-            >
+            <button style={styles.menuButton} onClick={() => setIsDrawerOpen(true)}>
               ☰
             </button>
-            <div>
-              <h1 style={styles.welcomeTitle}>
-                Welcome Back! 👏
-              </h1>
-              <p style={styles.welcomeSub}>Invest smartly & secure your future</p>
+            <div style={styles.brandTitleGroup}>
+              <div style={styles.logoBox}>📈</div>
+              <div>
+                <h1 style={styles.brandTitle}>Save Money</h1>
+                <p style={styles.brandSub}>Invest Smartly & Secure Your Future</p>
+              </div>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <button 
-              style={styles.headerBonusBtn} 
-              onClick={() => setShowBonusModal(true)}
-            >
-              🎁 Bonus
+            <button style={styles.bonusPillBtn} onClick={() => setShowBonusModal(true)}>
+              🎁 Bonus <span style={styles.notificationDot}>0</span>
             </button>
-
-            <div style={styles.profileCircle} onClick={() => navigate("/kyc")}>
-              {profilePhoto ? (
-                <img src={profilePhoto} alt="User Profile" style={styles.profileImg} />
-              ) : (
-                <div style={styles.profileAvatarPlaceholder}>
-                  <span style={{ fontSize: "16px", color: "#fff", fontWeight: "bold" }}>
-                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-                  </span>
-                </div>
-              )}
+            <div style={styles.userDropdownBtn} onClick={() => navigate("/kyc")}>
+              <div style={styles.userAvatarIcon}>👤</div>
+              <span style={{ fontSize: "12px", color: "#fff", fontWeight: "600" }}>User ▼</span>
             </div>
           </div>
         </header>
 
-        {/* TOP HERO BANNER */}
-        <div style={styles.topHeroBanner}>
-          <div style={styles.heroTextContent}>
-            <h2 style={styles.heroTitle}>
-              Chhote nivesh se <br />
-              <span style={{ color: "#facc15" }}>badi kamai ka safar,</span> <br />
-              <span style={{ color: "#f1f5f9" }}>har mahine ka plan, hamesha</span>
+        {/* HERO WELCOME BANNER MATCHING SCREENSHOT */}
+        <div style={styles.heroBanner}>
+          <div style={styles.heroLeftContent}>
+            <h2 style={styles.heroWelcomeTitle}>
+              Welcome Back! 👋
             </h2>
-            <p style={styles.heroDesc}>
-              Invest in Beginner or Pro plans to get maximum returns
-            </p>
+            <div style={styles.heroSubtitle}>
+              Chhote nivesh se <br />
+              <strong style={{ color: "#facc15" }}>badi kamai ka safar,</strong> <br />
+              har mahine ka plan, hamesha
+            </div>
+            <div style={styles.heroBadgeRow}>
+              <span style={styles.shieldIcon}>🛡️</span>
+              <span style={{ fontSize: "10px", color: "#d1d5db" }}>Invest small amounts monthly to get big returns together</span>
+            </div>
           </div>
-          <div style={styles.heroImgWrapper}>
-            <img 
-              src="/chhote nivesh.png" 
-              alt="Chhote Nivesh" 
-              style={styles.heroBannerImage}
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
+          <div style={styles.heroRightGraphic}>
+            <div style={styles.growWealthTag}>Grow Your Wealth</div>
+            <div style={styles.graphicCoinsContainer}>🌱💰🔒</div>
           </div>
         </div>
 
-        {/* STAT CARDS GRID */}
-        <section style={styles.statsGridContainer}>
-          <div style={styles.darkStatCard}>
-            <div style={styles.statCardHeader}>
-              <div style={{ ...styles.iconBox, background: "rgba(34, 197, 94, 0.15)" }}>
-                <span style={{ color: "#22c55e", fontSize: "18px" }}>💼</span>
-              </div>
-              <span style={styles.statCardTitle}>Total Invested</span>
+        {/* STATS CARDS GRID WITH GOLDEN GLOW */}
+        <section style={styles.statsGrid}>
+          <div style={styles.statCard}>
+            <div style={styles.statHeader}>
+              <div style={{ ...styles.statIconBox, background: "#059669" }}>👛</div>
+              <span style={styles.statTitle}>Total Invested</span>
             </div>
-            <strong style={styles.statCardValue}>
-              ₹ {Number(stats.totalInvested || 0).toLocaleString("en-IN")}
-            </strong>
+            <strong style={styles.statValue}>₹ {Number(stats.totalInvested || 0).toLocaleString("en-IN")}</strong>
+            <span style={styles.statGrowthPositive}>↗ +12%</span>
           </div>
 
-          <div style={styles.darkStatCard}>
-            <div style={styles.statCardHeader}>
-              <div style={{ ...styles.iconBox, background: "rgba(56, 189, 248, 0.15)" }}>
-                <span style={{ color: "#38bdf8", fontSize: "18px" }}>💵</span>
-              </div>
-              <span style={styles.statCardTitle}>Total Earnings</span>
+          <div style={styles.statCard}>
+            <div style={styles.statHeader}>
+              <div style={{ ...styles.statIconBox, background: "#d97706" }}>🪙</div>
+              <span style={styles.statTitle}>Total Earnings</span>
             </div>
-            <strong style={styles.statCardValue}>
-              ₹ {Number(stats.totalEarnings || 0).toLocaleString("en-IN")}
-            </strong>
+            <strong style={styles.statValue}>₹ {Number(stats.totalEarnings || 0).toLocaleString("en-IN")}</strong>
+            <span style={styles.statGrowthPositive}>↗ +18%</span>
           </div>
 
-          <div style={styles.darkStatCard}>
-            <div style={styles.statCardHeader}>
-              <div style={{ ...styles.iconBox, background: "rgba(168, 85, 247, 0.15)" }}>
-                <span style={{ color: "#a855f7", fontSize: "18px" }}>💸</span>
-              </div>
-              <span style={styles.statCardTitle}>Total Withdraw</span>
+          <div style={styles.statCard}>
+            <div style={styles.statHeader}>
+              <div style={{ ...styles.statIconBox, background: "#7c3aed" }}>💼</div>
+              <span style={styles.statTitle}>Total Withdraw</span>
             </div>
-            <strong style={styles.statCardValue}>
-              ₹ {Number(stats.totalWithdrawn || 0).toLocaleString("en-IN")}
-            </strong>
+            <strong style={styles.statValue}>₹ {Number(stats.totalWithdrawn || 0).toLocaleString("en-IN")}</strong>
+            <span style={styles.statGrowthPositive}>↗ +16%</span>
           </div>
 
-          <div style={styles.darkStatCard}>
-            <div style={styles.statCardHeader}>
-              <div style={{ ...styles.iconBox, background: "rgba(234, 179, 8, 0.15)" }}>
-                <span style={{ color: "#eab308", fontSize: "18px" }}>🪙</span>
-              </div>
-              <span style={styles.statCardTitle}>Available Balance</span>
+          <div style={styles.statCard}>
+            <div style={styles.statHeader}>
+              <div style={{ ...styles.statIconBox, background: "#0284c7" }}>💳</div>
+              <span style={styles.statTitle}>Available Balance</span>
             </div>
-            <strong style={styles.statCardValue}>
-              ₹ {currentWalletBalance.toLocaleString("en-IN")}
-            </strong>
+            <strong style={styles.statValue}>₹ {currentWalletBalance.toLocaleString("en-IN")}</strong>
+            <span style={styles.statGrowthPositive}>↗ +5%</span>
           </div>
         </section>
 
@@ -1217,7 +1182,7 @@ export default function OneTime() {
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ fontSize: "20px" }}>🎉</span>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "14px", color: "#4ade80", fontWeight: "800" }}>
+                  <h3 style={{ margin: 0, fontSize: "14px", color: "#facc15", fontWeight: "800" }}>
                     Matured Investment Amount
                   </h3>
                   <p style={{ margin: 0, fontSize: "10px", color: "#cbd5e1" }}>
@@ -1229,7 +1194,7 @@ export default function OneTime() {
 
             <div style={styles.maturedValueRow}>
               <div>
-                <span style={{ fontSize: "11px", color: "#94a3b8" }}>Invest Amount</span>
+                <span style={{ fontSize: "11px", color: "#9ca3af" }}>Invest Amount</span>
                 <strong style={{ fontSize: "18px", color: "#ffffff", display: "block" }}>
                   ₹ {Number(activeInvestment.amount || 0).toLocaleString("en-IN")}
                 </strong>
@@ -1253,135 +1218,131 @@ export default function OneTime() {
           </section>
         )}
 
-        <section style={styles.darkMainCard}>
-          <h2 style={styles.darkCardTitle}>Make a New Investment</h2>
-
-          {activeInvestment && !isMatured && (
-            <div style={styles.activeInvestCardDark}>
-              <div style={styles.activeHeader}>
-                <div style={styles.activeBadgeGroup}>
-                  <span style={styles.activePulse}></span>
-                  <strong style={styles.activeTitle}>ACTIVE INVESTMENT RUNNING</strong>
-                </div>
-                <span style={styles.activeStatusTagDark}>
-                  🟢 Live Earning
-                </span>
-              </div>
-
-              <div style={styles.activeStatsGrid}>
-                <div style={styles.activeStatItem}>
-                  <span style={styles.activeLabel}>Invested Amount</span>
-                  <strong style={styles.activeValue}>₹{Number(activeInvestment.amount || 0).toLocaleString("en-IN")}</strong>
-                </div>
-                <div style={styles.activeStatItem}>
-                  <span style={styles.activeLabel}>Plan Duration</span>
-                  <strong style={styles.activeValue}>{activeInvestment.duration || `${activeInvestment.durationDays || (tenureMonths * 30)} Days`}</strong>
-                </div>
-                <div style={styles.activeStatItem}>
-                  <span style={styles.activeLabel}>Daily Earnings</span>
-                  <strong style={{ ...styles.activeValue, color: "#22c55e" }}>₹{Number(dailyReturn).toFixed(2)} / day</strong>
-                </div>
-                <div style={styles.activeStatItem}>
-                  <span style={styles.activeLabel}>Maturity Date</span>
-                  <strong style={{ ...styles.activeValue, color: "#38bdf8" }}>
-                    {calculatedMaturityDate}
-                  </strong>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TWO COLORFUL POPUP TRIGGER BUTTONS */}
-          <div style={styles.fieldGroup}>
-            <label style={styles.labelDark}>
-              📌 Select Investment Category
-            </label>
-            <div style={styles.categoryBtnGrid}>
-              <button
-                type="button"
-                style={styles.beginnerPopupBtn}
-                onClick={() => openPlanModal("beginner")}
-              >
-                <span style={{ fontSize: "18px" }}>🌱</span>
-                <div>
-                  <strong style={{ display: "block", fontSize: "13px" }}>Beginner Investment</strong>
-                  <span style={{ fontSize: "10px", opacity: 0.9 }}>Plans ₹7,500 - ₹37,500 ➔</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                style={styles.proPopupBtn}
-                onClick={() => openPlanModal("pro")}
-              >
-                <span style={{ fontSize: "18px" }}>🔥</span>
-                <div>
-                  <strong style={{ display: "block", fontSize: "13px" }}>Pro Investment</strong>
-                  <span style={{ fontSize: "10px", opacity: 0.9 }}>Plans ₹99,999 - ₹5,00,000 ➔</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <div style={styles.returnContainerDark}>
-            <div style={styles.returnCardContent}>
-              <span style={styles.returnBoxBagIcon}>🪙</span>
+        {/* DAILY RETURN & ACTION BUTTONS CONTAINER */}
+        <section style={styles.dailyReturnCard}>
+          <div style={styles.dailyReturnTopRow}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={styles.dailyReturnCalendarIcon}>📅</div>
               <div>
-                <div style={styles.returnCardTitleDark}>
-                  Selected Plan: <strong style={{ color: "#15803d" }}>₹{amount.toLocaleString("en-IN")} ({rate}%)</strong>
-                </div>
-                <strong style={styles.returnCardValueDark}>
-                  ₹ {dailyReturn.toFixed(2)} / Day
-                </strong>
-                <span style={styles.returnCardNoteDark}>
-                  (Tenure: {tenureMonths} Months)
-                </span>
+                <span style={styles.dailyReturnLabel}>Daily Return</span>
+                <strong style={styles.dailyReturnAmount}>₹ {dailyReturn.toFixed(2)}</strong>
+                <span style={styles.dailyReturnSubtext}>(Approx. Per Day)</span>
               </div>
+            </div>
+
+            <div style={styles.growingRightBox}>
+              <span style={styles.growingText}>Your Investment is</span>
+              <strong style={styles.growingHighlight}>Growing Every Day 📈</strong>
             </div>
           </div>
 
-          <div style={styles.actionGridTriple}>
-            <button 
-              style={{
-                ...styles.startInvestBtnDark,
-                ...(isInvestmentLocked ? styles.disabledBtnDark : {})
-              }} 
-              onClick={handleStartInvestment} 
-              disabled={investing || isInvestmentLocked}
-            >
-              {investing ? "Processing..." : isInvestmentLocked ? "🚀 Active Running" : "🚀 Start Investment"}
+          <div style={styles.actionPillGrid}>
+            <button style={styles.addFundGoldBtn} onClick={() => setShowAddFundModal(true)}>
+              <span style={styles.plusIconBg}>+</span>
+              <div>
+                <strong style={{ display: "block", fontSize: "14px", color: "#000" }}>Add Fund</strong>
+                <span style={{ fontSize: "10px", color: "#374151" }}>Grow Your Balance</span>
+              </div>
+              <span style={{ marginLeft: "auto", color: "#000", fontWeight: "bold" }}>➔</span>
             </button>
 
-            <button style={styles.addInvestBtnDark} onClick={() => setShowAddFundModal(true)}>
-              + Add Fund
-            </button>
-
-            <button style={styles.withdrawBtnDark} onClick={handleWithdrawClick}>
-              ➔ Withdraw
+            <button style={styles.withdrawDarkBtn} onClick={handleWithdrawClick}>
+              <span style={styles.walletIconBg}>👛</span>
+              <div>
+                <strong style={{ display: "block", fontSize: "14px", color: "#fff" }}>Withdraw</strong>
+                <span style={{ fontSize: "10px", color: "#9ca3af" }}>Get Your Money</span>
+              </div>
+              <span style={{ marginLeft: "auto", color: "#fff", fontWeight: "bold" }}>➔</span>
             </button>
           </div>
         </section>
 
-        <section style={styles.darkHistoryCard}>
-          <div style={styles.historyHeader}>
-            <h2 style={{ margin: 0, fontSize: "16px", color: "#f8fafc", fontWeight: "800" }}>Transaction History</h2>
-            <span style={styles.refreshBtnDark} onClick={loadDashboardData}>🔄 Refresh</span>
+        {/* MAKE A NEW INVESTMENT SECTION */}
+        <section style={styles.makeInvestmentCard}>
+          <div style={styles.makeInvestHeader}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "20px" }}>🌱</span>
+              <div>
+                <h3 style={{ margin: 0, fontSize: "15px", color: "#fff", fontWeight: "800" }}>Make a New Investment</h3>
+                <p style={{ margin: 0, fontSize: "10px", color: "#9ca3af" }}>Choose your plan and start growing your wealth today</p>
+              </div>
+            </div>
+            <span style={styles.smallStepsTag}>⚡ Small Steps Big Returns</span>
           </div>
 
-          <div style={styles.tableWrapper}>
-            <table style={styles.tableDark}>
+          <div style={styles.planCardGrid}>
+            {/* BEGINNER INVESTMENT CARD */}
+            <div style={styles.beginnerCard}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                <span style={styles.beginnerIconBadge}>🌱</span>
+                <div>
+                  <strong style={{ display: "block", fontSize: "14px", color: "#fff" }}>Beginner Investment</strong>
+                  <span style={{ fontSize: "10px", color: "#a7f3d0" }}>Safe • Stable • Good for Start</span>
+                </div>
+              </div>
+
+              <div style={styles.featureList}>
+                <div style={styles.featureItem}>✓ Low Risk</div>
+                <div style={styles.featureItem}>✓ Daily Returns</div>
+                <div style={styles.featureItem}>✓ Flexible Investment</div>
+              </div>
+
+              <button style={styles.startBeginnerBtn} onClick={() => openPlanModal("beginner")}>
+                Start Beginner ➔
+              </button>
+            </div>
+
+            {/* PRO INVESTMENT CARD */}
+            <div style={styles.proCard}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                <span style={styles.proIconBadge}>👑</span>
+                <div>
+                  <strong style={{ display: "block", fontSize: "14px", color: "#fff" }}>Pro Investment</strong>
+                  <span style={{ fontSize: "10px", color: "#fef08a" }}>Higher Returns • Faster Growth</span>
+                </div>
+              </div>
+
+              <div style={styles.featureList}>
+                <div style={styles.featureItem}>✓ High Profit Potential</div>
+                <div style={styles.featureItem}>✓ Premium Benefits</div>
+                <div style={styles.featureItem}>✓ Advanced Plan</div>
+              </div>
+
+              <button style={styles.startProBtn} onClick={() => openPlanModal("pro")}>
+                Start Pro ➔
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* TRANSACTION HISTORY SECTION */}
+        <section style={styles.historyCard}>
+          <div style={styles.historyCardHeader}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "18px", color: "#facc15" }}>🔄</span>
+              <h3 style={{ margin: 0, fontSize: "14px", color: "#fff", fontWeight: "800" }}>Transaction History</h3>
+              <span style={styles.liveUpdatesPill}>Live Updates</span>
+            </div>
+            <span style={styles.viewAllGoldLink} onClick={() => setShowAllHistory(!showAllHistory)}>
+              View All Transactions ➔
+            </span>
+          </div>
+
+          <div style={styles.tableResponsiveWrapper}>
+            <table style={styles.goldTable}>
               <thead>
                 <tr>
-                  <th style={styles.thDark}>Date</th>
-                  <th style={styles.thDark}>Type</th>
-                  <th style={styles.thDark}>Amount</th>
-                  <th style={styles.thDark}>Status</th>
+                  <th style={styles.goldTh}>Date</th>
+                  <th style={styles.goldTh}>Type</th>
+                  <th style={styles.goldTh}>Amount</th>
+                  <th style={styles.goldTh}>Status</th>
+                  <th style={styles.goldTh}>Reason</th>
                 </tr>
               </thead>
               <tbody>
                 {displayedHistory.length === 0 ? (
                   <tr>
-                    <td colSpan="4" style={styles.emptyTdDark}>No history found</td>
+                    <td colSpan="5" style={styles.emptyTableTd}>No history found</td>
                   </tr>
                 ) : (
                   displayedHistory.map((item, idx) => {
@@ -1390,18 +1351,19 @@ export default function OneTime() {
                     const isWithdraw = itemTypeRaw.includes("withdraw");
                     const isEarning = itemTypeRaw.includes("earning") || itemTypeRaw.includes("return") || itemTypeRaw.includes("profit") || itemTypeRaw.includes("daily");
 
-                    // Dynamic label for Transaction History Type
-                    let displayType = "🚀 OneTime";
+                    let displayType = "OneTime";
+                    let typeIcon = "🚀";
                     if (isDeposit) {
-                      displayType = "💳 Add Fund";
+                      displayType = "Add Fund";
+                      typeIcon = "💳";
                     } else if (isWithdraw) {
-                      displayType = item.isInvestAmountWithdrawal ? "🏦 Invest Principal Wd" : "💸 Withdrawal";
+                      displayType = item.isInvestAmountWithdrawal ? "Invest Principal Wd" : "Withdrawal";
+                      typeIcon = "💸";
                     } else if (isEarning || item.type === "Daily Return" || item.type === "Profit") {
-                      displayType = "🪙 Daily Return";
+                      displayType = "Daily Return";
+                      typeIcon = "🪙";
                     } else if (item.duration) {
-                      displayType = `🚀 ${item.duration}`;
-                    } else if (item.durationDays) {
-                      displayType = `🚀 ${item.durationDays} Days`;
+                      displayType = `${item.duration}`;
                     }
 
                     const rawStatus = item.status || "Pending";
@@ -1409,28 +1371,30 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    const rejectionReason = item.reason || item.rejectReason || item.note || "";
+                    const rejectionReason = item.reason || item.rejectReason || item.note || "-";
 
                     return (
-                      <tr 
-                        key={item._id || idx} 
-                        style={{ ...styles.trDark, cursor: "pointer" }}
-                        onClick={() => setSelectedTxn(item)}
-                      >
-                        <td style={styles.tdDark}>{formatDate(item.createdAt || item.startDate)}</td>
-                        <td style={styles.tdDark}>{displayType}</td>
-                        <td style={styles.tdDark}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
-                        <td style={styles.tdDark}>
-                          <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-start" }}>
-                            <span style={{ ...styles.statusBadgeDark, ...getStatusStyleDark(displayStatus) }}>
-                              {displayStatus}
-                            </span>
-                            {isRejected && (
-                              <span style={{ fontSize: "10px", color: "#f87171", lineHeight: "1.2", marginTop: "2px", fontWeight: "600" }}>
-                                ⚠️ Reason: {rejectionReason || "Declined by Admin"}
-                              </span>
-                            )}
-                          </div>
+                      <tr key={item._id || idx} style={styles.goldTr} onClick={() => setSelectedTxn(item)}>
+                        <td style={styles.goldTd}>{formatDate(item.createdAt || item.startDate)}</td>
+                        <td style={styles.goldTd}>
+                          <span style={{ marginRight: "4px" }}>{typeIcon}</span> {displayType}
+                        </td>
+                        <td style={styles.goldTd}>₹ {Number(item.amount || 0).toLocaleString("en-IN")}</td>
+                        <td style={styles.goldTd}>
+                          <span style={{
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "10px",
+                            fontWeight: "bold",
+                            background: isSuccess ? "rgba(34, 197, 94, 0.2)" : isRejected ? "rgba(239, 68, 68, 0.2)" : "rgba(234, 179, 8, 0.2)",
+                            color: isSuccess ? "#4ade80" : isRejected ? "#f87171" : "#facc15",
+                            border: `1px solid ${isSuccess ? "#22c55e" : isRejected ? "#ef4444" : "#facc15"}`
+                          }}>
+                            {isSuccess ? "✓ " : isRejected ? "✕ " : "⏳ "}{displayStatus}
+                          </span>
+                        </td>
+                        <td style={{ ...styles.goldTd, color: isRejected ? "#f87171" : "#9ca3af" }}>
+                          {rejectionReason}
                         </td>
                       </tr>
                     );
@@ -1439,17 +1403,11 @@ export default function OneTime() {
               </tbody>
             </table>
           </div>
-
-          <div style={styles.viewAllFooter}>
-            <span style={styles.viewAllLink} onClick={() => setShowAllHistory(!showAllHistory)}>
-              {showAllHistory ? "Show Less 🔼" : "View All Transactions ➔"}
-            </span>
-          </div>
         </section>
 
         <footer style={styles.footerBar}>
           <p style={styles.footerTagline}>
-            Chhote nivesh, badi kamai ka sapna, ab hoga sach! <strong style={{ color: "#22c55e" }}>SAVE MONEY</strong>! 💚
+            Chhote nivesh, badi kamai ka sapna, ab hoga sach! <strong style={{ color: "#facc15" }}>SAVE MONEY</strong>! 💚
           </p>
           <div style={styles.footerCopyRow}>
             <span>© 2026 SAVE MONEY. All Rights Reserved.</span>
@@ -1483,9 +1441,9 @@ export default function OneTime() {
                     key={p.value}
                     style={{
                       background: isSelected 
-                        ? (modalCategory === "beginner" ? "linear-gradient(135deg, #064e3b 0%, #022c22 100%)" : "linear-gradient(135deg, #831843 0%, #500724 100%)")
-                        : "#040d1a",
-                      border: isSelected ? "2px solid #22c55e" : "1px solid rgba(255, 255, 255, 0.1)",
+                        ? "linear-gradient(135deg, #78350f 0%, #451a03 100%)"
+                        : "#0f172a",
+                      border: isSelected ? "2px solid #facc15" : "1px solid rgba(255, 255, 255, 0.1)",
                       borderRadius: "12px",
                       padding: "12px",
                       cursor: "pointer",
@@ -1498,21 +1456,21 @@ export default function OneTime() {
                         <span style={{ fontSize: "16px" }}>{p.icon}</span>
                         <strong style={{ fontSize: "16px", color: "#fff" }}>₹{p.value.toLocaleString("en-IN")}</strong>
                       </div>
-                      <span style={{ background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", fontSize: "11px", fontWeight: "bold", padding: "2px 8px", borderRadius: "12px" }}>
+                      <span style={{ background: "rgba(250, 204, 21, 0.2)", color: "#facc15", fontSize: "11px", fontWeight: "bold", padding: "2px 8px", borderRadius: "12px" }}>
                         {p.rate}% Daily
                       </span>
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px", fontSize: "11px", color: "#cbd5e1", marginTop: "8px", background: "rgba(0,0,0,0.3)", padding: "8px", borderRadius: "8px" }}>
-                      <div>Daily Return: <strong style={{ color: "#4ade80" }}>₹{dailyAmt.toFixed(2)}</strong></div>
+                      <div>Daily Return: <strong style={{ color: "#facc15" }}>₹{dailyAmt.toFixed(2)}</strong></div>
                       <div>Tenure: <strong style={{ color: "#38bdf8" }}>{p.defaultTenure} Months</strong></div>
-                      <div>Total Return: <strong style={{ color: "#22c55e" }}>₹{totReturn.toLocaleString("en-IN")}</strong></div>
+                      <div>Total Return: <strong style={{ color: "#4ade80" }}>₹{totReturn.toLocaleString("en-IN")}</strong></div>
                       <div>Total Payout: <strong style={{ color: "#facc15" }}>₹{totPayout.toLocaleString("en-IN")}</strong></div>
                     </div>
 
-                    <div style={{ marginTop: "6px", fontSize: "10px", color: "#a7f3d0", display: "flex", justifyContent: "space-between" }}>
+                    <div style={{ marginTop: "6px", fontSize: "10px", color: "#fef08a", display: "flex", justifyContent: "space-between" }}>
                       <span>🎁 Bonus: {p.bonusDesc}</span>
-                      <strong style={{ color: isSelected ? "#4ade80" : "#38bdf8" }}>{isSelected ? "✓ Selected" : "Click to Select ➔"}</strong>
+                      <strong style={{ color: isSelected ? "#facc15" : "#38bdf8" }}>{isSelected ? "✓ Selected" : "Click to Select ➔"}</strong>
                     </div>
                   </div>
                 );
@@ -1532,8 +1490,8 @@ export default function OneTime() {
             </div>
 
             {user?.hasAppliedBonus ? (
-              <div style={{ background: "rgba(34, 197, 94, 0.1)", border: "1px solid #22c55e", padding: "10px", borderRadius: "8px", textAlign: "center", marginBottom: "14px" }}>
-                <span style={{ fontSize: "12px", color: "#4ade80", fontWeight: "bold" }}>
+              <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid #f59e0b", padding: "10px", borderRadius: "8px", textAlign: "center", marginBottom: "14px" }}>
+                <span style={{ fontSize: "12px", color: "#facc15", fontWeight: "bold" }}>
                   ✅ Bonus Code Already Applied!
                 </span>
                 <p style={{ fontSize: "10px", color: "#cbd5e1", margin: "4px 0 0 0" }}>
@@ -1551,7 +1509,7 @@ export default function OneTime() {
                     onChange={(e) => setBonusInputCode(e.target.value)} 
                   />
                   <button 
-                    style={{ ...styles.submitBtnDark, width: "80px", height: "38px" }}
+                    style={{ ...styles.goldSubmitBtn, width: "80px", height: "38px" }}
                     onClick={handleApplyBonusCode}
                   >
                     Apply
@@ -1560,7 +1518,7 @@ export default function OneTime() {
               </div>
             )}
 
-            <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px dashed #22c55e", marginBottom: "14px", textAlign: "center" }}>
+            <div style={{ background: "#040d1a", padding: "10px", borderRadius: "8px", border: "1px dashed #facc15", marginBottom: "14px", textAlign: "center" }}>
               <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Your Unique Bonus Code</span>
               <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>
                 {user?.bonusCode || user?.referralCode || getOrGenerateUniqueCode()}
@@ -1590,8 +1548,8 @@ export default function OneTime() {
                         <span style={{ fontSize: "10px", color: "#94a3b8" }}>Joined: {formatDate(item.createdAt || item.date)}</span>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <span style={{ fontSize: "11px", color: "#22c55e", fontWeight: "bold", display: "block" }}>+₹{item.monthlyBonusAmount || 300}</span>
-                        <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "4px", background: "rgba(34, 197, 94, 0.2)", color: "#4ade80", fontWeight: "bold" }}>
+                        <span style={{ fontSize: "11px", color: "#facc15", fontWeight: "bold", display: "block" }}>+₹{item.monthlyBonusAmount || 300}</span>
+                        <span style={{ fontSize: "9px", padding: "1px 6px", borderRadius: "4px", background: "rgba(245, 158, 11, 0.2)", color: "#facc15", fontWeight: "bold" }}>
                           {item.status || "Success"}
                         </span>
                       </div>
@@ -1613,20 +1571,20 @@ export default function OneTime() {
               <button style={styles.closeBtnDark} onClick={() => setShowWithdrawModal(false)}>✕</button>
             </div>
             
-            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80", marginBottom: "12px" }}>
+            <div style={{ ...styles.withdrawBalanceCard, borderColor: currentWalletBalance < dailyReturn ? "#f87171" : "#facc15", marginBottom: "12px" }}>
               <span style={{ fontSize: "12px", color: "#94a3b8" }}>Available Balance</span>
-              <strong style={{ fontSize: "22px", color: currentWalletBalance < dailyReturn ? "#f87171" : "#4ade80", display: "block" }}>
+              <strong style={{ fontSize: "22px", color: currentWalletBalance < dailyReturn ? "#f87171" : "#facc15", display: "block" }}>
                 ₹ {currentWalletBalance.toLocaleString("en-IN")}
               </strong>
             </div>
 
             <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
-              Withdraw Daily Return: <strong style={{ color: "#22c55e" }}>₹{dailyReturn.toFixed(2)}</strong>
+              Withdraw Daily Return: <strong style={{ color: "#facc15" }}>₹{dailyReturn.toFixed(2)}</strong>
             </p>
             <button
               style={{
-                ...styles.submitBtnDark,
-                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "#16a34a"
+                ...styles.goldSubmitBtn,
+                background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
               }}
               onClick={() => handleWithdrawSubmit()}
               disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
@@ -1637,6 +1595,7 @@ export default function OneTime() {
         </div>
       )}
 
+      {/* TRANSACTION SLIP MODAL */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
           <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1704,7 +1663,7 @@ export default function OneTime() {
 
               <div style={styles.slipRow}>
                 <span style={styles.slipLabel}>Security Status</span>
-                <strong style={{ ...styles.slipValue, color: "#4ade80" }}>SECURE & VERIFIED</strong>
+                <strong style={{ ...styles.slipValue, color: "#facc15" }}>SECURE & VERIFIED</strong>
               </div>
             </div>
 
@@ -1730,9 +1689,10 @@ export default function OneTime() {
         </div>
       )}
 
+      {/* ADD FUND MODAL */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modalCardDark, maxWidth: "400px", border: "1px solid rgba(16, 185, 129, 0.4)", boxShadow: "0 25px 50px rgba(0,0,0,0.8)" }}>
+          <div style={{ ...styles.modalCardDark, maxWidth: "400px", border: "1px solid rgba(245, 158, 11, 0.4)", boxShadow: "0 25px 50px rgba(0,0,0,0.8)" }}>
             <div style={styles.modalHeader}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ fontSize: "20px" }}>💎</span>
@@ -1748,8 +1708,8 @@ export default function OneTime() {
                   flex: 1,
                   padding: "8px",
                   borderRadius: "8px",
-                  border: paymentMethodType === "fiat" ? "2px solid #22c55e" : "1px solid #334155",
-                  background: paymentMethodType === "fiat" ? "rgba(34, 197, 94, 0.2)" : "#0f2138",
+                  border: paymentMethodType === "fiat" ? "2px solid #facc15" : "1px solid #334155",
+                  background: paymentMethodType === "fiat" ? "rgba(245, 158, 11, 0.2)" : "#0f2138",
                   color: "#fff",
                   fontSize: "11px",
                   fontWeight: "bold",
@@ -1800,15 +1760,15 @@ export default function OneTime() {
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
                   <span>GST ({paymentMethodType === "fiat" ? "2%" : "0%"}):</span>
-                  <strong style={{ color: paymentMethodType === "fiat" ? "#facc15" : "#22c55e" }}>₹{gstAmount.toLocaleString("en-IN")}</strong>
+                  <strong style={{ color: paymentMethodType === "fiat" ? "#facc15" : "#4ade80" }}>₹{gstAmount.toLocaleString("en-IN")}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
                   <span>TDS (0%):</span>
-                  <strong style={{ color: "#22c55e" }}>₹{tdsAmount}</strong>
+                  <strong style={{ color: "#4ade80" }}>₹{tdsAmount}</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#cbd5e1" }}>
                   <span>Platform Fee (0%):</span>
-                  <strong style={{ color: "#22c55e" }}>₹{platformFee}</strong>
+                  <strong style={{ color: "#4ade80" }}>₹{platformFee}</strong>
                 </div>
                 <div style={{ height: "1px", background: "#1e293b", margin: "2px 0" }}></div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", fontWeight: "bold" }}>
@@ -1823,13 +1783,13 @@ export default function OneTime() {
                 <button 
                   type="button"
                   style={{
-                    ...styles.submitBtnDark,
-                    background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                    ...styles.goldSubmitBtn,
+                    background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
+                    color: "#000",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    gap: "8px",
-                    boxShadow: "0 4px 12px rgba(37, 99, 235, 0.4)"
+                    gap: "8px"
                   }}
                   onClick={handleRazorpayPayment}
                   disabled={razorpayLoading}
@@ -1858,7 +1818,7 @@ export default function OneTime() {
                     <label style={styles.labelDark}>Transfer Screenshot*</label>
                     <input type="file" accept="image/*" style={styles.fileInputDark} onChange={(e) => setScreenshot(e.target.files[0])} required />
                   </div>
-                  <button type="submit" style={{ ...styles.submitBtnDark, background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)" }} disabled={depositing}>
+                  <button type="submit" style={{ ...styles.goldSubmitBtn, background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)", color: "#fff" }} disabled={depositing}>
                     {depositing ? "Submitting..." : "Submit Crypto Deposit Proof"}
                   </button>
                 </form>
@@ -1868,6 +1828,7 @@ export default function OneTime() {
         </div>
       )}
 
+      {/* BANK DETAILS MODAL */}
       {showBankModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
@@ -1880,12 +1841,13 @@ export default function OneTime() {
               <input style={styles.inputModalDark} placeholder="Bank Name" value={bankForm.bankName} onChange={(e) => setBankForm({ ...bankForm, bankName: e.target.value })} required />
               <input style={styles.inputModalDark} placeholder="Account Number" value={bankForm.accountNumber} onChange={(e) => setBankForm({ ...bankForm, accountNumber: e.target.value })} required />
               <input style={styles.inputModalDark} placeholder="IFSC Code" value={bankForm.ifsc} onChange={(e) => setBankForm({ ...bankForm, ifsc: e.target.value })} required />
-              <button type="submit" style={styles.submitBtnDark}>Save Details</button>
+              <button type="submit" style={styles.goldSubmitBtn}>Save Details</button>
             </form>
           </div>
         </div>
       )}
 
+      {/* INVEST WITHDRAW MODAL */}
       {showInvestWithdrawModal && activeInvestment && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1893,17 +1855,16 @@ export default function OneTime() {
               <h3 style={{ margin: 0, fontSize: "16px", color: "#fff" }}>Withdraw Invested Principal</h3>
               <button style={styles.closeBtnDark} onClick={() => setShowInvestWithdrawModal(false)}>✕</button>
             </div>
-            <div style={{ ...styles.withdrawBalanceCard, borderColor: "#4ade80" }}>
+            <div style={{ ...styles.withdrawBalanceCard, borderColor: "#facc15" }}>
               <span style={{ fontSize: "12px", color: "#94a3b8" }}>Matured Invest Amount</span>
-              <strong style={{ fontSize: "22px", color: "#4ade80", display: "block" }}>
+              <strong style={{ fontSize: "22px", color: "#facc15", display: "block" }}>
                 ₹ {Number(activeInvestment.amount || 0).toLocaleString("en-IN")}
               </strong>
             </div>
             <button
               style={{
-                ...styles.submitBtnDark,
-                marginTop: "16px",
-                background: "#16a34a"
+                ...styles.goldSubmitBtn,
+                marginTop: "16px"
               }}
               onClick={handleWithdrawInvestAmount}
               disabled={withdrawing}
@@ -1914,6 +1875,7 @@ export default function OneTime() {
         </div>
       )}
 
+      {/* REINVEST MODAL */}
       {showReinvestModal && activeInvestment && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
@@ -1923,7 +1885,7 @@ export default function OneTime() {
             </div>
             <div style={{ marginBottom: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
               <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Amount to Reinvest</span>
-              <strong style={{ fontSize: "18px", color: "#22c55e" }}>₹{Number(activeInvestment.amount || 0).toLocaleString("en-IN")}</strong>
+              <strong style={{ fontSize: "18px", color: "#facc15" }}>₹{Number(activeInvestment.amount || 0).toLocaleString("en-IN")}</strong>
             </div>
 
             <div style={{ marginTop: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
@@ -1935,9 +1897,8 @@ export default function OneTime() {
 
             <button
               style={{
-                ...styles.submitBtnDark,
-                marginTop: "16px",
-                background: "linear-gradient(90deg, #f59e0b 0%, #d97706 100%)"
+                ...styles.goldSubmitBtn,
+                marginTop: "16px"
               }}
               onClick={handleConfirmReinvest}
               disabled={withdrawing}
@@ -1954,7 +1915,7 @@ export default function OneTime() {
 const getStatusStyleDark = (status) => {
   const s = (status || "").toLowerCase();
   if (s === "success" || s === "active" || s === "approved" || s === "accepted") {
-    return { background: "rgba(34, 197, 94, 0.2)", color: "#4ade80" };
+    return { background: "rgba(250, 204, 21, 0.2)", color: "#facc15" };
   }
   if (s === "pending") {
     return { background: "rgba(234, 179, 8, 0.2)", color: "#facc15" };
@@ -1966,10 +1927,10 @@ const styles = {
   page: {
     minHeight: "100vh",
     width: "100%",
-    background: "#030a16",
+    background: "#030712",
     padding: "12px",
     fontFamily: "system-ui, -apple-system, sans-serif",
-    color: "#f8fafc",
+    color: "#f9fafb",
     boxSizing: "border-box",
     display: "flex",
     justifyContent: "center"
@@ -1979,11 +1940,11 @@ const styles = {
     maxWidth: "480px",
     display: "flex",
     flexDirection: "column",
-    gap: "16px"
+    gap: "14px"
   },
   loadingPage: {
     minHeight: "100vh",
-    background: "#030a16",
+    background: "#030712",
     display: "flex",
     alignItems: "center",
     justifyContent: "center"
@@ -1991,8 +1952,8 @@ const styles = {
   spinner: {
     width: "36px",
     height: "36px",
-    border: "3px solid rgba(34, 197, 94, 0.2)",
-    borderTop: "3px solid #22c55e",
+    border: "3px solid rgba(245, 158, 11, 0.2)",
+    borderTop: "3px solid #f59e0b",
     borderRadius: "50%",
     animation: "spin 1s linear infinite"
   },
@@ -2009,193 +1970,189 @@ const styles = {
     fontSize: "13px",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.5)"
-  },
-  topNoticeBanner: {
-    background: "linear-gradient(90deg, #052e16 0%, #064e3b 100%)",
-    border: "1px solid #22c55e",
-    borderRadius: "10px",
-    padding: "8px 12px",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    overflow: "hidden"
-  },
-  noticeBadge: {
-    background: "#f59e0b",
-    color: "#000",
-    fontWeight: "900",
-    fontSize: "10px",
-    padding: "2px 6px",
-    borderRadius: "4px",
-    whiteSpace: "nowrap",
-    flexShrink: 0
-  },
-  marqueeContainer: {
-    overflow: "hidden",
-    whiteSpace: "nowrap",
-    flex: 1,
-    display: "flex",
-    alignItems: "center"
-  },
-  marqueeText: {
-    display: "inline-block",
-    whiteSpace: "nowrap",
-    animation: "marquee 8s linear infinite",
-    fontSize: "11px",
-    fontWeight: "600",
-    color: "#e2e8f0"
-  },
-  bonusHighlight: {
-    color: "#facc15",
-    fontWeight: "900"
+    gap: "8px"
   },
   header: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    padding: "8px 0"
   },
   headerLeft: {
     display: "flex",
     alignItems: "center",
-    gap: "12px"
+    gap: "10px"
   },
   menuButton: {
-    background: "transparent",
-    border: "none",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
     color: "white",
-    fontSize: "24px",
-    cursor: "pointer",
-    padding: "0"
+    fontSize: "18px",
+    borderRadius: "8px",
+    padding: "6px 10px",
+    cursor: "pointer"
   },
-  welcomeTitle: {
+  brandTitleGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px"
+  },
+  logoBox: {
+    width: "32px",
+    height: "32px",
+    background: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "16px"
+  },
+  brandTitle: {
     margin: 0,
     fontSize: "16px",
-    fontWeight: "800",
-    color: "#ffffff"
+    fontWeight: "900",
+    color: "#fff"
   },
-  welcomeSub: {
+  brandSub: {
     margin: 0,
-    fontSize: "11px",
-    color: "#94a3b8"
+    fontSize: "9px",
+    color: "#9ca3af"
   },
-  headerBonusBtn: {
-    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-    border: "none",
+  bonusPillBtn: {
+    background: "linear-gradient(135deg, #d97706 0%, #78350f 100%)",
+    border: "1px solid #facc15",
     color: "#fff",
-    padding: "6px 12px",
+    padding: "6px 10px",
     borderRadius: "20px",
     fontSize: "11px",
     fontWeight: "bold",
     cursor: "pointer",
-    boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)"
+    display: "flex",
+    alignItems: "center",
+    gap: "4px"
   },
-  profileCircle: {
-    width: "40px",
-    height: "40px",
+  notificationDot: {
+    background: "#ef4444",
+    color: "#fff",
     borderRadius: "50%",
-    background: "#0c1f38",
+    padding: "1px 5px",
+    fontSize: "9px"
+  },
+  userDropdownBtn: {
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.15)",
+    borderRadius: "20px",
+    padding: "4px 10px",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    cursor: "pointer"
+  },
+  userAvatarIcon: {
+    width: "22px",
+    height: "22px",
+    borderRadius: "50%",
+    background: "#374151",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
-    border: "2px solid #10b981",
-    cursor: "pointer"
+    fontSize: "11px"
   },
-  profileImg: {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover"
-  },
-  profileAvatarPlaceholder: {
-    width: "100%",
-    height: "100%",
-    background: "#10b981",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  topHeroBanner: {
-    background: "linear-gradient(135deg, #062319 0%, #06182e 100%)",
-    borderRadius: "14px",
+  heroBanner: {
+    background: "linear-gradient(135deg, #111827 0%, #030712 100%)",
+    border: "1px solid #facc15",
+    borderRadius: "16px",
     padding: "14px",
-    border: "1px solid rgba(34, 197, 94, 0.3)",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    gap: "10px"
+    boxShadow: "0 0 15px rgba(250, 204, 21, 0.15)"
   },
-  heroTextContent: {
+  heroLeftContent: {
     flex: 1
   },
-  heroTitle: {
+  heroWelcomeTitle: {
     margin: 0,
-    fontSize: "13px",
-    fontWeight: "700",
-    color: "#ffffff",
+    fontSize: "18px",
+    fontWeight: "900",
+    color: "#fff"
+  },
+  heroSubtitle: {
+    fontSize: "12px",
+    color: "#e5e7eb",
+    marginTop: "4px",
     lineHeight: "1.3"
   },
-  heroDesc: {
-    margin: "6px 0 0 0",
-    fontSize: "10px",
-    color: "#cbd5e1"
-  },
-  heroImgWrapper: {
-    width: "80px",
-    height: "60px",
+  heroBadgeRow: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0
+    gap: "6px",
+    marginTop: "8px"
   },
-  heroBannerImage: {
-    maxWidth: "100%",
-    maxHeight: "100%",
-    objectFit: "contain"
+  shieldIcon: {
+    fontSize: "12px"
   },
-  statsGridContainer: {
+  heroRightGraphic: {
+    textAlign: "right"
+  },
+  growWealthTag: {
+    fontSize: "11px",
+    color: "#facc15",
+    fontWeight: "bold"
+  },
+  graphicCoinsContainer: {
+    fontSize: "28px",
+    marginTop: "4px"
+  },
+  statsGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "10px"
   },
-  darkStatCard: {
-    background: "#081628",
+  statCard: {
+    background: "#111827",
+    border: "1px solid rgba(250, 204, 21, 0.3)",
     borderRadius: "12px",
     padding: "12px",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
     display: "flex",
     flexDirection: "column"
   },
-  statCardHeader: {
+  statHeader: {
     display: "flex",
     alignItems: "center",
     gap: "6px"
   },
-  iconBox: {
-    width: "28px",
-    height: "28px",
+  statIconBox: {
+    width: "26px",
+    height: "26px",
     borderRadius: "6px",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    fontSize: "13px",
+    color: "#fff"
   },
-  statCardTitle: {
+  statTitle: {
     fontSize: "11px",
-    color: "#cbd5e1",
-    fontWeight: "600"
+    color: "#9ca3af"
   },
-  statCardValue: {
-    fontSize: "16px",
-    fontWeight: "800",
-    color: "#ffffff",
+  statValue: {
+    fontSize: "17px",
+    fontWeight: "900",
+    color: "#fff",
     marginTop: "6px"
   },
+  statGrowthPositive: {
+    fontSize: "10px",
+    color: "#34d399",
+    fontWeight: "bold",
+    marginTop: "2px"
+  },
   maturedWalletCard: {
-    background: "linear-gradient(135deg, #022c22 0%, #064e3b 100%)",
+    background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)",
     borderRadius: "14px",
     padding: "12px 14px",
-    border: "1px solid #22c55e",
+    border: "1px solid #facc15",
     display: "flex",
     flexDirection: "column",
     gap: "10px"
@@ -2235,241 +2192,225 @@ const styles = {
     cursor: "pointer",
     boxShadow: "0 2px 8px rgba(245, 158, 11, 0.3)"
   },
-  darkMainCard: {
-    background: "#081628",
-    borderRadius: "14px",
+  dailyReturnCard: {
+    background: "linear-gradient(135deg, #1f2937 0%, #111827 100%)",
+    border: "1px solid #facc15",
+    borderRadius: "16px",
     padding: "14px",
-    border: "1px solid rgba(255, 255, 255, 0.1)"
+    boxShadow: "0 0 20px rgba(245, 158, 11, 0.1)"
   },
-  darkCardTitle: {
-    margin: "0 0 12px 0",
-    fontSize: "15px",
-    fontWeight: "800",
-    color: "#ffffff"
-  },
-  activeInvestCardDark: {
-    background: "#040d1a",
-    borderRadius: "10px",
-    padding: "10px",
-    marginBottom: "12px",
-    border: "1px solid #16a34a"
-  },
-  activeHeader: {
+  dailyReturnTopRow: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "8px"
+    alignItems: "center"
   },
-  activeBadgeGroup: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px"
-  },
-  activePulse: {
-    width: "8px",
-    height: "8px",
-    borderRadius: "50%",
-    background: "#22c55e"
-  },
-  activeTitle: {
-    fontSize: "10px",
-    color: "#22c55e"
-  },
-  activeStatusTagDark: {
-    fontSize: "10px",
-    background: "rgba(34, 197, 94, 0.2)",
-    color: "#4ade80",
-    padding: "2px 6px",
-    borderRadius: "8px"
-  },
-  activeStatsGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "8px"
-  },
-  activeStatItem: {
-    display: "flex",
-    flexDirection: "column"
-  },
-  activeLabel: {
-    fontSize: "10px",
-    color: "#94a3b8"
-  },
-  activeValue: {
-    fontSize: "12px",
-    fontWeight: "bold",
-    color: "#f8fafc"
-  },
-  fieldGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px"
-  },
-  labelDark: {
-    fontSize: "11px",
-    fontWeight: "700",
-    color: "#e2e8f0"
-  },
-  categoryBtnGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "10px",
-    marginTop: "4px"
-  },
-  beginnerPopupBtn: {
-    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-    border: "none",
+  dailyReturnCalendarIcon: {
+    width: "44px",
+    height: "44px",
+    background: "rgba(245, 158, 11, 0.15)",
+    border: "1px solid #f59e0b",
     borderRadius: "12px",
-    padding: "12px 10px",
-    color: "#fff",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    textAlign: "left",
-    boxShadow: "0 4px 15px rgba(16, 185, 129, 0.3)"
-  },
-  proPopupBtn: {
-    background: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
-    border: "none",
-    borderRadius: "12px",
-    padding: "12px 10px",
-    color: "#fff",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    textAlign: "left",
-    boxShadow: "0 4px 15px rgba(236, 72, 153, 0.3)"
-  },
-  returnContainerDark: {
-    background: "#dcfce7",
-    borderRadius: "10px",
-    padding: "12px",
-    textAlign: "center",
-    margin: "14px 0",
-    color: "#166534"
-  },
-  returnCardContent: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "10px"
+    fontSize: "22px"
   },
-  returnBoxBagIcon: {
-    fontSize: "24px"
-  },
-  returnCardTitleDark: {
+  dailyReturnLabel: {
     fontSize: "12px",
-    fontWeight: "700"
-  },
-  returnCardValueDark: {
-    fontSize: "20px",
-    fontWeight: "900",
+    color: "#d1d5db",
     display: "block"
   },
-  returnCardNoteDark: {
-    fontSize: "10px"
+  dailyReturnAmount: {
+    fontSize: "24px",
+    fontWeight: "900",
+    color: "#facc15"
   },
-  actionGridTriple: {
+  dailyReturnSubtext: {
+    fontSize: "10px",
+    color: "#9ca3af",
+    marginLeft: "4px"
+  },
+  growingRightBox: {
+    textAlign: "right"
+  },
+  growingText: {
+    fontSize: "10px",
+    color: "#9ca3af",
+    display: "block"
+  },
+  growingHighlight: {
+    fontSize: "11px",
+    color: "#fff"
+  },
+  actionPillGrid: {
     display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
-    gap: "8px"
+    gridTemplateColumns: "1fr 1fr",
+    gap: "10px",
+    marginTop: "14px"
   },
-  startInvestBtnDark: {
-    height: "40px",
-    borderRadius: "8px",
+  addFundGoldBtn: {
+    background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
     border: "none",
-    background: "#22c55e",
-    color: "#ffffff",
-    fontSize: "11px",
-    fontWeight: "bold",
+    borderRadius: "25px",
+    padding: "8px 12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
     cursor: "pointer"
   },
-  disabledBtnDark: {
-    background: "#334155",
-    color: "#94a3b8",
-    cursor: "not-allowed"
+  plusIconBg: {
+    width: "24px",
+    height: "24px",
+    background: "#000",
+    color: "#fff",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: "bold"
   },
-  addInvestBtnDark: {
-    height: "40px",
-    borderRadius: "8px",
+  withdrawDarkBtn: {
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.2)",
+    borderRadius: "25px",
+    padding: "8px 12px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    cursor: "pointer"
+  },
+  walletIconBg: {
+    width: "24px",
+    height: "24px",
+    background: "rgba(255,255,255,0.1)",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  makeInvestmentCard: {
+    background: "#111827",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "16px",
+    padding: "14px"
+  },
+  makeInvestHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "12px"
+  },
+  smallStepsTag: {
+    fontSize: "10px",
+    color: "#facc15",
+    fontStyle: "italic"
+  },
+  planCardGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "10px"
+  },
+  beginnerCard: {
+    background: "linear-gradient(135deg, #064e3b 0%, #022c22 100%)",
+    border: "1px solid #10b981",
+    borderRadius: "12px",
+    padding: "12px"
+  },
+  beginnerIconBadge: {
+    fontSize: "18px"
+  },
+  proCard: {
+    background: "linear-gradient(135deg, #78350f 0%, #451a03 100%)",
+    border: "1px solid #f59e0b",
+    borderRadius: "12px",
+    padding: "12px"
+  },
+  proIconBadge: {
+    fontSize: "18px"
+  },
+  featureList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+    margin: "10px 0"
+  },
+  featureItem: {
+    fontSize: "10px",
+    color: "#e5e7eb"
+  },
+  startBeginnerBtn: {
+    width: "100%",
+    background: "#10b981",
     border: "none",
-    background: "#2563eb",
-    color: "white",
+    color: "#fff",
+    padding: "8px",
+    borderRadius: "20px",
     fontSize: "11px",
     fontWeight: "bold",
     cursor: "pointer"
   },
-  withdrawBtnDark: {
-    height: "40px",
-    borderRadius: "8px",
-    background: "#0f172a",
-    border: "1px solid #334155",
-    color: "white",
+  startProBtn: {
+    width: "100%",
+    background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
+    border: "none",
+    color: "#000",
+    padding: "8px",
+    borderRadius: "20px",
     fontSize: "11px",
     fontWeight: "bold",
     cursor: "pointer"
   },
-  darkHistoryCard: {
-    background: "#081628",
-    borderRadius: "14px",
-    padding: "12px",
-    border: "1px solid rgba(255, 255, 255, 0.1)"
+  historyCard: {
+    background: "#111827",
+    border: "1px solid rgba(250, 204, 21, 0.2)",
+    borderRadius: "16px",
+    padding: "12px"
   },
-  historyHeader: {
+  historyCardHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "10px"
   },
-  refreshBtnDark: {
-    color: "#22c55e",
-    fontSize: "11px",
-    fontWeight: "bold",
+  liveUpdatesPill: {
+    background: "rgba(245, 158, 11, 0.2)",
+    color: "#facc15",
+    fontSize: "9px",
+    padding: "2px 6px",
+    borderRadius: "10px",
+    fontWeight: "bold"
+  },
+  viewAllGoldLink: {
+    fontSize: "10px",
+    color: "#facc15",
     cursor: "pointer"
   },
-  tableWrapper: {
+  tableResponsiveWrapper: {
     overflowX: "auto"
   },
-  tableDark: {
+  goldTable: {
     width: "100%",
     borderCollapse: "collapse",
     fontSize: "11px"
   },
-  thDark: {
-    background: "#040d1a",
+  goldTh: {
+    textAlign: "left",
     padding: "8px",
-    color: "#cbd5e1",
-    textAlign: "left"
+    color: "#9ca3af",
+    borderBottom: "1px solid rgba(255,255,255,0.1)"
   },
-  trDark: {
-    borderBottom: "1px solid rgba(255, 255, 255, 0.08)"
+  goldTr: {
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    cursor: "pointer"
   },
-  tdDark: {
+  goldTd: {
     padding: "8px",
-    color: "#f8fafc"
+    color: "#f3f4f6"
   },
-  emptyTdDark: {
+  emptyTableTd: {
     textAlign: "center",
     padding: "16px",
-    color: "#94a3b8"
-  },
-  statusBadgeDark: {
-    padding: "2px 6px",
-    borderRadius: "6px",
-    fontSize: "10px",
-    fontWeight: "bold"
-  },
-  viewAllFooter: {
-    textAlign: "center",
-    marginTop: "10px"
-  },
-  viewAllLink: {
-    color: "#22c55e",
-    fontSize: "11px",
-    fontWeight: "bold",
-    cursor: "pointer"
+    color: "#6b7280"
   },
   footerBar: {
     textAlign: "center",
@@ -2485,160 +2426,10 @@ const styles = {
     fontSize: "10px",
     color: "#64748b"
   },
-  drawerOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: "rgba(0, 0, 0, 0.75)",
-    backdropFilter: "blur(6px)",
-    zIndex: 100002,
-    display: "flex",
-    justifyContent: "flex-start",
-    transition: "opacity 0.3s ease, visibility 0.3s ease"
-  },
-  drawerContainer: {
-    position: "fixed",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    background: "#08101e",
-    width: "230px",
-    height: "100vh",
-    padding: "12px 8px",
-    display: "flex",
-    flexDirection: "column",
-    boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
-    borderRight: "1px solid #1e293b",
-    transform: "translateX(-100%)",
-    transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    overflow: "hidden",
-    zIndex: 100003
-  },
-  drawerHeader: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: "10px",
-    paddingBottom: "8px",
-    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-    flexShrink: 0
-  },
-  drawerBrand: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "4px"
-  },
-  drawerLogoWrapper: {
-    width: "42px",
-    height: "42px",
-    borderRadius: "50%",
-    background: "radial-gradient(circle, #03251a 0%, #064e3b 100%)",
-    border: "2px solid #22c55e",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  drawerLogoImg: {
-    width: "26px",
-    height: "26px",
-    objectFit: "contain"
-  },
-  drawerLogoText: {
-    margin: 0,
-    fontSize: "15px",
-    fontWeight: "900",
-    color: "#ffffff",
-    letterSpacing: "0.6px",
-    textAlign: "center"
-  },
-  drawerLogoSubtext: {
-    fontSize: "10px",
-    color: "#a7f3d0",
-    fontWeight: "600",
-    marginTop: "1px",
-    textAlign: "center"
-  },
-  drawerScrollArea: {
-    flex: 1,
-    overflowY: "auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    paddingRight: "2px"
-  },
-  drawerNavList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-    flexShrink: 0
-  },
-  drawerNavItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    padding: "8px 12px",
-    background: "rgba(255, 255, 255, 0.12)",
-    backdropFilter: "blur(10px)",
-    border: "1px solid rgba(255, 255, 255, 0.25)",
-    clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0% 50%)",
-    color: "#ffffff",
-    fontSize: "12px",
-    fontWeight: "800",
-    cursor: "pointer",
-    textAlign: "left"
-  },
-  drawerNavItemActive: {
-    background: "rgba(255, 255, 255, 0.3)",
-    border: "1px solid #ffffff",
-    fontWeight: "900"
-  },
-  drawerNavIcon: {
-    fontSize: "16px",
-    width: "20px",
-    display: "inline-block",
-    textAlign: "center"
-  },
-  drawerNavText: {
-    flex: 1,
-    fontSize: "12px",
-    letterSpacing: "0.3px"
-  },
-  drawerNavDashboard: { background: "rgba(59, 130, 246, 0.25)", border: "1px solid rgba(59, 130, 246, 0.5)" },
-  drawerNavMyInvestment: { background: "rgba(16, 185, 129, 0.25)", border: "1px solid rgba(16, 185, 129, 0.5)" },
-  drawerNavSaveMoney: { background: "rgba(245, 158, 11, 0.25)", border: "1px solid rgba(245, 158, 11, 0.5)" },
-  drawerNavOneTime: { background: "rgba(168, 85, 247, 0.25)", border: "1px solid rgba(168, 85, 247, 0.5)" },
-  drawerNavPlan: { background: "rgba(6, 182, 212, 0.25)", border: "1px solid rgba(6, 182, 212, 0.5)" },
-  drawerNavAddFund: { background: "rgba(20, 184, 166, 0.25)", border: "1px solid rgba(20, 184, 166, 0.5)" },
-  drawerNavRefer: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
-  drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.25)", border: "1px solid rgba(249, 115, 22, 0.5)" },
-  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.25)", border: "1px solid rgba(244, 63, 94, 0.5)" },
-  drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.25)", border: "1px solid rgba(2, 132, 199, 0.5)" },
-  drawerNavSupport: { background: "rgba(99, 102, 241, 0.25)", border: "1px solid rgba(99, 102, 241, 0.5)" },
-  drawerNavProfile: { background: "rgba(236, 72, 153, 0.25)", border: "1px solid rgba(236, 72, 153, 0.5)" },
-  drawerNavLogout: { background: "rgba(239, 68, 68, 0.25)", border: "1px solid rgba(239, 68, 68, 0.5)" },
-  treePlantOnlyWrapper: {
-    width: "100%",
-    paddingTop: "6px",
-    paddingBottom: "10px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    flexShrink: 0
-  },
-  treePlantOnlyImg: {
-    width: "100%",
-    maxHeight: "110px",
-    objectFit: "cover",
-    borderRadius: "12px"
-  },
   modalOverlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0, 0, 0, 0.82)",
+    background: "rgba(0,0,0,0.82)",
     backdropFilter: "blur(6px)",
     display: "flex",
     alignItems: "center",
@@ -2647,29 +2438,28 @@ const styles = {
     padding: "12px"
   },
   modalCardDark: {
-    background: "#081628",
+    background: "#111827",
+    border: "1px solid #facc15",
     borderRadius: "16px",
     padding: "16px",
     width: "100%",
-    maxWidth: "360px",
-    border: "1px solid rgba(255, 255, 255, 0.1)"
+    maxWidth: "360px"
   },
   planModalCardDark: {
-    background: "#081628",
+    background: "#111827",
+    border: "1px solid #facc15",
     borderRadius: "16px",
     padding: "16px",
     width: "100%",
-    maxWidth: "400px",
-    border: "1px solid rgba(34, 197, 94, 0.3)",
-    boxShadow: "0 20px 40px rgba(0,0,0,0.8)"
+    maxWidth: "400px"
   },
   withdrawModalCardDark: {
-    background: "#09182b",
+    background: "#111827",
     borderRadius: "16px",
     padding: "16px",
     width: "100%",
     maxWidth: "360px",
-    border: "1px solid rgba(56, 189, 248, 0.3)"
+    border: "1px solid #facc15"
   },
   withdrawBalanceCard: {
     padding: "12px",
@@ -2684,15 +2474,40 @@ const styles = {
     marginBottom: "12px"
   },
   closeBtnDark: {
+    background: "none",
     border: "none",
+    color: "#fff",
+    fontSize: "16px",
+    cursor: "pointer"
+  },
+  goldSubmitBtn: {
+    width: "100%",
+    height: "38px",
+    background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
+    border: "none",
+    borderRadius: "8px",
+    color: "#000",
+    fontWeight: "bold",
+    fontSize: "12px",
+    cursor: "pointer"
+  },
+  labelDark: {
+    fontSize: "11px",
+    fontWeight: "700",
+    color: "#e2e8f0"
+  },
+  inputModalDark: {
+    width: "100%",
+    height: "38px",
+    borderRadius: "8px",
+    border: "1px solid #334155",
     background: "#0f2138",
     color: "#fff",
-    borderRadius: "50%",
-    width: "28px",
-    height: "28px",
-    cursor: "pointer",
-    fontSize: "14px"
+    padding: "0 10px",
+    fontSize: "12px",
+    boxSizing: "border-box"
   },
+  fileInputDark: { width: "100%", fontSize: "11px", color: "#cbd5e1" },
   walletBoxDark: {
     background: "#040d1a",
     padding: "10px",
@@ -2707,8 +2522,8 @@ const styles = {
   },
   walletText: { fontSize: "10px", wordBreak: "break-all", color: "#fff" },
   copyBtn: {
-    background: "#16a34a",
-    color: "white",
+    background: "#f59e0b",
+    color: "#000",
     border: "none",
     padding: "4px 8px",
     borderRadius: "4px",
@@ -2716,28 +2531,135 @@ const styles = {
     fontSize: "10px",
     fontWeight: "bold"
   },
-  inputModalDark: {
-    width: "100%",
-    height: "38px",
-    borderRadius: "8px",
-    border: "1px solid #334155",
-    background: "#0f2138",
-    color: "#fff",
-    padding: "0 10px",
-    fontSize: "12px",
-    boxSizing: "border-box"
+  drawerOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0, 0, 0, 0.75)",
+    backdropFilter: "blur(4px)",
+    zIndex: 100002,
+    display: "flex",
+    justifyContent: "flex-start",
+    transition: "opacity 0.3s ease, visibility 0.3s ease"
   },
-  fileInputDark: { width: "100%", fontSize: "11px", color: "#cbd5e1" },
-  submitBtnDark: {
-    height: "38px",
+  drawerContainer: {
+    position: "fixed",
+    top: 0,
+    bottom: 0,
+    left: 0,
+    background: "#0b0f19",
+    width: "230px",
+    height: "100vh",
+    padding: "12px 8px",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "10px 0 30px rgba(0,0,0,0.85)",
+    borderRight: "1px solid #1f2937",
+    transform: "translateX(-100%)",
+    transition: "transform 0.3s ease",
+    zIndex: 100003
+  },
+  drawerHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "10px",
+    paddingBottom: "8px",
+    borderBottom: "1px solid rgba(255, 255, 255, 0.1)"
+  },
+  drawerBrand: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "4px"
+  },
+  drawerLogoWrapper: {
+    width: "36px",
+    height: "36px",
+    borderRadius: "50%",
+    background: "#f59e0b",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  drawerLogoImg: {
+    width: "22px",
+    height: "22px",
+    objectFit: "contain"
+  },
+  drawerLogoText: {
+    margin: 0,
+    fontSize: "14px",
+    fontWeight: "900",
+    color: "#ffffff"
+  },
+  drawerLogoSubtext: {
+    fontSize: "9px",
+    color: "#facc15"
+  },
+  drawerScrollArea: {
+    flex: 1,
+    overflowY: "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px"
+  },
+  drawerNavList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px"
+  },
+  drawerNavItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 12px",
+    background: "rgba(255, 255, 255, 0.05)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
     borderRadius: "8px",
-    border: "none",
-    background: "#16a34a",
-    color: "white",
-    fontWeight: "bold",
+    color: "#ffffff",
     fontSize: "12px",
+    fontWeight: "600",
     cursor: "pointer",
-    width: "100%"
+    textAlign: "left"
+  },
+  drawerNavItemActive: {
+    background: "#f59e0b",
+    color: "#000",
+    fontWeight: "bold"
+  },
+  drawerNavIcon: {
+    fontSize: "14px"
+  },
+  drawerNavText: {
+    flex: 1
+  },
+  drawerNavDashboard: { background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)" },
+  drawerNavMyInvestment: { background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)" },
+  drawerNavSaveMoney: { background: "rgba(245, 158, 11, 0.15)", border: "1px solid rgba(245, 158, 11, 0.3)" },
+  drawerNavOneTime: { background: "rgba(168, 85, 247, 0.15)", border: "1px solid rgba(168, 85, 247, 0.3)" },
+  drawerNavPlan: { background: "rgba(6, 182, 212, 0.15)", border: "1px solid rgba(6, 182, 212, 0.3)" },
+  drawerNavAddFund: { background: "rgba(20, 184, 166, 0.15)", border: "1px solid rgba(20, 184, 166, 0.3)" },
+  drawerNavRefer: { background: "rgba(236, 72, 153, 0.15)", border: "1px solid rgba(236, 72, 153, 0.3)" },
+  drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.15)", border: "1px solid rgba(249, 115, 22, 0.3)" },
+  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.15)", border: "1px solid rgba(244, 63, 94, 0.3)" },
+  drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.15)", border: "1px solid rgba(2, 132, 199, 0.3)" },
+  drawerNavSupport: { background: "rgba(99, 102, 241, 0.15)", border: "1px solid rgba(99, 102, 241, 0.3)" },
+  drawerNavProfile: { background: "rgba(236, 72, 153, 0.15)", border: "1px solid rgba(236, 72, 153, 0.3)" },
+  drawerNavLogout: { background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)" },
+  treePlantOnlyWrapper: {
+    width: "100%",
+    paddingTop: "6px",
+    paddingBottom: "10px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexShrink: 0
+  },
+  treePlantOnlyImg: {
+    width: "100%",
+    maxHeight: "110px",
+    objectFit: "cover",
+    borderRadius: "12px"
   },
   slipCardDark: {
     background: "#0b192c",
@@ -2761,9 +2683,9 @@ const styles = {
     width: "48px",
     height: "48px",
     borderRadius: "50%",
-    background: "#0e3a2f",
-    border: "2px solid #22c55e",
-    color: "#22c55e",
+    background: "#3b2d08",
+    border: "2px solid #facc15",
+    color: "#facc15",
     fontSize: "24px",
     fontWeight: "bold",
     display: "flex",
@@ -2792,7 +2714,7 @@ const styles = {
   },
   slipAmountText: {
     fontSize: "28px",
-    color: "#22c55e",
+    color: "#facc15",
     fontWeight: "900"
   },
   slipBadgeRow: {
@@ -2836,7 +2758,7 @@ const styles = {
   slipFooterBranding: {
     marginTop: "16px",
     fontSize: "10px",
-    color: "#38bdf8",
+    color: "#facc15",
     fontWeight: "700",
     textAlign: "center"
   },
