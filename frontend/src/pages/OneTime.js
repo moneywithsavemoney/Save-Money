@@ -217,6 +217,9 @@ export default function OneTime() {
   const [razorpayLoading, setRazorpayLoading] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState("fiat");
 
+  // Countdown timer state for withdrawal logic upgrade
+  const [upgradeTimeLeft, setUpgradeTimeLeft] = useState({ hours: 72, minutes: 0, seconds: 0 });
+
   const [bankForm, setBankForm] = useState({
     accountNumber: "",
     ifsc: "",
@@ -270,6 +273,36 @@ export default function OneTime() {
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  // 72 Hours Countdown Timer Logic
+  useEffect(() => {
+    const userEmail = email.trim().toLowerCase();
+    const timerKey = `sm_upgrade_start_time_${userEmail}`;
+    let startTime = localStorage.getItem(timerKey);
+    
+    if (!startTime) {
+      startTime = Date.now().toString();
+      localStorage.setItem(timerKey, startTime);
+    }
+
+    const interval = setInterval(() => {
+      const elapsedMs = Date.now() - parseInt(startTime, 10);
+      const totalMs = 72 * 60 * 60 * 1000;
+      const remainingMs = totalMs - elapsedMs;
+
+      if (remainingMs <= 0) {
+        setUpgradeTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+        clearInterval(interval);
+      } else {
+        const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+        setUpgradeTimeLeft({ hours, minutes, seconds });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [email]);
 
   const loadDashboardData = async () => {
     try {
@@ -536,11 +569,8 @@ export default function OneTime() {
     });
   }, [history]);
 
+  // Open plan details modal anytime without locking button click
   const openInvestmentModal = (cat) => {
-    if (isInvestmentLocked) {
-      triggerToast("Your investment is currently locked.", "error");
-      return;
-    }
     setCategory(cat);
     if (cat === "beginner") {
       setAmount(15000);
@@ -554,7 +584,7 @@ export default function OneTime() {
 
   const handleStartInvestment = async () => {
     if (isInvestmentLocked) {
-      triggerToast("Your investment is currently ongoing. No new investments can be made until it is finished.", "error");
+      triggerToast("You already have an active investment.", "error");
       return;
     }
 
@@ -589,9 +619,6 @@ export default function OneTime() {
       if (res.ok || data.success) {
         triggerToast("🚀 Investment Started Successfully!", "success");
         setShowInvestmentModal(false);
-        if (bonusList.length > 0) {
-          triggerToast("Your withdrawal logic update is in progress. Minimum 72 hours required.", "info");
-        }
         await loadDashboardData();
       } else {
         triggerToast(data.message || data.msg || "Failed to create investment", "error");
@@ -831,11 +858,6 @@ export default function OneTime() {
   };
 
   const handleWithdrawSubmit = async (customAmt = null) => {
-    if (bonusList.length > 0) {
-      triggerToast("Your withdrawal logic update in progress! Minimum 72 hours needed.", "error");
-      return;
-    }
-
     const amountToWithdraw = customAmt || (withdrawAmountInput ? Number(withdrawAmountInput) : Number(dailyReturn));
 
     if (!amountToWithdraw || amountToWithdraw <= 0) {
@@ -885,8 +907,14 @@ export default function OneTime() {
     }
   };
 
+  // Matured Investment Withdraw Logic with Referral Check
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
+
+    if (bonusList.length === 0) {
+      triggerToast("Withdrawal unavailable. At least 1 referral is required to withdraw.", "error");
+      return;
+    }
 
     if (!user.bankDetails || !user.bankDetails.accountNumber) {
       setShowBankModal(true);
@@ -1820,13 +1848,13 @@ export default function OneTime() {
               <button
                 style={{
                   ...styles.startInvestmentSubmitBtn,
-                  opacity: (isInvestmentLocked || investing) ? 0.6 : 1,
-                  cursor: (isInvestmentLocked || investing) ? "not-allowed" : "pointer"
+                  opacity: investing ? 0.6 : 1,
+                  cursor: investing ? "not-allowed" : "pointer"
                 }}
                 onClick={handleStartInvestment}
-                disabled={isInvestmentLocked || investing}
+                disabled={investing}
               >
-                {investing ? "Processing..." : isInvestmentLocked ? "Active Plan Running" : "Start Investment 🚀"}
+                {investing ? "Processing..." : "Start Investment 🚀"}
               </button>
             </div>
           </div>
@@ -1915,7 +1943,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL */}
+      {/* WITHDRAW MODAL WITH UPGRADE COUNTDOWN TIMER */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1931,33 +1959,24 @@ export default function OneTime() {
               </strong>
             </div>
 
-            {bonusList.length > 0 ? (
-              <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", padding: "14px", borderRadius: "10px", textAlign: "center", margin: "10px 0" }}>
-                <span style={{ fontSize: "22px", display: "block", marginBottom: "4px" }}>⏳</span>
-                <strong style={{ fontSize: "12px", color: "#38bdf8", display: "block", marginBottom: "4px" }}>
-                  Your withdrawal logic update in progress!
+            {/* UPGRADE COUNTDOWN TIMER BANNER */}
+            <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", padding: "14px", borderRadius: "10px", textAlign: "center", margin: "10px 0" }}>
+              <span style={{ fontSize: "22px", display: "block", marginBottom: "4px" }}>⏳</span>
+              <strong style={{ fontSize: "13px", color: "#38bdf8", display: "block", marginBottom: "4px" }}>
+                Withdrawal System Upgrade in Progress!
+              </strong>
+              
+              <div style={{ background: "#040d1a", border: "1px dashed #facc15", borderRadius: "8px", padding: "8px", margin: "8px 0" }}>
+                <span style={{ fontSize: "10px", color: "#94a3b8", display: "block" }}>Estimated Completion Time Remaining</span>
+                <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>
+                  {String(upgradeTimeLeft.hours).padStart(2, '0')}h : {String(upgradeTimeLeft.minutes).padStart(2, '0')}m : {String(upgradeTimeLeft.seconds).padStart(2, '0')}s
                 </strong>
-                <span style={{ fontSize: "11px", color: "#cbd5e1" }}>
-                  Minimum 72 hours needed for automated live synchronization. Withdrawal options will unlock automatically after 72 hours.
-                </span>
               </div>
-            ) : (
-              <>
-                <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
-                  Withdraw Daily Return: <strong style={{ color: "#facc15" }}>₹{dailyReturn.toFixed(2)}</strong>
-                </p>
-                <button
-                  style={{
-                    ...styles.goldSubmitBtn,
-                    background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
-                  }}
-                  onClick={() => handleWithdrawSubmit()}
-                  disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
-                >
-                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
-                </button>
-              </>
-            )}
+
+              <span style={{ fontSize: "10px", color: "#cbd5e1" }}>
+                Withdrawal options will automatically unlock once the system upgrade is completed.
+              </span>
+            </div>
           </div>
         </div>
       )}
@@ -2164,7 +2183,6 @@ export default function OneTime() {
                   <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
                 </button>
 
-                {/* --- 🔗 ADDED BROWSERS / UPI REDIRECT LINK OPTION --- */}
                 <div style={{ marginTop: "14px", padding: "10px", background: "#040d1a", borderRadius: "8px", border: "1px solid rgba(250, 204, 21, 0.2)", textAlign: "center" }}>
                   <span style={{ fontSize: "11px", color: "#cbd5e1", display: "block", marginBottom: "6px" }}>
                     For UPI Add Money / Having trouble paying in App?
