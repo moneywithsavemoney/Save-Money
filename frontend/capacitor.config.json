@@ -9,7 +9,9 @@
     "androidScheme": "https",
     "allowNavigation": [
       "save-moneyy-indol.vercel.app",
-      "*.vercel.app"
+      "*.vercel.app",
+      "*.razorpay.com",
+      "upi://*"
     ]
   }
 }
