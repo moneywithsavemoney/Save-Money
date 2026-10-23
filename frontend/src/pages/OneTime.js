@@ -711,6 +711,22 @@ export default function OneTime() {
         name: "Save Money",
         description: "Add Fund to Wallet",
         order_id: orderId,
+        // UPI Option Webview Display Fix
+        config: {
+          display: {
+            blocks: {
+              utib: {
+                name: "Pay via UPI",
+                instruments: [
+                  {
+                    method: "upi"
+                  }
+                ]
+              }
+            },
+            sequence: ["block.utib", "payment_methods"]
+          }
+        },
         handler: async function (response) {
           try {
             const verifyRes = await fetch(`${API}/api/onetime/verify-razorpay-payment`, {
