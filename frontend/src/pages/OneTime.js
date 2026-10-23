@@ -1260,7 +1260,8 @@ export default function OneTime() {
               <span style={{ display: "inline-block", animation: refreshing ? "spin 1s linear infinite" : "none" }}>🔄</span>
             </button>
 
-            <div style={styles.userProfileCircleBtn} onClick={() => navigate("/kyc")}>
+            {/* NON-CLICKABLE USER PROFILE PHOTO */}
+            <div style={styles.userProfileCircleBtn}>
               {profilePhoto ? (
                 <img 
                   src={profilePhoto} 
@@ -2396,7 +2397,8 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    cursor: "pointer",
+    cursor: "default",
+    pointerEvents: "none",
     background: "#1f2937",
     boxShadow: "0 0 8px rgba(250, 204, 21, 0.3)"
   },
