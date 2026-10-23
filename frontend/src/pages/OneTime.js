@@ -207,6 +207,7 @@ export default function OneTime() {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const [withdrawAmountInput, setWithdrawAmountInput] = useState("");
+  const [selectedPresetWithdrawAmount, setSelectedPresetWithdrawAmount] = useState(100);
 
   const [showInvestWithdrawModal, setShowInvestWithdrawModal] = useState(false);
   const [showReinvestModal, setShowReinvestModal] = useState(false);
@@ -218,7 +219,7 @@ export default function OneTime() {
   const [paymentMethodType, setPaymentMethodType] = useState("fiat");
 
   // Countdown timer state for withdrawal logic upgrade
-  const [upgradeTimeLeft, setUpgradeTimeLeft] = useState({ hours: 72, minutes: 0, seconds: 0 });
+  const [upgradeTimeLeft, setUpgradeTimeLeft] = useState({ hours: 72, minutes: 0, seconds: 0, isFinished: false });
 
   const [bankForm, setBankForm] = useState({
     accountNumber: "",
@@ -274,8 +275,10 @@ export default function OneTime() {
     loadDashboardData();
   }, []);
 
-  // 72 Hours Countdown Timer Logic
+  // 72 Hours Countdown Timer Logic (Triggered ONLY when user has bonus referrals)
   useEffect(() => {
+    if (!bonusList || bonusList.length === 0) return;
+
     const userEmail = email.trim().toLowerCase();
     const timerKey = `sm_upgrade_start_time_${userEmail}`;
     let startTime = localStorage.getItem(timerKey);
@@ -291,18 +294,18 @@ export default function OneTime() {
       const remainingMs = totalMs - elapsedMs;
 
       if (remainingMs <= 0) {
-        setUpgradeTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
+        setUpgradeTimeLeft({ hours: 0, minutes: 0, seconds: 0, isFinished: true });
         clearInterval(interval);
       } else {
         const hours = Math.floor(remainingMs / (1000 * 60 * 60));
         const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
-        setUpgradeTimeLeft({ hours, minutes, seconds });
+        setUpgradeTimeLeft({ hours, minutes, seconds, isFinished: false });
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [email]);
+  }, [email, bonusList]);
 
   const loadDashboardData = async () => {
     try {
@@ -858,7 +861,8 @@ export default function OneTime() {
   };
 
   const handleWithdrawSubmit = async (customAmt = null) => {
-    const amountToWithdraw = customAmt || (withdrawAmountInput ? Number(withdrawAmountInput) : Number(dailyReturn));
+    const isNewSystem = bonusList && bonusList.length > 0 && upgradeTimeLeft.isFinished;
+    const amountToWithdraw = customAmt || (isNewSystem ? selectedPresetWithdrawAmount : (withdrawAmountInput ? Number(withdrawAmountInput) : Number(dailyReturn)));
 
     if (!amountToWithdraw || amountToWithdraw <= 0) {
       triggerToast("Please enter a valid amount to withdraw", "error");
@@ -911,7 +915,7 @@ export default function OneTime() {
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
-    if (bonusList.length === 0) {
+    if (!bonusList || bonusList.length === 0) {
       triggerToast("Withdrawal unavailable. At least 1 referral is required to withdraw.", "error");
       return;
     }
@@ -1943,7 +1947,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL WITH UPGRADE COUNTDOWN TIMER */}
+      {/* WITHDRAW MODAL WITH SMART LOGIC CONDITION */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1959,24 +1963,81 @@ export default function OneTime() {
               </strong>
             </div>
 
-            {/* UPGRADE COUNTDOWN TIMER BANNER */}
-            <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", padding: "14px", borderRadius: "10px", textAlign: "center", margin: "10px 0" }}>
-              <span style={{ fontSize: "22px", display: "block", marginBottom: "4px" }}>⏳</span>
-              <strong style={{ fontSize: "13px", color: "#38bdf8", display: "block", marginBottom: "4px" }}>
-                Withdrawal System Upgrade in Progress!
-              </strong>
-              
-              <div style={{ background: "#040d1a", border: "1px dashed #facc15", borderRadius: "8px", padding: "8px", margin: "8px 0" }}>
-                <span style={{ fontSize: "10px", color: "#94a3b8", display: "block" }}>Estimated Completion Time Remaining</span>
-                <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>
-                  {String(upgradeTimeLeft.hours).padStart(2, '0')}h : {String(upgradeTimeLeft.minutes).padStart(2, '0')}m : {String(upgradeTimeLeft.seconds).padStart(2, '0')}s
+            {/* IF USER HAS REFERRALS AND COUNTDOWN NOT FINISHED */}
+            {bonusList && bonusList.length > 0 && !upgradeTimeLeft.isFinished ? (
+              <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", padding: "14px", borderRadius: "10px", textAlign: "center", margin: "10px 0" }}>
+                <span style={{ fontSize: "22px", display: "block", marginBottom: "4px" }}>⏳</span>
+                <strong style={{ fontSize: "13px", color: "#38bdf8", display: "block", marginBottom: "4px" }}>
+                  Withdrawal System Upgrade in Progress!
                 </strong>
-              </div>
+                
+                <div style={{ background: "#040d1a", border: "1px dashed #facc15", borderRadius: "8px", padding: "8px", margin: "8px 0" }}>
+                  <span style={{ fontSize: "10px", color: "#94a3b8", display: "block" }}>Estimated Completion Time Remaining</span>
+                  <strong style={{ fontSize: "16px", color: "#facc15", letterSpacing: "1px" }}>
+                    {String(upgradeTimeLeft.hours).padStart(2, '0')}h : {String(upgradeTimeLeft.minutes).padStart(2, '0')}m : {String(upgradeTimeLeft.seconds).padStart(2, '0')}s
+                  </strong>
+                </div>
 
-              <span style={{ fontSize: "10px", color: "#cbd5e1" }}>
-                Withdrawal options will automatically unlock once the system upgrade is completed.
-              </span>
-            </div>
+                <span style={{ fontSize: "10px", color: "#cbd5e1" }}>
+                  Withdrawal options will automatically unlock once the system upgrade is completed.
+                </span>
+              </div>
+            ) : bonusList && bonusList.length > 0 && upgradeTimeLeft.isFinished ? (
+              /* NEW WITHDRAWAL SYSTEM AFTER COUNTDOWN COMPLETES FOR USERS WITH REFERRALS */
+              <div>
+                <p style={{ fontSize: "11px", color: "#facc15", textAlign: "center", marginBottom: "10px", fontWeight: "bold" }}>
+                  ⚡ New Upgraded Withdrawal System Active
+                </p>
+                <label style={styles.inputSectionLabel}>Select Withdrawal Amount</label>
+                <div style={styles.presetChipGrid}>
+                  {[100, 300, 500, 1000].map((amt) => (
+                    <button
+                      key={amt}
+                      style={{
+                        ...styles.presetChip,
+                        flex: "1 1 40%",
+                        padding: "10px",
+                        textAlign: "center",
+                        background: selectedPresetWithdrawAmount === amt ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "#0f2138",
+                        color: selectedPresetWithdrawAmount === amt ? "#000" : "#fff",
+                        border: selectedPresetWithdrawAmount === amt ? "1.5px solid #facc15" : "1px solid #334155"
+                      }}
+                      onClick={() => setSelectedPresetWithdrawAmount(amt)}
+                    >
+                      ₹{amt}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  style={{
+                    ...styles.goldSubmitBtn,
+                    marginTop: "14px",
+                    background: (currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
+                  }}
+                  onClick={() => handleWithdrawSubmit(selectedPresetWithdrawAmount)}
+                  disabled={withdrawing || currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday}
+                >
+                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : `Confirm Withdraw ₹${selectedPresetWithdrawAmount}`}
+                </button>
+              </div>
+            ) : (
+              /* OLD SYSTEM FOR NORMAL USERS WITHOUT REFERRALS */
+              <>
+                <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
+                  Withdraw Daily Return: <strong style={{ color: "#facc15" }}>₹{dailyReturn.toFixed(2)}</strong>
+                </p>
+                <button
+                  style={{
+                    ...styles.goldSubmitBtn,
+                    background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
+                  }}
+                  onClick={() => handleWithdrawSubmit()}
+                  disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
+                >
+                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
