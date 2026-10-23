@@ -22,37 +22,71 @@ if (typeof document !== "undefined") {
   document.head.appendChild(styleSheet);
 }
 
+// 100% BULLETPROOF DATE PARSING FUNCTION
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date();
-  if (dateVal instanceof Date) return isNaN(dateVal.getTime()) ? new Date() : dateVal;
   
-  if (typeof dateVal === "string") {
-    // Check DD/MM/YYYY or DD-MM-YYYY
-    const parts = dateVal.split(/[/|-]/);
-    if (parts.length === 3) {
-      const day = parseInt(parts[0], 10);
-      const month = parseInt(parts[1], 10) - 1;
-      const year = parseInt(parts[2], 10);
-      const customDate = new Date(year, month, day);
-      if (!isNaN(customDate.getTime())) return customDate;
-    }
-    const d = new Date(dateVal);
-    if (!isNaN(d.getTime())) return d;
+  // If already a Date object
+  if (dateVal instanceof Date) {
+    return isNaN(dateVal.getTime()) ? new Date() : dateVal;
   }
 
-  const fallback = new Date(dateVal);
-  return isNaN(fallback.getTime()) ? new Date() : fallback;
+  // Handle Numeric Timestamps (Number or Numeric String)
+  let numVal = Number(dateVal);
+  if (!isNaN(numVal) && typeof dateVal !== "boolean" && String(dateVal).trim() !== "") {
+    // If Unix timestamp in seconds (10 digits, e.g., 1700000000), convert to ms
+    if (numVal < 10000000000) {
+      numVal = numVal * 1000;
+    }
+    const dFromNum = new Date(numVal);
+    if (!isNaN(dFromNum.getTime()) && dFromNum.getFullYear() > 2000) {
+      return dFromNum;
+    }
+  }
+
+  // Handle String Formats
+  if (typeof dateVal === "string") {
+    const trimmed = dateVal.trim();
+
+    // Check DD/MM/YYYY or DD-MM-YYYY format
+    const parts = trimmed.split(/[/|-]/);
+    if (parts.length === 3) {
+      const p1 = parseInt(parts[0], 10);
+      const p2 = parseInt(parts[1], 10);
+      const p3 = parseInt(parts[2], 10);
+
+      // If YYYY-MM-DD
+      if (p1 > 1900) {
+        const d = new Date(p1, p2 - 1, p3);
+        if (!isNaN(d.getTime())) return d;
+      } 
+      // If DD/MM/YYYY
+      else if (p3 > 1900) {
+        const d = new Date(p3, p2 - 1, p1);
+        if (!isNaN(d.getTime())) return d;
+      }
+    }
+
+    // Try Standard Date parse
+    const parsedStrDate = new Date(trimmed);
+    if (!isNaN(parsedStrDate.getTime()) && parsedStrDate.getFullYear() > 2000) {
+      return parsedStrDate;
+    }
+  }
+
+  const fallback = new Date();
+  return fallback;
 };
 
 const formatDate = (dateVal) => {
   const d = parseSafeDate(dateVal);
-  if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
+  if (isNaN(d.getTime()) || d.getFullYear() < 2020) return "-";
   return d.toLocaleDateString("en-GB");
 };
 
 const formatDateTime = (dateVal) => {
   const d = parseSafeDate(dateVal);
-  if (isNaN(d.getTime()) || d.getTime() === 0) return "-";
+  if (isNaN(d.getTime()) || d.getFullYear() < 2020) return "-";
   return d.toLocaleString("en-GB", {
     day: "2-digit",
     month: "2-digit",
@@ -151,7 +185,7 @@ export default function OneTime() {
 
   // Form States for Modal Investment Selection
   const [showInvestmentModal, setShowInvestmentModal] = useState(false);
-  const [category, setCategory] = useState("beginner"); // "beginner" or "pro"
+  const [category, setCategory] = useState("beginner");
   const [amount, setAmount] = useState(15000);
   const [tenureMonths, setTenureMonths] = useState(9);
   const [customProTenure, setCustomProTenure] = useState("12");
@@ -422,7 +456,7 @@ export default function OneTime() {
     }
   };
 
-  // MATURITY DATE & DURATION CALCULATION (FIXED 180 DAYS LOGIC)
+  // MATURITY DATE & DURATION CALCULATION (FIXED DATE PARSING LOGIC)
   const { calculatedMaturityDate, isMatured, investmentDurationDays, activeDailyReturnVal } = useMemo(() => {
     if (!activeInvestment) {
       return { 
@@ -447,9 +481,6 @@ export default function OneTime() {
     }
 
     let startDateObj = parseSafeDate(activeInvestment.startDate || activeInvestment.createdAt);
-    if (isNaN(startDateObj.getTime())) {
-      startDateObj = new Date();
-    }
 
     let maturityObj = new Date(startDateObj.getTime());
     maturityObj.setDate(maturityObj.getDate() + durationDays);
@@ -767,7 +798,6 @@ export default function OneTime() {
   };
 
   const handleWithdrawSubmit = async (customAmt = null) => {
-    // বোনাস মেম্বার থাকলে ও ৭২ ঘণ্টা লজিক আপডেট চলাকালীন উইথড্র হবে না
     if (bonusList.length > 0) {
       triggerToast("Your withdrawal logic update in progress! Minimum 72 hours needed.", "error");
       return;
@@ -1314,7 +1344,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* ACTIVE LIVE INVESTMENT CARD (ADDED DAILY RETURN FIELD & FIXED MATURITY DATE) */}
+        {/* ACTIVE LIVE INVESTMENT CARD */}
         {activeInvestment && (
           <section style={styles.liveActiveInvestCard}>
             <div style={styles.liveInvestHeader}>
@@ -1490,7 +1520,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY SECTION (REASON DISLAY FIXED) */}
+        {/* TRANSACTION HISTORY SECTION */}
         <section style={styles.historyCard}>
           <div style={styles.historyCardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1543,7 +1573,6 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // সংশোধিত রিজন রিডিং লজিক (সব ফিল্ড থেকে সঠিক ডাটা রিড করবে)
                     let actualReason = item.reason || item.rejectReason || item.note || item.adminNote || item.message || "";
                     if (!actualReason || actualReason.trim() === "") {
                       actualReason = "-";
