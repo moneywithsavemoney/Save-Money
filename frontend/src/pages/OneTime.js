@@ -119,7 +119,7 @@ function calculateDailyReturn(amount, tenureMonths, category) {
   return { dailyRate, dailyReturnAmount };
 }
 
-// সহকারী ফাংশন: সঠিকভাবে রিজেক্ট রিজন রিড করার জন্য
+// ব্যাকএন্ড কোডের সাথে মিল রেখে রিজেক্ট রিজন পাওয়ার বুলেটপ্রুফ ফাংশন
 const getTransactionReason = (item) => {
   if (!item) return "-";
   
@@ -1474,7 +1474,7 @@ export default function OneTime() {
             </button>
 
             <button style={styles.withdrawGoldBtn} onClick={handleWithdrawClick}>
-              <span style={styles.walletIconBgGold}>000</span>
+              <span style={styles.walletIconBgGold}>👛</span>
               <div>
                 <strong style={{ display: "block", fontSize: "14px", color: "#000" }}>Withdraw</strong>
                 <span style={{ fontSize: "10px", color: "#374151" }}>Get Your Money</span>
@@ -1522,7 +1522,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY SECTION (REJECT REASON FIXED) */}
+        {/* TRANSACTION HISTORY SECTION */}
         <section style={styles.historyCard}>
           <div style={styles.historyCardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1575,7 +1575,6 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    // রিজন পাওয়ার জন্য বুলেটপ্রুফ লজিক
                     const actualReason = getTransactionReason(item);
 
                     return (
@@ -1932,7 +1931,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* TRANSACTION SLIP MODAL (SHOWS REASON IN MODAL AS WELL) */}
+      {/* TRANSACTION SLIP MODAL */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
           <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1982,7 +1981,6 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              {/* REJECT REASON SHOW IN SLIP */}
               {["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase()) && (
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.15)", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(239, 68, 68, 0.3)" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
@@ -2132,7 +2130,7 @@ export default function OneTime() {
                   onClick={handleRazorpayPayment}
                   disabled={razorpayLoading}
                 >
-                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
+                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹{totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
                 </button>
               </div>
             ) : (
