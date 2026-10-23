@@ -558,15 +558,20 @@ export default function OneTime() {
     return 0;
   }, [activeInvestment, activeDailyReturnVal]);
 
+  // DAILY WITHDRAW CHECK (Checks if today's withdrawal is pending, approved, accepted or success)
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
       const typeStr = (item.type || "").toLowerCase();
-      if (typeStr !== "withdrawal" && !typeStr.includes("withdraw")) return false;
+      if (typeStr !== "withdrawal" && !typeStr.includes("withdraw") && typeStr !== "onetimeinvestment") {
+        // Checking general withdrawals
+        if (!typeStr.includes("withdraw")) return false;
+      }
 
       const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
       const status = (item.status || "").toLowerCase();
 
+      // If status is pending, approved, accepted or success, block new withdrawal for today
       const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
       return itemDate === todayStr && isBlocked;
     });
@@ -861,16 +866,16 @@ export default function OneTime() {
   };
 
   const handleWithdrawSubmit = async (customAmt = null) => {
+    if (hasWithdrawnToday) {
+      triggerToast("You have already placed a withdrawal request today!", "error");
+      return;
+    }
+
     const isNewSystem = bonusList && bonusList.length > 0 && upgradeTimeLeft.isFinished;
     const amountToWithdraw = customAmt || (isNewSystem ? selectedPresetWithdrawAmount : (withdrawAmountInput ? Number(withdrawAmountInput) : Number(dailyReturn)));
 
     if (!amountToWithdraw || amountToWithdraw <= 0) {
       triggerToast("Please enter a valid amount to withdraw", "error");
-      return;
-    }
-
-    if (hasWithdrawnToday) {
-      triggerToast("You have already placed a withdrawal request today!", "error");
       return;
     }
 
@@ -1947,7 +1952,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL WITH SMART LOGIC CONDITION */}
+      {/* WITHDRAW MODAL WITH SMART LOGIC CONDITION & ONCE-PER-DAY CHECK */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -2017,7 +2022,7 @@ export default function OneTime() {
                   onClick={() => handleWithdrawSubmit(selectedPresetWithdrawAmount)}
                   disabled={withdrawing || currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday}
                 >
-                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : `Confirm Withdraw ₹${selectedPresetWithdrawAmount}`}
+                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested Today" : `Confirm Withdraw ₹${selectedPresetWithdrawAmount}`}
                 </button>
               </div>
             ) : (
@@ -2034,7 +2039,7 @@ export default function OneTime() {
                   onClick={() => handleWithdrawSubmit()}
                   disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
                 >
-                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested" : "Confirm Withdrawal"}
+                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested Today" : "Confirm Withdrawal"}
                 </button>
               </>
             )}
