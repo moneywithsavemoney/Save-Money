@@ -1,10 +1,35 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Permissions (Must be placed outside the <application> tag) -->
+    <!-- App Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- UPI Apps Query Package Visibility for Android 11+ -->
+    <queries>
+        <package android:name="com.google.android.apps.nbu.paisa.user" /> <!-- Google Pay -->
+        <package android:name="com.phonepe.app" /> <!-- PhonePe -->
+        <package android:name="com.paytm.app" /> <!-- Paytm -->
+        <package android:name="in.org.npci.upiapp" /> <!-- BHIM -->
+        <package android:name="com.cred.android" /> <!-- CRED -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="upi" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="tez" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="phonepe" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="paytmmp" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
