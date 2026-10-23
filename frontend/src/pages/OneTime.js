@@ -119,7 +119,6 @@ function calculateDailyReturn(amount, tenureMonths, category) {
   return { dailyRate, dailyReturnAmount };
 }
 
-// ব্যাকএন্ড কোডের সাথে মিল রেখে রিজেক্ট রিজন পাওয়ার বুলেটপ্রুফ ফাংশন
 const getTransactionReason = (item) => {
   if (!item) return "-";
   
@@ -711,8 +710,6 @@ export default function OneTime() {
         name: "Save Money",
         description: "Add Fund to Wallet",
         order_id: orderId,
-        
-        // --- 🟢 WebView-এর ভেতরে UPI এবং অ্যাপস Forcefully Enable করার কনফিগারেশন ---
         retry: {
           enabled: false
         },
@@ -742,7 +739,6 @@ export default function OneTime() {
             }
           }
         },
-        // --------------------------------------------------------------------------
 
         handler: async function (response) {
           try {
@@ -793,8 +789,6 @@ export default function OneTime() {
       setRazorpayLoading(false);
     }
   };
-
-
 
   const handleSaveBankDetails = async (e) => {
     e.preventDefault();
@@ -1511,7 +1505,7 @@ export default function OneTime() {
             </button>
 
             <button style={styles.withdrawGoldBtn} onClick={handleWithdrawClick}>
-              <span style={styles.walletIconBgGold}>👛</span>
+              <span style={styles.walletIconBgGold}>ff</span>
               <div>
                 <strong style={{ display: "block", fontSize: "14px", color: "#000" }}>Withdraw</strong>
                 <span style={{ fontSize: "10px", color: "#374151" }}>Get Your Money</span>
@@ -2111,6 +2105,43 @@ export default function OneTime() {
               </button>
             </div>
 
+            {/* 🟢 ব্রাউজার দিয়ে UPI অ্যাড মানির লিংক সেকশন */}
+            {paymentMethodType === "fiat" && (
+              <div style={{
+                background: "rgba(59, 130, 246, 0.15)",
+                border: "1px solid #3b82f6",
+                borderRadius: "10px",
+                padding: "10px",
+                marginBottom: "12px",
+                textAlign: "center"
+              }}>
+                <span style={{ fontSize: "11px", color: "#60a5fa", fontWeight: "bold", display: "block", marginBottom: "4px" }}>
+                  💡 For UPI Add Money Problem?
+                </span>
+                <p style={{ fontSize: "10px", color: "#cbd5e1", margin: "0 0 8px 0" }}>
+                  অ্যাপ্লিকেশনে ইউপিআই পেমেন্ট শো না করলে, নিচের লিংকে ক্লিক করে ব্রাউজার থেকে সহজেই ইউপিআই দিয়ে অ্যাড মানি করতে পারবেন:
+                </p>
+                <a
+                  href="https://save-moneyy-indol.vercel.app/one-time"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-block",
+                    background: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+                    color: "#ffffff",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    textDecoration: "none",
+                    boxShadow: "0 2px 8px rgba(59, 130, 246, 0.4)"
+                  }}
+                >
+                  🌐 Add Money via Browser (UPI) ➔
+                </a>
+              </div>
+            )}
+
             {paymentMethodType === "crypto" && (
               <div style={{ background: "linear-gradient(135deg, #7c3aed 0%, #db2777 100%)", borderRadius: "10px", padding: "10px", marginBottom: "14px", textAlign: "center", boxShadow: "0 4px 15px rgba(124, 58, 237, 0.4)" }}>
                 <span style={{ fontSize: "12px", color: "#fff", fontWeight: "900", display: "block" }}>
@@ -2167,7 +2198,7 @@ export default function OneTime() {
                   onClick={handleRazorpayPayment}
                   disabled={razorpayLoading}
                 >
-                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹{totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
+                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
                 </button>
               </div>
             ) : (
