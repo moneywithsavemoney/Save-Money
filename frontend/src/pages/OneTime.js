@@ -119,6 +119,7 @@ function calculateDailyReturn(amount, tenureMonths, category) {
   return { dailyRate, dailyReturnAmount };
 }
 
+// BULLETPROOF REJECT REASON EXTRACTION
 const getTransactionReason = (item) => {
   if (!item) return "-";
   
@@ -129,6 +130,7 @@ const getTransactionReason = (item) => {
     item.note || 
     item.message || 
     item.remarks ||
+    item.rejectionReason ||
     "";
 
   if (typeof possibleReason === "string" && possibleReason.trim() !== "") {
@@ -136,7 +138,7 @@ const getTransactionReason = (item) => {
   }
   
   if (typeof possibleReason === "object" && possibleReason !== null) {
-    return possibleReason.text || possibleReason.msg || JSON.stringify(possibleReason);
+    return possibleReason.text || possibleReason.msg || possibleReason.reason || JSON.stringify(possibleReason);
   }
 
   return "-";
@@ -558,26 +560,23 @@ export default function OneTime() {
     return 0;
   }, [activeInvestment, activeDailyReturnVal]);
 
-  // DAILY WITHDRAW CHECK (Checks if today's withdrawal is pending, approved, accepted or success)
+  // DAILY WITHDRAW CHECK (Only blocks if status is pending, approved, accepted or success. REJECTED is NOT blocked)
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
       const typeStr = (item.type || "").toLowerCase();
-      if (typeStr !== "withdrawal" && !typeStr.includes("withdraw") && typeStr !== "onetimeinvestment") {
-        // Checking general withdrawals
-        if (!typeStr.includes("withdraw")) return false;
-      }
+      const isWithdrawal = typeStr === "withdrawal" || typeStr.includes("withdraw");
+      if (!isWithdrawal) return false;
 
       const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
       const status = (item.status || "").toLowerCase();
 
-      // If status is pending, approved, accepted or success, block new withdrawal for today
+      // Blocked ONLY if pending, approved, accepted or success
       const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
       return itemDate === todayStr && isBlocked;
     });
   }, [history]);
 
-  // Open plan details modal anytime without locking button click
   const openInvestmentModal = (cat) => {
     setCategory(cat);
     if (cat === "beginner") {
@@ -1665,7 +1664,7 @@ export default function OneTime() {
                             {isSuccess ? "✓ " : isRejected ? "✕ " : "⏳ "}{displayStatus}
                           </span>
                         </td>
-                        <td style={{ ...styles.goldTd, color: isRejected ? "#f87171" : "#9ca3af", fontSize: "10px" }}>
+                        <td style={{ ...styles.goldTd, color: isRejected ? "#f87171" : "#9ca3af", fontSize: "10px", fontWeight: isRejected ? "bold" : "normal" }}>
                           {actualReason}
                         </td>
                       </tr>
@@ -2047,7 +2046,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* TRANSACTION SLIP MODAL */}
+      {/* TRANSACTION SLIP MODAL (SHOWS REJECT REASON IN RED BOX) */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
           <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
@@ -2097,10 +2096,11 @@ export default function OneTime() {
                 </strong>
               </div>
 
+              {/* REJECT REASON SHOWS PROPERLY HERE */}
               {["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase()) && (
-                <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.15)", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(239, 68, 68, 0.3)" }}>
-                  <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
-                  <strong style={{ ...styles.slipValue, color: "#f87171" }}>
+                <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.2)", padding: "10px", borderRadius: "8px", border: "1px solid #ef4444", flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
+                  <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold", fontSize: "11px" }}>⚠️ Rejection Reason:</span>
+                  <strong style={{ ...styles.slipValue, color: "#ffffff", fontSize: "12px", textAlign: "left" }}>
                     {getTransactionReason(selectedTxn)}
                   </strong>
                 </div>
