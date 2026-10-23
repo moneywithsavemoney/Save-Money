@@ -26,15 +26,12 @@ if (typeof document !== "undefined") {
 const parseSafeDate = (dateVal) => {
   if (!dateVal) return new Date();
   
-  // If already a Date object
   if (dateVal instanceof Date) {
     return isNaN(dateVal.getTime()) ? new Date() : dateVal;
   }
 
-  // Handle Numeric Timestamps (Number or Numeric String)
   let numVal = Number(dateVal);
   if (!isNaN(numVal) && typeof dateVal !== "boolean" && String(dateVal).trim() !== "") {
-    // If Unix timestamp in seconds (10 digits, e.g., 1700000000), convert to ms
     if (numVal < 10000000000) {
       numVal = numVal * 1000;
     }
@@ -44,38 +41,32 @@ const parseSafeDate = (dateVal) => {
     }
   }
 
-  // Handle String Formats
   if (typeof dateVal === "string") {
     const trimmed = dateVal.trim();
 
-    // Check DD/MM/YYYY or DD-MM-YYYY format
     const parts = trimmed.split(/[/|-]/);
     if (parts.length === 3) {
       const p1 = parseInt(parts[0], 10);
       const p2 = parseInt(parts[1], 10);
       const p3 = parseInt(parts[2], 10);
 
-      // If YYYY-MM-DD
       if (p1 > 1900) {
         const d = new Date(p1, p2 - 1, p3);
         if (!isNaN(d.getTime())) return d;
       } 
-      // If DD/MM/YYYY
       else if (p3 > 1900) {
         const d = new Date(p3, p2 - 1, p1);
         if (!isNaN(d.getTime())) return d;
       }
     }
 
-    // Try Standard Date parse
     const parsedStrDate = new Date(trimmed);
     if (!isNaN(parsedStrDate.getTime()) && parsedStrDate.getFullYear() > 2000) {
       return parsedStrDate;
     }
   }
 
-  const fallback = new Date();
-  return fallback;
+  return new Date();
 };
 
 const formatDate = (dateVal) => {
@@ -98,7 +89,6 @@ const formatDateTime = (dateVal) => {
   });
 };
 
-// ডেইলি রিটার্ন হিসাবের ফাংশন
 function calculateDailyReturn(amount, tenureMonths, category) {
   let dailyRate = 0;
 
@@ -128,6 +118,30 @@ function calculateDailyReturn(amount, tenureMonths, category) {
   const dailyReturnAmount = (amount * dailyRate) / 100;
   return { dailyRate, dailyReturnAmount };
 }
+
+// সহকারী ফাংশন: সঠিকভাবে রিজেক্ট রিজন রিড করার জন্য
+const getTransactionReason = (item) => {
+  if (!item) return "-";
+  
+  const possibleReason = 
+    item.rejectReason || 
+    item.reason || 
+    item.adminNote || 
+    item.note || 
+    item.message || 
+    item.remarks ||
+    "";
+
+  if (typeof possibleReason === "string" && possibleReason.trim() !== "") {
+    return possibleReason.trim();
+  }
+  
+  if (typeof possibleReason === "object" && possibleReason !== null) {
+    return possibleReason.text || possibleReason.msg || JSON.stringify(possibleReason);
+  }
+
+  return "-";
+};
 
 export default function OneTime() {
   const navigate = useNavigate();
@@ -161,7 +175,6 @@ export default function OneTime() {
   const [showAllHistory, setShowAllHistory] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // AUTO IMAGE POPUP ON PAGE LOAD
   const [showImagePopup, setShowImagePopup] = useState(true);
 
   const [showBonusModal, setShowBonusModal] = useState(false);
@@ -183,7 +196,6 @@ export default function OneTime() {
 
   const [activeInvestment, setActiveInvestment] = useState(null);
 
-  // Form States for Modal Investment Selection
   const [showInvestmentModal, setShowInvestmentModal] = useState(false);
   const [category, setCategory] = useState("beginner");
   const [amount, setAmount] = useState(15000);
@@ -191,12 +203,10 @@ export default function OneTime() {
   const [customProTenure, setCustomProTenure] = useState("12");
   const [investing, setInvesting] = useState(false);
 
-  // Modals
   const [showAddFundModal, setShowAddFundModal] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
-  // Custom Withdrawal State
   const [withdrawAmountInput, setWithdrawAmountInput] = useState("");
 
   const [showInvestWithdrawModal, setShowInvestWithdrawModal] = useState(false);
@@ -236,22 +246,18 @@ export default function OneTime() {
   const platformFee = 0;
   const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
 
-  // Presets
   const beginnerAmounts = [7500, 15000, 22500, 30000, 37500];
   const beginnerTenureOptions = [6, 9, 12, 18, 24];
 
   const proAmounts = [99999, 139999, 189999, 249999, 500000];
 
-  // Dynamic Tenure calculation
   const parsedProTenure = Math.max(12, Number(customProTenure) || 12);
   const activeTenureMonths = category === "beginner" ? tenureMonths : parsedProTenure;
 
-  // Calculate Rate and Daily Return
   const { dailyRate: currentRate, dailyReturnAmount: calculatedDailyReturn } = useMemo(() => {
     return calculateDailyReturn(amount, activeTenureMonths, category);
   }, [amount, activeTenureMonths, category]);
 
-  // Investment Detail Calculations for Modal
   const totalDays = activeTenureMonths * 30;
   const totalProfit = calculatedDailyReturn * totalDays;
   const totalPayout = amount + totalProfit;
@@ -456,7 +462,6 @@ export default function OneTime() {
     }
   };
 
-  // MATURITY DATE & DURATION CALCULATION (FIXED DATE PARSING LOGIC)
   const { calculatedMaturityDate, isMatured, investmentDurationDays, activeDailyReturnVal } = useMemo(() => {
     if (!activeInvestment) {
       return { 
@@ -485,7 +490,6 @@ export default function OneTime() {
     let maturityObj = new Date(startDateObj.getTime());
     maturityObj.setDate(maturityObj.getDate() + durationDays);
 
-    // Active Investment Daily Return Amount Calculation
     let returnVal = 0;
     if (activeInvestment.dailyReturn && Number(activeInvestment.dailyReturn) > 0) {
       returnVal = Number(activeInvestment.dailyReturn);
@@ -512,7 +516,6 @@ export default function OneTime() {
     return activeInvestment && !isMatured;
   }, [activeInvestment, isMatured]);
 
-  // DAILY RETURN CARD DISPLAY LINKED TO ACTIVE INVESTMENT
   const dailyReturn = useMemo(() => {
     if (activeInvestment && (activeInvestment.status || "").toLowerCase() === "active") {
       return activeDailyReturnVal;
@@ -534,7 +537,6 @@ export default function OneTime() {
     });
   }, [history]);
 
-  // Open Pop-up Modal via Button Click
   const openInvestmentModal = (cat) => {
     if (isInvestmentLocked) {
       triggerToast("Your investment is currently locked.", "error");
@@ -943,7 +945,7 @@ export default function OneTime() {
     const userEmail = email || "N/A";
     const txnIdVal = selectedTxn.transactionId || selectedTxn._id || selectedTxn.id || "N/A";
     const dateTimeVal = formatDateTime(selectedTxn.createdAt || selectedTxn.startDate || selectedTxn.date);
-    const rejectReasonVal = selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || selectedTxn.adminNote || selectedTxn.message || "";
+    const rejectReasonVal = getTransactionReason(selectedTxn);
 
     let message = `*💎 SAVE MONEY - TRANSACTION SLIP*\n\n`;
     message += `📌 *Type:* ${txnType}\n`;
@@ -954,7 +956,7 @@ export default function OneTime() {
     message += `🆔 *Transaction ID / UTR:* ${txnIdVal}\n`;
     message += `📅 *Date & Time:* ${dateTimeVal}\n`;
 
-    if (rejectReasonVal) {
+    if (rejectReasonVal && rejectReasonVal !== "-") {
       message += `⚠️ *Reject Reason:* ${rejectReasonVal}\n`;
     }
 
@@ -1472,7 +1474,7 @@ export default function OneTime() {
             </button>
 
             <button style={styles.withdrawGoldBtn} onClick={handleWithdrawClick}>
-              <span style={styles.walletIconBgGold}>👛</span>
+              <span style={styles.walletIconBgGold}>000</span>
               <div>
                 <strong style={{ display: "block", fontSize: "14px", color: "#000" }}>Withdraw</strong>
                 <span style={{ fontSize: "10px", color: "#374151" }}>Get Your Money</span>
@@ -1520,7 +1522,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY SECTION */}
+        {/* TRANSACTION HISTORY SECTION (REJECT REASON FIXED) */}
         <section style={styles.historyCard}>
           <div style={styles.historyCardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1573,10 +1575,8 @@ export default function OneTime() {
                     const isRejected = ["rejected", "cancelled", "failed"].includes(rawStatus.toLowerCase());
                     const displayStatus = rawStatus.toLowerCase() === "active" ? "Active" : (isSuccess ? "Success" : isRejected ? "Rejected" : "Pending");
                     
-                    let actualReason = item.reason || item.rejectReason || item.note || item.adminNote || item.message || "";
-                    if (!actualReason || actualReason.trim() === "") {
-                      actualReason = "-";
-                    }
+                    // রিজন পাওয়ার জন্য বুলেটপ্রুফ লজিক
+                    const actualReason = getTransactionReason(item);
 
                     return (
                       <tr key={item._id || idx} style={styles.goldTr} onClick={() => setSelectedTxn(item)}>
@@ -1932,7 +1932,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* TRANSACTION SLIP MODAL */}
+      {/* TRANSACTION SLIP MODAL (SHOWS REASON IN MODAL AS WELL) */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
           <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1982,11 +1982,12 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              {(selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || selectedTxn.adminNote || ["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase())) && (
-                <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.1)", padding: "6px 8px", borderRadius: "6px" }}>
+              {/* REJECT REASON SHOW IN SLIP */}
+              {["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase()) && (
+                <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.15)", padding: "8px 10px", borderRadius: "8px", border: "1px solid rgba(239, 68, 68, 0.3)" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold" }}>Reject Reason</span>
                   <strong style={{ ...styles.slipValue, color: "#f87171" }}>
-                    {selectedTxn.reason || selectedTxn.rejectReason || selectedTxn.note || selectedTxn.adminNote || "-"}
+                    {getTransactionReason(selectedTxn)}
                   </strong>
                 </div>
               )}
