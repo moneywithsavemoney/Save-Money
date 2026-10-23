@@ -671,7 +671,7 @@ export default function OneTime() {
     });
   };
 
-  const handleRazorpayPayment = async () => {
+    const handleRazorpayPayment = async () => {
     if (!totalAddMoney || totalAddMoney <= 0) {
       triggerToast("Please select a valid deposit amount", "error");
       return;
@@ -711,12 +711,24 @@ export default function OneTime() {
         name: "Save Money",
         description: "Add Fund to Wallet",
         order_id: orderId,
-        // UPI Option Webview Display Fix
+        
+        // --- 🟢 WebView-এর ভেতরে UPI এবং অ্যাপস Forcefully Enable করার কনফিগারেশন ---
+        retry: {
+          enabled: false
+        },
+        timeout: 300,
+        modal: {
+          escape: true,
+          backdropclose: false,
+          ondismiss: function () {
+            setRazorpayLoading(false);
+          }
+        },
         config: {
           display: {
             blocks: {
               utib: {
-                name: "Pay via UPI",
+                name: "Pay via UPI / Apps",
                 instruments: [
                   {
                     method: "upi"
@@ -724,9 +736,14 @@ export default function OneTime() {
                 ]
               }
             },
-            sequence: ["block.utib", "payment_methods"]
+            sequence: ["block.utib", "payment_methods"],
+            preferences: {
+              show_default_blocks: true
+            }
           }
         },
+        // --------------------------------------------------------------------------
+
         handler: async function (response) {
           try {
             const verifyRes = await fetch(`${API}/api/onetime/verify-razorpay-payment`, {
@@ -754,6 +771,8 @@ export default function OneTime() {
             }
           } catch (err) {
             triggerToast("Error verifying payment", "error");
+          } finally {
+            setRazorpayLoading(false);
           }
         },
         prefill: {
@@ -771,10 +790,11 @@ export default function OneTime() {
     } catch (err) {
       console.error("Razorpay error:", err);
       triggerToast("Payment initialization failed", "error");
-    } finally {
       setRazorpayLoading(false);
     }
   };
+
+
 
   const handleSaveBankDetails = async (e) => {
     e.preventDefault();
