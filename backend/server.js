@@ -7392,6 +7392,17 @@ app.post("/api/onetime/dashboard", async (req, res) => {
       await user.save();
     }
 
+    // 🔹 72 Hours Countdown Timer Database Sync Logic
+    let upgradeStartTime = user.upgradeStartTime;
+    const hasBonusOrReferral = (user?.bonusList || []).length > 0;
+
+    if (hasBonusOrReferral && !upgradeStartTime) {
+      upgradeStartTime = new Date();
+      user.upgradeStartTime = upgradeStartTime;
+      await user.save();
+    }
+    
+  
     const rawHistory = user.onetimeHistory || [];
 
     let totalInvested = 0;
