@@ -104,7 +104,7 @@ export default function ForgotPassword() {
       const data = await res.json();
 
       if (res.ok || data.success) {
-        toast.success(data.msg || "OTP Verified Successfully!"); // এখানে ভুল toast মেথডটি ঠিক করা হয়েছে
+        toast.success(data.msg || "OTP Verified Successfully!");
         setOtpVerified(true);
       } else {
         toast.error(data.msg || "OTP verification failed");
@@ -205,8 +205,7 @@ export default function ForgotPassword() {
           </div>
 
           <div style={styles.inputBox}>
-            <div style={styles.phoneIcon}>📞</div>
-            <div style={styles.countryCode}>✉</div>
+            <div style={styles.phoneIcon}>✉</div>
 
             <input
               type="email"
@@ -254,8 +253,11 @@ export default function ForgotPassword() {
           <div style={styles.resendRow}>
             <span style={styles.grayText}>Didn’t receive code?</span>
 
-            <span style={styles.resend} onClick={sendOTP} style={{ ...styles.resend, cursor: "pointer" }}>
-              Resend OTP
+            <span 
+              onClick={sendOTP} 
+              style={{ ...styles.resend, cursor: "pointer" }}
+            >
+              Resend OTP{" "}
               <span style={styles.timer}>
                 (00:{timer < 10 ? `0${timer}` : timer})
               </span>
@@ -275,7 +277,7 @@ export default function ForgotPassword() {
               <h3 style={styles.resetTitle}>Create New Password</h3>
 
               <input
-                type="text"
+                type="password"
                 placeholder="New Password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -283,7 +285,7 @@ export default function ForgotPassword() {
               />
 
               <input
-                type="text"
+                type="password"
                 placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -329,30 +331,36 @@ const styles = {
   container: {
     minHeight: "100vh",
     background: "linear-gradient(135deg,#eef6ff,#f7f1ff,#fff1f8)",
-    padding: "25px",
+    padding: "16px",
     position: "relative",
     overflowY: "auto",
-    fontFamily: "Arial",
+    fontFamily: "Arial, sans-serif",
     display: "flex",
-    justifyContent: "center"
+    justifyContent: "center",
+    boxSizing: "border-box"
   },
 
   wrapper: {
     width: "100%",
-    maxWidth: "760px",
-    position: "relative"
+    maxWidth: "480px",
+    position: "relative",
+    boxSizing: "border-box"
   },
 
   backBtn: {
-    width: "52px",
-    height: "52px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
     border: "none",
     background: "white",
     color: "#7c3aed",
-    fontSize: "28px",
+    fontSize: "20px",
     fontWeight: "bold",
-    boxShadow: "0 6px 20px rgba(0,0,0,0.08)"
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   },
 
   topSection: {
@@ -363,18 +371,18 @@ const styles = {
 
   piggyWrap: {
     position: "relative",
-    width: "220px",
-    height: "220px",
+    width: "130px",
+    height: "130px",
     margin: "0 auto"
   },
 
   shield: {
     position: "absolute",
-    width: "190px",
-    height: "190px",
+    width: "110px",
+    height: "110px",
     background: "linear-gradient(135deg,#8b5cf6,#ec4899)",
-    left: "15px",
-    top: "10px",
+    left: "10px",
+    top: "5px",
     clipPath:
       "polygon(50% 0%, 90% 20%, 90% 65%, 50% 100%, 10% 65%, 10% 20%)",
     opacity: 0.22
@@ -382,17 +390,17 @@ const styles = {
 
   piggy: {
     position: "absolute",
-    fontSize: "120px",
-    left: "48px",
-    top: "45px"
+    fontSize: "70px",
+    left: "30px",
+    top: "22px"
   },
 
   coin: {
     position: "absolute",
-    top: "10px",
-    left: "92px",
-    width: "45px",
-    height: "45px",
+    top: "4px",
+    left: "52px",
+    width: "30px",
+    height: "30px",
     borderRadius: "50%",
     background: "#facc15",
     display: "flex",
@@ -400,88 +408,89 @@ const styles = {
     alignItems: "center",
     fontWeight: "bold",
     color: "#92400e",
-    fontSize: "22px",
-    boxShadow: "0 6px 14px rgba(0,0,0,0.2)"
+    fontSize: "16px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
   },
 
   floating1: {
     position: "absolute",
-    left: "20px",
-    top: "90px",
-    width: "65px",
-    height: "65px",
+    left: "10px",
+    top: "40px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#7c3aed,#4f46e5)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    fontSize: "30px",
+    fontSize: "18px",
     color: "white",
-    boxShadow: "0 10px 25px rgba(124,58,237,0.25)"
+    boxShadow: "0 6px 15px rgba(124,58,237,0.25)"
   },
 
   floating2: {
     position: "absolute",
-    right: "20px",
-    top: "90px",
-    width: "65px",
-    height: "65px",
+    right: "10px",
+    top: "40px",
+    width: "42px",
+    height: "42px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#0ea5e9,#3b82f6)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    fontSize: "30px",
+    fontSize: "18px",
     color: "white"
   },
 
   floating3: {
     position: "absolute",
-    right: "35px",
-    top: "220px",
-    width: "58px",
-    height: "58px",
+    right: "20px",
+    top: "130px",
+    width: "36px",
+    height: "36px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#ec4899,#d946ef)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    fontSize: "28px",
+    fontSize: "16px",
     color: "white"
   },
 
   title: {
-    fontSize: "60px",
+    fontSize: "32px",
     fontWeight: "900",
     color: "#0f172a",
-    marginTop: "-10px",
-    marginBottom: "10px"
+    marginTop: "8px",
+    marginBottom: "6px"
   },
 
   subtitle: {
     color: "#64748b",
-    fontSize: "24px",
-    lineHeight: "38px",
-    padding: "0 15px"
+    fontSize: "14px",
+    lineHeight: "20px",
+    padding: "0 10px"
   },
 
   card: {
     background: "rgba(255,255,255,0.95)",
-    borderRadius: "34px",
-    padding: "28px",
-    marginTop: "28px",
-    boxShadow: "0 12px 35px rgba(0,0,0,0.08)"
+    borderRadius: "24px",
+    padding: "20px",
+    marginTop: "20px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.06)",
+    boxSizing: "border-box"
   },
 
   stepWrap: {
     display: "flex",
     alignItems: "flex-start",
-    gap: "18px"
+    gap: "12px"
   },
 
   stepCircle: {
-    width: "55px",
-    height: "55px",
+    width: "36px",
+    height: "36px",
     borderRadius: "50%",
     background: "linear-gradient(135deg,#7c3aed,#ec4899)",
     display: "flex",
@@ -489,119 +498,114 @@ const styles = {
     alignItems: "center",
     color: "white",
     fontWeight: "bold",
-    fontSize: "28px"
+    fontSize: "16px",
+    flexShrink: 0
   },
 
   stepTitle: {
     margin: 0,
     color: "#0f172a",
-    fontSize: "36px",
+    fontSize: "18px",
     fontWeight: "800"
   },
 
   stepSub: {
-    marginTop: "8px",
+    marginTop: "2px",
     color: "#64748b",
-    fontSize: "22px"
+    fontSize: "13px"
   },
 
   inputBox: {
-    marginTop: "25px",
-    border: "2px solid #c084fc",
-    borderRadius: "22px",
+    marginTop: "16px",
+    border: "1.8px solid #c084fc",
+    borderRadius: "16px",
     overflow: "hidden",
     display: "flex",
     alignItems: "center",
-    background: "white"
+    background: "white",
+    height: "52px"
   },
 
   phoneIcon: {
-    width: "90px",
-    height: "85px",
+    width: "50px",
+    height: "100%",
     background: "#f3e8ff",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    fontSize: "35px",
+    fontSize: "20px",
     color: "#7c3aed"
-  },
-
-  countryCode: {
-    width: "80px",
-    textAlign: "center",
-    fontWeight: "700",
-    color: "#0f172a",
-    fontSize: "24px",
-    borderRight: "2px solid #e5e7eb"
   },
 
   input: {
     flex: 1,
     border: "none",
     outline: "none",
-    padding: "0 20px",
-    fontSize: "22px",
+    padding: "0 14px",
+    fontSize: "15px",
     color: "#0f172a",
     background: "transparent"
   },
 
   otpBtn: {
     width: "100%",
-    height: "85px",
+    height: "52px",
     border: "none",
-    borderRadius: "50px",
-    marginTop: "25px",
+    borderRadius: "16px",
+    marginTop: "16px",
     background: "linear-gradient(135deg,#2563eb,#ec4899)",
     color: "white",
-    fontSize: "32px",
+    fontSize: "16px",
     fontWeight: "800",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     position: "relative",
-    boxShadow: "0 10px 25px rgba(124,58,237,0.25)"
+    boxShadow: "0 6px 16px rgba(124,58,237,0.25)",
+    cursor: "pointer"
   },
 
   sendIcon: {
     position: "absolute",
-    right: "12px",
-    width: "62px",
-    height: "62px",
+    right: "10px",
+    width: "36px",
+    height: "36px",
     borderRadius: "50%",
     background: "white",
     color: "#ec4899",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    fontSize: "28px",
+    fontSize: "16px",
     fontWeight: "bold"
   },
 
   otpRow: {
     display: "flex",
     justifyContent: "space-between",
-    marginTop: "30px",
-    gap: "10px"
+    marginTop: "18px",
+    gap: "8px"
   },
 
   otpInput: {
-    width: "72px",
-    height: "72px",
-    borderRadius: "18px",
-    border: "2px solid #d8b4fe",
+    width: "44px",
+    height: "48px",
+    borderRadius: "12px",
+    border: "1.8px solid #d8b4fe",
     textAlign: "center",
-    fontSize: "34px",
+    fontSize: "20px",
     outline: "none",
     color: "#7c3aed",
-    fontWeight: "bold"
+    fontWeight: "bold",
+    boxSizing: "border-box"
   },
 
   resendRow: {
     display: "flex",
     justifyContent: "center",
-    gap: "10px",
-    marginTop: "24px",
-    fontSize: "22px"
+    gap: "6px",
+    marginTop: "14px",
+    fontSize: "13px"
   },
 
   grayText: {
@@ -619,113 +623,126 @@ const styles = {
 
   verifyBtn: {
     width: "100%",
-    height: "78px",
+    height: "52px",
     border: "none",
-    borderRadius: "50px",
-    marginTop: "25px",
+    borderRadius: "16px",
+    marginTop: "16px",
     background: "linear-gradient(135deg,#2563eb,#ec4899)",
     color: "white",
-    fontSize: "30px",
-    fontWeight: "800"
+    fontSize: "16px",
+    fontWeight: "800",
+    cursor: "pointer",
+    boxShadow: "0 6px 16px rgba(37,99,235,0.2)"
   },
 
   resetBox: {
-    marginTop: "25px",
-    padding: "24px",
-    borderRadius: "25px",
-    background: "white",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.08)"
+    marginTop: "16px",
+    padding: "16px",
+    borderRadius: "16px",
+    background: "#f8fafc",
+    border: "1px solid #e2e8f0"
   },
 
   resetTitle: {
-    fontSize: "28px",
+    fontSize: "16px",
     color: "#111827",
-    marginBottom: "18px"
+    marginBottom: "12px",
+    fontWeight: "700"
   },
 
   resetInput: {
     width: "100%",
-    height: "60px",
-    borderRadius: "18px",
-    border: "2px solid #d8b4fe",
-    padding: "0 18px",
-    fontSize: "18px",
-    marginBottom: "14px",
-    outline: "none"
+    height: "48px",
+    borderRadius: "14px",
+    border: "1.8px solid #d8b4fe",
+    padding: "0 14px",
+    fontSize: "14px",
+    marginBottom: "10px",
+    outline: "none",
+    boxSizing: "border-box",
+    background: "#fff"
   },
 
   resetBtn: {
     width: "100%",
-    height: "65px",
+    height: "48px",
     border: "none",
-    borderRadius: "25px",
+    borderRadius: "14px",
     background: "linear-gradient(90deg,#2563eb,#ec4899)",
     color: "white",
-    fontSize: "22px",
-    fontWeight: "bold"
+    fontSize: "15px",
+    fontWeight: "bold",
+    cursor: "pointer"
   },
 
   loginBtn: {
     width: "100%",
-    height: "90px",
-    marginTop: "28px",
-    borderRadius: "28px",
-    border: "2px solid #e5e7eb",
+    height: "56px",
+    marginTop: "20px",
+    borderRadius: "18px",
+    border: "1.8px solid #e5e7eb",
     background: "white",
     color: "#7c3aed",
-    fontSize: "32px",
+    fontSize: "16px",
     fontWeight: "800",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "15px"
+    gap: "10px",
+    cursor: "pointer",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
+    boxSizing: "border-box"
   },
 
   loginArrow: {
-    width: "52px",
-    height: "52px",
+    width: "36px",
+    height: "36px",
     borderRadius: "50%",
     background: "#f3e8ff",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    fontSize: "38px"
+    fontSize: "22px"
   },
 
   footer: {
-    marginTop: "28px",
+    marginTop: "20px",
     background: "rgba(255,255,255,0.95)",
-    borderRadius: "26px",
-    padding: "24px",
+    borderRadius: "18px",
+    padding: "16px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.06)"
+    boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
+    boxSizing: "border-box",
+    gap: "10px"
   },
 
   footerLeft: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "8px",
     color: "#0f172a",
     fontWeight: "700",
-    fontSize: "22px"
+    fontSize: "12px"
   },
 
   footerIcon: {
-    width: "52px",
-    height: "52px",
+    width: "34px",
+    height: "34px",
     borderRadius: "50%",
     background: "#ede9fe",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    fontSize: "24px"
+    fontSize: "16px",
+    flexShrink: 0
   },
 
   footerRight: {
     color: "#64748b",
-    fontSize: "20px",
-    fontWeight: "600"
+    fontSize: "11px",
+    fontWeight: "600",
+    textAlign: "right"
   }
 };
