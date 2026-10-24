@@ -10,7 +10,7 @@ export default function Register() {
   const queryParams = new URLSearchParams(location.search);
   const urlReferCode = queryParams.get("ref") || ""; 
 
-  // 🔹 আপনার অ্যাপ লোগোর URL বা লোকাল পাবলিক ফাইল পাথ
+  // 🔹 আপনার অ্যাপ লোগো (public ফোল্ডারে logo512.png নামে আছে)
   const appLogoUrl = "/logo512.png";
 
   const [name, setName] = useState("");
@@ -47,14 +47,13 @@ export default function Register() {
     return () => clearInterval(interval);
   }, [otpTimer]);
 
-  // "Verify Email" এ ক্লিক করলে এই ফাংশনটি কল হবে
   const handleVerifyEmailClick = async () => {
     if (!email) {
       toast.warning("Please enter your email address first");
       return;
     }
 
-    setShowOtpModal(true); // ১ম স্ক্রিনশটের মতো মোডাল পপআপ ওপেন হবে
+    setShowOtpModal(true);
 
     if (!isOtpSent) {
       sendOtpCode();
@@ -109,7 +108,7 @@ export default function Register() {
       const data = await res.json();
       if (res.ok || data.success) {
         setIsOtpVerified(true);
-        setShowOtpModal(false); // ভেরিফাই হয়ে গেলে মোডাল বন্ধ হবে
+        setShowOtpModal(false);
         toast.success("Email verified successfully!");
       } else {
         toast.error(data.msg || "Invalid OTP");
@@ -188,78 +187,66 @@ export default function Register() {
       <style>{`
         @media (max-width: 768px) {
           .register-card {
-            flex-direction: column !important;
-            border-radius: 24px !important;
-          }
-          .register-left-panel {
             width: 100% !important;
-            border-radius: 24px 24px 0 0 !important;
-            padding: 24px 16px !important;
+            border-radius: 24px !important;
+            margin: 10px !important;
           }
-          .register-right-panel {
-            padding: 24px 16px !important;
-          }
-          .account-heading {
-            font-size: 42px !important;
-          }
-          .brand-heading {
-            font-size: 40px !important;
-            line-height: 40px !important;
-          }
-          .bottom-features {
+          .bottom-features-grid {
             grid-template-columns: repeat(2, 1fr) !important;
             display: grid !important;
+            gap: 12px !important;
           }
         }
       `}</style>
 
       <div style={styles.card} className="register-card">
 
-        <div style={styles.leftPanel} className="register-left-panel">
-          <div style={styles.piggyWrap}>
-            <div style={styles.coin}>₹</div>
-            <div style={styles.piggy}>
-              <div style={styles.earLeft}></div>
-              <div style={styles.earRight}></div>
-              <div style={styles.eyeLeft}></div>
-              <div style={styles.eyeRight}></div>
-              <div style={styles.nose}>● ●</div>
-              <div style={styles.legOne}></div>
-              <div style={styles.legTwo}></div>
+        {/* 🔹 নতুন ডিজাইন অনুযায়ী টপ ব্যানার সেকশন */}
+        <div style={styles.topBanner}>
+          <div style={styles.bannerHeaderRow}>
+            <div style={styles.brandLogoBox}>
+              <img 
+                src={appLogoUrl} 
+                alt="Logo" 
+                style={styles.brandLogoImg}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+            <div>
+              <h2 style={styles.brandTitleText}>SAVE MONEY</h2>
+              <div style={styles.brandSubLine}></div>
+              <p style={styles.brandSubText}>Save & Earn</p>
+            </div>
+            <div style={styles.bannerQuote}>
+              Save<br />Today<br />Secure<br />Tomorrow
             </div>
           </div>
 
-          <h1 style={styles.brand} className="brand-heading">
-            save<br />
-            money
-          </h1>
-
-          <p style={styles.brandSub}>
-            Save Today, Secure Tomorrow
-          </p>
-
-          <h2 style={styles.why}>Why Join Us?</h2>
-
-          <Benefit icon="🛡️" title="100% Secure" text="Your data is safe with us" />
-          <Benefit icon="👛" title="Save More" text="Smart saving for a better future" />
-          <Benefit icon="📈" title="Grow Faster" text="Achieve your financial goals" />
-          <Benefit icon="🎁" title="Exciting Rewards" text="Earn rewards and benefits" />
+          <div style={styles.heroContentRow}>
+            <div style={styles.heroTextContent}>
+              <h1 style={styles.createHeading}>Create Your</h1>
+              <h2 style={styles.accountHeading}>Account</h2>
+              <p style={styles.joinSubText}>
+                Join Save Money and start your journey to financial freedom.
+              </p>
+            </div>
+            <div style={styles.piggyIllustration}>
+              <div style={styles.miniCoin}>₹</div>
+              <div style={styles.bigPiggy}>🐷</div>
+            </div>
+          </div>
         </div>
 
-        <div style={styles.rightPanel} className="register-right-panel">
-          <h2 style={styles.create}>Create Your</h2>
-          <h1 style={styles.account} className="account-heading">Account</h1>
-
-          <p style={styles.join}>
-            Join <b>Save Money</b> and start your journey to financial freedom.
-          </p>
-
-          <InputBox color="#ff4cc4" icon="👤" placeholder="Full Name" value={name} setValue={setName} />
-          <InputBox color="#7c3aed" icon="📱" placeholder="Mobile Number" value={mobile} setValue={setMobile} />
+        {/* 🔹 ফর্ম এবং ইনপুট সেকশন */}
+        <div style={styles.formContentArea}>
+          <InputBox color="#4f46e5" icon="👤" placeholder="Full Name" value={name} setValue={setName} />
+          <InputBox color="#9333ea" icon="📱" placeholder="Mobile Number" value={mobile} setValue={setMobile} />
           
-          {/* Email Box with 'Verify Email' button */}
+          {/* Email Box with 'Verify Email' button matching new design */}
           <div style={{ ...styles.inputWrap, borderColor: isOtpVerified ? "#22c55e" : "#0ea5e9" }}>
-            <div style={{ ...styles.iconBox, background: isOtpVerified ? "linear-gradient(135deg,#22c55e,#10b981)" : "linear-gradient(135deg,#0ea5e9,#7c3aed)" }}>
+            <div style={{ ...styles.iconBox, background: isOtpVerified ? "linear-gradient(135deg,#22c55e,#10b981)" : "linear-gradient(135deg,#0ea5e9,#0284c7)" }}>
               {isOtpVerified ? "✓" : "✉️"}
             </div>
             <input
@@ -271,19 +258,19 @@ export default function Register() {
             />
             <button
               style={{
-                ...styles.otpInlineBtn,
-                background: isOtpVerified ? "#10b981" : "linear-gradient(135deg,#0ea5e9,#7c3aed)"
+                ...styles.verifyEmailBtn,
+                background: isOtpVerified ? "#22c55e" : "linear-gradient(135deg,#0ea5e9,#10b981)"
               }}
               type="button"
               onClick={handleVerifyEmailClick}
               disabled={isOtpVerified}
             >
-              {isOtpVerified ? "Verified" : "Verify Email"}
+              <span style={{ fontSize: "14px" }}>✉️</span> {isOtpVerified ? "Verified" : "Verify Email"}
             </button>
           </div>
 
           <div style={{ ...styles.inputWrap, borderColor: "#10b981" }}>
-            <div style={{ ...styles.iconBox, background: "linear-gradient(135deg,#10b981,#22c55e)" }}>
+            <div style={{ ...styles.iconBox, background: "linear-gradient(135deg,#10b981,#059669)" }}>
               🔒
             </div>
 
@@ -305,7 +292,7 @@ export default function Register() {
           </div>
 
           <div style={{ ...styles.inputWrap, borderColor: "#f59e0b", background: urlReferCode ? "#f8fafc" : "transparent" }}>
-            <div style={{ ...styles.iconBox, background: "linear-gradient(135deg,#f59e0b,#7c3aed)" }}>
+            <div style={{ ...styles.iconBox, background: "linear-gradient(135deg,#f59e0b,#d97706)" }}>
               🎁
             </div>
             <input
@@ -358,19 +345,25 @@ export default function Register() {
             onClick={register}
             disabled={loading}
           >
-            {loading ? "Creating Account..." : "Register Now"}
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <span style={styles.btnUserIcon}>👤+</span> {loading ? "Creating Account..." : "Register Now"}
+            </span>
             <span style={styles.arrow}>›</span>
           </button>
 
-          <p style={styles.loginText}>
-            Already have an account?
-            <span
-              style={styles.loginLink}
-              onClick={() => navigate("/login")}
-            >
-              Login
-            </span>
-          </p>
+          <div style={styles.loginDividerRow}>
+            <div style={styles.dividerLine}></div>
+            <p style={styles.loginText}>
+              Already have an account?
+              <span
+                style={styles.loginLink}
+                onClick={() => navigate("/login")}
+              >
+                Login →
+              </span>
+            </p>
+            <div style={styles.dividerLine}></div>
+          </div>
 
           <div style={styles.disclaimer}>
             <div style={styles.disIcon}>🛡️</div>
@@ -388,9 +381,9 @@ export default function Register() {
             </div>
           </div>
 
-          <div style={styles.bottomFeatures} className="bottom-features">
+          <div style={styles.bottomFeatures} className="bottom-features-grid">
             <div style={styles.bottomItem}>
-              <div style={{ ...styles.bottomIcon, background: "linear-gradient(135deg,#22c55e,#86efac)" }}>🛡</div>
+              <div style={{ ...styles.bottomIcon, background: "#22c55e" }}>✓</div>
               <div>
                 <div style={styles.bottomTitle}>100% Secure</div>
                 <div style={styles.bottomText}>& Safe</div>
@@ -398,15 +391,7 @@ export default function Register() {
             </div>
 
             <div style={styles.bottomItem}>
-              <div style={{ ...styles.bottomIcon, background: "linear-gradient(135deg,#9333ea,#c084fc)" }}>🔒</div>
-              <div>
-                <div style={styles.bottomTitle}>Your Data is</div>
-                <div style={styles.bottomText}>Protected</div>
-              </div>
-            </div>
-
-            <div style={styles.bottomItem}>
-              <div style={{ ...styles.bottomIcon, background: "linear-gradient(135deg,#2563eb,#60a5fa)" }}>🎧</div>
+              <div style={{ ...styles.bottomIcon, background: "#0ea5e9" }}>🎧</div>
               <div>
                 <div style={styles.bottomTitle}>24/7 Customer</div>
                 <div style={styles.bottomText}>Support</div>
@@ -414,7 +399,15 @@ export default function Register() {
             </div>
 
             <div style={styles.bottomItem}>
-              <div style={{ ...styles.bottomIcon, background: "linear-gradient(135deg,#f59e0b,#facc15)" }}>⭐</div>
+              <div style={{ ...styles.bottomIcon, background: "#9333ea" }}>🔒</div>
+              <div>
+                <div style={styles.bottomTitle}>Your Data is</div>
+                <div style={styles.bottomText}>Protected</div>
+              </div>
+            </div>
+
+            <div style={styles.bottomItem}>
+              <div style={{ ...styles.bottomIcon, background: "#f59e0b" }}>⭐</div>
               <div>
                 <div style={styles.bottomTitle}>Trusted by</div>
                 <div style={styles.bottomText}>Thousands</div>
@@ -431,7 +424,7 @@ export default function Register() {
           <div style={styles.otpModalCard}>
             <h2 style={styles.otpModalTitle}>Email Verification</h2>
             <p style={styles.otpSubText}>
-              {sendingOtp ? "Sending OTP..." : `OTP sent to ${email || "your email"}`}
+              {sendingOtp ? "Sending OTP..." : `OTP sent to ${email || "your email"}`}[span_2](start_span)[span_2](end_span)
             </p>
 
             <div style={styles.otpFieldContainer}>
@@ -471,7 +464,7 @@ export default function Register() {
                 onClick={() => setShowOtpModal(false)}
                 style={styles.cancelLinkBtn}
               >
-                Cancel
+                Cancel[span_3](start_span)[span_3](end_span)
               </button>
             </div>
 
@@ -481,7 +474,7 @@ export default function Register() {
               disabled={verifyingOtp}
               style={styles.verifyModalBtn}
             >
-              {verifyingOtp ? "Verifying..." : "Verify"}
+              {verifyingOtp ? "Verifying..." : "Verify"}[span_4](start_span)[span_4](end_span)
             </button>
           </div>
         </div>
@@ -499,59 +492,50 @@ export default function Register() {
                 to help users build disciplined saving habits and explore digital earning
                 opportunities through a structured platform.
               </p>
-
               <p>
                 Users must complete registration with correct personal information and
                 must complete KYC verification before accessing investment, referral,
                 wallet and earning related features.
               </p>
-
               <p>
                 Users are responsible for providing accurate mobile number, email ID,
                 USDT wallet address, PAN details, Aadhaar details and uploaded documents.
                 Wrong information may result in rejection, delay, freeze or restriction.
               </p>
-
               <p>
                 If a user closes an investment before completing the selected tenure,
                 the platform may deduct 20% from the principal investment amount and
                 return the remaining principal without interest, according to company
                 policy.
               </p>
-
               <p>
                 Save Money works as a systematic saving and investment style platform.
                 ROI may be updated, increased or decreased depending on company profit,
                 business performance, risk factors, market conditions and internal
                 decisions.
               </p>
-
               <p>
                 Referral income, performance bonus, team bonus, royalty bonus and daily
                 reward are not guaranteed income. These benefits depend on eligibility,
                 active status, investment completion, renewals, direct referral tasks
                 and other platform rules.
               </p>
-
               <p>
                 Wallet balance, rewards, referral income and other earnings may be
                 reviewed by admin before approval, withdrawal or adjustment. Any
                 suspicious activity, fake account, duplicate KYC, false referral or
                 policy violation may result in account block.
               </p>
-
               <p>
                 Auto withdrawal is subject to renewal status, wallet eligibility, admin
                 verification and company policy. Withdrawal delays may happen due to
                 verification, bank or wallet network issues.
               </p>
-
               <p>
                 Save Money aims to grow into a bigger, transparent and legally compliant
                 financial technology ecosystem in the future. Users should use the
                 platform only after understanding all possible risks and rules.
               </p>
-
               <p>
                 By creating an account, the user confirms that they have read,
                 understood and accepted all policies, risks, rules, conditions,
@@ -645,7 +629,7 @@ export default function Register() {
 function InputBox({ color, icon, placeholder, value, setValue }) {
   return (
     <div style={{ ...styles.inputWrap, borderColor: color }}>
-      <div style={{ ...styles.iconBox, background: `linear-gradient(135deg,${color},#7c3aed)` }}>
+      <div style={{ ...styles.iconBox, background: `linear-gradient(135deg,${color},#4f46e5)` }}>
         {icon}
       </div>
 
@@ -659,24 +643,11 @@ function InputBox({ color, icon, placeholder, value, setValue }) {
   );
 }
 
-function Benefit({ icon, title, text }) {
-  return (
-    <div style={styles.benefit}>
-      <div style={styles.benefitIcon}>{icon}</div>
-
-      <div>
-        <h3 style={{ margin: 0, fontSize: "16px" }}>{title}</h3>
-        <p style={{ margin: 0, fontSize: "13px", opacity: 0.9 }}>{text}</p>
-      </div>
-    </div>
-  );
-}
-
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg,#ffd18a,#eef3ff,#dff7ff)",
-    padding: "15px",
+    background: "linear-gradient(180deg, #10b981 0%, #065f46 50%, #022c22 100%)",
+    padding: "20px 15px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -685,225 +656,176 @@ const styles = {
 
   card: {
     width: "100%",
-    maxWidth: "980px",
-    background: "#fff",
+    maxWidth: "520px",
+    background: "#ffffff",
     borderRadius: "36px",
-    display: "flex",
     overflow: "hidden",
-    boxShadow: "0 25px 70px rgba(0,0,0,.18)"
-  },
-
-  leftPanel: {
-    width: "35%",
-    background: "linear-gradient(180deg,#7c2cff,#4f20d8,#631bd9)",
-    color: "white",
-    padding: "32px 24px",
-    position: "relative",
+    boxShadow: "0 25px 60px rgba(0,0,0,0.3)",
     boxSizing: "border-box"
   },
 
-  piggyWrap: {
+  topBanner: {
+    background: "linear-gradient(135deg, #022c22 0%, #064e3b 50%, #047857 100%)",
+    color: "white",
+    padding: "24px 22px 20px 22px",
     position: "relative",
-    width: "120px",
-    height: "100px",
+    overflow: "hidden"
+  },
+
+  bannerHeaderRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: "15px"
   },
 
-  coin: {
-    position: "absolute",
-    top: "-8px",
-    left: "42px",
-    width: "36px",
-    height: "36px",
-    borderRadius: "50%",
-    background: "#ffd43b",
-    color: "#7c3aed",
-    fontWeight: "900",
+  brandLogoBox: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "14px",
+    background: "#ffffff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px",
-    zIndex: 3,
-    boxShadow: "0 8px 15px rgba(0,0,0,.2)"
-  },
-
-  piggy: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    width: "115px",
-    height: "80px",
-    borderRadius: "45px 50px 35px 35px",
-    background: "linear-gradient(135deg,#ffb3c7,#ff6aa2)",
-    boxShadow: "inset -10px -8px 0 rgba(255,0,100,.16)"
-  },
-
-  earLeft: {
-    position: "absolute",
-    top: "-14px",
-    left: "20px",
-    width: "26px",
-    height: "26px",
-    background: "#ff8ab8",
-    borderRadius: "8px 20px 8px 20px",
-    transform: "rotate(25deg)"
-  },
-
-  earRight: {
-    position: "absolute",
-    top: "-10px",
-    right: "16px",
-    width: "22px",
-    height: "22px",
-    background: "#ff8ab8",
-    borderRadius: "8px 18px 8px 18px",
-    transform: "rotate(45deg)"
-  },
-
-  eyeLeft: {
-    position: "absolute",
-    top: "24px",
-    left: "68px",
-    width: "6px",
-    height: "6px",
-    borderRadius: "50%",
-    background: "#1e293b"
-  },
-
-  eyeRight: {
-    position: "absolute",
-    top: "24px",
-    left: "88px",
-    width: "6px",
-    height: "6px",
-    borderRadius: "50%",
-    background: "#1e293b"
-  },
-
-  nose: {
-    position: "absolute",
-    right: "-6px",
-    top: "30px",
-    width: "30px",
-    height: "22px",
-    borderRadius: "50%",
-    background: "#ff8ab8",
-    color: "#7c2d12",
-    fontSize: "7px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-
-  legOne: {
-    position: "absolute",
-    bottom: "-6px",
-    left: "28px",
-    width: "16px",
-    height: "14px",
-    background: "#ff6aa2",
-    borderRadius: "0 0 6px 6px"
-  },
-
-  legTwo: {
-    position: "absolute",
-    bottom: "-6px",
-    right: "30px",
-    width: "16px",
-    height: "14px",
-    background: "#ff6aa2",
-    borderRadius: "0 0 6px 6px"
-  },
-
-  brand: {
-    fontSize: "48px",
-    lineHeight: "44px",
-    margin: 0,
-    fontWeight: "900",
-    letterSpacing: "-1px"
-  },
-
-  brandSub: {
-    marginTop: "12px",
-    fontSize: "15px"
-  },
-
-  why: {
-    color: "#ffde3b",
-    marginTop: "30px",
-    fontSize: "20px"
-  },
-
-  benefit: {
-    display: "flex",
-    gap: "12px",
-    alignItems: "center",
-    marginTop: "14px"
-  },
-
-  benefitIcon: {
-    width: "42px",
-    height: "42px",
-    borderRadius: "12px",
-    background: "linear-gradient(135deg,#38bdf8,#2563eb)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "20px",
+    overflow: "hidden",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
     flexShrink: 0
   },
 
-  rightPanel: {
-    flex: 1,
-    padding: "32px 28px",
+  brandLogoImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  },
+
+  brandTitleText: {
+    margin: 0,
+    fontSize: "20px",
+    fontWeight: "900",
+    letterSpacing: "0.5px",
+    color: "#ffffff"
+  },
+
+  brandSubLine: {
+    width: "80px",
+    height: "2px",
+    background: "#38bdf8",
+    margin: "3px 0"
+  },
+
+  brandSubText: {
+    margin: 0,
+    fontSize: "12px",
+    color: "#38bdf8",
+    fontWeight: "600",
+    letterSpacing: "1px"
+  },
+
+  bannerQuote: {
+    fontSize: "11px",
+    fontWeight: "700",
+    textAlign: "right",
+    lineHeight: "1.2",
+    color: "#a7f3d0",
+    fontStyle: "italic"
+  },
+
+  heroContentRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: "10px"
+  },
+
+  heroTextContent: {
+    flex: 1
+  },
+
+  createHeading: {
+    fontSize: "28px",
+    fontWeight: "800",
+    margin: 0,
+    color: "#ffffff",
+    letterSpacing: "-0.5px"
+  },
+
+  accountHeading: {
+    fontSize: "38px",
+    fontWeight: "900",
+    margin: "0 0 8px 0",
+    background: "linear-gradient(135deg, #38bdf8, #a7f3d0, #facc15)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    letterSpacing: "-1px"
+  },
+
+  joinSubText: {
+    fontSize: "13px",
+    color: "#cbd5e1",
+    margin: 0,
+    lineHeight: "1.4"
+  },
+
+  piggyIllustration: {
+    position: "relative",
+    width: "80px",
+    height: "70px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "52px"
+  },
+
+  miniCoin: {
+    position: "absolute",
+    top: "-5px",
+    left: "15px",
+    width: "22px",
+    height: "22px",
+    background: "#facc15",
+    color: "#0f172a",
+    borderRadius: "50%",
+    fontSize: "12px",
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.3)"
+  },
+
+  formContentArea: {
+    padding: "24px 22px",
+    background: "#ffffff",
+    borderTopLeftRadius: "28px",
+    borderTopRightRadius: "28px",
+    marginTop: "-16px",
+    position: "relative",
+    zIndex: 2,
     boxSizing: "border-box"
   },
 
-  create: {
-    textAlign: "center",
-    fontSize: "26px",
-    color: "#0f172a",
-    margin: 0
-  },
-
-  account: {
-    textAlign: "center",
-    fontSize: "52px",
-    margin: "-5px 0 10px",
-    background: "linear-gradient(135deg,#ff2ebd,#8b2cff,#118cff)",
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    fontWeight: "900"
-  },
-
-  join: {
-    textAlign: "center",
-    fontSize: "15px",
-    color: "#475569",
-    marginBottom: "20px"
-  },
-
   inputWrap: {
-    minHeight: "56px",
+    minHeight: "54px",
     border: "1.8px solid",
-    borderRadius: "18px",
+    borderRadius: "16px",
     display: "flex",
     alignItems: "center",
     padding: "0 12px",
     gap: "12px",
-    marginTop: "12px",
-    boxSizing: "border-box"
+    marginTop: "14px",
+    boxSizing: "border-box",
+    background: "#ffffff"
   },
 
   iconBox: {
-    width: "40px",
-    height: "40px",
-    borderRadius: "12px",
+    width: "38px",
+    height: "38px",
+    borderRadius: "10px",
     color: "white",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px",
+    fontSize: "18px",
     flexShrink: 0
   },
 
@@ -913,27 +835,28 @@ const styles = {
     minWidth: 0,
     border: "none",
     outline: "none",
-    fontSize: "16px",
+    fontSize: "15px",
     color: "#0f172a",
     background: "transparent"
   },
 
-  otpInlineBtn: {
-    padding: "10px 16px",
-    background: "linear-gradient(135deg,#0ea5e9,#7c3aed)",
+  verifyEmailBtn: {
+    padding: "8px 12px",
+    background: "linear-gradient(135deg,#0ea5e9,#10b981)",
     color: "white",
     border: "none",
-    borderRadius: "12px",
-    fontSize: "13px",
+    borderRadius: "10px",
+    fontSize: "12px",
     fontWeight: "bold",
     cursor: "pointer",
-    whiteSpace: "nowrap"
+    whiteSpace: "nowrap",
+    boxShadow: "0 4px 10px rgba(14,165,233,0.3)"
   },
 
   eye: {
     border: "none",
     background: "transparent",
-    fontSize: "20px",
+    fontSize: "18px",
     cursor: "pointer"
   },
 
@@ -941,7 +864,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    marginTop: "18px",
+    marginTop: "16px",
     fontSize: "14px",
     color: "#334155"
   },
@@ -952,86 +875,156 @@ const styles = {
   },
 
   termsLink: {
-    color: "#7c3aed",
+    color: "#2563eb",
     cursor: "pointer"
   },
 
   registerBtn: {
     width: "100%",
-    height: "58px",
+    height: "56px",
     border: "none",
-    borderRadius: "18px",
-    marginTop: "20px",
-    background: "linear-gradient(135deg,#ff2ebd,#8b2cff,#412cff)",
+    borderRadius: "16px",
+    marginTop: "18px",
+    background: "linear-gradient(90deg, #0062ff 0%, #00c6ff 100%)",
     color: "white",
-    fontSize: "20px",
-    fontWeight: "900",
+    fontSize: "18px",
+    fontWeight: "800",
     position: "relative",
-    boxShadow: "0 10px 20px rgba(124,58,237,.35)",
-    cursor: "pointer"
+    boxShadow: "0 8px 20px rgba(0, 98, 255, 0.35)",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+
+  btnUserIcon: {
+    fontSize: "15px",
+    background: "rgba(255,255,255,0.2)",
+    padding: "2px 6px",
+    borderRadius: "6px"
   },
 
   arrow: {
     position: "absolute",
     right: "12px",
-    top: "9px",
-    width: "40px",
-    height: "40px",
+    top: "8px",
+    width: "38px",
+    height: "38px",
     borderRadius: "50%",
     background: "white",
-    color: "#4f46e5",
+    color: "#0062ff",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "30px"
+    fontSize: "26px",
+    fontWeight: "bold"
+  },
+
+  loginDividerRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "12px",
+    marginTop: "18px"
+  },
+
+  dividerLine: {
+    flex: 1,
+    height: "1px",
+    background: "#cbd5e1"
   },
 
   loginText: {
     textAlign: "center",
-    marginTop: "16px",
-    color: "#475569"
+    margin: 0,
+    color: "#475569",
+    fontSize: "14px",
+    whiteSpace: "nowrap"
   },
 
   loginLink: {
-    color: "#7c3aed",
-    fontWeight: "900",
+    color: "#16a34a",
+    fontWeight: "800",
     cursor: "pointer",
     marginLeft: "6px"
   },
 
   disclaimer: {
-    marginTop: "20px",
+    marginTop: "18px",
     background: "#f0fdf4",
     border: "1px solid #bbf7d0",
-    borderRadius: "18px",
+    borderRadius: "16px",
     padding: "14px",
     display: "flex",
     gap: "12px"
   },
 
   disIcon: {
-    width: "42px",
-    height: "42px",
-    borderRadius: "12px",
+    width: "38px",
+    height: "38px",
+    borderRadius: "10px",
     background: "linear-gradient(135deg,#22c55e,#16a34a)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "22px",
-    flexShrink: 0
+    fontSize: "18px",
+    flexShrink: 0,
+    color: "white"
   },
 
   disclaimerTitle: {
     margin: 0,
     color: "#16a34a",
-    fontSize: "15px"
+    fontSize: "14px",
+    fontWeight: "bold"
   },
 
   disclaimerText: {
     color: "#334155",
-    lineHeight: "20px",
+    lineHeight: "18px",
+    fontSize: "11px",
+    marginTop: "3px"
+  },
+
+  bottomFeatures: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "8px",
+    marginTop: "20px"
+  },
+
+  bottomItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px"
+  },
+
+  bottomIcon: {
+    width: "32px",
+    height: "32px",
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "white",
     fontSize: "12px",
-    marginTop: "4px"
+    boxShadow: "0 3px 8px rgba(0,0,0,0.15)",
+    flexShrink: 0
+  },
+
+  bottomTitle: {
+    fontSize: "10px",
+    fontWeight: "700",
+    color: "#111827",
+    lineHeight: "13px"
+  },
+
+  bottomText: {
+    fontSize: "10px",
+    fontWeight: "700",
+    color: "#111827",
+    lineHeight: "13px"
   },
 
   /* 🔹 Screenshot 1 Exact Match Modal Styles */
@@ -1050,7 +1043,7 @@ const styles = {
   otpModalCard: {
     width: "100%",
     maxWidth: "340px",
-    background: "#f8ecee", // light pink tint from screenshot
+    background: "#f8ecee",
     borderRadius: "28px",
     padding: "28px 22px 24px 22px",
     boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
@@ -1091,7 +1084,7 @@ const styles = {
 
   otpInputBox: {
     height: "54px",
-    border: "2px solid #d81b60", // pink/magenta border matching screenshot
+    border: "2px solid #d81b60",
     borderRadius: "18px",
     display: "flex",
     alignItems: "center",
@@ -1150,7 +1143,7 @@ const styles = {
     height: "52px",
     borderRadius: "16px",
     border: "none",
-    background: "#d81b60", // vibrant pink button
+    background: "#d81b60",
     color: "#ffffff",
     fontSize: "17px",
     fontWeight: "bold",
@@ -1346,46 +1339,5 @@ const styles = {
     fontSize: "13px",
     fontWeight: "700",
     cursor: "pointer"
-  },
-
-  bottomFeatures: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "10px",
-    marginTop: "24px"
-  },
-
-  bottomItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px"
-  },
-
-  bottomIcon: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "white",
-    fontSize: "13px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
-    flexShrink: 0
-  },
-
-  bottomTitle: {
-    fontSize: "11px",
-    fontWeight: "700",
-    color: "#111827",
-    lineHeight: "14px"
-  },
-
-  bottomText: {
-    fontSize: "11px",
-    fontWeight: "700",
-    color: "#111827",
-    lineHeight: "14px"
   }
 };
