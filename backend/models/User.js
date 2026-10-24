@@ -361,6 +361,13 @@ bonusCode: {
   default: false
   },
 
+  // উইথড্র সিস্টেম আপগ্রেড টাইমার ট্র্যাক করার জন্য
+upgradeStartTime: {
+  type: Date,
+  default: null
+},
+  
+
   
 bonusList: [
   {
