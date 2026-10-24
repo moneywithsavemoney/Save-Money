@@ -134,7 +134,6 @@ export default function Home() {
       triggerStatusOverlay("success", "Plan PDF downloaded successfully!");
     } catch (err) {
       console.log("PDF download error:", err);
-      // Fallback direct link
       const link = document.createElement("a");
       link.href = "/SAVE_MONEY_PRIVATE_LIMITED.pdf";
       link.target = "_blank";
@@ -272,7 +271,6 @@ export default function Home() {
     }
   };
 
-  // 🟢 লগআউট ফিক্স: অ্যাপ্লিকেশনের ভেতরেই রিডাইরেক্ট করে লগইন পেজে নিয়ে যাওয়া নিশ্চিত করা হয়েছে
   const handleLogout = async () => {
     try {
       if (email) {
@@ -346,6 +344,7 @@ export default function Home() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
+      <style>{animationStyles}</style>
 
       {/* 👇 SIDEBAR DRAWER */}
       <div style={{
@@ -358,7 +357,6 @@ export default function Home() {
           transform: isDrawerOpen ? "translateX(0)" : "translateX(-100%)"
         }} onClick={(e) => e.stopPropagation()}>
           
-          {/* LOGO & BRANDING */}
           <div style={styles.drawerHeader}>
             <div style={styles.drawerBrand}>
               <div style={styles.drawerLogoWrapper}>
@@ -376,10 +374,10 @@ export default function Home() {
             </div>
           </div>
 
-          {/* SIDEBAR CONTENT */}
           <div style={styles.drawerScrollArea}>
             <div style={styles.drawerNavList}>
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavDashboard,
@@ -392,6 +390,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavMyInvestment,
@@ -404,6 +403,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavSaveMoney,
@@ -416,6 +416,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavOneTime,
@@ -428,6 +429,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavPlan
@@ -440,6 +442,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavAddFund,
@@ -452,6 +455,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavRefer,
@@ -464,6 +468,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavWithdraw,
@@ -476,6 +481,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavDailyReward,
@@ -488,6 +494,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavInvestmentAssistant,
@@ -500,6 +507,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavSupport,
@@ -512,6 +520,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavProfile,
@@ -524,6 +533,7 @@ export default function Home() {
               </button>
 
               <button 
+                className="wave-btn"
                 style={{
                   ...styles.drawerNavItem,
                   ...styles.drawerNavLogout
@@ -535,7 +545,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* FULL VISIBLE TREE PLANT SECTION */}
             <div style={styles.treePlantOnlyWrapper}>
               <img 
                 src="/tree plant.png" 
@@ -558,6 +567,7 @@ export default function Home() {
         <div style={styles.popupOverlay}>
           <div style={styles.popupCard}>
             <button
+              className="wave-btn"
               style={styles.popupCloseBtn}
               onClick={() => setShowOfferPopup(false)}
             >
@@ -596,6 +606,7 @@ export default function Home() {
       {/* TOP HEADER */}
       <div style={styles.topHeader}>
         <button 
+          className="wave-btn"
           style={styles.menuButton}
           onClick={() => setIsDrawerOpen(true)}
         >
@@ -608,6 +619,7 @@ export default function Home() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
+            className="wave-btn"
             style={styles.notificationButton}
             onClick={() => go("/notifications")}
           >
@@ -621,6 +633,7 @@ export default function Home() {
           </button>
 
           <button
+            className="wave-btn"
             style={styles.logoutBtn}
             onClick={handleLogout}
           >
@@ -849,6 +862,7 @@ export default function Home() {
           </p>
 
           <button
+            className="wave-btn"
             style={styles.promoButton}
             onClick={() => go("/save-money")}
           >
@@ -890,6 +904,7 @@ export default function Home() {
 
       {/* ABOUT STRIP */}
       <button
+        className="wave-btn"
         style={styles.aboutStrip}
         onClick={() => go("/about")}
       >
@@ -932,7 +947,7 @@ export default function Home() {
 
         <div style={styles.appBtnGroup}>
           <button 
-            className="premium-app-btn"
+            className="wave-btn premium-app-btn"
             style={styles.appDownloadBtn}
             onClick={handleDownloadApp}
             disabled={isDownloadingApp}
@@ -961,24 +976,12 @@ export default function Home() {
         </h2>
 
         <div style={styles.footerLinks}>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/privacy")}>
-            Privacy Policy
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/terms")}>
-            Terms
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/refund")}>
-            Refund
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/risk")}>
-            Risk Disclosure
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/aml")}>
-            AML & KYC
-          </button>
-          <button style={styles.footerLinkBtn} onClick={() => go("/legal/disclaimer")}>
-            Disclaimer
-          </button>
+          <button className="wave-btn" style={styles.footerLinkBtn} onClick={() => go("/legal/privacy")}>Privacy Policy</button>
+          <button className="wave-btn" style={styles.footerLinkBtn} onClick={() => go("/legal/terms")}>Terms</button>
+          <button className="wave-btn" style={styles.footerLinkBtn} onClick={() => go("/legal/refund")}>Refund</button>
+          <button className="wave-btn" style={styles.footerLinkBtn} onClick={() => go("/legal/risk")}>Risk Disclosure</button>
+          <button className="wave-btn" style={styles.footerLinkBtn} onClick={() => go("/legal/aml")}>AML & KYC</button>
+          <button className="wave-btn" style={styles.footerLinkBtn} onClick={() => go("/legal/disclaimer")}>Disclaimer</button>
         </div>
 
         <p style={{ fontSize: "12px", color: "#64748b", margin: 0 }}>
@@ -1009,7 +1012,7 @@ export default function Home() {
         <BottomNavItem
           icon="🌲"
           title="tree"
-          active={location.pathname === "/profile"}
+          active={location.pathname === "/referral-tree"}
           onClick={() => go("/referral-tree")}
         />
       </nav>
@@ -1057,6 +1060,7 @@ function PremiumActionButton({ icon, title, subtitle, gradient, onClick }) {
 
   return (
     <button
+      className="wave-btn"
       style={{
         ...styles.actionButton,
         ...gradientStyle[gradient]
@@ -1098,6 +1102,7 @@ function TrustMiniCard({ icon, title, subtitle }) {
 function BottomNavItem({ icon, title, active, onClick }) {
   return (
     <button
+      className="wave-btn"
       style={{
         ...styles.bottomNavItem,
         ...(active ? styles.bottomNavItemActive : {})
@@ -1109,6 +1114,59 @@ function BottomNavItem({ icon, title, active, onClick }) {
     </button>
   );
 }
+
+const animationStyles = `
+  @keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+
+  @keyframes appPulse {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    }
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+  }
+
+  /* 👇 ঢেউ খেলার মতো সুন্দর ওয়েভ অ্যানিমেশন (Wave / Floating Animation) */
+  @keyframes waveAnimation {
+    0% {
+      transform: translateY(0px) scale(1);
+    }
+    50% {
+      transform: translateY(-4px) scale(1.02);
+    }
+    100% {
+      transform: translateY(0px) scale(1);
+    }
+  }
+
+  .wave-btn {
+    animation: waveAnimation 3s ease-in-out infinite;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  }
+
+  .wave-btn:hover {
+    transform: translateY(-6px) scale(1.04) !important;
+  }
+
+  .premium-app-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6) !important;
+  }
+
+  .premium-download-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+`;
 
 const styles = {
   limitedOfferBar: {
@@ -2031,39 +2089,3 @@ const styles = {
   bottomNavIcon: { fontSize: "18px" },
   bottomNavText: { fontSize: "10px", marginTop: "2px" }
 };
-
-const animationStyleSheet = document.createElement("style");
-animationStyleSheet.type = "text/css";
-animationStyleSheet.innerText = `
-  @keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-  }
-
-  @keyframes appPulse {
-    0% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
-    }
-    70% {
-      transform: scale(1);
-      box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
-    }
-    100% {
-      transform: scale(0.95);
-      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-    }
-  }
-
-  .premium-app-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6) !important;
-  }
-
-  .premium-download-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-`;
-if (typeof document !== "undefined") {
-  document.head.appendChild(animationStyleSheet);
-}
