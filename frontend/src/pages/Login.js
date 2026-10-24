@@ -16,6 +16,9 @@ export default function Login() {
   const [otpLoading, setOtpLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  // 🔹 আপনার অ্যাপ লোগো (public ফোল্ডারে logo512.png নামে আছে)
+  const appLogoUrl = "/logo512.png";
+
   useEffect(() => {
     const savedRemember = localStorage.getItem("rememberMe") === "true";
     const savedMode = localStorage.getItem("rememberMode") || "email";
@@ -74,7 +77,6 @@ export default function Login() {
       return;
     }
 
-    // 🟢 ডেমো ইউজার চেক (ব্যাকএন্ড ছাড়াই সরাসরি ইকমার্স পেজে রিডাইরেক্ট করবে)
     if (email.trim().toLowerCase() === "demouser@gmail.com" && password === "demo@demo") {
       const demoData = {
         token: "demo-secret-token",
@@ -208,44 +210,39 @@ export default function Login() {
     <div style={styles.page}>
       <style>{animationStyles}</style>
 
-      <div style={{ ...styles.bgCircleOne, animation: "floatSlow 8s ease-in-out infinite" }}></div>
-      <div style={{ ...styles.bgCircleTwo, animation: "pulseGlow 6s ease-in-out infinite" }}></div>
-      <div style={{ ...styles.bgPill, animation: "floatSlow 10s ease-in-out infinite reverse" }}></div>
+      <div style={styles.mainCard}>
 
-      <div style={{ ...styles.mainCard, animation: "fadeInUp 0.8s ease-out" }}>
-
-        <div style={styles.logoArea}>
-          <div style={styles.piggyBase}>
-            <div style={{ ...styles.coin, animation: "coinDrop 2.5s infinite ease-in-out" }}>₹</div>
-
-            <div style={{ ...styles.piggy, animation: "wiggle 3s ease-in-out infinite" }}>
-              <span style={styles.earLeft}></span>
-              <span style={styles.earRight}></span>
-              <span style={styles.eyeLeft}></span>
-              <span style={styles.eyeRight}></span>
-              <span style={styles.nose}>••</span>
-              <span style={styles.legLeft}></span>
-              <span style={styles.legRight}></span>
+        {/* 🔹 টপ ব্যানার ও লোগো সেকশন (স্ক্রিনশটের মতো হুবহু) */}
+        <div style={styles.topBannerArea}>
+          <div style={styles.brandRow}>
+            <div style={styles.logoBox}>
+              <img 
+                src={appLogoUrl} 
+                alt="Logo" 
+                style={styles.logoImg}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+            <div>
+              <h2 style={styles.brandTitle}>SAVE MONEY</h2>
+              <div style={styles.brandSubLine}></div>
+              <p style={styles.brandSubText}>Save & Earn</p>
+            </div>
+            <div style={styles.piggyArea}>
+              <div style={styles.piggyCoin}>₹</div>
+              <div style={styles.piggyEmoji}>🐷</div>
             </div>
           </div>
 
-          <h1 style={styles.logoText}>
-            <span style={styles.logoSave}>save</span>{" "}
-            <span style={styles.logoMoney}>money</span>
-          </h1>
-
-          <div style={styles.tagline}>
-            <span style={styles.taglineLine}></span>
-            <p style={{ margin: 0 }}>Save Today, Secure Tomorrow</p>
-            <span style={styles.taglineLine}></span>
-          </div>
-
-          <h2 style={styles.welcomeTitle}>Welcome Back!</h2>
+          <h1 style={styles.welcomeTitle}>Welcome Back!</h1>
           <p style={styles.welcomeSub}>
             Login to continue your financial journey
           </p>
         </div>
 
+        {/* 🔹 লগইন ফর্ম বক্স */}
         <div style={styles.loginBox}>
 
           <div style={styles.switchTop}>
@@ -283,13 +280,13 @@ export default function Login() {
           </div>
 
           {message && (
-            <div style={{ ...styles.messageBox, animation: "fadeInUp 0.3s ease" }}>
+            <div style={styles.messageBox}>
               {message}
             </div>
           )}
 
           {mode === "email" ? (
-            <div key="email-fields" style={{ animation: "fadeInUp 0.4s ease" }}>
+            <div key="email-fields">
               <div style={styles.inputActive}>
                 <div style={styles.inputIcon}>✉</div>
                 <input
@@ -320,7 +317,7 @@ export default function Login() {
               </div>
             </div>
           ) : (
-            <div key="mobile-fields" style={{ animation: "fadeInUp 0.4s ease" }}>
+            <div key="mobile-fields">
               <div style={styles.inputActive}>
                 <div style={styles.inputIcon}>📱</div>
                 <input
@@ -357,6 +354,7 @@ export default function Login() {
                 type="checkbox"
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
+                style={styles.checkbox}
               />
               Remember Me
             </label>
@@ -364,10 +362,7 @@ export default function Login() {
             <button
               type="button"
               style={styles.forgot}
-              onClick={() => {
-                console.log("Forgot clicked");
-                navigate("/forgot-password");
-              }}
+              onClick={() => navigate("/forgot-password")}
             >
               Forgot Password?
             </button>
@@ -375,16 +370,13 @@ export default function Login() {
 
           <button
             type="button"
-            style={{
-              ...styles.loginBtn,
-              animation: loading ? "pulseGlow 1.5s infinite" : "none"
-            }}
+            style={styles.loginBtn}
             onClick={handleLogin}
             disabled={loading}
           >
             <span style={styles.lockCircle}>🔒</span>
             {loading ? "Please Wait..." : "Login Now"}
-            <span style={{ ...styles.arrowCircle, animation: "bounceRight 1.5s infinite" }}>›</span>
+            <span style={styles.arrowCircle}>›</span>
           </button>
 
           <div style={styles.orRow}>
@@ -402,12 +394,15 @@ export default function Login() {
 
         </div>
 
+        {/* 🔹 রেজিস্ট্রেশন কার্ড (স্ক্রিনশটের মতো) */}
         <div style={styles.registerCard}>
-          <div style={{ ...styles.registerIcon, animation: "bounceRight 2s infinite" }}>🪪</div>
+          <div style={styles.registerIconBox}>
+            👤+
+          </div>
 
           <div style={styles.registerContent}>
-            <h3 style={{ margin: "0 0 4px 0", fontSize: "16px" }}>Don’t have an account?</h3>
-            <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>Create a new account and start saving with us.</p>
+            <h3 style={{ margin: "0 0 2px 0", fontSize: "15px", color: "#0f172a", fontWeight: "800" }}>Don’t have an account?</h3>
+            <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>Create a new account and start saving with us.</p>
           </div>
 
           <button
@@ -419,6 +414,7 @@ export default function Login() {
           </button>
         </div>
 
+        {/* 🔹 ট্রাস্ট বা সিকিউরিটি ফিচার সেকশন */}
         <div style={styles.trustRow}>
           <Trust icon="🛡️" title="100% Secure" text="& Safe" />
           <Trust icon="🔒" title="Your Data is" text="Protected" />
@@ -435,54 +431,18 @@ function Trust({ icon, title, text }) {
   return (
     <div style={styles.trustItem}>
       <div style={styles.trustIcon}>{icon}</div>
-      <p style={{ margin: 0 }}>
-        {title}
-        <br />
-        {text}
-      </p>
+      <div style={styles.trustTitle}>{title}</div>
+      <div style={styles.trustSub}>{text}</div>
     </div>
   );
 }
 
 const animationStyles = `
-  @keyframes coinDrop {
-    0% { transform: translateY(-12px); opacity: 0.2; }
-    50% { transform: translateY(0); opacity: 1; }
-    100% { transform: translateY(-12px); opacity: 0.2; }
-  }
-
-  @keyframes wiggle {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-3deg); }
-    75% { transform: rotate(3deg); }
-  }
-
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes floatSlow {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-15px) rotate(10deg); }
-  }
-
-  @keyframes pulseGlow {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.05); }
-  }
-
-  @keyframes bounceRight {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(4px); }
-  }
-
   button, input {
     transition: all 0.25s ease-in-out !important;
   }
-
   input:focus {
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2) !important;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2) !important;
   }
 `;
 
@@ -490,288 +450,182 @@ const styles = {
   page: {
     minHeight: "100vh",
     width: "100%",
-    maxWidth: "100vw",
-    background: "linear-gradient(135deg,#e9f4ff 0%,#f7f1ff 45%,#ffeef8 100%)",
-    padding: "16px 12px",
+    background: "linear-gradient(180deg, #10b981 0%, #065f46 50%, #022c22 100%)",
+    padding: "20px 12px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     fontFamily: "Arial, sans-serif",
-    position: "relative",
-    overflowX: "hidden",
     boxSizing: "border-box"
-  },
-
-  bgCircleOne: {
-    position: "fixed",
-    top: "-90px",
-    left: "10%",
-    width: "200px",
-    height: "200px",
-    border: "20px solid rgba(167,139,250,0.18)",
-    borderRadius: "50%",
-    pointerEvents: "none"
-  },
-
-  bgCircleTwo: {
-    position: "fixed",
-    right: "-40px",
-    top: "42%",
-    width: "120px",
-    height: "80px",
-    background: "rgba(244,114,182,0.25)",
-    borderRadius: "90px",
-    pointerEvents: "none"
-  },
-
-  bgPill: {
-    position: "fixed",
-    left: "-50px",
-    bottom: "50px",
-    width: "120px",
-    height: "160px",
-    background: "rgba(216,180,254,0.3)",
-    borderRadius: "90px",
-    transform: "rotate(35deg)",
-    pointerEvents: "none"
   },
 
   mainCard: {
     width: "100%",
-    maxWidth: "760px",
-    background: "rgba(255,255,255,0.92)",
-    borderRadius: "28px",
-    padding: "24px 16px",
-    boxShadow: "0 20px 50px rgba(99,102,241,0.15)",
-    border: "1px solid rgba(255,255,255,0.9)",
-    position: "relative",
+    maxWidth: "520px",
+    background: "#ffffff",
+    borderRadius: "36px",
+    padding: "0 0 24px 0",
+    boxShadow: "0 25px 60px rgba(0,0,0,0.3)",
     overflow: "hidden",
-    zIndex: 2,
-    boxSizing: "border-box",
-    backdropFilter: "blur(10px)"
+    boxSizing: "border-box"
   },
 
-  logoArea: {
-    textAlign: "center",
+  topBannerArea: {
+    background: "linear-gradient(135deg, #022c22 0%, #064e3b 50%, #047857 100%)",
+    color: "white",
+    padding: "24px 22px 20px 22px",
+    position: "relative"
+  },
+
+  brandRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "16px"
+  },
+
+  logoBox: {
+    width: "48px",
+    height: "48px",
+    borderRadius: "14px",
+    background: "#ffffff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+    flexShrink: 0
+  },
+
+  logoImg: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover"
+  },
+
+  brandTitle: {
+    margin: 0,
+    fontSize: "20px",
+    fontWeight: "900",
+    letterSpacing: "0.5px",
+    color: "#ffffff"
+  },
+
+  brandSubLine: {
+    width: "80px",
+    height: "2px",
+    background: "#38bdf8",
+    margin: "3px 0"
+  },
+
+  brandSubText: {
+    margin: 0,
+    fontSize: "12px",
+    color: "#38bdf8",
+    fontWeight: "600",
+    letterSpacing: "1px"
+  },
+
+  piggyArea: {
     position: "relative",
+    width: "60px",
+    height: "55px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "42px"
+  },
+
+  piggyCoin: {
+    position: "absolute",
+    top: "-4px",
+    left: "8px",
+    width: "20px",
+    height: "20px",
+    background: "#facc15",
+    color: "#0f172a",
+    borderRadius: "50%",
+    fontSize: "11px",
+    fontWeight: "bold",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
     zIndex: 2
   },
 
-  piggyBase: {
-    width: "150px",
-    height: "115px",
-    margin: "0 auto 10px",
-    position: "relative",
-    background: "linear-gradient(135deg,#7c3aed,#d946ef)",
-    borderRadius: "70px 70px 24px 24px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "flex-end"
-  },
-
-  coin: {
-    position: "absolute",
-    top: "-14px",
-    width: "42px",
-    height: "42px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg,#facc15,#f97316)",
-    color: "#92400e",
-    fontWeight: "900",
-    fontSize: "22px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    border: "3px solid #ffd166",
-    zIndex: 4
-  },
-
-  piggy: {
-    width: "110px",
-    height: "70px",
-    background: "linear-gradient(135deg,#ffc2d1,#ff8fab)",
-    borderRadius: "45px 50px 35px 35px",
-    position: "relative",
-    marginBottom: "14px"
-  },
-
-  earLeft: {
-    position: "absolute",
-    top: "-12px",
-    left: "20px",
-    width: "24px",
-    height: "24px",
-    background: "#ff8fab",
-    borderRadius: "8px 18px 8px 18px",
-    transform: "rotate(28deg)"
-  },
-
-  earRight: {
-    position: "absolute",
-    top: "-10px",
-    right: "18px",
-    width: "20px",
-    height: "20px",
-    background: "#ff8fab",
-    borderRadius: "8px 16px 8px 16px",
-    transform: "rotate(45deg)"
-  },
-
-  eyeLeft: {
-    position: "absolute",
-    top: "22px",
-    left: "60px",
-    width: "6px",
-    height: "6px",
-    background: "#111827",
-    borderRadius: "50%"
-  },
-
-  eyeRight: {
-    position: "absolute",
-    top: "22px",
-    left: "78px",
-    width: "6px",
-    height: "6px",
-    background: "#111827",
-    borderRadius: "50%"
-  },
-
-  nose: {
-    position: "absolute",
-    right: "-6px",
-    top: "28px",
-    width: "28px",
-    height: "20px",
-    background: "#fb7185",
-    borderRadius: "50%",
-    color: "#7f1d1d",
-    fontSize: "8px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center"
-  },
-
-  legLeft: {
-    position: "absolute",
-    bottom: "-5px",
-    left: "28px",
-    width: "16px",
-    height: "12px",
-    background: "#fb7185",
-    borderRadius: "0 0 6px 6px"
-  },
-
-  legRight: {
-    position: "absolute",
-    bottom: "-5px",
-    right: "26px",
-    width: "16px",
-    height: "12px",
-    background: "#fb7185",
-    borderRadius: "0 0 6px 6px"
-  },
-
-  logoText: {
-    margin: 0,
-    fontSize: "clamp(32px, 8vw, 48px)",
-    lineHeight: "1.1",
-    fontWeight: "900",
-    letterSpacing: "-1px"
-  },
-
-  logoSave: {
-    color: "#071b4d"
-  },
-
-  logoMoney: {
-    color: "#22c55e"
-  },
-
-  tagline: {
-    marginTop: "8px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "10px",
-    color: "#4b5563",
-    fontSize: "14px"
-  },
-
-  taglineLine: {
-    width: "30px",
-    height: "2px",
-    borderRadius: "10px",
-    background: "linear-gradient(135deg,#7c3aed,#ec4899)"
+  piggyEmoji: {
+    filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.2))"
   },
 
   welcomeTitle: {
-    margin: "18px 0 4px",
-    fontSize: "clamp(22px, 5vw, 32px)",
-    color: "#071b4d",
-    fontWeight: "900"
+    margin: "10px 0 4px 0",
+    fontSize: "28px",
+    color: "#ffffff",
+    fontWeight: "900",
+    letterSpacing: "-0.5px"
   },
 
   welcomeSub: {
     margin: 0,
-    fontSize: "14px",
-    color: "#64748b",
-    fontWeight: "600"
+    fontSize: "13px",
+    color: "#cbd5e1",
+    fontWeight: "500"
   },
 
   loginBox: {
-    margin: "20px auto 0",
-    width: "100%",
+    margin: "-16px 16px 0 16px",
     background: "white",
-    borderRadius: "20px",
-    padding: "20px 14px",
+    borderRadius: "28px",
+    padding: "20px 18px",
     boxShadow: "0 10px 30px rgba(15,23,42,0.06)",
     border: "1px solid #edf0f7",
-    boxSizing: "border-box"
+    boxSizing: "border-box",
+    position: "relative",
+    zIndex: 2
   },
 
   switchTop: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: "20px",
+    marginBottom: "16px",
     gap: "8px"
   },
 
   switchBox: {
     display: "flex",
-    background: "#f3f0fb",
+    background: "#f1f5f9",
     borderRadius: "14px",
     padding: "3px",
-    border: "1px solid #ddd6fe",
+    border: "1px solid #e2e8f0",
     flex: 1,
-    maxWidth: "280px"
+    maxWidth: "260px"
   },
 
   switchBtn: {
     flex: 1,
-    height: "44px",
+    height: "40px",
     border: "none",
     borderRadius: "12px",
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: "800",
     cursor: "pointer",
     background: "transparent",
-    color: "#64748b",
-    padding: "0"
+    color: "#64748b"
   },
 
   switchActive: {
-    background: "linear-gradient(135deg,#5b21b6,#ec4899)",
+    background: "linear-gradient(135deg, #0ea5e9, #10b981)",
     color: "white",
-    boxShadow: "0 6px 16px rgba(124,58,237,0.25)"
+    boxShadow: "0 4px 12px rgba(14,165,233,0.3)"
   },
 
   changeBtn: {
     background: "transparent",
     border: "none",
-    color: "#6d28d9",
-    fontSize: "14px",
+    color: "#0ea5e9",
+    fontSize: "13px",
     fontWeight: "800",
     cursor: "pointer",
     padding: "4px"
@@ -779,46 +633,46 @@ const styles = {
 
   messageBox: {
     textAlign: "center",
-    marginBottom: "14px",
-    color: "#7c3aed",
+    marginBottom: "12px",
+    color: "#0ea5e9",
     fontWeight: "800",
-    fontSize: "13px",
-    background: "#f5f3ff",
+    fontSize: "12px",
+    background: "#f0f9ff",
     padding: "8px",
     borderRadius: "10px"
   },
 
   inputActive: {
-    height: "56px",
-    borderRadius: "14px",
-    border: "1.8px solid #ec4899",
+    height: "54px",
+    borderRadius: "16px",
+    border: "1.8px solid #0ea5e9",
     display: "flex",
     alignItems: "center",
     overflow: "hidden",
-    marginTop: "14px",
+    marginTop: "12px",
     background: "white"
   },
 
   inputBox: {
-    height: "56px",
-    borderRadius: "14px",
-    border: "1.5px solid #e5e7eb",
+    height: "54px",
+    borderRadius: "16px",
+    border: "1.5px solid #10b981",
     display: "flex",
     alignItems: "center",
     overflow: "hidden",
-    marginTop: "14px",
+    marginTop: "12px",
     background: "white"
   },
 
   inputIcon: {
-    width: "50px",
+    width: "46px",
     height: "100%",
-    background: "#f3f0fb",
-    color: "#7c3aed",
+    background: "#f8fafc",
+    color: "#0ea5e9",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "20px",
+    fontSize: "18px",
     flexShrink: 0
   },
 
@@ -837,7 +691,7 @@ const styles = {
   sideIcon: {
     width: "44px",
     color: "#9ca3af",
-    fontSize: "18px",
+    fontSize: "16px",
     textAlign: "center"
   },
 
@@ -845,7 +699,7 @@ const styles = {
     width: "44px",
     border: "none",
     background: "transparent",
-    fontSize: "18px",
+    fontSize: "16px",
     cursor: "pointer"
   },
 
@@ -853,8 +707,8 @@ const styles = {
     marginRight: "6px",
     border: "none",
     borderRadius: "10px",
-    padding: "8px 10px",
-    background: "linear-gradient(135deg,#7c3aed,#ec4899)",
+    padding: "8px 12px",
+    background: "linear-gradient(135deg,#0ea5e9,#10b981)",
     color: "white",
     fontWeight: "800",
     fontSize: "12px",
@@ -863,7 +717,7 @@ const styles = {
   },
 
   optionsRow: {
-    marginTop: "16px",
+    marginTop: "14px",
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
@@ -873,44 +727,53 @@ const styles = {
   remember: {
     display: "flex",
     gap: "6px",
-    color: "#64748b",
+    color: "#334155",
     fontSize: "13px",
     alignItems: "center",
-    cursor: "pointer"
+    cursor: "pointer",
+    fontWeight: "600"
+  },
+
+  checkbox: {
+    width: "16px",
+    height: "16px"
   },
 
   forgot: {
     border: "none",
     background: "transparent",
-    color: "#6d28d9",
+    color: "#2563eb",
     fontSize: "13px",
     fontWeight: "800",
     cursor: "pointer"
   },
 
   loginBtn: {
-    marginTop: "22px",
+    marginTop: "18px",
     width: "100%",
-    height: "58px",
+    height: "56px",
     border: "none",
-    borderRadius: "18px",
-    background: "linear-gradient(135deg,#4f46e5,#7c3aed,#ec4899)",
+    borderRadius: "16px",
+    background: "linear-gradient(90deg, #0062ff 0%, #00c6ff 100%)",
     color: "white",
     fontSize: "18px",
-    fontWeight: "900",
+    fontWeight: "800",
     position: "relative",
     cursor: "pointer",
-    boxShadow: "0 10px 20px rgba(124,58,237,0.3)"
+    boxShadow: "0 8px 20px rgba(0, 98, 255, 0.35)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
   },
 
   lockCircle: {
     position: "absolute",
     left: "12px",
-    top: "10px",
+    top: "9px",
     width: "38px",
     height: "38px",
     borderRadius: "50%",
-    background: "rgba(255,255,255,0.18)",
+    background: "rgba(255,255,255,0.2)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -920,28 +783,28 @@ const styles = {
   arrowCircle: {
     position: "absolute",
     right: "12px",
-    top: "10px",
+    top: "9px",
     width: "38px",
     height: "38px",
     borderRadius: "50%",
     background: "white",
-    color: "#ec4899",
-    fontSize: "28px",
+    color: "#0062ff",
+    fontSize: "26px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    lineHeight: "28px"
+    fontWeight: "bold"
   },
 
   orRow: {
-    marginTop: "22px",
+    marginTop: "18px",
     display: "flex",
     alignItems: "center",
     gap: "12px",
     justifyContent: "center",
-    color: "#64748b",
+    color: "#94a3b8",
     fontWeight: "800",
-    fontSize: "13px"
+    fontSize: "12px"
   },
 
   orLine: {
@@ -951,108 +814,131 @@ const styles = {
   },
 
   socialRow: {
-    marginTop: "16px",
+    marginTop: "14px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "14px",
+    gap: "12px",
     fontSize: "13px",
     color: "#64748b"
   },
 
   googleBtn: {
-    width: "40px",
-    height: "40px",
+    width: "38px",
+    height: "38px",
     borderRadius: "50%",
-    border: "1px solid #e5e7eb",
+    border: "1px solid #e2e8f0",
     background: "white",
     color: "#ef4444",
+    fontWeight: "900",
+    fontSize: "15px",
+    cursor: "pointer"
+  },
+
+  facebookBtn: {
+    width: "38px",
+    height: "38px",
+    borderRadius: "50%",
+    border: "1px solid #e2e8f0",
+    background: "#2563eb",
+    color: "white",
     fontWeight: "900",
     fontSize: "16px",
     cursor: "pointer"
   },
 
-  facebookBtn: {
-    width: "40px",
-    height: "40px",
-    borderRadius: "50%",
-    border: "1px solid #e5e7eb",
-    background: "#2563eb",
-    color: "white",
-    fontWeight: "900",
-    fontSize: "18px",
-    cursor: "pointer"
-  },
-
   appleBtn: {
-    width: "40px",
-    height: "40px",
+    width: "38px",
+    height: "38px",
     borderRadius: "50%",
-    border: "1px solid #e5e7eb",
+    border: "1px solid #e2e8f0",
     background: "#111827",
     color: "white",
     fontWeight: "900",
-    fontSize: "18px",
+    fontSize: "16px",
     cursor: "pointer"
   },
 
   registerCard: {
-    width: "100%",
-    margin: "18px auto 0",
-    background: "white",
-    borderRadius: "18px",
-    padding: "16px 14px",
+    width: "calc(100% - 32px)",
+    margin: "14px auto 0 auto",
+    background: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)",
+    borderRadius: "20px",
+    padding: "14px 16px",
     display: "flex",
     alignItems: "center",
     gap: "12px",
-    boxShadow: "0 8px 25px rgba(15,23,42,0.05)",
-    border: "1px solid #edf0f7",
-    boxSizing: "border-box",
-    flexWrap: "wrap"
+    boxShadow: "0 4px 15px rgba(15,23,42,0.04)",
+    border: "1px solid #e2e8f0",
+    boxSizing: "border-box"
   },
 
-  registerIcon: {
-    fontSize: "36px"
+  registerIconBox: {
+    width: "42px",
+    height: "42px",
+    borderRadius: "14px",
+    background: "linear-gradient(135deg, #38bdf8, #818cf8)",
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "18px",
+    fontWeight: "bold",
+    flexShrink: 0,
+    boxShadow: "0 4px 10px rgba(56, 189, 248, 0.3)"
   },
 
   registerContent: {
-    flex: 1,
-    minWidth: "150px"
+    flex: 1
   },
 
   registerBtn: {
-    border: "1.5px solid #d946ef",
+    border: "1.8px solid #d946ef",
     background: "white",
-    color: "#7c3aed",
+    color: "#9333ea",
     padding: "10px 14px",
     borderRadius: "14px",
     fontWeight: "800",
-    fontSize: "13px",
+    fontSize: "12px",
     cursor: "pointer",
-    whiteSpace: "nowrap"
+    whiteSpace: "nowrap",
+    boxShadow: "0 4px 10px rgba(217, 70, 239, 0.15)"
   },
 
   trustRow: {
-    width: "100%",
-    margin: "20px auto 0",
+    width: "calc(100% - 32px)",
+    margin: "16px auto 0 auto",
     display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "12px",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: "8px",
     boxSizing: "border-box"
   },
 
   trustItem: {
     textAlign: "center",
-    color: "#475569",
-    fontSize: "11px",
-    fontWeight: "700",
-    background: "rgba(255,255,255,0.6)",
-    padding: "8px",
-    borderRadius: "12px"
+    color: "#334155",
+    background: "#f8fafc",
+    padding: "10px 4px",
+    borderRadius: "14px",
+    border: "1px solid #e2e8f0"
   },
 
   trustIcon: {
-    fontSize: "22px",
+    fontSize: "20px",
     marginBottom: "4px"
+  },
+
+  trustTitle: {
+    fontSize: "10px",
+    fontWeight: "800",
+    color: "#0f172a",
+    lineHeight: "1.2"
+  },
+
+  trustSub: {
+    fontSize: "10px",
+    fontWeight: "700",
+    color: "#64748b",
+    lineHeight: "1.2"
   }
 };
