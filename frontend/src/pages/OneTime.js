@@ -277,21 +277,18 @@ export default function OneTime() {
     loadDashboardData();
   }, []);
 
-  // 72 Hours Countdown Timer Logic (Triggered ONLY when user has bonus referrals)
+  // 72 Hours Countdown Timer Logic (Database Synced via user.upgradeStartTime)
   useEffect(() => {
     if (!bonusList || bonusList.length === 0) return;
 
-    const userEmail = email.trim().toLowerCase();
-    const timerKey = `sm_upgrade_start_time_${userEmail}`;
-    let startTime = localStorage.getItem(timerKey);
+    let startTime = user?.upgradeStartTime ? new Date(user.upgradeStartTime).getTime() : null;
     
     if (!startTime) {
-      startTime = Date.now().toString();
-      localStorage.setItem(timerKey, startTime);
+      startTime = Date.now();
     }
 
     const interval = setInterval(() => {
-      const elapsedMs = Date.now() - parseInt(startTime, 10);
+      const elapsedMs = Date.now() - startTime;
       const totalMs = 72 * 60 * 60 * 1000;
       const remainingMs = totalMs - elapsedMs;
 
@@ -307,7 +304,7 @@ export default function OneTime() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [email, bonusList]);
+  }, [user, bonusList]);
 
   const loadDashboardData = async () => {
     try {
@@ -2246,7 +2243,7 @@ export default function OneTime() {
                   onClick={handleRazorpayPayment}
                   disabled={razorpayLoading}
                 >
-                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
+                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹{totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
                 </button>
 
                 <div style={{ marginTop: "14px", padding: "10px", background: "#040d1a", borderRadius: "8px", border: "1px solid rgba(250, 204, 21, 0.2)", textAlign: "center" }}>
