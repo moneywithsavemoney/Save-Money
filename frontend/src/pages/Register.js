@@ -10,8 +10,8 @@ export default function Register() {
   const queryParams = new URLSearchParams(location.search);
   const urlReferCode = queryParams.get("ref") || ""; 
 
-  // 🔹 আপনার অ্যাপ লোগোর URL বা লোকাল পাবলিক ফাইল পাথ এখানে দিন
-  const appLogoUrl = "/logo512.png"; // অথবা যেমন: "https://your-domain.com/logo.png"
+  // 🔹 আপনার অ্যাপ লোগোর URL বা লোকাল পাবলিক ফাইল পাথ
+  const appLogoUrl = "/logo512.png";
 
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
@@ -26,7 +26,8 @@ export default function Register() {
   // App Download Modal State
   const [showDownloadModal, setShowDownloadModal] = useState(false);
 
-  // Email Verification States
+  // Email Verification States & Modal State
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isOtpVerified, setIsOtpVerified] = useState(false);
@@ -46,11 +47,22 @@ export default function Register() {
     return () => clearInterval(interval);
   }, [otpTimer]);
 
-  const sendOtpCode = async () => {
+  // "Verify Email" এ ক্লিক করলে এই ফাংশনটি কল হবে
+  const handleVerifyEmailClick = async () => {
     if (!email) {
       toast.warning("Please enter your email address first");
       return;
     }
+
+    setShowOtpModal(true); // ১ম স্ক্রিনশটের মতো মোডাল পপআপ ওপেন হবে
+
+    if (!isOtpSent) {
+      sendOtpCode();
+    }
+  };
+
+  const sendOtpCode = async () => {
+    if (!email) return;
 
     try {
       setSendingOtp(true);
@@ -97,6 +109,7 @@ export default function Register() {
       const data = await res.json();
       if (res.ok || data.success) {
         setIsOtpVerified(true);
+        setShowOtpModal(false); // ভেরিফাই হয়ে গেলে মোডাল বন্ধ হবে
         toast.success("Email verified successfully!");
       } else {
         toast.error(data.msg || "Invalid OTP");
@@ -121,7 +134,7 @@ export default function Register() {
     }
 
     if (!isOtpSent || !otp) {
-      toast.warning("Please enter your email OTP verification code");
+      toast.warning("Please verify your email OTP first");
       return;
     }
 
@@ -166,8 +179,7 @@ export default function Register() {
   };
 
   const handleDownloadApk = () => {
-    // Google Drive Direct Download Link
-    const driveDirectLink = "https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t](https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t)";
+    const driveDirectLink = "https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t";
     window.open(driveDirectLink, "_blank");
   };
 
@@ -245,6 +257,7 @@ export default function Register() {
           <InputBox color="#ff4cc4" icon="👤" placeholder="Full Name" value={name} setValue={setName} />
           <InputBox color="#7c3aed" icon="📱" placeholder="Mobile Number" value={mobile} setValue={setMobile} />
           
+          {/* Email Box with 'Verify Email' button */}
           <div style={{ ...styles.inputWrap, borderColor: isOtpVerified ? "#22c55e" : "#0ea5e9" }}>
             <div style={{ ...styles.iconBox, background: isOtpVerified ? "linear-gradient(135deg,#22c55e,#10b981)" : "linear-gradient(135deg,#0ea5e9,#7c3aed)" }}>
               {isOtpVerified ? "✓" : "✉️"}
@@ -259,44 +272,15 @@ export default function Register() {
             <button
               style={{
                 ...styles.otpInlineBtn,
-                opacity: (sendingOtp || otpTimer > 0 || isOtpVerified) ? 0.6 : 1,
                 background: isOtpVerified ? "#10b981" : "linear-gradient(135deg,#0ea5e9,#7c3aed)"
               }}
               type="button"
-              onClick={sendOtpCode}
-              disabled={sendingOtp || otpTimer > 0 || isOtpVerified}
+              onClick={handleVerifyEmailClick}
+              disabled={isOtpVerified}
             >
-              {isOtpVerified ? "Verified" : sendingOtp ? "Sending..." : otpTimer > 0 ? `${otpTimer}s` : isOtpSent ? "Resend" : "Send OTP"}
+              {isOtpVerified ? "Verified" : "Verify Email"}
             </button>
           </div>
-
-          {isOtpSent && (
-            <div style={{ ...styles.inputWrap, borderColor: isOtpVerified ? "#22c55e" : "#f43f5e" }}>
-              <div style={{ ...styles.iconBox, background: isOtpVerified ? "linear-gradient(135deg,#22c55e,#10b981)" : "linear-gradient(135deg,#f43f5e,#7c3aed)" }}>
-                🔑
-              </div>
-              <input
-                style={styles.input}
-                placeholder="Enter 6-Digit Email OTP"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                disabled={isOtpVerified}
-                maxLength={6}
-              />
-              <button
-                style={{
-                  ...styles.otpInlineBtn,
-                  background: isOtpVerified ? "#22c55e" : "linear-gradient(135deg,#f43f5e,#e11d48)",
-                  opacity: verifyingOtp ? 0.6 : 1
-                }}
-                type="button"
-                onClick={verifyOtpCode}
-                disabled={verifyingOtp || isOtpVerified}
-              >
-                {verifyingOtp ? "Verifying..." : isOtpVerified ? "Verified ✓" : "Verify OTP"}
-              </button>
-            </div>
-          )}
 
           <div style={{ ...styles.inputWrap, borderColor: "#10b981" }}>
             <div style={{ ...styles.iconBox, background: "linear-gradient(135deg,#10b981,#22c55e)" }}>
@@ -441,6 +425,68 @@ export default function Register() {
         </div>
       </div>
 
+      {/* 🔹 1st Screenshot Design: Email Verification OTP Modal */}
+      {showOtpModal && (
+        <div style={styles.otpModalOverlay}>
+          <div style={styles.otpModalCard}>
+            <h2 style={styles.otpModalTitle}>Email Verification</h2>
+            <p style={styles.otpSubText}>
+              {sendingOtp ? "Sending OTP..." : `OTP sent to ${email || "your email"}`}
+            </p>
+
+            <div style={styles.otpFieldContainer}>
+              <span style={styles.otpFieldLabel}>Enter OTP</span>
+              <div style={styles.otpInputBox}>
+                <span style={styles.lockIcon}>🔒</span>
+                <input
+                  type="text"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder=""
+                  style={styles.otpRealInput}
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div style={styles.resendRow}>
+              {otpTimer > 0 ? (
+                <span style={{ fontSize: "12px", color: "#666" }}>Resend code in {otpTimer}s</span>
+              ) : (
+                <button 
+                  type="button" 
+                  onClick={sendOtpCode} 
+                  disabled={sendingOtp}
+                  style={styles.resendBtn}
+                >
+                  {sendingOtp ? "Sending..." : "Resend OTP"}
+                </button>
+              )}
+            </div>
+
+            <div style={styles.cancelBtnRow}>
+              <button
+                type="button"
+                onClick={() => setShowOtpModal(false)}
+                style={styles.cancelLinkBtn}
+              >
+                Cancel
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={verifyOtpCode}
+              disabled={verifyingOtp}
+              style={styles.verifyModalBtn}
+            >
+              {verifyingOtp ? "Verifying..." : "Verify"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Terms & Conditions Modal */}
       {showTerms && (
         <div style={styles.modalOverlay}>
@@ -546,14 +592,12 @@ export default function Register() {
               <span style={styles.goldBadge}>🎉 REGISTRATION SUCCESSFUL</span>
             </div>
 
-            {/* 🔹 অরিজিনাল অ্যাপ লোগো সেকশন */}
             <div style={styles.appIconWrapper}>
               <img 
                 src={appLogoUrl} 
                 alt="App Logo" 
                 style={styles.appLogoImg} 
                 onError={(e) => {
-                  // পিকচার ব্যাকআপ ট্রাই যদি ইমেজ লোড না হয়
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'block';
                 }}
@@ -875,11 +919,11 @@ const styles = {
   },
 
   otpInlineBtn: {
-    padding: "8px 12px",
+    padding: "10px 16px",
     background: "linear-gradient(135deg,#0ea5e9,#7c3aed)",
     color: "white",
     border: "none",
-    borderRadius: "10px",
+    borderRadius: "12px",
     fontSize: "13px",
     fontWeight: "bold",
     cursor: "pointer",
@@ -990,6 +1034,130 @@ const styles = {
     marginTop: "4px"
   },
 
+  /* 🔹 Screenshot 1 Exact Match Modal Styles */
+  otpModalOverlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0, 0, 0, 0.45)",
+    backdropFilter: "blur(3px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 99999,
+    padding: "16px"
+  },
+
+  otpModalCard: {
+    width: "100%",
+    maxWidth: "340px",
+    background: "#f8ecee", // light pink tint from screenshot
+    borderRadius: "28px",
+    padding: "28px 22px 24px 22px",
+    boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
+    boxSizing: "border-box",
+    textAlign: "left"
+  },
+
+  otpModalTitle: {
+    margin: 0,
+    fontSize: "22px",
+    fontWeight: "800",
+    color: "#271b2d"
+  },
+
+  otpSubText: {
+    margin: "12px 0 20px 0",
+    fontSize: "13px",
+    color: "#786d7e",
+    fontWeight: "500"
+  },
+
+  otpFieldContainer: {
+    position: "relative",
+    marginTop: "10px"
+  },
+
+  otpFieldLabel: {
+    position: "absolute",
+    top: "-10px",
+    left: "16px",
+    background: "#f8ecee",
+    padding: "0 6px",
+    fontSize: "11px",
+    color: "#786d7e",
+    fontWeight: "600",
+    zIndex: 2
+  },
+
+  otpInputBox: {
+    height: "54px",
+    border: "2px solid #d81b60", // pink/magenta border matching screenshot
+    borderRadius: "18px",
+    display: "flex",
+    alignItems: "center",
+    padding: "0 14px",
+    gap: "10px",
+    background: "#ffffff"
+  },
+
+  lockIcon: {
+    fontSize: "18px",
+    opacity: 0.7
+  },
+
+  otpRealInput: {
+    width: "100%",
+    border: "none",
+    outline: "none",
+    fontSize: "18px",
+    letterSpacing: "3px",
+    color: "#000",
+    background: "transparent",
+    fontWeight: "bold"
+  },
+
+  resendRow: {
+    marginTop: "8px",
+    textAlign: "right"
+  },
+
+  resendBtn: {
+    background: "none",
+    border: "none",
+    color: "#d81b60",
+    fontSize: "12px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+
+  cancelBtnRow: {
+    textAlign: "right",
+    marginTop: "14px",
+    marginBottom: "12px"
+  },
+
+  cancelLinkBtn: {
+    border: "none",
+    background: "transparent",
+    color: "#271b2d",
+    fontSize: "15px",
+    fontWeight: "600",
+    cursor: "pointer"
+  },
+
+  verifyModalBtn: {
+    width: "100%",
+    height: "52px",
+    borderRadius: "16px",
+    border: "none",
+    background: "#d81b60", // vibrant pink button
+    color: "#ffffff",
+    fontSize: "17px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    boxShadow: "0 4px 12px rgba(216,27,96,0.3)"
+  },
+
   modalOverlay: {
     position: "fixed",
     inset: 0,
@@ -1053,7 +1221,6 @@ const styles = {
     cursor: "pointer"
   },
 
-  /* High-Premium Quality Popup Styles */
   premiumModal: {
     width: "100%",
     maxWidth: "440px",
