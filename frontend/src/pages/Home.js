@@ -199,16 +199,7 @@ export default function Home() {
 
       const data = await res.json();
 
-      if (data?.msg === "Token expired or invalid") {
-        triggerStatusOverlay("error", "You are logged out, please login again");
-
-        setTimeout(() => {
-          localStorage.clear();
-          navigate("/login");
-          window.location.reload();
-        }, 2500);
-        return;
-      }
+      // টোকেন এক্সপায়ার চেক বা লগআউটের ল এখানে আর কাজ করবে না
 
       setUser(data || {});
       
