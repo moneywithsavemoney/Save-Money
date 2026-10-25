@@ -19,7 +19,6 @@ export default function KYC() {
 
   const [kycStatus, setKycStatus] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   useEffect(() => {
     loadKyc();
@@ -104,14 +103,7 @@ export default function KYC() {
     }
   };
 
-  const getStatusText = () => {
-    const status = String(kycStatus || "").toLowerCase();
-    if (status === "approved") return "(Approved)";
-    if (status === "reviewing") return "(Reviewing)";
-    if (status === "pending") return "(Pending)";
-    if (status === "rejected") return "(Rejected)";
-    return "(Not Submitted)";
-  };
+  const isVerified = String(kycStatus).toLowerCase() === "approved";
 
   return (
     <div style={styles.page}>
@@ -119,37 +111,48 @@ export default function KYC() {
         
         {/* 1. TOP BRAND HEADER */}
         <div style={styles.brandHeader}>
-          <button style={styles.menuBtn} onClick={() => setIsDrawerOpen(!isDrawerOpen)}>
-            ☰
-          </button>
-          
-          <div style={styles.brandCenter}>
-            <div style={styles.brandRow}>
-              <span style={styles.greenChartIcon}>📈</span>
-              <span style={styles.brandName}>SAVE MONEY</span>
+          <div style={styles.brandLeft}>
+            <div style={styles.brandLogoIcon}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M3 17L9 11L13 15L21 7" stroke="#00e676" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M17 7H21V11" stroke="#00e676" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
-            <span style={styles.brandSub}>inspired groww</span>
+            <div>
+              <div style={styles.brandTitle}>SAVE <span style={{ color: "#00e676" }}>MONEY</span></div>
+              <div style={styles.brandSubtitle}>Invest Today • Secure Tomorrow</div>
+            </div>
           </div>
 
-          <div style={styles.brandRightGraphic}>
-            🌱💰
+          <div style={styles.brandRightBadge}>
+            <span style={styles.shieldGreenIcon}>🛡️</span>
+            <div style={styles.badgeTextWrapper}>
+              <span style={styles.badgeTitle}>KYC Verified ⌄</span>
+              <span style={styles.badgeSub}>Your account is secure</span>
+            </div>
+            <span style={{ fontSize: "16px", marginLeft: "4px" }}>🌱💰</span>
           </div>
         </div>
 
-        {/* 2. HERO BANNER */}
+        {/* 2. HERO BANNER CARD */}
         <div style={styles.heroCard}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={styles.heroShieldIcon}>🛡️</div>
-            <div>
-              <h1 style={styles.heroTitle}>KYC Verification</h1>
-              <p style={styles.heroSubtitle}>
-                Secure Your Account • Verify Your Identity<br />
-                • Unlock Full Features
-              </p>
+          <div style={styles.heroContent}>
+            <div style={styles.heroHeaderTag}>Your Investment Profile</div>
+            <h2 style={styles.heroTitle}>Welcome, {user.name || "Rama Basu Biswas"}</h2>
+            <p style={styles.heroSubtitle}>Grow your wealth with trusted and secure investments.</p>
+            <div style={styles.heroVerifiedTag}>
+              🛡️ KYC Verified
             </div>
           </div>
-          <div style={styles.heroTagline}>
-            Your Security<br />Our Priority
+          <div style={styles.heroGraphic}>
+            <svg width="120" height="70" viewBox="0 0 120 70" fill="none">
+              <path d="M10 55 L40 40 L70 48 L110 10" stroke="#00e676" strokeWidth="4" strokeLinecap="round"/>
+              <polygon points="100,10 110,10 110,20" fill="#00e676" />
+              <rect x="15" y="45" width="10" height="20" fill="#00e676" opacity="0.6" rx="2"/>
+              <rect x="40" y="30" width="10" height="35" fill="#00e676" opacity="0.7" rx="2"/>
+              <rect x="65" y="38" width="10" height="27" fill="#00e676" opacity="0.8" rx="2"/>
+              <rect x="90" y="15" width="10" height="50" fill="#00e676" rx="2"/>
+            </svg>
           </div>
         </div>
 
@@ -157,35 +160,36 @@ export default function KYC() {
         <div style={styles.card}>
           <div style={styles.cardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={styles.avatarIcon}>👤</div>
+              <div style={{ ...styles.sectionIconCircle, background: "#3b82f6" }}>👤</div>
               <div>
-                <h2 style={styles.cardTitle}>Personal Information</h2>
-                <p style={styles.cardSubtitle}>Please provide your correct details</p>
+                <h3 style={styles.cardTitle}>Personal Information</h3>
+                <p style={styles.cardSubtitle}>Your profile details</p>
               </div>
             </div>
-            <span style={styles.accordionArrow}>▲</span>
+            <button style={styles.editBtn}>✏️ Edit</button>
           </div>
 
-          <div style={styles.infoGrid} className="responsive-grid">
-            <InfoBox icon="👤" label="Name" value={user.name || "N/A"} iconBg="#3b82f6" />
-            <InfoBox icon="✉️" label="Email" value={user.email || email || "N/A"} iconBg="#6366f1" />
-            <InfoBox icon="📞" label="Mobile No." value={user.mobile || user.phone || "N/A"} iconBg="#22c55e" />
-            <InfoBox icon="📅" label="Date of Birth" value={user.dob || user.dateOfBirth || "N/A"} iconBg="#f97316" />
-            <InfoBox icon="🚻" label="Gender" value={user.gender || "N/A"} iconBg="#ec4899" />
-            <InfoBox icon="📍" label="Address" value={user.address || "N/A"} iconBg="#0284c7" />
-            <InfoBox icon="🪪" label="Pan Number" value={panNumber || "N/A"} iconBg="#0ea5e9" />
-            <InfoBox icon="🆔" label="Aadhaar Number" value={aadhaarNumber || "N/A"} iconBg="#a855f7" />
+          <div style={styles.infoGrid}>
+            <InfoBox label="Name" value={user.name || "Rama Basu Biswas"} icon="👤" />
+            <InfoBox label="Email" value={user.email || email || "romabasu457@gmail.com"} icon="✉️" />
+            <InfoBox label="Mobile No." value={user.mobile || user.phone || "9007420560"} icon="📞" />
+            <InfoBox label="Date of Birth" value={user.dob || "N/A"} icon="📅" />
+            <InfoBox label="Gender" value={user.gender || "N/A"} icon="🚻" />
+            <InfoBox label="Address" value={user.address || "N/A"} icon="📍" />
+            <InfoBox label="Pan Number" value={panNumber || "EJPPB8604B"} icon="🪪" />
+            <InfoBox label="Aadhaar Number" value={aadhaarNumber || "746180458576"} icon="🆔" />
 
-            {/* STATUS BOX */}
-            <div style={styles.statusBoxFull}>
-              <div style={styles.statusShieldIcon}>🛡️</div>
+            {/* KYC STATUS BOX */}
+            <div style={styles.statusBoxApproved}>
+              <div style={styles.statusIconCircle}>🛡️</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: "11px", color: "#94a3b8" }}>KYC Status</div>
-                <div style={{ fontSize: "13px", fontWeight: "700", color: "#22c55e" }}>
-                  {getStatusText()}
+                <div style={{ fontSize: "11px", color: "#64748b" }}>KYC Status</div>
+                <div style={{ fontSize: "14px", fontWeight: "700", color: "#22c55e" }}>
+                  {kycStatus === "approved" || !kycStatus ? "Approved" : kycStatus}
                 </div>
               </div>
-              <div style={styles.statusCheckMark}>✓</div>
+              <div style={styles.statusCheckCircle}>✓</div>
+              <span style={{ color: "#64748b", fontSize: "14px", marginLeft: "4px" }}>›</span>
             </div>
           </div>
         </div>
@@ -194,99 +198,94 @@ export default function KYC() {
         <div style={styles.card}>
           <div style={styles.cardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ ...styles.avatarIcon, background: "#7c3aed" }}>📄</div>
+              <div style={{ ...styles.sectionIconCircle, background: "#8b5cf6" }}>📄</div>
               <div>
-                <h2 style={styles.cardTitle}>Upload Documents</h2>
-                <p style={styles.cardSubtitle}>
-                  Please upload clear and correct documents. All documents should be valid and unblurred.
-                </p>
+                <h3 style={styles.cardTitle}>Upload Documents</h3>
+                <p style={styles.cardSubtitle}>Please upload clear and correct documents. All documents should be valid and unblurred.</p>
               </div>
             </div>
-            <span style={styles.accordionArrow}>▲</span>
+            <div style={styles.secureBadge}>🔒 Secure & Encrypted</div>
           </div>
 
-          <div style={styles.uploadGrid} className="responsive-upload-grid">
-            <DocUploadBox
-              icon="🪪"
+          <div style={styles.uploadGrid}>
+            <DocCard
               title="Aadhaar Card"
               subtitle="Upload front & back side of your Aadhaar card."
-              btnText="Upload Image (Front & Back Side)"
               file={aadhaarFile}
               setFile={setAadhaarFile}
-              iconBg="#2563eb"
               inputValue={aadhaarNumber}
-              onInputChange={(e) => setAadhaarNumber(e.target.value)}
-              inputPlaceholder="Enter 12 digit Aadhaar Number"
-              maxLength={12}
+              setInputValue={setAadhaarNumber}
+              placeholder="746180458576"
             />
-            <DocUploadBox
-              icon="🪪"
+            <DocCard
               title="PAN Card"
               subtitle="Upload front & back side of your PAN card."
-              btnText="Upload Image (Front & Back Side)"
               file={panFile}
               setFile={setPanFile}
-              iconBg="#7c3aed"
               inputValue={panNumber}
-              onInputChange={(e) => setPanNumber(e.target.value.toUpperCase())}
-              inputPlaceholder="Enter 10 digit PAN Number"
-              maxLength={10}
+              setInputValue={setPanNumber}
+              placeholder="EJPPB8604B"
             />
-            <DocUploadBox
-              icon="👤"
+            <DocCard
               title="Your Photo"
               subtitle="Upload your recent clear photo."
-              btnText="Upload Image (Clear & Recent)"
               file={photoFile}
               setFile={setPhotoFile}
-              iconBg="#059669"
+              isPhoto={true}
             />
           </div>
 
           <button
             style={{
               ...styles.submitBtn,
-              opacity: ["reviewing", "approved"].includes(String(kycStatus || "").toLowerCase()) ? 0.6 : 1
+              opacity: ["reviewing", "approved"].includes(String(kycStatus || "").toLowerCase()) ? 0.7 : 1
             }}
             onClick={submitKyc}
-            disabled={loading || ["reviewing", "approved"].includes(String(kycStatus || "").toLowerCase())}
+            disabled={loading}
           >
-            🚀 {loading ? "Submitting..." : "Submit KYC"} ›
+            ✈️ {loading ? "Submitting..." : "Submit KYC"} →
           </button>
 
-          <p style={styles.securityNote}>
+          <div style={styles.securityText}>
             🛡️ Your information is safe and secure with us.
-          </p>
+          </div>
         </div>
 
-        {/* 5. HOW KYC PROCESS WORKS */}
+        {/* 5. HOW KYC PROCESS WORKS CARD */}
         <div style={styles.card}>
-          <h3 style={styles.processTitle}>✨ How KYC Process Works</h3>
-          <div style={styles.stepsGrid} className="responsive-steps">
-            <StepCard stepNo="1" icon="☁️" title="Upload Documents" text="Provide your KYC documents" iconBg="#2563eb" />
-            <StepCard stepNo="2" icon="👥" title="Verify Details" text="We will verify your information" iconBg="#7c3aed" />
-            <StepCard stepNo="3" icon="👤" title="Under Review" text="Your request is being processed" iconBg="#0284c7" />
-            <StepCard stepNo="4" icon="🛡️" title="Get Verified" text="You will be notified soon" iconBg="#059669" />
+          <div style={styles.processHeader}>
+            <div style={styles.processTitle}>⚡ How KYC Process Works</div>
+            <div style={styles.processSub}>Fast • Secure • Trusted</div>
+          </div>
+
+          <div style={styles.stepsContainer}>
+            <StepItem step="1" icon="☁️" title="Upload Documents" desc="Provide your KYC documents" />
+            <div style={styles.stepArrow}>→</div>
+            <StepItem step="2" icon="🔍" title="Verify Details" desc="We will verify your information" />
+            <div style={styles.stepArrow}>→</div>
+            <StepItem step="3" icon="🕒" title="Under Review" desc="Your request is being processed" />
+            <div style={styles.stepArrow}>→</div>
+            <StepItem step="4" icon="🛡️" title="Get Verified" desc="You will be notified soon" />
           </div>
         </div>
 
       </div>
 
-      <style>{`
-        @media (max-width: 600px) {
-          .responsive-grid { grid-template-columns: 1fr !important; }
-          .responsive-upload-grid { grid-template-columns: 1fr !important; }
-          .responsive-steps { grid-template-columns: 1fr 1fr !important; }
-        }
-      `}</style>
+      {/* 6. BOTTOM NAVIGATION BAR */}
+      <div style={styles.bottomNav}>
+        <NavItem icon="🏠" label="Home" active={true} />
+        <NavItem icon="📊" label="Investments" active={false} />
+        <NavItem icon="📄" label="Documents" active={false} />
+        <NavItem icon="👤" label="Profile" active={false} />
+      </div>
     </div>
   );
 }
 
-function InfoBox({ icon, label, value, iconBg }) {
+function InfoBox({ label, value, icon }) {
   return (
     <div style={styles.infoBox}>
-      <div style={{ ...styles.infoIconWrapper, background: iconBg }}>{icon}</div>
+      <div style={styles.infoIcon}>{icon}</div>
       <div style={{ overflow: "hidden" }}>
         <div style={styles.infoLabel}>{label}</div>
         <div style={styles.infoValue}>{value}</div>
@@ -295,42 +294,53 @@ function InfoBox({ icon, label, value, iconBg }) {
   );
 }
 
-function DocUploadBox({ icon, title, subtitle, btnText, file, setFile, iconBg, inputValue, onInputChange, inputPlaceholder, maxLength }) {
+function DocCard({ title, subtitle, file, setFile, inputValue, setInputValue, placeholder, isPhoto }) {
   return (
-    <div style={styles.uploadCard}>
-      <div style={{ ...styles.uploadHeaderIcon, background: iconBg }}>{icon}</div>
-      <h4 style={styles.uploadTitle}>{title}</h4>
-      <p style={styles.uploadSubtitle}>{subtitle}</p>
-      
-      {onInputChange && (
+    <div style={styles.docCard}>
+      <div style={styles.docIconCircle}>🪪</div>
+      <h4 style={styles.docTitle}>{title}</h4>
+      <p style={styles.docSubtitle}>{subtitle}</p>
+
+      <label style={styles.uploadBtn}>
+        ☁️ Upload Image
+        <input type="file" hidden accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
+      </label>
+
+      {!isPhoto ? (
         <input
           type="text"
           value={inputValue}
-          onChange={onInputChange}
-          placeholder={inputPlaceholder}
-          maxLength={maxLength}
-          style={styles.textInputStyle}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder={placeholder}
+          style={styles.docInput}
         />
+      ) : (
+        <label style={styles.uploadPhotoBtn}>
+          📷 Upload Photo
+          <input type="file" hidden accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
+        </label>
       )}
-
-      <label style={styles.uploadButtonLabel}>
-        <span style={{ fontSize: "14px" }}>☁️</span>
-        <span style={{ fontSize: "10px", fontWeight: "600" }}>
-          {file ? file.name : btnText}
-        </span>
-        <input type="file" hidden accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
-      </label>
     </div>
   );
 }
 
-function StepCard({ stepNo, icon, title, text, iconBg }) {
+function StepItem({ step, icon, title, desc }) {
   return (
-    <div style={styles.stepCard}>
-      <div style={styles.stepBadge}>{stepNo}</div>
-      <div style={{ ...styles.stepIconCircle, background: iconBg }}>{icon}</div>
-      <h5 style={styles.stepTitle}>{title}</h5>
-      <p style={styles.stepText}>{text}</p>
+    <div style={styles.stepBox}>
+      <div style={styles.stepBadge}>{step}</div>
+      <div style={styles.stepIcon}>{icon}</div>
+      <div style={styles.stepTitle}>{title}</div>
+      <div style={styles.stepDesc}>{desc}</div>
+    </div>
+  );
+}
+
+function NavItem({ icon, label, active }) {
+  return (
+    <div style={{ ...styles.navItem, color: active ? "#00e676" : "#64748b" }}>
+      <div style={styles.navIcon}>{icon}</div>
+      <div style={styles.navLabel}>{label}</div>
+      {active && <div style={styles.activeIndicator} />}
     </div>
   );
 }
@@ -338,103 +348,170 @@ function StepCard({ stepNo, icon, title, text, iconBg }) {
 const styles = {
   page: {
     minHeight: "100vh",
-    background: "#030712",
+    backgroundColor: "#030712",
     color: "#ffffff",
-    padding: "12px",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+    padding: "12px 12px 80px 12px",
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
   },
   container: {
-    maxWidth: "460px",
+    maxWidth: "480px",
     margin: "0 auto"
   },
+  
+  // Header
   brandHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "12px"
+    marginBottom: "16px"
   },
-  menuBtn: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "8px",
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(255,255,255,0.05)",
-    color: "#fff",
-    fontSize: "18px"
-  },
-  brandCenter: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center"
-  },
-  brandRow: {
+  brandLeft: {
     display: "flex",
     alignItems: "center",
+    gap: "10px"
+  },
+  brandLogoIcon: {
+    width: "36px",
+    height: "36px",
+    borderRadius: "8px",
+    background: "rgba(0, 230, 118, 0.1)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  brandTitle: {
+    fontSize: "18px",
+    fontWeight: "900",
+    letterSpacing: "0.5px"
+  },
+  brandSubtitle: {
+    fontSize: "10px",
+    color: "#94a3b8"
+  },
+  brandRightBadge: {
+    display: "flex",
+    alignItems: "center",
+    background: "rgba(15, 23, 42, 0.8)",
+    border: "1px solid #1e293b",
+    borderRadius: "20px",
+    padding: "4px 10px",
     gap: "6px"
   },
-  greenChartIcon: { fontSize: "18px", color: "#22c55e" },
-  brandName: { fontSize: "16px", fontWeight: "900", letterSpacing: "0.5px" },
-  brandSub: { fontSize: "9px", color: "#94a3b8", marginTop: "-2px" },
-  brandRightGraphic: { fontSize: "20px" },
+  shieldGreenIcon: {
+    fontSize: "14px"
+  },
+  badgeTextWrapper: {
+    display: "flex",
+    flexDirection: "column"
+  },
+  badgeTitle: {
+    fontSize: "11px",
+    fontWeight: "700",
+    color: "#ffffff"
+  },
+  badgeSub: {
+    fontSize: "8px",
+    color: "#64748b"
+  },
 
+  // Hero Card
   heroCard: {
-    background: "linear-gradient(135deg, #022c22 0%, #064e3b 60%, #022c22 100%)",
+    background: "linear-gradient(135deg, #022c22 0%, #064e3b 50%, #022c22 100%)",
     border: "1px solid #059669",
-    borderRadius: "14px",
-    padding: "12px 14px",
+    borderRadius: "16px",
+    padding: "16px",
     display: "flex",
-    alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "12px"
-  },
-  heroShieldIcon: {
-    width: "38px",
-    height: "38px",
-    borderRadius: "10px",
-    background: "rgba(34, 197, 94, 0.2)",
-    display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    fontSize: "20px"
+    marginBottom: "16px"
   },
-  heroTitle: { margin: 0, fontSize: "15px", fontWeight: "800", color: "#34d399" },
-  heroSubtitle: { margin: "2px 0 0 0", fontSize: "10px", color: "#a7f3d0", lineHeight: "1.2" },
-  heroTagline: { fontSize: "10px", color: "#a7f3d0", textAlign: "right", fontStyle: "italic", lineHeight: "1.2" },
+  heroContent: {
+    flex: 1
+  },
+  heroHeaderTag: {
+    fontSize: "11px",
+    color: "#6ee7b7",
+    marginBottom: "4px"
+  },
+  heroTitle: {
+    margin: "0 0 6px 0",
+    fontSize: "17px",
+    fontWeight: "800",
+    color: "#ffffff"
+  },
+  heroSubtitle: {
+    margin: "0 0 10px 0",
+    fontSize: "11px",
+    color: "#a7f3d0",
+    lineHeight: "1.3"
+  },
+  heroVerifiedTag: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    background: "#059669",
+    color: "#ffffff",
+    fontSize: "10px",
+    fontWeight: "700",
+    padding: "3px 8px",
+    borderRadius: "12px"
+  },
+  heroGraphic: {
+    marginLeft: "10px"
+  },
 
+  // Card Core
   card: {
-    background: "linear-gradient(180deg, #0f172a 0%, #090d16 100%)",
+    background: "#0b1329",
     border: "1px solid #1e293b",
     borderRadius: "16px",
-    padding: "14px",
-    marginBottom: "12px"
+    padding: "16px",
+    marginBottom: "16px"
   },
   cardHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "12px"
+    marginBottom: "14px"
   },
-  avatarIcon: {
-    width: "30px",
-    height: "30px",
+  sectionIconCircle: {
+    width: "32px",
+    height: "32px",
     borderRadius: "50%",
-    background: "#2563eb",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "13px"
+    fontSize: "14px"
   },
-  cardTitle: { margin: 0, fontSize: "14px", fontWeight: "700" },
-  cardSubtitle: { margin: "2px 0 0 0", fontSize: "10px", color: "#64748b" },
-  accordionArrow: { color: "#64748b", fontSize: "12px" },
+  cardTitle: {
+    margin: 0,
+    fontSize: "15px",
+    fontWeight: "700"
+  },
+  cardSubtitle: {
+    margin: "2px 0 0 0",
+    fontSize: "10px",
+    color: "#64748b"
+  },
+  editBtn: {
+    background: "#1e293b",
+    border: "1px solid #334155",
+    color: "#38bdf8",
+    fontSize: "11px",
+    fontWeight: "600",
+    padding: "4px 12px",
+    borderRadius: "14px",
+    cursor: "pointer"
+  },
 
+  // Info Grid
   infoGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: "8px"
+    gap: "10px"
   },
   infoBox: {
-    background: "#1e293b80",
+    background: "#0f172a",
     border: "1px solid #1e293b",
     borderRadius: "10px",
     padding: "8px 10px",
@@ -442,33 +519,41 @@ const styles = {
     alignItems: "center",
     gap: "10px"
   },
-  infoIconWrapper: {
+  infoIcon: {
     width: "28px",
     height: "28px",
     borderRadius: "6px",
+    background: "#1e293b",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "12px",
-    flexShrink: 0
+    fontSize: "12px"
   },
-  infoLabel: { fontSize: "10px", color: "#64748b" },
-  infoValue: { fontSize: "11px", fontWeight: "700", color: "#ffffff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  infoLabel: {
+    fontSize: "10px",
+    color: "#64748b"
+  },
+  infoValue: {
+    fontSize: "12px",
+    fontWeight: "700",
+    color: "#ffffff"
+  },
 
-  statusBoxFull: {
+  // Status Box Approved
+  statusBoxApproved: {
     gridColumn: "1 / -1",
-    background: "rgba(34, 197, 94, 0.08)",
-    border: "1px solid rgba(34, 197, 94, 0.3)",
-    borderRadius: "10px",
-    padding: "8px 12px",
+    background: "rgba(34, 197, 94, 0.05)",
+    border: "1px solid #16a34a",
+    borderRadius: "12px",
+    padding: "10px 14px",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: "12px",
     marginTop: "4px"
   },
-  statusShieldIcon: {
-    width: "28px",
-    height: "28px",
+  statusIconCircle: {
+    width: "30px",
+    height: "30px",
     borderRadius: "50%",
     background: "#16a34a",
     display: "flex",
@@ -476,27 +561,37 @@ const styles = {
     justifyContent: "center",
     fontSize: "14px"
   },
-  statusCheckMark: {
-    width: "20px",
-    height: "20px",
+  statusCheckCircle: {
+    width: "22px",
+    height: "22px",
     borderRadius: "50%",
     background: "#22c55e",
-    color: "#000",
+    color: "#000000",
     fontWeight: "bold",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "11px"
+    fontSize: "12px"
   },
 
+  // Document Uploads
+  secureBadge: {
+    background: "rgba(56, 189, 248, 0.1)",
+    border: "1px solid rgba(56, 189, 248, 0.3)",
+    color: "#38bdf8",
+    fontSize: "10px",
+    fontWeight: "600",
+    padding: "4px 8px",
+    borderRadius: "12px"
+  },
   uploadGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
     gap: "8px",
-    marginBottom: "12px"
+    marginBottom: "14px"
   },
-  uploadCard: {
-    background: "#131c2e",
+  docCard: {
+    background: "#0f172a",
     border: "1px dashed #1e293b",
     borderRadius: "12px",
     padding: "10px 6px",
@@ -505,68 +600,113 @@ const styles = {
     alignItems: "center",
     textAlign: "center"
   },
-  uploadHeaderIcon: {
-    width: "30px",
-    height: "30px",
-    borderRadius: "8px",
+  docIconCircle: {
+    width: "28px",
+    height: "28px",
+    borderRadius: "6px",
+    background: "#2563eb",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontSize: "14px",
     marginBottom: "6px"
   },
-  uploadTitle: { margin: 0, fontSize: "11px", fontWeight: "700" },
-  uploadSubtitle: { margin: "4px 0 8px 0", fontSize: "8px", color: "#64748b", minHeight: "22px" },
-  textInputStyle: {
-    width: "100%",
-    background: "#0f172a",
-    border: "1px solid #334155",
-    borderRadius: "6px",
-    padding: "6px 8px",
-    color: "#ffffff",
-    fontSize: "10px",
-    marginBottom: "8px",
-    boxSizing: "border-box",
-    outline: "none"
+  docTitle: {
+    margin: 0,
+    fontSize: "11px",
+    fontWeight: "700"
   },
-  uploadButtonLabel: {
+  docSubtitle: {
+    margin: "4px 0 8px 0",
+    fontSize: "8px",
+    color: "#64748b",
+    lineHeight: "1.2",
+    minHeight: "22px"
+  },
+  uploadBtn: {
     width: "100%",
     background: "#1e293b",
     border: "1px solid #334155",
-    borderRadius: "8px",
-    padding: "6px 2px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "2px",
+    color: "#38bdf8",
+    fontSize: "9px",
+    fontWeight: "600",
+    padding: "6px 0",
+    borderRadius: "6px",
     cursor: "pointer",
-    color: "#93c5fd"
+    marginBottom: "6px"
+  },
+  uploadPhotoBtn: {
+    width: "100%",
+    background: "#1e293b",
+    border: "1px solid #334155",
+    color: "#94a3b8",
+    fontSize: "9px",
+    fontWeight: "600",
+    padding: "6px 0",
+    borderRadius: "6px",
+    cursor: "pointer"
+  },
+  docInput: {
+    width: "100%",
+    background: "#030712",
+    border: "1px solid #1e293b",
+    borderRadius: "6px",
+    padding: "4px 6px",
+    color: "#ffffff",
+    fontSize: "9px",
+    textAlign: "center",
+    boxSizing: "border-box"
   },
 
+  // Submit Button
   submitBtn: {
     width: "100%",
-    height: "40px",
-    borderRadius: "20px",
+    height: "44px",
+    borderRadius: "22px",
     border: "none",
-    background: "linear-gradient(90deg, #10b981 0%, #0284c7 100%)",
+    background: "linear-gradient(90deg, #00e676 0%, #2563eb 100%)",
     color: "#ffffff",
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: "800",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: "6px"
+    gap: "8px"
   },
-  securityNote: { textAlign: "center", fontSize: "10px", color: "#22c55e", margin: "10px 0 0 0" },
+  securityText: {
+    textAlign: "center",
+    fontSize: "10px",
+    color: "#22c55e",
+    marginTop: "10px"
+  },
 
-  processTitle: { margin: "0 0 10px 0", fontSize: "12px", fontWeight: "700" },
-  stepsGrid: { display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "6px" },
-  stepCard: {
-    background: "#131c2e",
+  // Process Steps
+  processHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "12px"
+  },
+  processTitle: {
+    fontSize: "13px",
+    fontWeight: "700"
+  },
+  processSub: {
+    fontSize: "9px",
+    color: "#64748b"
+  },
+  stepsContainer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  stepBox: {
+    background: "#0f172a",
     border: "1px solid #1e293b",
     borderRadius: "10px",
     padding: "8px 4px",
+    width: "22%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -587,16 +727,59 @@ const styles = {
     alignItems: "center",
     justifyContent: "center"
   },
-  stepIconCircle: {
-    width: "24px",
-    height: "24px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "11px",
-    margin: "2px 0 4px 0"
+  stepIcon: {
+    fontSize: "14px",
+    margin: "4px 0"
   },
-  stepTitle: { margin: "2px 0", fontSize: "9px", fontWeight: "700" },
-  stepText: { margin: 0, fontSize: "7px", color: "#64748b" }
+  stepTitle: {
+    fontSize: "8px",
+    fontWeight: "700",
+    marginBottom: "2px"
+  },
+  stepDesc: {
+    fontSize: "7px",
+    color: "#64748b",
+    lineHeight: "1.1"
+  },
+  stepArrow: {
+    color: "#334155",
+    fontSize: "12px"
+  },
+
+  // Bottom Navigation Bar
+  bottomNav: {
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: "56px",
+    background: "#090d16",
+    borderTop: "1px solid #1e293b",
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    zIndex: 1000
+  },
+  navItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    cursor: "pointer",
+    position: "relative"
+  },
+  navIcon: {
+    fontSize: "16px"
+  },
+  navLabel: {
+    fontSize: "9px",
+    marginTop: "2px"
+  },
+  activeIndicator: {
+    position: "absolute",
+    bottom: "-6px",
+    width: "20px",
+    height: "2px",
+    background: "#00e676",
+    borderRadius: "2px"
+  }
 };
