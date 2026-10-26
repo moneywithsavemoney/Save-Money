@@ -71,8 +71,10 @@ const parseSafeDate = (dateVal) => {
 const formatDate = (dateVal) => {
   const d = parseSafeDate(dateVal);
   if (isNaN(d.getTime()) || d.getFullYear() < 2020) return "-";
-  return d.toLocaleDateString("en-GB");
+  // UTC এর পরিবর্তে লোকাল ডেট স্ট్రిং ব্যবহার করা
+  return d.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
 };
+
 
 const formatDateTime = (dateVal) => {
   const d = parseSafeDate(dateVal);
