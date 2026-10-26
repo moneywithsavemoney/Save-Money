@@ -405,14 +405,25 @@ export default function OneTime() {
           availableBalance: Number(data.user?.otbalance || data.user?.otBalance || 0)
         });
 
-        const active = data.activeInvestment || sortedHistory.find(
+        // FIXED: Only pick active investment if it's NOT matured
+        const foundActive = data.activeInvestment || sortedHistory.find(
           (item) => {
             const t = (item.type || "").toLowerCase();
             const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
-            return !isAddFund && (t.includes("investment") || t === "onetimeinvestment") && (item.status || "").toLowerCase() === "active";
+            const isInv = !isAddFund && (t.includes("investment") || t === "onetimeinvestment") && (item.status || "").toLowerCase() === "active";
+            
+            if (!isInv) return false;
+
+            // Check if matured
+            let durationDays = item.durationDays || (item.tenureMonths ? item.tenureMonths * 30 : 180);
+            let startDateObj = parseSafeDate(item.startDate || item.createdAt);
+            let maturityObj = new Date(startDateObj.getTime());
+            maturityObj.setDate(maturityObj.getDate() + durationDays);
+            
+            return new Date() < maturityObj; // Only active if today is before maturity date
           }
         );
-        setActiveInvestment(active || null);
+        setActiveInvestment(foundActive || null);
 
         if (data.user?.bankDetails) {
           setBankForm(data.user.bankDetails);
@@ -551,11 +562,11 @@ export default function OneTime() {
   }, [activeInvestment, isMatured]);
 
   const dailyReturn = useMemo(() => {
-    if (activeInvestment && (activeInvestment.status || "").toLowerCase() === "active") {
+    if (activeInvestment && (activeInvestment.status || "").toLowerCase() === "active" && !isMatured) {
       return activeDailyReturnVal;
     }
     return 0;
-  }, [activeInvestment, activeDailyReturnVal]);
+  }, [activeInvestment, activeDailyReturnVal, isMatured]);
 
   // DAILY WITHDRAW CHECK (Only blocks if status is pending, approved, accepted or success. REJECTED is NOT blocked)
   const hasWithdrawnToday = useMemo(() => {
@@ -912,7 +923,6 @@ export default function OneTime() {
     }
   };
 
-  // Matured Investment Withdraw Logic with Referral Check
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
@@ -1410,8 +1420,8 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* ACTIVE LIVE INVESTMENT CARD */}
-        {activeInvestment && (
+        {/* ACTIVE LIVE INVESTMENT CARD (Shown ONLY if not matured) */}
+        {activeInvestment && !isMatured && (
           <section style={styles.liveActiveInvestCard}>
             <div style={styles.liveInvestHeader}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
