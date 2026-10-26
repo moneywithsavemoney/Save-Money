@@ -7974,9 +7974,10 @@ app.post("/api/onetime/create-investment", async (req, res) => {
     if (dailyRate === 0) {
       return res.status(400).json({ success: false, message: "Invalid investment plan or amount" });
     }
-
-    // ওয়ালেট থেকে টাকা কাটা
-    user.otbalance = userBalance - investAmt;
+     // ওলেট থেকে টাকা কাটার সময় check isReinvest flag:
+if (!req.body.isReinvest) {
+  user.otbalance = userBalance - investAmt;
+}
 
     const startDate = new Date();
     const maturityDate = new Date();
