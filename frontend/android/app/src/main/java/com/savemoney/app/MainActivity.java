@@ -7,7 +7,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.webkit.WebChromeClient;
-import com.getapp.capacitor.BridgeActivity; // আপনার প্রজেক্টের প্যাকেজ অনুযায়ী আমপোর্ট ঠিক রাখুন
+import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
     @Override
@@ -32,7 +32,7 @@ public class MainActivity extends BridgeActivity {
                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
                     if (url == null) return false;
 
-                    // UPI এবং পেমেন্ট স্কিমগুলো এক্সটার্নাল অ্যাপে ওপেন করার জন্য
+                    // UPI বা পেমেন্ট স্কিম হলে এক্সটার্নাল অ্যাপে ওপেন করবে
                     if (url.startsWith("upi://") || 
                         url.startsWith("tez://") || 
                         url.startsWith("phonepe://") || 
@@ -40,14 +40,14 @@ public class MainActivity extends BridgeActivity {
                         url.startsWith("cred://")) {
                         try {
                             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                            startActivity(intent);
+                            MainActivity.this.startActivity(intent);
                             return true;
                         } catch (Exception e) {
                             return false;
                         }
                     }
 
-                    // Intent স্কিম হ্যান্ডলিং (Razorpay UPI Apps-এর জন্য এটি অত্যন্ত জরুরি)
+                    // Intent স্কিম হ্যান্ডলিং (Razorpay UPI Apps-এর জন্য)
                     if (url.startsWith("intent://")) {
                         try {
                             Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
@@ -56,12 +56,10 @@ public class MainActivity extends BridgeActivity {
                                 intent.setComponent(null);
                                 intent.setSelector(null);
                                 
-                                // যদি সংশ্লিষ্ট UPI অ্যাপ ইনস্টল থাকে তবে ওপেন হবে
                                 try {
-                                    startActivity(intent);
+                                    MainActivity.this.startActivity(intent);
                                     return true;
                                 } catch (Exception e) {
-                                    // ফলব্যাক ইউআরএল ব্রাউজারে রিডাইরেক্ট করা
                                     String fallbackUrl = intent.getStringExtra("browser_fallback_url");
                                     if (fallbackUrl != null) {
                                         view.loadUrl(fallbackUrl);
@@ -82,7 +80,7 @@ public class MainActivity extends BridgeActivity {
 
                     try {
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                        startActivity(intent);
+                        MainActivity.this.startActivity(intent);
                         return true;
                     } catch (Exception e) {
                         return true;
@@ -90,7 +88,7 @@ public class MainActivity extends BridgeActivity {
                 }
             });
 
-            // লাইভ Vercel সাইট লোড করা[span_11](start_span)[span_11](end_span)
+            // লাইভ Vercel সাইট লোড করা
             webView.loadUrl("https://save-moneyy-indol.vercel.app");
         }
     }
