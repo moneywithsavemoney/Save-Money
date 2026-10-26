@@ -348,15 +348,15 @@ export default function OneTime() {
 
         const uniqueMap = new Map();
         combined.forEach((item) => {
-          const key = item._id || `${item.type}-${item.createdAt || item.startDate}`;
+          const key = item._id || `${item.type}-${item.createdAt || item.startDate || item.date}-${item.amount}`;
           if (!uniqueMap.has(key)) {
             uniqueMap.set(key, item);
           }
         });
 
         const sortedHistory = Array.from(uniqueMap.values()).sort((a, b) => {
-          const dateA = parseSafeDate(a.createdAt || a.startDate || a.maturity);
-          const dateB = parseSafeDate(b.createdAt || b.startDate || b.maturity);
+          const dateA = parseSafeDate(a.createdAt || a.startDate || a.date || a.maturity);
+          const dateB = parseSafeDate(b.createdAt || b.startDate || b.date || b.maturity);
           return dateB - dateA;
         });
 
@@ -405,23 +405,14 @@ export default function OneTime() {
           availableBalance: Number(data.user?.otbalance || data.user?.otBalance || 0)
         });
 
-        const foundActive = data.activeInvestment || sortedHistory.find(
+        const active = data.activeInvestment || sortedHistory.find(
           (item) => {
             const t = (item.type || "").toLowerCase();
             const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
-            const isInv = !isAddFund && (t.includes("investment") || t === "onetimeinvestment") && (item.status || "").toLowerCase() === "active";
-            
-            if (!isInv) return false;
-
-            let durationDays = item.durationDays || (item.tenureMonths ? item.tenureMonths * 30 : 180);
-            let startDateObj = parseSafeDate(item.startDate || item.createdAt);
-            let maturityObj = new Date(startDateObj.getTime());
-            maturityObj.setDate(maturityObj.getDate() + durationDays);
-            
-            return new Date() < maturityObj;
+            return !isAddFund && (t.includes("investment") || t === "onetimeinvestment") && (item.status || "").toLowerCase() === "active";
           }
         );
-        setActiveInvestment(foundActive || null);
+        setActiveInvestment(active || null);
 
         if (data.user?.bankDetails) {
           setBankForm(data.user.bankDetails);
@@ -505,6 +496,7 @@ export default function OneTime() {
     }
   };
 
+  // CHECK PLAN MATURITY STRICTLY
   const { calculatedMaturityDate, isMatured, investmentDurationDays, activeDailyReturnVal } = useMemo(() => {
     if (!activeInvestment) {
       return { 
@@ -566,6 +558,7 @@ export default function OneTime() {
     return 0;
   }, [activeInvestment, activeDailyReturnVal, isMatured]);
 
+  // DAILY WITHDRAW CHECK (Only blocks if status is pending, approved, accepted or success. REJECTED is NOT blocked)
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
@@ -595,7 +588,7 @@ export default function OneTime() {
 
   const handleStartInvestment = async () => {
     if (isInvestmentLocked) {
-      triggerToast("You already have an active investment.", "error");
+      triggerToast("You already have an active investment running.", "error");
       return;
     }
 
@@ -748,10 +741,7 @@ export default function OneTime() {
         name: "Save Money",
         description: "Add Fund to Wallet",
         order_id: orderId,
-        
-        retry: {
-          enabled: false
-        },
+        retry: { enabled: false },
         timeout: 300,
         modal: {
           escape: true,
@@ -765,20 +755,13 @@ export default function OneTime() {
             blocks: {
               utib: {
                 name: "Pay via UPI / Apps",
-                instruments: [
-                  {
-                    method: "upi"
-                  }
-                ]
+                instruments: [{ method: "upi" }]
               }
             },
             sequence: ["block.utib", "payment_methods"],
-            preferences: {
-              show_default_blocks: true
-            }
+            preferences: { show_default_blocks: true }
           }
         },
-
         handler: async function (response) {
           try {
             const verifyRes = await fetch(`${API}/api/onetime/verify-razorpay-payment`, {
@@ -815,9 +798,7 @@ export default function OneTime() {
           email: email,
           contact: user?.mobile || user?.phone || ""
         },
-        theme: {
-          color: "#f59e0b"
-        }
+        theme: { color: "#f59e0b" }
       };
 
       const paymentObject = new window.Razorpay(options);
@@ -922,11 +903,6 @@ export default function OneTime() {
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
-    if (!bonusList || bonusList.length === 0) {
-      triggerToast("Withdrawal unavailable. At least 1 referral is required to withdraw.", "error");
-      return;
-    }
-
     if (!user.bankDetails || !user.bankDetails.accountNumber) {
       setShowBankModal(true);
       return;
@@ -965,11 +941,13 @@ export default function OneTime() {
     }
   };
 
-  // FIXED: Reinvest now bypasses wallet balance check since the amount comes directly from matured investment principal
+  // REINVEST LOGIC (DOES NOT DEDUCT FROM WALLET OTBALANCE)
   const handleConfirmReinvest = async () => {
     if (!activeInvestment) return;
 
     const reinvestAmount = Number(activeInvestment.amount || 0);
+    const cat = activeInvestment.category || category || "beginner";
+    const tenure = activeInvestment.tenureMonths || activeTenureMonths || 9;
 
     try {
       setWithdrawing(true);
@@ -981,15 +959,15 @@ export default function OneTime() {
         },
         body: JSON.stringify({
           email,
-          category: activeInvestment.category || "beginner",
+          category: cat,
           amount: reinvestAmount,
-          duration: activeInvestment.duration || `${activeTenureMonths} Months`,
-          durationDays: activeInvestment.durationDays || (activeTenureMonths * 30),
-          dailyReturn: calculatedDailyReturn,
+          duration: `${tenure} Months`,
+          durationDays: tenure * 30,
+          tenureMonths: tenure,
+          dailyReturn: (reinvestAmount * currentRate) / 100,
           rate: currentRate,
           status: "Active",
-          isReinvestment: true,
-          maturedInvestmentId: activeInvestment._id || activeInvestment.id
+          isReinvest: true // FLAG TO PREVENT OTBALANCE DEDUCTION ON BACKEND
         })
       });
 
@@ -1071,9 +1049,7 @@ export default function OneTime() {
       {showImagePopup && (
         <div style={styles.modalOverlay} onClick={() => setShowImagePopup(false)}>
           <div style={styles.animatedPopupCard} onClick={(e) => e.stopPropagation()}>
-            <button style={styles.closeImagePopupBtn} onClick={() => setShowImagePopup(false)}>
-              ✕
-            </button>
+            <button style={styles.closeImagePopupBtn} onClick={() => setShowImagePopup(false)}>✕</button>
             <img 
               src="/onetime.png" 
               alt="Bonus Rules" 
@@ -1419,7 +1395,7 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* ACTIVE LIVE INVESTMENT CARD (Shown ONLY if not matured) */}
+        {/* ACTIVE LIVE INVESTMENT CARD (HIDE IF MATURED) */}
         {activeInvestment && !isMatured && (
           <section style={styles.liveActiveInvestCard}>
             <div style={styles.liveInvestHeader}>
@@ -1473,7 +1449,7 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* MATURED INVESTMENT CARD */}
+        {/* MATURED INVESTMENT CARD (SHOWS ONLY WHEN TENURE EXPIRED) */}
         {activeInvestment && isMatured && (
           <section style={styles.maturedWalletCard}>
             <div style={styles.maturedCardHeader}>
@@ -1636,7 +1612,7 @@ export default function OneTime() {
                     } else if (isWithdraw) {
                       displayType = item.isInvestAmountWithdrawal ? "Invest Principal Wd" : "Withdrawal";
                       typeIcon = "💸";
-                    } else if (isEarning || item.type === "Daily Return" || item.type === "Profit") {
+                    } else if (isEarning || itemTypeRaw.includes("daily return") || itemTypeRaw.includes("profit")) {
                       displayType = "Daily Return";
                       typeIcon = "🪙";
                     } else if (item.duration) {
@@ -1652,7 +1628,7 @@ export default function OneTime() {
 
                     return (
                       <tr key={item._id || idx} style={styles.goldTr} onClick={() => setSelectedTxn(item)}>
-                        <td style={styles.goldTd}>{formatDate(item.createdAt || item.startDate)}</td>
+                        <td style={styles.goldTd}>{formatDate(item.createdAt || item.startDate || item.date)}</td>
                         <td style={styles.goldTd}>
                           <span style={{ marginRight: "4px" }}>{typeIcon}</span> {displayType}
                         </td>
@@ -2052,7 +2028,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* TRANSACTION SLIP MODAL (SHOWS REJECT REASON IN RED BOX) */}
+      {/* TRANSACTION SLIP MODAL (SHOWS REJECT REASON IN RED BOX ACCURATELY) */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
           <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
@@ -2102,6 +2078,7 @@ export default function OneTime() {
                 </strong>
               </div>
 
+              {/* REJECT REASON SHOWS PROPERLY HERE */}
               {["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase()) && (
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.2)", padding: "10px", borderRadius: "8px", border: "1px solid #ef4444", flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold", fontSize: "11px" }}>⚠️ Rejection Reason:</span>
