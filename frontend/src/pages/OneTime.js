@@ -405,7 +405,6 @@ export default function OneTime() {
           availableBalance: Number(data.user?.otbalance || data.user?.otBalance || 0)
         });
 
-        // FIXED: Only pick active investment if it's NOT matured
         const foundActive = data.activeInvestment || sortedHistory.find(
           (item) => {
             const t = (item.type || "").toLowerCase();
@@ -414,13 +413,12 @@ export default function OneTime() {
             
             if (!isInv) return false;
 
-            // Check if matured
             let durationDays = item.durationDays || (item.tenureMonths ? item.tenureMonths * 30 : 180);
             let startDateObj = parseSafeDate(item.startDate || item.createdAt);
             let maturityObj = new Date(startDateObj.getTime());
             maturityObj.setDate(maturityObj.getDate() + durationDays);
             
-            return new Date() < maturityObj; // Only active if today is before maturity date
+            return new Date() < maturityObj;
           }
         );
         setActiveInvestment(foundActive || null);
@@ -568,7 +566,6 @@ export default function OneTime() {
     return 0;
   }, [activeInvestment, activeDailyReturnVal, isMatured]);
 
-  // DAILY WITHDRAW CHECK (Only blocks if status is pending, approved, accepted or success. REJECTED is NOT blocked)
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
@@ -579,7 +576,6 @@ export default function OneTime() {
       const itemDate = parseSafeDate(item.createdAt || item.startDate || item.date).toDateString();
       const status = (item.status || "").toLowerCase();
 
-      // Blocked ONLY if pending, approved, accepted or success
       const isBlocked = ["pending", "approved", "accepted", "success"].includes(status);
       return itemDate === todayStr && isBlocked;
     });
@@ -969,6 +965,7 @@ export default function OneTime() {
     }
   };
 
+  // FIXED: Reinvest now bypasses wallet balance check since the amount comes directly from matured investment principal
   const handleConfirmReinvest = async () => {
     if (!activeInvestment) return;
 
@@ -984,13 +981,15 @@ export default function OneTime() {
         },
         body: JSON.stringify({
           email,
-          category,
+          category: activeInvestment.category || "beginner",
           amount: reinvestAmount,
-          duration: `${activeTenureMonths} Months`,
-          durationDays: activeTenureMonths * 30,
-          dailyReturn: (reinvestAmount * currentRate) / 100,
+          duration: activeInvestment.duration || `${activeTenureMonths} Months`,
+          durationDays: activeInvestment.durationDays || (activeTenureMonths * 30),
+          dailyReturn: calculatedDailyReturn,
           rate: currentRate,
-          status: "Active"
+          status: "Active",
+          isReinvestment: true,
+          maturedInvestmentId: activeInvestment._id || activeInvestment.id
         })
       });
 
@@ -2103,7 +2102,6 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              {/* REJECT REASON SHOWS PROPERLY HERE */}
               {["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase()) && (
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.2)", padding: "10px", borderRadius: "8px", border: "1px solid #ef4444", flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold", fontSize: "11px" }}>⚠️ Rejection Reason:</span>
