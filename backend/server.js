@@ -187,10 +187,11 @@ app.post("/api/onetime/verify-razorpay-payment", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid payment signature" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+    // ব্যাকএন্ডে এভাবে সংশোধন করুন:
+const user = await User.findOne({ email: email.toLowerCase() });
+if (!user) { // এখানে 'if (user)' এর পরিবর্তে 'if (!user)' হবে[span_9](start_span)[span_9](end_span)
+    return res.status(404).json({ success: false, message: "User not found" });
+}
 
     user.otbalance = (Number(user.otbalance) || 0) + Number(amount);
     
