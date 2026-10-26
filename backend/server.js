@@ -7982,10 +7982,15 @@ app.post("/api/onetime/create-investment", async (req, res) => {
     if (dailyRate === 0) {
       return res.status(400).json({ success: false, message: "Invalid investment plan or amount" });
     }
-     // ওলেট থেকে টাকা কাটার সময় check isReinvest flag:
+     // ওয়ালেট থেকে টাকা কাটা (যদি রিইনভেস্ট না হয়)
 if (!req.body.isReinvest) {
+  const userBalance = Number(user.otbalance || user.otBalance || 0);
+  if (userBalance < investAmt) {
+    return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
+  }
   user.otbalance = userBalance - investAmt;
 }
+    
 
     const startDate = new Date();
     const maturityDate = new Date();
