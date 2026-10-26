@@ -7562,7 +7562,15 @@ app.post("/api/onetime/withdraw", async (req, res) => {
 
     // ১. মূল ইনভেস্টমেন্ট/প্রিন্সিপাল অ্যামাউন্ট উইথড্র করার ক্ষেত্রে প্রিন্সিপাল স্ট্যাটাস আপডেট
     let targetInv = null;
-    if (isInvestAmountWithdrawal) {
+      if (isInvestAmountWithdrawal) {
+              // অন্তত ১টি রেফারেল আছে কিনা চেক করা
+  const hasReferral = user.bonusList && user.bonusList.length > 0;
+  if (!hasReferral) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "Withdrawal unavailable. At least 1 referral is required to withdraw." 
+    });
+  }
       if (!investmentId) {
         return res.status(400).json({ success: false, message: "Investment ID is required for principal withdrawal" });
       }
