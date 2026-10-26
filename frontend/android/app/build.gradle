@@ -8,7 +8,7 @@ android {
         applicationId "com.savemoney.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
+        versionCode 1
         versionName "1.0.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -19,9 +19,9 @@ android {
     signingConfigs {
         release {
             storeFile file("my-release-key.jks")
-            storePassword "Rippro123@"
+            storePassword "RipRamRaj1998@"
             keyAlias "my-key-alias"
-            keyPassword "Rippro123@"
+            keyPassword "Ripramraj1998@"
         }
     }
 
