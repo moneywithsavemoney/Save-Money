@@ -3,6 +3,7 @@ package com.savemoney.app;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Message;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -24,8 +25,43 @@ public class MainActivity extends BridgeActivity {
             settings.setAllowFileAccess(true);
             settings.setJavaScriptCanOpenWindowsAutomatically(true);
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            
+            // ব্রাউজারের মতো ইউজার এজেন্ট সেট করা যাতে Razorpay সব UPI অপশন দেখায়
+            settings.setUserAgentString("Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
 
-            webView.setWebChromeClient(new WebChromeClient());
+            // পেমেন্ট গেটওয়ের পপআপ ও নতুন উইন্ডো হ্যান্ডেল করার জন্য WebChromeClient আপডেট
+            webView.setWebChromeClient(new WebChromeClient() {
+                @Override
+                public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                    WebView newWebView = new WebView(MainActivity.this);
+                    WebSettings newSettings = newWebView.getSettings();
+                    newSettings.setJavaScriptEnabled(true);
+                    newSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+                    newSettings.setDomStorageEnabled(true);
+                    
+                    newWebView.setWebViewClient(new WebViewClient() {
+                        @Override
+                        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                            if (url.startsWith("upi://") || url.startsWith("tez://") || url.startsWith("phonepe://") || url.startsWith("paytmmp://")) {
+                                try {
+                                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                    MainActivity.this.startActivity(intent);
+                                    return true;
+                                } catch (Exception e) {
+                                    return false;
+                                }
+                            }
+                            view.loadUrl(url);
+                            return true;
+                        }
+                    });
+                    
+                    WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                    transport.setWebView(newWebView);
+                    resultMsg.sendToTarget();
+                    return true;
+                }
+            });
 
             webView.setWebViewClient(new WebViewClient() {
                 @Override
