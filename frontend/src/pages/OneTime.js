@@ -43,7 +43,6 @@ const parseSafeDate = (dateVal) => {
 
   if (typeof dateVal === "string") {
     const trimmed = dateVal.trim();
-
     const parts = trimmed.split(/[/|-]/);
     if (parts.length === 3) {
       const p1 = parseInt(parts[0], 10);
@@ -334,6 +333,12 @@ export default function OneTime() {
           ? data.user.onetimeHistory
           : [];
 
+        const rawEarningsList = Array.isArray(data.earnings)
+          ? data.earnings.map((e) => ({ ...e, type: e.type || "Daily Return" }))
+          : Array.isArray(data.user?.earnings)
+          ? data.user.earnings.map((e) => ({ ...e, type: e.type || "Daily Return" }))
+          : [];
+
         const rawDeposits = Array.isArray(data.deposits)
           ? data.deposits.map((d) => ({ ...d, type: "Add Fund" }))
           : [];
@@ -344,7 +349,8 @@ export default function OneTime() {
           ? data.investments.map((i) => ({ ...i, type: "OneTimeInvestment" }))
           : [];
 
-        const combined = [...rawHistory, ...rawDeposits, ...rawWithdrawals, ...rawInvestments];
+        // Combine all arrays including earnings so daily returns show up instantly in history
+        const combined = [...rawHistory, ...rawEarningsList, ...rawDeposits, ...rawWithdrawals, ...rawInvestments];
 
         const uniqueMap = new Map();
         combined.forEach((item) => {
@@ -372,10 +378,10 @@ export default function OneTime() {
           
           const isAddFund = t.includes("add fund") || t.includes("deposit") || t.includes("add money");
           const isInvestment = t.includes("investment") || t === "onetimeinvestment";
-          const isEarning = t.includes("earning") || t.includes("profit") || t.includes("daily return") || t.includes("roi") || t.includes("bonus");
-          const isValidStatus = status === "active" || status === "completed" || status === "success" || status === "approved";
+          const isEarning = t.includes("earning") || t.includes("profit") || t.includes("daily return") || t.includes("roi") || t.includes("bonus") || t.includes("return");
+          const isValidStatus = status === "active" || status === "completed" || status === "success" || status === "approved" || status === "";
 
-          if (!isAddFund && isInvestment && isValidStatus) {
+          if (!isAddFund && isInvestment && (status === "active" || status === "completed" || status === "success" || status === "approved")) {
             calculatedInv += Number(item.amount || 0);
           }
 
@@ -496,7 +502,6 @@ export default function OneTime() {
     }
   };
 
-  // CHECK PLAN MATURITY STRICTLY
   const { calculatedMaturityDate, isMatured, investmentDurationDays, activeDailyReturnVal } = useMemo(() => {
     if (!activeInvestment) {
       return { 
@@ -521,7 +526,6 @@ export default function OneTime() {
     }
 
     let startDateObj = parseSafeDate(activeInvestment.startDate || activeInvestment.createdAt);
-
     let maturityObj = new Date(startDateObj.getTime());
     maturityObj.setDate(maturityObj.getDate() + durationDays);
 
@@ -558,7 +562,6 @@ export default function OneTime() {
     return 0;
   }, [activeInvestment, activeDailyReturnVal, isMatured]);
 
-  // DAILY WITHDRAW CHECK (Only blocks if status is pending, approved, accepted or success. REJECTED is NOT blocked)
   const hasWithdrawnToday = useMemo(() => {
     const todayStr = new Date().toDateString();
     return history.some((item) => {
@@ -614,8 +617,7 @@ export default function OneTime() {
           tenureMonths: activeTenureMonths,
           dailyReturn: calculatedDailyReturn,
           rate: currentRate,
-          status: "Active",
-          withdrawLogicUpdatePending: bonusList.length > 0
+          status: "Active"
         })
       });
 
@@ -748,18 +750,6 @@ export default function OneTime() {
           backdropclose: false,
           ondismiss: function () {
             setRazorpayLoading(false);
-          }
-        },
-        config: {
-          display: {
-            blocks: {
-              utib: {
-                name: "Pay via UPI / Apps",
-                instruments: [{ method: "upi" }]
-              }
-            },
-            sequence: ["block.utib", "payment_methods"],
-            preferences: { show_default_blocks: true }
           }
         },
         handler: async function (response) {
@@ -900,8 +890,15 @@ export default function OneTime() {
     }
   };
 
+  // MATURED PRINCIPAL WITHDRAW WITH MANDATORY REFERRAL CHECK
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
+
+    // Mandatory referral check restored: must have at least 1 referral to withdraw matured principal
+    if (!bonusList || bonusList.length === 0) {
+      triggerToast("Withdrawal unavailable. At least 1 referral is required to withdraw principal.", "error");
+      return;
+    }
 
     if (!user.bankDetails || !user.bankDetails.accountNumber) {
       setShowBankModal(true);
@@ -941,7 +938,7 @@ export default function OneTime() {
     }
   };
 
-  // REINVEST LOGIC (DOES NOT DEDUCT FROM WALLET OTBALANCE)
+  // REINVEST LOGIC WITH isReinvest FLAG (DOES NOT DEDUCT FROM WALLET OTBALANCE)
   const handleConfirmReinvest = async () => {
     if (!activeInvestment) return;
 
@@ -1933,7 +1930,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL WITH SMART LOGIC CONDITION & ONCE-PER-DAY CHECK */}
+      {/* WITHDRAW MODAL */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -1949,7 +1946,6 @@ export default function OneTime() {
               </strong>
             </div>
 
-            {/* IF USER HAS REFERRALS AND COUNTDOWN NOT FINISHED */}
             {bonusList && bonusList.length > 0 && !upgradeTimeLeft.isFinished ? (
               <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", padding: "14px", borderRadius: "10px", textAlign: "center", margin: "10px 0" }}>
                 <span style={{ fontSize: "22px", display: "block", marginBottom: "4px" }}>⏳</span>
@@ -1969,7 +1965,6 @@ export default function OneTime() {
                 </span>
               </div>
             ) : bonusList && bonusList.length > 0 && upgradeTimeLeft.isFinished ? (
-              /* NEW WITHDRAWAL SYSTEM AFTER COUNTDOWN COMPLETES FOR USERS WITH REFERRALS */
               <div>
                 <p style={{ fontSize: "11px", color: "#facc15", textAlign: "center", marginBottom: "10px", fontWeight: "bold" }}>
                   ⚡ New Upgraded Withdrawal System Active
@@ -2007,7 +2002,6 @@ export default function OneTime() {
                 </button>
               </div>
             ) : (
-              /* OLD SYSTEM FOR NORMAL USERS WITHOUT REFERRALS */
               <>
                 <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
                   Withdraw Daily Return: <strong style={{ color: "#facc15" }}>₹{dailyReturn.toFixed(2)}</strong>
@@ -2028,7 +2022,7 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* TRANSACTION SLIP MODAL (SHOWS REJECT REASON IN RED BOX ACCURATELY) */}
+      {/* TRANSACTION SLIP MODAL */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
           <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
