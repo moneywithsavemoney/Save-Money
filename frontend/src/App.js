@@ -90,12 +90,11 @@ function BackButtonHandler() {
   return null;
 }
 
-// 🟢 গ্লোবাল বটম নেভিয়েশন বার কম্পোনেন্ট (সব পেজে নিচে শো করবে)
+// 🟢 গ্লোবাল বটম নেভিয়েশন বার কম্পোনেন্ট (সাদা ফাঁকা অংশ দূর করার জন্য ব্যাকগ্রাউন্ড ও স্টাইল ফিক্সড)
 function GlobalBottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // যে পেজগুলোতে বটম নেভিয়েশন দেখাতে চান না (যেমন Login বা Register)
   const hideNavPaths = ["/login", "/register", "/forgot-password", "/admin"];
   const shouldShowNav = !hideNavPaths.includes(location.pathname) && !location.pathname.startsWith("/admin");
 
@@ -107,12 +106,13 @@ function GlobalBottomNav() {
       bottom: 0,
       left: 0,
       right: 0,
-      height: "56px",
+      height: "58px",
       background: "#020817",
       display: "grid",
       gridTemplateColumns: "repeat(4, 1fr)",
       borderTop: "1px solid #1e40af",
-      zIndex: 99999
+      zIndex: 99999,
+      boxSizing: "border-box"
     }}>
       <button
         style={{
@@ -123,13 +123,12 @@ function GlobalBottomNav() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: "11px",
           cursor: "pointer"
         }}
         onClick={() => navigate("/home")}
       >
         <span style={{ fontSize: "18px" }}>🏠</span>
-        <span style={{ fontSize: "10px", marginTop: "2px" }}>Home</span>
+        <span style={{ fontSize: "10px", marginTop: "2px", fontWeight: "600" }}>Home</span>
       </button>
 
       <button
@@ -141,13 +140,12 @@ function GlobalBottomNav() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: "11px",
           cursor: "pointer"
         }}
         onClick={() => navigate("/wallet")}
       >
         <span style={{ fontSize: "18px" }}>👛</span>
-        <span style={{ fontSize: "10px", marginTop: "2px" }}>Wallet</span>
+        <span style={{ fontSize: "10px", marginTop: "2px", fontWeight: "600" }}>Wallet</span>
       </button>
 
       <button
@@ -159,13 +157,12 @@ function GlobalBottomNav() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: "11px",
           cursor: "pointer"
         }}
         onClick={() => navigate("/refer")}
       >
         <span style={{ fontSize: "18px" }}>👥</span>
-        <span style={{ fontSize: "10px", marginTop: "2px" }}>Refer</span>
+        <span style={{ fontSize: "10px", marginTop: "2px", fontWeight: "600" }}>Refer</span>
       </button>
 
       <button
@@ -177,13 +174,12 @@ function GlobalBottomNav() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: "11px",
           cursor: "pointer"
         }}
         onClick={() => navigate("/one-time")}
       >
         <span style={{ fontSize: "18px" }}>⚡</span>
-        <span style={{ fontSize: "10px", marginTop: "2px" }}>Onetime</span>
+        <span style={{ fontSize: "10px", marginTop: "2px", fontWeight: "600" }}>Onetime</span>
       </button>
     </nav>
   );
@@ -192,13 +188,11 @@ function GlobalBottomNav() {
 function App() {
   const [popup, setPopup] = useState(null);
 
-  // 🚀 অটো-আপডেট পপ-আপের জন্য স্টেট
   const [updateModal, setUpdateModal] = useState({
     show: false,
     downloadUrl: ""
   });
 
-  // 🔔 FCM Push Notification টোকেন রেজিস্টার ও ব্যাকএন্ডে সেভ করার লজিক
   useEffect(() => {
     const initPushNotifications = async () => {
       try {
@@ -218,7 +212,6 @@ function App() {
 
     initPushNotifications();
 
-    // ফায়ারবেস থেকে টোকেন জেনারেট হলে ব্যাকএন্ডের API-তে পাঠানো
     const tokenListener = PushNotifications.addListener('registration', async (token) => {
       const email = localStorage.getItem("email");
       const userId = localStorage.getItem("userId");
@@ -230,7 +223,6 @@ function App() {
             email: email,
             fcmToken: token.value
           });
-          console.log("FCM token synced successfully with backend");
         } catch (error) {
           console.error("Failed to save FCM token to backend:", error);
         }
@@ -242,14 +234,11 @@ function App() {
     };
   }, []);
 
-  // 🔄 অটো-আপডেট চেকিং লজিক
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
         const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
         const data = await res.json();
-
-        // ⚠️ আপনার ইনস্টল করা অ্যাপের বর্তমান ভার্সন (১)
         const currentVersionCode = 1;
 
         if (data && data.versionCode > currentVersionCode) {
@@ -288,13 +277,11 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* 🟢 ব্যাক বাটন লিসেনার যুক্ত করা হলো */}
       <BackButtonHandler />
 
-      {/* 🟢 জুম ও মোবাইল ওভারফ্লো বন্ধ করার মূল কন্টেইনার Wrapper (নিচে প্যাডিং দেওয়া হয়েছে যাতে কন্টেন্ট ঢাকা না পড়ে) */}
-      <div style={{ width: "100%", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh", boxSizing: "border-box", paddingBottom: "70px" }}>
+      {/* মূল র্যাপারে ব্যাকগ্রাউন্ড কালার #020817 এবং প্যাডিং ফিট করা হয়েছে যাতে কোনো সাদা ফাঁকা অংশ না থাকে */}
+      <div style={{ width: "100%", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh", background: "#020817", boxSizing: "border-box", paddingBottom: "65px" }}>
 
-        {/* 🚀 ইন-অ্যাপ অটো-আপডেট পপ-আপ মোডাল */}
         {updateModal.show && (
           <div style={{
             position: "fixed",
@@ -341,7 +328,6 @@ function App() {
                   Update Now
                 </button>
 
-                {/* 🔴 স্কিপ বাটন যুক্ত করা হলো */}
                 <button
                   onClick={() => setUpdateModal((prev) => ({ ...prev, show: false }))}
                   style={{
@@ -602,8 +588,7 @@ function App() {
 
           <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
 
-            <Route path="/ecommerce-home" element={<EcommerceHome />} />
-            
+          <Route path="/ecommerce-home" element={<EcommerceHome />} />
 
           <Route
             path="/support"
@@ -694,7 +679,6 @@ function App() {
 
       </div>
 
-      {/* 🟢 গ্লোবাল ফিক্সড বটম নেভিয়েশন বার */}
       <GlobalBottomNav />
     </BrowserRouter>
   );
