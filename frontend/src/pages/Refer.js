@@ -703,7 +703,12 @@ const referLink = `${baseUrl}/register?ref=${user.referCode}`;
           <div style={styles.shareBox}>
             <h3 style={{ margin: "0 0 6px 0", fontSize: "13px" }}>Share via</h3>
             <div style={{ display: "flex", gap: "8px" }}>
-              <button style={styles.whatsapp} onClick={shareWhatsapp}>🟢</button>
+              <button style={styles.whatsapp} onClick={shareWhatsapp}>
+  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ fill: "#ffffff", stroke: "none" }}>
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+  </svg>
+</button>
+
               <button style={styles.telegram} onClick={shareTelegram}>⌲</button>
             </div>
           </div>
