@@ -175,9 +175,10 @@ export default function Home() {
     loadLatestUpdate();
     registerPushNotification();
 
+    // স্লো হওয়া ও কেঁপে যাওয়ার সমস্যা এড়াতে ইন্টারভ্যাল সময় বাড়িয়ে অপ্টিমাইজ করা হলো
     const interval = setInterval(() => {
       loadLatestUpdate();
-    }, 10000);
+    }, 30000);
 
     setShowOfferPopup(true);
 
@@ -198,8 +199,6 @@ export default function Home() {
       });
 
       const data = await res.json();
-
-      // টোকেন এক্সপায়ার চেক বা লগআউটের ল এখানে আর কাজ করবে না
 
       setUser(data || {});
       
@@ -980,7 +979,7 @@ export default function Home() {
         </p>
       </footer>
 
-      {/* BOTTOM NAVIGATION */}
+      {/* BOTTOM NAVIGATION - ফিক্সড করা হয়েছে এবং শেষ আইকনটি onetime করা হয়েছে */}
       <nav style={styles.bottomNav}>
         <BottomNavItem
           icon="🏠"
@@ -1001,10 +1000,10 @@ export default function Home() {
           onClick={() => go("/refer")}
         />
         <BottomNavItem
-          icon="🌲"
-          title="tree"
-          active={location.pathname === "/referral-tree"}
-          onClick={() => go("/referral-tree")}
+          icon="⚡"
+          title="Onetime"
+          active={location.pathname === "/one-time"}
+          onClick={() => go("/one-time")}
         />
       </nav>
 
@@ -1127,26 +1126,26 @@ const animationStyles = `
     }
   }
 
-  /* 👇 ঢেউ খেলার মতো সুন্দর ওয়েভ অ্যানিমেশন (Wave / Floating Animation) */
+  /* অপ্টিমাইজড স্মুথ ওয়েভ অ্যানিমেশন যা স্লো বা ল্যাগ করবে না */
   @keyframes waveAnimation {
     0% {
-      transform: translateY(0px) scale(1);
+      transform: translateY(0px);
     }
     50% {
-      transform: translateY(-4px) scale(1.02);
+      transform: translateY(-2px);
     }
     100% {
-      transform: translateY(0px) scale(1);
+      transform: translateY(0px);
     }
   }
 
   .wave-btn {
-    animation: waveAnimation 3s ease-in-out infinite;
-    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    animation: waveAnimation 4s ease-in-out infinite;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
   }
 
   .wave-btn:hover {
-    transform: translateY(-6px) scale(1.04) !important;
+    transform: translateY(-3px) scale(1.02) !important;
   }
 
   .premium-app-btn:hover {
@@ -1182,7 +1181,8 @@ const styles = {
   marqueeText: {
     display: "inline-block",
     whiteSpace: "nowrap",
-    animation: "marquee 20s linear infinite"
+    animation: "marquee 25s linear infinite",
+    willChange: "transform" // পারফরম্যান্স স্মুথ রাখার জন্য
   },
   limitedOfferBadge: {
     background: "#f59e0b",
@@ -2063,7 +2063,7 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "repeat(4,1fr)",
     borderTop: "1px solid #1e40af",
-    zIndex: 999
+    zIndex: 99999
   },
   bottomNavItem: {
     border: "none",
