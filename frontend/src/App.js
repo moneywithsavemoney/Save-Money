@@ -90,6 +90,105 @@ function BackButtonHandler() {
   return null;
 }
 
+// 🟢 গ্লোবাল বটম নেভিয়েশন বার কম্পোনেন্ট (সব পেজে নিচে শো করবে)
+function GlobalBottomNav() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // যে পেজগুলোতে বটম নেভিয়েশন দেখাতে চান না (যেমন Login বা Register)
+  const hideNavPaths = ["/login", "/register", "/forgot-password", "/admin"];
+  const shouldShowNav = !hideNavPaths.includes(location.pathname) && !location.pathname.startsWith("/admin");
+
+  if (!shouldShowNav) return null;
+
+  return (
+    <nav style={{
+      position: "fixed",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      height: "56px",
+      background: "#020817",
+      display: "grid",
+      gridTemplateColumns: "repeat(4, 1fr)",
+      borderTop: "1px solid #1e40af",
+      zIndex: 99999
+    }}>
+      <button
+        style={{
+          border: "none",
+          background: location.pathname === "/home" || location.pathname === "/" ? "#0f2a5c" : "transparent",
+          color: location.pathname === "/home" || location.pathname === "/" ? "white" : "#94a3b8",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "11px",
+          cursor: "pointer"
+        }}
+        onClick={() => navigate("/home")}
+      >
+        <span style={{ fontSize: "18px" }}>🏠</span>
+        <span style={{ fontSize: "10px", marginTop: "2px" }}>Home</span>
+      </button>
+
+      <button
+        style={{
+          border: "none",
+          background: location.pathname === "/wallet" ? "#0f2a5c" : "transparent",
+          color: location.pathname === "/wallet" ? "white" : "#94a3b8",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "11px",
+          cursor: "pointer"
+        }}
+        onClick={() => navigate("/wallet")}
+      >
+        <span style={{ fontSize: "18px" }}>👛</span>
+        <span style={{ fontSize: "10px", marginTop: "2px" }}>Wallet</span>
+      </button>
+
+      <button
+        style={{
+          border: "none",
+          background: location.pathname === "/refer" ? "#0f2a5c" : "transparent",
+          color: location.pathname === "/refer" ? "white" : "#94a3b8",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "11px",
+          cursor: "pointer"
+        }}
+        onClick={() => navigate("/refer")}
+      >
+        <span style={{ fontSize: "18px" }}>👥</span>
+        <span style={{ fontSize: "10px", marginTop: "2px" }}>Refer</span>
+      </button>
+
+      <button
+        style={{
+          border: "none",
+          background: location.pathname === "/one-time" ? "#0f2a5c" : "transparent",
+          color: location.pathname === "/one-time" ? "white" : "#94a3b8",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "11px",
+          cursor: "pointer"
+        }}
+        onClick={() => navigate("/one-time")}
+      >
+        <span style={{ fontSize: "18px" }}>⚡</span>
+        <span style={{ fontSize: "10px", marginTop: "2px" }}>Onetime</span>
+      </button>
+    </nav>
+  );
+}
+
 function App() {
   const [popup, setPopup] = useState(null);
 
@@ -192,8 +291,8 @@ function App() {
       {/* 🟢 ব্যাক বাটন লিসেনার যুক্ত করা হলো */}
       <BackButtonHandler />
 
-      {/* 🟢 জুম ও মোবাইল ওভারফ্লো বন্ধ করার মূল কন্টেইনার Wrapper */}
-      <div style={{ width: "100%", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh", boxSizing: "border-box" }}>
+      {/* 🟢 জুম ও মোবাইল ওভারফ্লো বন্ধ করার মূল কন্টেইনার Wrapper (নিচে প্যাডিং দেওয়া হয়েছে যাতে কন্টেন্ট ঢাকা না পড়ে) */}
+      <div style={{ width: "100%", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh", boxSizing: "border-box", paddingBottom: "70px" }}>
 
         {/* 🚀 ইন-অ্যাপ অটো-আপডেট পপ-আপ মোডাল */}
         {updateModal.show && (
@@ -594,6 +693,9 @@ function App() {
         />
 
       </div>
+
+      {/* 🟢 গ্লোবাল ফিক্সড বটম নেভিয়েশন বার */}
+      <GlobalBottomNav />
     </BrowserRouter>
   );
 }
