@@ -295,24 +295,21 @@ const referLink = `${baseUrl}/register?ref=${user.referCode}`;
     }
   };
 
-  // 🟢 আপডেট করা হোয়াটসঅ্যাপ শেয়ার হ্যান্ডলার (অ্যাপ সাপোর্ট সহ)
+    // 🟢 সংশোধিত হোয়াটসঅ্যাপ শেয়ার হ্যান্ডলার
   const shareWhatsapp = () => {
     const text = `Join SAVE MONEY using my refer link: ${referLink}`;
     const encodedText = encodeURIComponent(text);
     
-    // অ্যাপ ও ওয়েব উভয় ক্ষেত্রেই ডাইরেক্ট হোয়াটসঅ্যাপ খোলার জন্য
-    const whatsappUrl = `whatsapp://send?text=${encodedText}`;
+    // WebView বা অ্যাপের ক্র্যাশ এড়াতে স্ট্যান্ডার্ড WhatsApp API লিংক ব্যবহার করা হলো
     const webUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
 
     try {
-      window.location.href = whatsappUrl;
-      setTimeout(() => {
-        window.open(webUrl, "_blank");
-      }, 500);
-    } catch (e) {
       window.open(webUrl, "_blank");
+    } catch (e) {
+      console.log("WhatsApp share error:", e);
     }
   };
+  
 
   const shareTelegram = () => {
     const text = `Join SAVE MONEY using my refer link: ${referLink}`;
