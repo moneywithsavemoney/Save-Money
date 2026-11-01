@@ -71,7 +71,6 @@ const parseSafeDate = (dateVal) => {
 const formatDate = (dateVal) => {
   const d = parseSafeDate(dateVal);
   if (isNaN(d.getTime()) || d.getFullYear() < 2020) return "-";
-  // UTC এর পরিবর্তে লোকাল ডেট স্ট్రిং ব্যবহার করা
   return d.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
 };
 
@@ -221,7 +220,6 @@ export default function OneTime() {
   const [razorpayLoading, setRazorpayLoading] = useState(false);
   const [paymentMethodType, setPaymentMethodType] = useState("fiat");
 
-  // Countdown timer state for withdrawal logic upgrade
   const [upgradeTimeLeft, setUpgradeTimeLeft] = useState({ hours: 72, minutes: 0, seconds: 0, isFinished: false });
 
   const [bankForm, setBankForm] = useState({
@@ -278,7 +276,6 @@ export default function OneTime() {
     loadDashboardData();
   }, []);
 
-  // 72 Hours Countdown Timer Logic (Database Synced via user.upgradeStartTime)
   useEffect(() => {
     if (!bonusList || bonusList.length === 0) return;
 
@@ -351,7 +348,6 @@ export default function OneTime() {
           ? data.investments.map((i) => ({ ...i, type: "OneTimeInvestment" }))
           : [];
 
-        // Combine all arrays including earnings so daily returns show up instantly in history
         const combined = [...rawHistory, ...rawEarningsList, ...rawDeposits, ...rawWithdrawals, ...rawInvestments];
 
         const uniqueMap = new Map();
@@ -892,11 +888,9 @@ export default function OneTime() {
     }
   };
 
-  // MATURED PRINCIPAL WITHDRAW WITH MANDATORY REFERRAL CHECK
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
-    // Mandatory referral check restored: must have at least 1 referral to withdraw matured principal
     if (!bonusList || bonusList.length === 0) {
       triggerToast("Withdrawal unavailable. At least 1 referral is required to withdraw principal.", "error");
       return;
@@ -940,7 +934,6 @@ export default function OneTime() {
     }
   };
 
-  // REINVEST LOGIC WITH isReinvest FLAG (DOES NOT DEDUCT FROM WALLET OTBALANCE)
   const handleConfirmReinvest = async () => {
     if (!activeInvestment) return;
 
@@ -966,7 +959,7 @@ export default function OneTime() {
           dailyReturn: (reinvestAmount * currentRate) / 100,
           rate: currentRate,
           status: "Active",
-          isReinvest: true // FLAG TO PREVENT OTBALANCE DEDUCTION ON BACKEND
+          isReinvest: true 
         })
       });
 
@@ -1044,7 +1037,6 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
-      {/* AUTOMATIC PROMOTIONAL BONUS RULES POPUP */}
       {showImagePopup && (
         <div style={styles.modalOverlay} onClick={() => setShowImagePopup(false)}>
           <div style={styles.animatedPopupCard} onClick={(e) => e.stopPropagation()}>
@@ -1064,7 +1056,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* SIDEBAR DRAWER */}
       <div 
         style={{
           ...styles.drawerOverlay,
@@ -1272,7 +1263,6 @@ export default function OneTime() {
       </div>
 
       <div style={styles.container}>
-        {/* TOAST ALERT */}
         {toast.show && (
           <div style={{ ...styles.toast, background: toast.type === "error" ? "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)" : "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" }}>
             <span style={{ fontSize: "16px" }}>{toast.type === "error" ? "⚠️" : "✅"}</span>
@@ -1280,7 +1270,6 @@ export default function OneTime() {
           </div>
         )}
 
-        {/* TOP HEADER */}
         <header style={styles.header}>
           <div style={styles.headerLeft}>
             <button style={styles.menuButton} onClick={() => setIsDrawerOpen(true)}>
@@ -1323,7 +1312,16 @@ export default function OneTime() {
           </div>
         </header>
 
-        {/* HERO WELCOME BANNER */}
+        {/* স্লাইডিং আপডেট ব্যানার (স্ক্রিনশটের ডিজাইন অনুযায়ী যুক্ত করা হয়েছে) */}
+        <div style={styles.updateMarqueeBanner}>
+          <div style={styles.updateBadgeBox}>UPDATE 🔥</div>
+          <div style={styles.marqueeTextContainer}>
+            <div style={styles.marqueeTextContent}>
+              If someone's bonus list does not exist after the active investment tenure expires, the daily return amount will expire.
+            </div>
+          </div>
+        </div>
+
         <div style={styles.heroBanner}>
           <div style={styles.heroLeftContent}>
             <h2 style={styles.heroWelcomeTitle}>
@@ -1355,7 +1353,6 @@ export default function OneTime() {
           </div>
         </div>
 
-        {/* 4 STATS CARDS */}
         <section style={styles.statsGrid}>
           <div style={styles.statCard}>
             <div style={styles.statHeader}>
@@ -1394,7 +1391,6 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* ACTIVE LIVE INVESTMENT CARD (HIDE IF MATURED) */}
         {activeInvestment && !isMatured && (
           <section style={styles.liveActiveInvestCard}>
             <div style={styles.liveInvestHeader}>
@@ -1448,7 +1444,6 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* MATURED INVESTMENT CARD (SHOWS ONLY WHEN TENURE EXPIRED) */}
         {activeInvestment && isMatured && (
           <section style={styles.maturedWalletCard}>
             <div style={styles.maturedCardHeader}>
@@ -1491,7 +1486,6 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* DAILY RETURN CARD */}
         <section style={styles.dailyReturnCard}>
           <div style={styles.dailyReturnTopRow}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -1532,7 +1526,6 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* MAKE A NEW INVESTMENT SECTION */}
         <section style={styles.makeInvestmentCard}>
           <div style={styles.makeInvestHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1570,7 +1563,6 @@ export default function OneTime() {
           </div>
         </section>
 
-        {/* TRANSACTION HISTORY SECTION */}
         <section style={styles.historyCard}>
           <div style={styles.historyCardHeader}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1678,7 +1670,6 @@ export default function OneTime() {
         </footer>
       </div>
 
-      {/* POPUP SELECTION MODAL FOR INVESTMENT */}
       {showInvestmentModal && (
         <div style={styles.modalOverlay} onClick={() => setShowInvestmentModal(false)}>
           <div style={styles.investmentModalCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1850,7 +1841,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* BONUS MODAL */}
       {showBonusModal && (
         <div style={styles.modalOverlay} onClick={() => setShowBonusModal(false)}>
           <div style={styles.modalCardDark} onClick={(e) => e.stopPropagation()}>
@@ -1932,7 +1922,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* WITHDRAW MODAL */}
       {showWithdrawModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -2024,7 +2013,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* TRANSACTION SLIP MODAL */}
       {selectedTxn && (
         <div style={styles.modalOverlay} onClick={() => setSelectedTxn(null)}>
           <div style={styles.slipCardDark} onClick={(e) => e.stopPropagation()}>
@@ -2074,7 +2062,6 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              {/* REJECT REASON SHOWS PROPERLY HERE */}
               {["rejected", "cancelled", "failed"].includes((selectedTxn.status || "").toLowerCase()) && (
                 <div style={{ ...styles.slipRow, background: "rgba(239, 68, 68, 0.2)", padding: "10px", borderRadius: "8px", border: "1px solid #ef4444", flexDirection: "column", alignItems: "flex-start", gap: "4px" }}>
                   <span style={{ ...styles.slipLabel, color: "#f87171", fontWeight: "bold", fontSize: "11px" }}>⚠️ Rejection Reason:</span>
@@ -2119,7 +2106,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* ADD FUND MODAL */}
       {showAddFundModal && (
         <div style={styles.modalOverlay}>
           <div style={{ ...styles.modalCardDark, maxWidth: "400px", border: "1px solid rgba(245, 158, 11, 0.4)", boxShadow: "0 25px 50px rgba(0,0,0,0.8)" }}>
@@ -2279,7 +2265,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* BANK DETAILS MODAL */}
       {showBankModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
@@ -2298,7 +2283,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* INVEST WITHDRAW MODAL */}
       {showInvestWithdrawModal && activeInvestment && (
         <div style={styles.modalOverlay}>
           <div style={styles.withdrawModalCardDark}>
@@ -2326,7 +2310,6 @@ export default function OneTime() {
         </div>
       )}
 
-      {/* REINVEST MODAL */}
       {showReinvestModal && activeInvestment && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalCardDark}>
@@ -2529,6 +2512,42 @@ const styles = {
     justifyContent: "center",
     fontSize: "14px",
     color: "#fff"
+  },
+  // আপডেট মারকিউ ব্যানার স্টাইল
+  updateMarqueeBanner: {
+    background: "#111827",
+    border: "1.5px solid #f59e0b",
+    borderRadius: "10px",
+    padding: "6px 10px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    overflow: "hidden",
+    boxShadow: "0 0 10px rgba(245, 158, 11, 0.2)"
+  },
+  updateBadgeBox: {
+    background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    color: "#000",
+    padding: "3px 8px",
+    borderRadius: "6px",
+    fontSize: "10px",
+    fontWeight: "900",
+    flexShrink: 0,
+    letterSpacing: "0.5px"
+  },
+  marqueeTextContainer: {
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+    flex: 1,
+    display: "flex",
+    alignItems: "center"
+  },
+  marqueeTextContent: {
+    display: "inline-block",
+    animation: "marquee 16s linear infinite",
+    fontSize: "11px",
+    color: "#fef3c7",
+    fontWeight: "600"
   },
   heroBanner: {
     background: "linear-gradient(135deg, #f59e0b 0%, #b45309 100%)",
