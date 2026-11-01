@@ -844,30 +844,36 @@ function performanceBonusRate(years) {
 }
 
 // ডেইলি রিটার্ন ও রেট হিসেব করার ফাংশন
-function calculateDailyReturn(amount, tenureMonths, category) {
+function calculateDailyReturnBackend(amount, tenureMonths = 9, category = "beginner") {
   let dailyRate = 0;
+  const amt = Number(amount);
+  const tenure = Number(tenureMonths) || 9;
+  const cat = (category || "beginner").toLowerCase();
 
-  if (category === "beginner") {
-    if (amount === 7500) {
+  if (cat === "beginner") {
+    if (amt === 7500) {
       dailyRate = 0.8;
-    } else if (amount === 15000) {
-      dailyRate = tenureMonths >= 9 ? 1.2 : 1.0;
-    } else if (amount === 22500) {
-      dailyRate = tenureMonths >= 9 ? 1.5 : 1.2;
-    } else if (amount === 30000) {
-      dailyRate = tenureMonths >= 9 ? 1.7 : 1.5;
-    } else if (amount === 37500) {
-      dailyRate = tenureMonths >= 9 ? 2.0 : 1.7;
+    } else if (amt === 15000) {
+      dailyRate = tenure >= 12 ? 1.2 : 1.0;
+    } else if (amt === 22500) {
+      dailyRate = tenure >= 12 ? 1.5 : 1.2;
+    } else if (amt === 30000) {
+      dailyRate = tenure >= 12 ? 1.7 : 1.5;
+    } else if (amt === 37500) {
+      dailyRate = tenure >= 12 ? 2.0 : 1.7;
+    } else {
+      dailyRate = tenure >= 12 ? 1.2 : 1.0;
     }
-  } else if (category === "pro") {
-    if (amount === 99999) dailyRate = 2.0;
-    else if (amount === 139999) dailyRate = 3.0;
-    else if (amount === 189999) dailyRate = 3.5;
-    else if (amount === 249999) dailyRate = 4.5;
-    else if (amount === 500000) dailyRate = 6.0;
+  } else if (cat === "pro") {
+    if (amt === 99999) dailyRate = 2.0;
+    else if (amt === 139999) dailyRate = 3.0;
+    else if (amt === 189999) dailyRate = 3.5;
+    else if (amt === 249999) dailyRate = 4.5;
+    else if (amt === 500000) dailyRate = 6.0;
+    else dailyRate = 2.0;
   }
 
-  const dailyReturnAmount = (amount * dailyRate) / 100;
+  const dailyReturnAmount = (amt * dailyRate) / 100;
   return { dailyRate, dailyReturnAmount };
 }
 
@@ -10930,7 +10936,6 @@ cron.schedule('0 12,17 * * *', async () => {
   timezone: "Asia/Kolkata"
 });
 
-
 // ONETIME DAILY RETURN AUTOMATION (প্রতিদিন রাত ১২:০০ টায় IST)
 cron.schedule("0 0 * * *", async () => {
   console.log("⏰ Running OneTime Daily Return Cron Job...");
@@ -10955,13 +10960,14 @@ cron.schedule("0 0 * * *", async () => {
 
         if (isOneTime && isActive) {
           let returnAmt = Number(item.dailyReturn || 0);
-          const amount = Number(item.amount || 0);
+          const constAmt = Number(item.amount || 0);
 
+          // যদি dailyReturn না থাকে বা 0 হয়, তবে সঠিক ক্যালকুলেশন প্রয়োগ হবে
           if (!returnAmt || returnAmt <= 0) {
-            const duration = String(item.duration || item.durationDays || "");
-            if (duration.includes("60")) returnAmt = amount * 0.015;
-            else if (duration.includes("15")) returnAmt = amount * 0.006;
-            else returnAmt = amount * 0.01;
+            const tenure = item.tenureMonths || 9;
+            const cat = item.category || "beginner";
+            const calc = calculateDailyReturnBackend(constAmt, tenure, cat);
+            returnAmt = calc.dailyReturnAmount;
           }
 
           if (returnAmt > 0) {
@@ -10972,14 +10978,13 @@ cron.schedule("0 0 * * *", async () => {
               type: "Daily Return",
               amount: returnAmt,
               status: "Success",
-              createdAt: new Date()
+              createdAt: new Date(),
             });
           }
         }
       });
 
       if (totalDailyReturnForUser > 0) {
-        // ব্যালেন্স ও টোটাল আর্নিং আপডেট
         user.otbalance = Number(user.otbalance || 0) + totalDailyReturnForUser;
         user.totalEarnings = Number(user.totalEarnings || user.totalEarning || 0) + totalDailyReturnForUser;
         user.totalEarning = user.totalEarnings;
@@ -10994,27 +10999,7 @@ cron.schedule("0 0 * * *", async () => {
         user.markModified("onetimeHistory");
 
         await user.save();
-                // === FCM Push Notification Trigger ===
-        if (user.fcmToken) {
-          const notificationMessage = {
-            token: user.fcmToken,
-            notification: {
-              title: "Daily Return Credited! 🎉",
-              body: `Your daily return of ₹${totalDailyReturnForUser} has been added to your balance.`
-            }
-          };
-
-          admin.messaging().send(notificationMessage)
-            .then(response => {
-              console.log(`📲 Notification sent to ${user.email}`);
-            })
-            .catch(error => {
-              console.error(`❌ Notification error for ${user.email}:`, error);
-            });
-        }
-        
         processedUsersCount++;
-        console.log(`✅ Success: Credited ₹${totalDailyReturnForUser} to ${user.email}`);
       }
     }
 
