@@ -19,7 +19,7 @@ export default function AdminOneTime() {
 
   const [openWithdrawId, setOpenWithdrawId] = useState(null);
   const [editingInvest, setEditingInvest] = useState(null);
-  const [selectedInvestorDetail, setSelectedInvestorDetail] = useState(null); // 👈 পপআপ ডিটেইলসের জন্য স্টেট
+  const [selectedInvestorDetail, setSelectedInvestorDetail] = useState(null);
 
   const [adjustEmail, setAdjustEmail] = useState("");
   const [adjustAmount, setAdjustAmount] = useState("");
@@ -147,13 +147,12 @@ export default function AdminOneTime() {
     });
   };
 
-  // এক্সপায়ার ডেট ক্যালকুলেটর হেল্পার ফাংশন
   const calculateExpireDate = (startDateStr, durationStr) => {
     if (!startDateStr) return "N/A";
     const start = new Date(startDateStr);
     if (isNaN(start.getTime())) return "N/A";
 
-    let daysToAdd = 180; // ডিফল্ট
+    let daysToAdd = 180;
     if (typeof durationStr === "number") {
       daysToAdd = durationStr;
     } else if (typeof durationStr === "string") {
@@ -339,7 +338,6 @@ export default function AdminOneTime() {
     return email.includes(q) || status.includes(q) || duration.includes(q) || plan.includes(q);
   });
 
-  // মেয়াদ উত্তীর্ণ হয়েছে কি না চেক করার লজিক সহ ফিল্টারিং
   const checkIfExpired = (inv) => {
     const startStr = inv.startDate || inv.createdAt;
     if (!startStr) return false;
@@ -361,7 +359,6 @@ export default function AdminOneTime() {
   const activeInvestmentsList = filteredInvestments.filter((i) => {
     const st = (i.status || "active").toLowerCase();
     const isExpired = checkIfExpired(i);
-    // যদি অলরেডি completed/cancelled হয় অথবা মেয়াদ শেষ হয়ে যায়, তবে এটি active লিস্টে থাকবে না
     if (st === "completed" || st === "cancelled" || st === "rejected" || isExpired) return false;
     return st === "active" || st === "approved" || st === "running" || st === "pending";
   });
@@ -544,7 +541,7 @@ export default function AdminOneTime() {
                       <tr 
                         key={inv._id || idx} 
                         style={{ ...styles.tr, cursor: "pointer" }}
-                        onClick={() => setSelectedInvestorDetail(inv)} // রো-তে ক্লিক করলে পপআপ ওপেন হবে
+                        onClick={() => setSelectedInvestorDetail(inv)}
                       >
                         <td style={styles.td}>
                           <div style={{ fontWeight: "600", color: "#f8fafc" }}>{inv.email || inv.userEmail || "User"}</div>
@@ -614,7 +611,7 @@ export default function AdminOneTime() {
                       <tr 
                         key={inv._id || idx} 
                         style={{ ...styles.tr, cursor: "pointer" }}
-                        onClick={() => setSelectedInvestorDetail(inv)} // রো-তে ক্লিক করলে পপআপ ওপেন হবে
+                        onClick={() => setSelectedInvestorDetail(inv)}
                       >
                         <td style={styles.td}>
                           <div style={{ fontWeight: "600", color: "#f8fafc" }}>{inv.email || inv.userEmail || "User"}</div>
@@ -665,29 +662,70 @@ export default function AdminOneTime() {
         )}
       </div>
 
-      {/* 팝업 (POPUP) - ইনভেস্টরের সম্পূর্ণ ডিটেইলস দেখার জন্য */}
+      {/* 🌟 প্রিমিয়াম ডিজাইনের ইনভেস্টর ডিটেইলস পপআপ */}
       {selectedInvestorDetail && (
         <div style={styles.modalOverlay} onClick={() => setSelectedInvestorDetail(null)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalHeader}>
-              <h3 style={{ margin: 0, color: "#fff" }}>📋 Investor Complete Details</h3>
-              <button style={styles.closeBtn} onClick={() => setSelectedInvestorDetail(null)}>✕</button>
+          <div style={styles.premiumPopupCard} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.premiumPopupHeader}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={styles.popupIconBadge}>💎</span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "16px", color: "#ffffff", fontWeight: "800" }}>Investor Complete Details</h3>
+                  <span style={{ fontSize: "11px", color: "#facc15" }}>Save Money Investment Portfolio</span>
+                </div>
+              </div>
+              <button style={styles.premiumCloseBtn} onClick={() => setSelectedInvestorDetail(null)}>✕</button>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "13px", color: "#cbd5e1" }}>
-              <p><b>User Email:</b> <span style={{ color: "#38bdf8" }}>{selectedInvestorDetail.email || selectedInvestorDetail.userEmail || "N/A"}</span></p>
-              <p><b>Plan Name:</b> {selectedInvestorDetail.planName || selectedInvestorDetail.name || "ontime investment"}</p>
-              <p><b>Invested Amount:</b> <span style={{ color: "#22c55e", fontWeight: "bold" }}>{money(selectedInvestorDetail.amount)}</span></p>
-              <p><b>Duration / Tenure:</b> {selectedInvestorDetail.duration || "N/A"}</p>
-              <p><b>Daily Return:</b> <span style={{ color: "#38bdf8" }}>{money(selectedInvestorDetail.dailyReturn || selectedInvestorDetail.dailyEarning || 0)}/day</span></p>
-              <p><b>Start Date:</b> {formatDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt)}</p>
-              <p><b>Expire Date:</b> <span style={{ color: "#f472b6" }}>{calculateExpireDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt, selectedInvestorDetail.duration)}</span></p>
-              <p><b>Status:</b> <span style={{ color: "#eab308", fontWeight: "bold" }}>{selectedInvestorDetail.status || "Active"}</span></p>
-              <p><b>Investment ID:</b> <span style={{ fontSize: "11px", color: "#64748b" }}>{selectedInvestorDetail._id || "N/A"}</span></p>
+            <div style={styles.premiumPopupBody}>
+              <div style={styles.premiumInfoRow}>
+                <span style={styles.premiumLabel}>User Email</span>
+                <strong style={{ color: "#38bdf8", fontSize: "13px" }}>{selectedInvestorDetail.email || selectedInvestorDetail.userEmail || "N/A"}</strong>
+              </div>
+
+              <div style={styles.premiumInfoRow}>
+                <span style={styles.premiumLabel}>Plan Name</span>
+                <strong style={{ color: "#ffffff", fontSize: "13px" }}>{selectedInvestorDetail.planName || selectedInvestorDetail.name || "ontime investment"}</strong>
+              </div>
+
+              <div style={styles.premiumInfoRow}>
+                <span style={styles.premiumLabel}>Invested Amount</span>
+                <strong style={{ color: "#22c55e", fontSize: "15px", fontWeight: "900" }}>{money(selectedInvestorDetail.amount)}</strong>
+              </div>
+
+              <div style={styles.premiumInfoRow}>
+                <span style={styles.premiumLabel}>Duration / Tenure</span>
+                <strong style={{ color: "#ffffff", fontSize: "13px" }}>{selectedInvestorDetail.duration || "N/A"}</strong>
+              </div>
+
+              <div style={styles.premiumInfoRow}>
+                <span style={styles.premiumLabel}>Daily Return</span>
+                <strong style={{ color: "#38bdf8", fontSize: "13px", fontWeight: "700" }}>{money(selectedInvestorDetail.dailyReturn || selectedInvestorDetail.dailyEarning || 0)}/day</strong>
+              </div>
+
+              <div style={styles.premiumInfoRow}>
+                <span style={styles.premiumLabel}>Start Date</span>
+                <strong style={{ color: "#facc15", fontSize: "13px" }}>{formatDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt)}</strong>
+              </div>
+
+              <div style={styles.premiumInfoRow}>
+                <span style={styles.premiumLabel}>Expire Date</span>
+                <strong style={{ color: "#f472b6", fontSize: "13px", fontWeight: "800" }}>{calculateExpireDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt, selectedInvestorDetail.duration)}</strong>
+              </div>
+
+              <div style={styles.premiumInfoRow}>
+                <span style={styles.premiumLabel}>Status</span>
+                <span style={styles.premiumStatusBadge}>{selectedInvestorDetail.status || "Active"}</span>
+              </div>
+
+              <div style={{ ...styles.premiumInfoRow, borderBottom: "none" }}>
+                <span style={styles.premiumLabel}>Investment ID</span>
+                <strong style={{ color: "#94a3b8", fontSize: "10px", wordBreak: "break-all" }}>{selectedInvestorDetail._id || "N/A"}</strong>
+              </div>
             </div>
 
-            <button style={{ ...styles.fullGreenBtn, marginTop: "15px" }} onClick={() => setSelectedInvestorDetail(null)}>
-              Close Details
+            <button style={styles.premiumActionBtn} onClick={() => setSelectedInvestorDetail(null)}>
+              Close Details ➔
             </button>
           </div>
         </div>
@@ -1068,7 +1106,7 @@ const styles = {
   tableWrap: { overflowX: "auto", background: "#030712", borderRadius: "8px", border: "1px solid #1e293b" },
   table: { width: "100%", borderCollapse: "collapse" },
   th: { background: "#0f172a", padding: "10px 12px", color: "#94a3b8", textAlign: "left", fontSize: "12px", borderBottom: "1px solid #1e293b" },
-  tr: { borderBottom: "1px solid #111827" },
+  tr: { borderBottom: "1px solid #111827", transition: "background 0.2s" },
   td: { padding: "10px 12px", fontSize: "13px", color: "#cbd5e1" },
   emptyText: { color: "#64748b", textAlign: "center", fontSize: "13px", padding: "15px" },
   subText: { color: "#94a3b8", fontSize: "13px", margin: "10px 12px" },
@@ -1093,8 +1131,19 @@ const styles = {
   withdrawCard: { background: "#030712", border: "1px solid #1e293b", borderRadius: "8px", padding: "12px", marginTop: "10px" },
   bankBox: { marginTop: "10px", padding: "10px", background: "#0f172a", borderRadius: "6px", fontSize: "13px" },
 
-  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.8)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
+  modalOverlay: { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(5px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "15px" },
   modalContent: { background: "#0b0f19", border: "1px solid #1e293b", borderRadius: "12px", padding: "20px", width: "90%", maxWidth: "450px" },
   modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" },
-  closeBtn: { background: "none", border: "none", color: "#94a3b8", fontSize: "18px", cursor: "pointer" }
+  closeBtn: { background: "none", border: "none", color: "#94a3b8", fontSize: "18px", cursor: "pointer" },
+
+  // 🌟 প্রিমিয়াম পপআপ স্টাইলস
+  premiumPopupCard: { background: "linear-gradient(135deg, #0f172a 0%, #030712 100%)", border: "1.5px solid #facc15", borderRadius: "20px", padding: "20px", width: "100%", maxWidth: "400px", boxShadow: "0 25px 60px rgba(250, 204, 21, 0.25)", boxSizing: "border-box" },
+  premiumPopupHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "12px", marginBottom: "14px" },
+  popupIconBadge: { width: "36px", height: "36px", borderRadius: "10px", background: "rgba(250, 204, 21, 0.15)", border: "1px solid #facc15", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" },
+  premiumCloseBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", width: "30px", height: "30px", borderRadius: "50%", fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
+  premiumPopupBody: { display: "flex", flexDirection: "column", gap: "10px", maxHeight: "60vh", overflowY: "auto", paddingRight: "4px" },
+  premiumInfoRow: { display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "8px", borderBottom: "1px solid rgba(255,255,255,0.05)" },
+  premiumLabel: { fontSize: "12px", color: "#94a3b8", fontWeight: "600" },
+  premiumStatusBadge: { background: "rgba(34, 197, 94, 0.2)", color: "#22c55e", padding: "3px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "bold", border: "1px solid #22c55e" },
+  premiumActionBtn: { width: "100%", marginTop: "16px", padding: "12px", background: "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)", border: "none", borderRadius: "12px", color: "#000", fontWeight: "900", fontSize: "13px", cursor: "pointer", boxShadow: "0 4px 15px rgba(245, 158, 11, 0.4)" }
 };
