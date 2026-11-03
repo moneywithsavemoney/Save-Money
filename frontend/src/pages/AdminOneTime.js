@@ -412,8 +412,8 @@ export default function AdminOneTime() {
                 <tr><td colSpan="4" style={styles.emptyText}>No users found</td></tr>
               ) : (
                 filteredUsers.map((u) => {
-                  // এখানে SM দিয়ে স্টার্ট হওয়া রেফার কোড ফেচ করা হচ্ছে (যেমন: u.referralCode, u.smCode ইত্যাদি)
-                  const userReferralCode = u.referralCode || u.smCode || u.code || (u._id ? `SM${u._id.slice(-6)}` : "N/A");
+                  // এখানে সরাসরি ডাটাবেসের সঠিক field `referCode` ব্যবহার করা হয়েছে
+                  const userReferralCode = u.referCode || u.referralCode || u.smCode || (u._id ? `SM${u._id.slice(-6)}` : "N/A");
                   const uplineReferrer = u.referredBy || u.referrerEmail || u.invitedBy || "None (Direct)";
 
                   return (
