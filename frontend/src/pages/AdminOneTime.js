@@ -662,7 +662,7 @@ export default function AdminOneTime() {
         )}
       </div>
 
-      {/* 🌊 জলের মতো স্বচ্ছ এবং লম্বালম্বি প্রিমিয়াম গ্লাসমরফিজম পপআপ (সেন্টারড) */}
+      {/* 🌊 সেন্টারড, লম্বালম্বি এবং জলের মতো স্বচ্ছ গ্লাসমরফিজম পপআপ */}
       {selectedInvestorDetail && (
         <div style={styles.modalOverlay} onClick={() => setSelectedInvestorDetail(null)}>
           <div style={styles.waterGlassVerticalCard} onClick={(e) => e.stopPropagation()}>
@@ -680,37 +680,37 @@ export default function AdminOneTime() {
             <div style={styles.waterPopupBody}>
               <div style={styles.waterInfoBox}>
                 <span style={styles.waterLabel}>User Email</span>
-                <strong style={{ color: "#38bdf8", fontSize: "12px", wordBreak: "break-all" }}>{selectedInvestorDetail.email || selectedInvestorDetail.userEmail || "N/A"}</strong>
+                <strong style={{ color: "#38bdf8", fontSize: "12px", wordBreak: "break-all", textAlign: "right" }}>{selectedInvestorDetail.email || selectedInvestorDetail.userEmail || "N/A"}</strong>
               </div>
 
               <div style={styles.waterInfoBox}>
                 <span style={styles.waterLabel}>Plan Name</span>
-                <strong style={{ color: "#ffffff", fontSize: "12px" }}>{selectedInvestorDetail.planName || selectedInvestorDetail.name || "ontime investment"}</strong>
+                <strong style={{ color: "#ffffff", fontSize: "12px", textAlign: "right" }}>{selectedInvestorDetail.planName || selectedInvestorDetail.name || "ontime investment"}</strong>
               </div>
 
               <div style={styles.waterInfoBox}>
                 <span style={styles.waterLabel}>Invested Amount</span>
-                <strong style={{ color: "#22c55e", fontSize: "14px", fontWeight: "900" }}>{money(selectedInvestorDetail.amount)}</strong>
+                <strong style={{ color: "#22c55e", fontSize: "14px", fontWeight: "900", textAlign: "right" }}>{money(selectedInvestorDetail.amount)}</strong>
               </div>
 
               <div style={styles.waterInfoBox}>
                 <span style={styles.waterLabel}>Duration / Tenure</span>
-                <strong style={{ color: "#ffffff", fontSize: "12px" }}>{selectedInvestorDetail.duration || "N/A"}</strong>
+                <strong style={{ color: "#ffffff", fontSize: "12px", textAlign: "right" }}>{selectedInvestorDetail.duration || "N/A"}</strong>
               </div>
 
               <div style={styles.waterInfoBox}>
                 <span style={styles.waterLabel}>Daily Return</span>
-                <strong style={{ color: "#38bdf8", fontSize: "12px", fontWeight: "700" }}>{money(selectedInvestorDetail.dailyReturn || selectedInvestorDetail.dailyEarning || 0)}/day</strong>
+                <strong style={{ color: "#38bdf8", fontSize: "12px", fontWeight: "700", textAlign: "right" }}>{money(selectedInvestorDetail.dailyReturn || selectedInvestorDetail.dailyEarning || 0)}/day</strong>
               </div>
 
               <div style={styles.waterInfoBox}>
                 <span style={styles.waterLabel}>Start Date</span>
-                <strong style={{ color: "#facc15", fontSize: "12px" }}>{formatDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt)}</strong>
+                <strong style={{ color: "#facc15", fontSize: "12px", textAlign: "right" }}>{formatDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt)}</strong>
               </div>
 
               <div style={styles.waterInfoBox}>
                 <span style={styles.waterLabel}>Expire Date</span>
-                <strong style={{ color: "#f472b6", fontSize: "12px", fontWeight: "800" }}>{calculateExpireDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt, selectedInvestorDetail.duration)}</strong>
+                <strong style={{ color: "#f472b6", fontSize: "12px", fontWeight: "800", textAlign: "right" }}>{calculateExpireDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt, selectedInvestorDetail.duration)}</strong>
               </div>
 
               <div style={styles.waterInfoBox}>
@@ -720,7 +720,7 @@ export default function AdminOneTime() {
 
               <div style={{ ...styles.waterInfoBox, borderBottom: "none" }}>
                 <span style={styles.waterLabel}>Investment ID</span>
-                <strong style={{ color: "#94a3b8", fontSize: "9px", wordBreak: "break-all" }}>{selectedInvestorDetail._id || "N/A"}</strong>
+                <strong style={{ color: "#94a3b8", fontSize: "9px", wordBreak: "break-all", textAlign: "right" }}>{selectedInvestorDetail._id || "N/A"}</strong>
               </div>
             </div>
 
@@ -1136,14 +1136,14 @@ const styles = {
   modalHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" },
   closeBtn: { background: "none", border: "none", color: "#94a3b8", fontSize: "18px", cursor: "pointer" },
 
-  // 🌊 জলের মতো স্বচ্ছ, লম্বালম্বি এবং প্রিমিয়াম গ্লাসমরফিজম পপআপ (সেন্টারড)
-  waterGlassVerticalCard: { background: "linear-gradient(135deg, rgba(15, 23, 42, 0.90) 0%, rgba(3, 7, 18, 0.96) 100%)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1.5px solid rgba(56, 189, 248, 0.45)", borderRadius: "24px", padding: "20px", width: "100%", maxWidth: "360px", boxShadow: "0 25px 60px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.2)", boxSizing: "border-box" },
+  // 🌊 জলের মতো স্বচ্ছ এবং লম্বালম্বি সুন্দর কম্প্যাক্ট কার্ড স্টাইল (সেন্টারড)
+  waterGlassVerticalCard: { background: "linear-gradient(135deg, rgba(15, 23, 42, 0.92) 0%, rgba(3, 7, 18, 0.98) 100%)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", border: "1.5px solid rgba(56, 189, 248, 0.45)", borderRadius: "24px", padding: "20px", width: "100%", maxWidth: "340px", boxShadow: "0 25px 60px rgba(0, 0, 0, 0.85), inset 0 1px 1px rgba(255, 255, 255, 0.2)", boxSizing: "border-box" },
   waterPopupHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "12px", marginBottom: "14px" },
-  popupIconBadge: { width: "36px", height: "36px", borderRadius: "12px", background: "rgba(56, 189, 248, 0.15)", border: "1px solid rgba(56, 189, 248, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", boxShadow: "inset 0 1px 3px rgba(56, 189, 248, 0.3)" },
-  waterCloseBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", width: "28px", height: "28px", borderRadius: "50%", fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
-  waterPopupBody: { display: "flex", flexDirection: "column", gap: "10px", maxHeight: "65vh", overflowY: "auto", paddingRight: "4px" },
-  waterInfoBox: { display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "8px", borderBottom: "1px solid rgba(255,255,255,0.05)" },
-  waterLabel: { fontSize: "11px", color: "#94a3b8", fontWeight: "600" },
-  waterStatusBadge: { background: "rgba(34, 197, 94, 0.15)", color: "#22c55e", padding: "3px 10px", borderRadius: "8px", fontSize: "11px", fontWeight: "bold", border: "1px solid rgba(34, 197, 94, 0.4)" },
-  waterActionBtn: { width: "100%", marginTop: "16px", padding: "12px", background: "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)", border: "none", borderRadius: "14px", color: "#ffffff", fontWeight: "800", fontSize: "13px", cursor: "pointer", boxShadow: "0 8px 25px rgba(56, 189, 248, 0.4), inset 0 1px 1px rgba(255,255,255,0.4)" }
+  popupIconBadge: { width: "34px", height: "34px", borderRadius: "10px", background: "rgba(56, 189, 248, 0.15)", border: "1px solid rgba(56, 189, 248, 0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", boxShadow: "inset 0 1px 3px rgba(56, 189, 248, 0.3)" },
+  waterCloseBtn: { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", width: "26px", height: "26px", borderRadius: "50%", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" },
+  waterPopupBody: { display: "flex", flexDirection: "column", gap: "10px", maxHeight: "60vh", overflowY: "auto", paddingRight: "4px" },
+  waterInfoBox: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", paddingBottom: "8px", borderBottom: "1px solid rgba(255,255,255,0.05)", gap: "10px" },
+  waterLabel: { fontSize: "11px", color: "#94a3b8", fontWeight: "600", minWidth: "100px" },
+  waterStatusBadge: { background: "rgba(34, 197, 94, 0.15)", color: "#22c55e", padding: "2px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: "bold", border: "1px solid rgba(34, 197, 94, 0.4)" },
+  waterActionBtn: { width: "100%", marginTop: "16px", padding: "12px", background: "linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)", border: "none", borderRadius: "12px", color: "#ffffff", fontWeight: "800", fontSize: "13px", cursor: "pointer", boxShadow: "0 8px 25px rgba(56, 189, 248, 0.4), inset 0 1px 1px rgba(255,255,255,0.4)" }
 };
