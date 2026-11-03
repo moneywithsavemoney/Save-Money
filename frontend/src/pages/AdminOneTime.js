@@ -15,7 +15,7 @@ export default function AdminOneTime() {
   const [investSearch, setInvestSearch] = useState("");
   const [showDepositHistory, setShowDepositHistory] = useState(false);
   const [showWithdrawHistory, setShowWithdrawHistory] = useState(false);
-  const [showCompletePlans, setShowCompletePlans] = useState(false); // 👈 কমপ্লিট প্লান টগল স্টেট
+  const [showCompletePlans, setShowCompletePlans] = useState(false);
 
   const [openWithdrawId, setOpenWithdrawId] = useState(null);
   const [editingInvest, setEditingInvest] = useState(null);
@@ -317,7 +317,6 @@ export default function AdminOneTime() {
     return email.includes(q) || status.includes(q) || duration.includes(q) || plan.includes(q);
   });
 
-  // 📌 একটিভ এবং কমপ্লিট প্লান আলাদা করা
   const activeInvestmentsList = filteredInvestments.filter((i) => {
     const st = (i.status || "active").toLowerCase();
     return st === "active" || st === "approved" || st === "running" || st === "pending";
@@ -402,7 +401,7 @@ export default function AdminOneTime() {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={styles.th}>User Email</th>
+                <th style={styles.th}>User Email / Upline (Referrer)</th>
                 <th style={styles.th}>OneTime Wallet</th>
                 <th style={styles.th}>OneTime Invested</th>
                 <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
@@ -412,30 +411,38 @@ export default function AdminOneTime() {
               {filteredUsers.length === 0 ? (
                 <tr><td colSpan="4" style={styles.emptyText}>No users found</td></tr>
               ) : (
-                filteredUsers.map((u) => (
-                  <tr key={u._id || u.email} style={styles.tr}>
-                    <td style={styles.td}>
-                      <div style={{ fontWeight: "600", color: "#f8fafc" }}>{u.name || "N/A"}</div>
-                      <div style={{ fontSize: "12px", color: "#94a3b8" }}>{u.email}</div>
-                    </td>
-                    <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
-                      {money(u.otbalance ?? u.otBalance ?? 0)}
-                    </td>
-                    <td style={{ ...styles.td, color: "#22c55e", fontWeight: "bold" }}>
-                      {money(u.oneTimeTotalInvested || u.totalInvested || u.ontimeTotalInvested || 0)}
-                    </td>
-                    <td style={{ ...styles.td, textAlign: "center" }}>
-                      <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
-                        <button style={styles.adjustBtn} onClick={() => handleQuickAdjust(u.email)}>
-                          Adjust Wallet
-                        </button>
-                        <button style={styles.assignBtn} onClick={() => handleQuickAssign(u.email)}>
-                          Assign Plan
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                filteredUsers.map((u) => {
+                  // ইউজারের আপলাইন বা কে রেফার করেছে তা বের করা (referrerEmail, referredBy, upline ইত্যাদি প্রপার্টি চেক করা হচ্ছে)
+                  const uplineName = u.referrerEmail || u.referredBy || u.upline || u.sponsorEmail || "Direct / None";
+                  
+                  return (
+                    <tr key={u._id || u.email} style={styles.tr}>
+                      <td style={styles.td}>
+                        <div style={{ fontWeight: "600", color: "#f8fafc" }}>{u.name || "N/A"}</div>
+                        <div style={{ fontSize: "12px", color: "#94a3b8" }}>{u.email}</div>
+                        <div style={{ fontSize: "11px", color: "#38bdf8", marginTop: "2px" }}>
+                          🔗 Upline: {uplineName}
+                        </div>
+                      </td>
+                      <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
+                        {money(u.otbalance ?? u.otBalance ?? 0)}
+                      </td>
+                      <td style={{ ...styles.td, color: "#22c55e", fontWeight: "bold" }}>
+                        {money(u.oneTimeTotalInvested || u.totalInvested || u.ontimeTotalInvested || 0)}
+                      </td>
+                      <td style={{ ...styles.td, textAlign: "center" }}>
+                        <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
+                          <button style={styles.adjustBtn} onClick={() => handleQuickAdjust(u.email)}>
+                            Adjust Wallet
+                          </button>
+                          <button style={styles.assignBtn} onClick={() => handleQuickAssign(u.email)}>
+                            Assign Plan
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -453,7 +460,6 @@ export default function AdminOneTime() {
               value={investSearch}
               onChange={(e) => setInvestSearch(e.target.value)}
             />
-            {/* 👈 View Complete Plan টগল বাটন */}
             <button style={styles.historyToggleBtn} onClick={() => setShowCompletePlans(!showCompletePlans)}>
               {showCompletePlans ? "📋 Show Active Plans" : "📜 View Complete Plan"}
             </button>
@@ -461,7 +467,6 @@ export default function AdminOneTime() {
         </div>
 
         {showCompletePlans ? (
-          // 👈 কমপ্লিট হয়ে যাওয়া প্লানগুলোর হিস্ট্রি টেবিল
           <div style={styles.tableWrap}>
             <h4 style={styles.subText}>Historical Completed / Cancelled Investment Plans</h4>
             <table style={styles.table}>
@@ -524,7 +529,6 @@ export default function AdminOneTime() {
             </table>
           </div>
         ) : (
-          // 👈 মূল অ্যাক্টিভ প্লানগুলোর টেবিল
           <div style={styles.tableWrap}>
             <table style={styles.table}>
               <thead>
@@ -595,7 +599,6 @@ export default function AdminOneTime() {
         )}
       </div>
 
-      {/* MODAL FOR MODIFYING INVESTMENT */}
       {editingInvest && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
