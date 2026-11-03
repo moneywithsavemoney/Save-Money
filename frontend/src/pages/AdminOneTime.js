@@ -15,7 +15,7 @@ export default function AdminOneTime() {
   const [investSearch, setInvestSearch] = useState("");
   const [showDepositHistory, setShowDepositHistory] = useState(false);
   const [showWithdrawHistory, setShowWithdrawHistory] = useState(false);
-  const [showCompletePlans, setShowCompletePlans] = useState(false); // 👈 কমপ্লিট প্লান টগল স্টেট
+  const [showCompletePlans, setShowCompletePlans] = useState(false);
 
   const [openWithdrawId, setOpenWithdrawId] = useState(null);
   const [editingInvest, setEditingInvest] = useState(null);
@@ -412,14 +412,15 @@ export default function AdminOneTime() {
                 <tr><td colSpan="4" style={styles.emptyText}>No users found</td></tr>
               ) : (
                 filteredUsers.map((u) => {
-                  const userOwnCode = u.bonusCode || u.referralCode || u._id?.slice(-8) || "N/A";
+                  // এখানে SM দিয়ে স্টার্ট হওয়া রেফার কোড ফেচ করা হচ্ছে (যেমন: u.referralCode, u.smCode ইত্যাদি)
+                  const userReferralCode = u.referralCode || u.smCode || u.code || (u._id ? `SM${u._id.slice(-6)}` : "N/A");
                   const uplineReferrer = u.referredBy || u.referrerEmail || u.invitedBy || "None (Direct)";
 
                   return (
                     <tr key={u._id || u.email} style={styles.tr}>
                       <td style={styles.td}>
                         <div style={{ fontWeight: "600", color: "#f8fafc" }}>
-                          {u.name || "N/A"} <span style={{ color: "#38bdf8", fontSize: "11px" }}>[Code: {userOwnCode}]</span>
+                          {u.name || "N/A"} <span style={{ color: "#38bdf8", fontSize: "11px" }}>[Code: {userReferralCode}]</span>
                         </div>
                         <div style={{ fontSize: "12px", color: "#94a3b8" }}>{u.email}</div>
                         <div style={{ fontSize: "11px", color: "#f59e0b", marginTop: "2px" }}>
