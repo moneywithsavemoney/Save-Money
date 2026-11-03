@@ -19,6 +19,7 @@ export default function AdminOneTime() {
 
   const [openWithdrawId, setOpenWithdrawId] = useState(null);
   const [editingInvest, setEditingInvest] = useState(null);
+  const [selectedInvestorDetail, setSelectedInvestorDetail] = useState(null); // 👈 পপআপ ডিটেইলসের জন্য স্টেট
 
   const [adjustEmail, setAdjustEmail] = useState("");
   const [adjustAmount, setAdjustAmount] = useState("");
@@ -146,50 +147,25 @@ export default function AdminOneTime() {
     });
   };
 
-  // ইনভেস্টমেন্ট কবে শেষ হচ্ছে (Expiry Date) হিসাব করার ফাংশন
-  const calculateExpiryDate = (inv) => {
-    const rawDate = inv.createdAt || inv.startDate || inv.date;
-    if (!rawDate) return "N/A";
-    const startDate = new Date(rawDate);
-    if (isNaN(startDate.getTime())) return "N/A";
+  // এক্সপায়ার ডেট ক্যালকুলেটর হেল্পার ফাংশন
+  const calculateExpireDate = (startDateStr, durationStr) => {
+    if (!startDateStr) return "N/A";
+    const start = new Date(startDateStr);
+    if (isNaN(start.getTime())) return "N/A";
 
-    let durationDays = 180;
-    const durStr = String(inv.duration || "");
-    const match = durStr.match(/\d+/);
-    if (match) {
-      const val = parseInt(match[0], 10);
-      durationDays = durStr.toLowerCase().includes("month") ? val * 30 : val;
-    } else if (inv.tenureMonths) {
-      durationDays = Number(inv.tenureMonths) * 30;
+    let daysToAdd = 180; // ডিফল্ট
+    if (typeof durationStr === "number") {
+      daysToAdd = durationStr;
+    } else if (typeof durationStr === "string") {
+      const match = durationStr.match(/\d+/);
+      if (match) {
+        const val = parseInt(match[0], 10);
+        daysToAdd = durationStr.toLowerCase().includes("month") ? val * 30 : val;
+      }
     }
 
-    startDate.setDate(startDate.getDate() + durationDays);
-    return startDate.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    });
-  };
-
-  // টেনিউর বা মেয়াদ শেষ হয়েছে কিনা চেক করার ফাংশন
-  const isTenureExpired = (inv) => {
-    const rawDate = inv.createdAt || inv.startDate || inv.date;
-    if (!rawDate) return false;
-    const startDate = new Date(rawDate);
-    if (isNaN(startDate.getTime())) return false;
-
-    let durationDays = 180;
-    const durStr = String(inv.duration || "");
-    const match = durStr.match(/\d+/);
-    if (match) {
-      const val = parseInt(match[0], 10);
-      durationDays = durStr.toLowerCase().includes("month") ? val * 30 : val;
-    } else if (inv.tenureMonths) {
-      durationDays = Number(inv.tenureMonths) * 30;
-    }
-
-    startDate.setDate(startDate.getDate() + durationDays);
-    return new Date() >= startDate;
+    start.setDate(start.getDate() + daysToAdd);
+    return formatDate(start);
   };
 
   const handleQuickAdjust = (email) => {
@@ -363,17 +339,37 @@ export default function AdminOneTime() {
     return email.includes(q) || status.includes(q) || duration.includes(q) || plan.includes(q);
   });
 
-  // টেনিউর শেষ হওয়া বা স্ট্যাটাস completed/cancelled হলে তা কমপ্লিটেড লিস্টে দেখাবে
+  // মেয়াদ উত্তীর্ণ হয়েছে কি না চেক করার লজিক সহ ফিল্টারিং
+  const checkIfExpired = (inv) => {
+    const startStr = inv.startDate || inv.createdAt;
+    if (!startStr) return false;
+    const start = new Date(startStr);
+    if (isNaN(start.getTime())) return false;
+
+    let daysToAdd = 180;
+    const durationStr = inv.duration || "";
+    const match = durationStr.match(/\d+/);
+    if (match) {
+      const val = parseInt(match[0], 10);
+      daysToAdd = durationStr.toLowerCase().includes("month") ? val * 30 : val;
+    }
+
+    start.setDate(start.getDate() + daysToAdd);
+    return new Date() >= start;
+  };
+
   const activeInvestmentsList = filteredInvestments.filter((i) => {
     const st = (i.status || "active").toLowerCase();
-    const isFinished = st === "completed" || st === "cancelled" || st === "rejected" || isTenureExpired(i);
-    return !isFinished && (st === "active" || st === "approved" || st === "running" || st === "pending");
+    const isExpired = checkIfExpired(i);
+    // যদি অলরেডি completed/cancelled হয় অথবা মেয়াদ শেষ হয়ে যায়, তবে এটি active লিস্টে থাকবে না
+    if (st === "completed" || st === "cancelled" || st === "rejected" || isExpired) return false;
+    return st === "active" || st === "approved" || st === "running" || st === "pending";
   });
 
   const completedInvestmentsList = filteredInvestments.filter((i) => {
     const st = (i.status || "").toLowerCase();
-    const isFinished = st === "completed" || st === "cancelled" || st === "rejected" || isTenureExpired(i);
-    return isFinished;
+    const isExpired = checkIfExpired(i);
+    return st === "completed" || st === "cancelled" || st === "rejected" || isExpired;
   });
 
   const pendingCashRequests = cash.filter(
@@ -519,7 +515,7 @@ export default function AdminOneTime() {
 
         {showCompletePlans ? (
           <div style={styles.tableWrap}>
-            <h4 style={styles.subText}>Historical Completed / Cancelled Investment Plans</h4>
+            <h4 style={styles.subText}>Historical Completed / Cancelled / Expired Investment Plans</h4>
             <table style={styles.table}>
               <thead>
                 <tr>
@@ -527,7 +523,8 @@ export default function AdminOneTime() {
                   <th style={styles.th}>Plan Name</th>
                   <th style={styles.th}>Amount</th>
                   <th style={styles.th}>Duration</th>
-                  <th style={styles.th}>Expiry Date</th>
+                  <th style={styles.th}>Start Date</th>
+                  <th style={styles.th}>Expire Date</th>
                   <th style={styles.th}>Daily Return</th>
                   <th style={styles.th}>Status</th>
                   <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
@@ -535,15 +532,20 @@ export default function AdminOneTime() {
               </thead>
               <tbody>
                 {completedInvestmentsList.length === 0 ? (
-                  <tr><td colSpan="8" style={styles.emptyText}>No completed or cancelled investments found.</td></tr>
+                  <tr><td colSpan="9" style={styles.emptyText}>No completed or cancelled investments found.</td></tr>
                 ) : (
                   completedInvestmentsList.map((inv, idx) => {
-                    const rawStatus = isTenureExpired(inv) ? "Completed" : (inv.status || "Completed");
+                    const rawStatus = inv.status || "Completed";
                     const statusLower = rawStatus.toLowerCase();
-                    const expiryDateStr = calculateExpiryDate(inv);
+                    const startDateFormatted = formatDate(inv.startDate || inv.createdAt);
+                    const expireDateFormatted = calculateExpireDate(inv.startDate || inv.createdAt, inv.duration);
 
                     return (
-                      <tr key={inv._id || idx} style={styles.tr}>
+                      <tr 
+                        key={inv._id || idx} 
+                        style={{ ...styles.tr, cursor: "pointer" }}
+                        onClick={() => setSelectedInvestorDetail(inv)} // রো-তে ক্লিক করলে পপআপ ওপেন হবে
+                      >
                         <td style={styles.td}>
                           <div style={{ fontWeight: "600", color: "#f8fafc" }}>{inv.email || inv.userEmail || "User"}</div>
                           <div style={{ fontSize: "11px", color: "#64748b" }}>ID: {inv._id || "N/A"}</div>
@@ -557,20 +559,21 @@ export default function AdminOneTime() {
                           {money(inv.amount)}
                         </td>
                         <td style={styles.td}>{inv.duration || "N/A"}</td>
-                        <td style={{ ...styles.td, color: "#f472b6", fontWeight: "600" }}>{expiryDateStr}</td>
+                        <td style={styles.td}>{startDateFormatted}</td>
+                        <td style={{ ...styles.td, color: "#f472b6" }}>{expireDateFormatted}</td>
                         <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
                           {money(inv.dailyReturn || inv.dailyEarning || 0)}/day
                         </td>
                         <td style={styles.td}>
                           <span style={{
                             padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "11px",
-                            background: statusLower === "cancelled" ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.2)",
-                            color: statusLower === "cancelled" ? "#f87171" : "#22c55e"
+                            background: statusLower === "cancelled" ? "rgba(239,68,68,0.2)" : "rgba(234,179,8,0.2)",
+                            color: statusLower === "cancelled" ? "#f87171" : "#eab308"
                           }}>
                             {rawStatus}
                           </span>
                         </td>
-                        <td style={{ ...styles.td, textAlign: "center" }}>
+                        <td style={{ ...styles.td, textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
                           <button style={styles.editBtn} onClick={() => setEditingInvest({ ...inv })}>
                             ✏️ Modify
                           </button>
@@ -591,7 +594,8 @@ export default function AdminOneTime() {
                   <th style={styles.th}>Plan Name</th>
                   <th style={styles.th}>Amount</th>
                   <th style={styles.th}>Duration</th>
-                  <th style={styles.th}>Expiry Date</th>
+                  <th style={styles.th}>Start Date</th>
+                  <th style={styles.th}>Expire Date</th>
                   <th style={styles.th}>Daily Return</th>
                   <th style={styles.th}>Status</th>
                   <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
@@ -599,14 +603,19 @@ export default function AdminOneTime() {
               </thead>
               <tbody>
                 {activeInvestmentsList.length === 0 ? (
-                  <tr><td colSpan="8" style={styles.emptyText}>No active investments found</td></tr>
+                  <tr><td colSpan="9" style={styles.emptyText}>No active investments found</td></tr>
                 ) : (
                   activeInvestmentsList.map((inv, idx) => {
                     const rawStatus = inv.status || "Active";
-                    const expiryDateStr = calculateExpiryDate(inv);
+                    const startDateFormatted = formatDate(inv.startDate || inv.createdAt);
+                    const expireDateFormatted = calculateExpireDate(inv.startDate || inv.createdAt, inv.duration);
 
                     return (
-                      <tr key={inv._id || idx} style={styles.tr}>
+                      <tr 
+                        key={inv._id || idx} 
+                        style={{ ...styles.tr, cursor: "pointer" }}
+                        onClick={() => setSelectedInvestorDetail(inv)} // রো-তে ক্লিক করলে পপআপ ওপেন হবে
+                      >
                         <td style={styles.td}>
                           <div style={{ fontWeight: "600", color: "#f8fafc" }}>{inv.email || inv.userEmail || "User"}</div>
                           <div style={{ fontSize: "11px", color: "#64748b" }}>ID: {inv._id || "N/A"}</div>
@@ -622,7 +631,8 @@ export default function AdminOneTime() {
                         <td style={styles.td}>
                           {inv.duration || "N/A"}
                         </td>
-                        <td style={{ ...styles.td, color: "#f472b6", fontWeight: "600" }}>{expiryDateStr}</td>
+                        <td style={styles.td}>{startDateFormatted}</td>
+                        <td style={{ ...styles.td, color: "#f472b6" }}>{expireDateFormatted}</td>
                         <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
                           {money(inv.dailyReturn || inv.dailyEarning || 0)}/day
                         </td>
@@ -635,7 +645,7 @@ export default function AdminOneTime() {
                             {rawStatus}
                           </span>
                         </td>
-                        <td style={{ ...styles.td, textAlign: "center" }}>
+                        <td style={{ ...styles.td, textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
                           <div style={{ display: "flex", gap: "6px", justifyContent: "center" }}>
                             <button style={styles.editBtn} onClick={() => setEditingInvest({ ...inv })}>
                               ✏️ Modify
@@ -654,6 +664,34 @@ export default function AdminOneTime() {
           </div>
         )}
       </div>
+
+      {/* 팝업 (POPUP) - ইনভেস্টরের সম্পূর্ণ ডিটেইলস দেখার জন্য */}
+      {selectedInvestorDetail && (
+        <div style={styles.modalOverlay} onClick={() => setSelectedInvestorDetail(null)}>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, color: "#fff" }}>📋 Investor Complete Details</h3>
+              <button style={styles.closeBtn} onClick={() => setSelectedInvestorDetail(null)}>✕</button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "13px", color: "#cbd5e1" }}>
+              <p><b>User Email:</b> <span style={{ color: "#38bdf8" }}>{selectedInvestorDetail.email || selectedInvestorDetail.userEmail || "N/A"}</span></p>
+              <p><b>Plan Name:</b> {selectedInvestorDetail.planName || selectedInvestorDetail.name || "ontime investment"}</p>
+              <p><b>Invested Amount:</b> <span style={{ color: "#22c55e", fontWeight: "bold" }}>{money(selectedInvestorDetail.amount)}</span></p>
+              <p><b>Duration / Tenure:</b> {selectedInvestorDetail.duration || "N/A"}</p>
+              <p><b>Daily Return:</b> <span style={{ color: "#38bdf8" }}>{money(selectedInvestorDetail.dailyReturn || selectedInvestorDetail.dailyEarning || 0)}/day</span></p>
+              <p><b>Start Date:</b> {formatDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt)}</p>
+              <p><b>Expire Date:</b> <span style={{ color: "#f472b6" }}>{calculateExpireDate(selectedInvestorDetail.startDate || selectedInvestorDetail.createdAt, selectedInvestorDetail.duration)}</span></p>
+              <p><b>Status:</b> <span style={{ color: "#eab308", fontWeight: "bold" }}>{selectedInvestorDetail.status || "Active"}</span></p>
+              <p><b>Investment ID:</b> <span style={{ fontSize: "11px", color: "#64748b" }}>{selectedInvestorDetail._id || "N/A"}</span></p>
+            </div>
+
+            <button style={{ ...styles.fullGreenBtn, marginTop: "15px" }} onClick={() => setSelectedInvestorDetail(null)}>
+              Close Details
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MODAL FOR MODIFYING INVESTMENT */}
       {editingInvest && (
