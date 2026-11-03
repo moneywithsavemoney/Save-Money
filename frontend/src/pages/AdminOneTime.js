@@ -15,7 +15,7 @@ export default function AdminOneTime() {
   const [investSearch, setInvestSearch] = useState("");
   const [showDepositHistory, setShowDepositHistory] = useState(false);
   const [showWithdrawHistory, setShowWithdrawHistory] = useState(false);
-  const [showCompletePlans, setShowCompletePlans] = useState(false);
+  const [showCompletePlans, setShowCompletePlans] = useState(false); // 👈 কমপ্লিট প্লান টগল স্টেট
 
   const [openWithdrawId, setOpenWithdrawId] = useState(null);
   const [editingInvest, setEditingInvest] = useState(null);
@@ -401,7 +401,7 @@ export default function AdminOneTime() {
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={styles.th}>User Email / Upline (Referrer)</th>
+                <th style={styles.th}>User & Referral Info</th>
                 <th style={styles.th}>OneTime Wallet</th>
                 <th style={styles.th}>OneTime Invested</th>
                 <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
@@ -412,16 +412,18 @@ export default function AdminOneTime() {
                 <tr><td colSpan="4" style={styles.emptyText}>No users found</td></tr>
               ) : (
                 filteredUsers.map((u) => {
-                  // ইউজারের আপলাইন বা কে রেফার করেছে তা বের করা (referrerEmail, referredBy, upline ইত্যাদি প্রপার্টি চেক করা হচ্ছে)
-                  const uplineName = u.referrerEmail || u.referredBy || u.upline || u.sponsorEmail || "Direct / None";
-                  
+                  const userOwnCode = u.bonusCode || u.referralCode || u._id?.slice(-8) || "N/A";
+                  const uplineReferrer = u.referredBy || u.referrerEmail || u.invitedBy || "None (Direct)";
+
                   return (
                     <tr key={u._id || u.email} style={styles.tr}>
                       <td style={styles.td}>
-                        <div style={{ fontWeight: "600", color: "#f8fafc" }}>{u.name || "N/A"}</div>
+                        <div style={{ fontWeight: "600", color: "#f8fafc" }}>
+                          {u.name || "N/A"} <span style={{ color: "#38bdf8", fontSize: "11px" }}>[Code: {userOwnCode}]</span>
+                        </div>
                         <div style={{ fontSize: "12px", color: "#94a3b8" }}>{u.email}</div>
-                        <div style={{ fontSize: "11px", color: "#38bdf8", marginTop: "2px" }}>
-                          🔗 Upline: {uplineName}
+                        <div style={{ fontSize: "11px", color: "#f59e0b", marginTop: "2px" }}>
+                          🔗 Referred By: <b>{uplineReferrer}</b>
                         </div>
                       </td>
                       <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
@@ -548,7 +550,6 @@ export default function AdminOneTime() {
                 ) : (
                   activeInvestmentsList.map((inv, idx) => {
                     const rawStatus = inv.status || "Active";
-                    const statusLower = rawStatus.toLowerCase();
 
                     return (
                       <tr key={inv._id || idx} style={styles.tr}>
@@ -599,6 +600,7 @@ export default function AdminOneTime() {
         )}
       </div>
 
+      {/* MODAL FOR MODIFYING INVESTMENT */}
       {editingInvest && (
         <div style={styles.modalOverlay}>
           <div style={styles.modalContent}>
