@@ -146,6 +146,52 @@ export default function AdminOneTime() {
     });
   };
 
+  // ইনভেস্টমেন্ট কবে শেষ হচ্ছে (Expiry Date) হিসাব করার ফাংশন
+  const calculateExpiryDate = (inv) => {
+    const rawDate = inv.createdAt || inv.startDate || inv.date;
+    if (!rawDate) return "N/A";
+    const startDate = new Date(rawDate);
+    if (isNaN(startDate.getTime())) return "N/A";
+
+    let durationDays = 180;
+    const durStr = String(inv.duration || "");
+    const match = durStr.match(/\d+/);
+    if (match) {
+      const val = parseInt(match[0], 10);
+      durationDays = durStr.toLowerCase().includes("month") ? val * 30 : val;
+    } else if (inv.tenureMonths) {
+      durationDays = Number(inv.tenureMonths) * 30;
+    }
+
+    startDate.setDate(startDate.getDate() + durationDays);
+    return startDate.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    });
+  };
+
+  // টেনিউর বা মেয়াদ শেষ হয়েছে কিনা চেক করার ফাংশন
+  const isTenureExpired = (inv) => {
+    const rawDate = inv.createdAt || inv.startDate || inv.date;
+    if (!rawDate) return false;
+    const startDate = new Date(rawDate);
+    if (isNaN(startDate.getTime())) return false;
+
+    let durationDays = 180;
+    const durStr = String(inv.duration || "");
+    const match = durStr.match(/\d+/);
+    if (match) {
+      const val = parseInt(match[0], 10);
+      durationDays = durStr.toLowerCase().includes("month") ? val * 30 : val;
+    } else if (inv.tenureMonths) {
+      durationDays = Number(inv.tenureMonths) * 30;
+    }
+
+    startDate.setDate(startDate.getDate() + durationDays);
+    return new Date() >= startDate;
+  };
+
   const handleQuickAdjust = (email) => {
     setAdjustEmail(email);
     document.getElementById("wallet-control-box")?.scrollIntoView({ behavior: "smooth" });
@@ -317,14 +363,17 @@ export default function AdminOneTime() {
     return email.includes(q) || status.includes(q) || duration.includes(q) || plan.includes(q);
   });
 
+  // টেনিউর শেষ হওয়া বা স্ট্যাটাস completed/cancelled হলে তা কমপ্লিটেড লিস্টে দেখাবে
   const activeInvestmentsList = filteredInvestments.filter((i) => {
     const st = (i.status || "active").toLowerCase();
-    return st === "active" || st === "approved" || st === "running" || st === "pending";
+    const isFinished = st === "completed" || st === "cancelled" || st === "rejected" || isTenureExpired(i);
+    return !isFinished && (st === "active" || st === "approved" || st === "running" || st === "pending");
   });
 
   const completedInvestmentsList = filteredInvestments.filter((i) => {
     const st = (i.status || "").toLowerCase();
-    return st === "completed" || st === "cancelled" || st === "rejected";
+    const isFinished = st === "completed" || st === "cancelled" || st === "rejected" || isTenureExpired(i);
+    return isFinished;
   });
 
   const pendingCashRequests = cash.filter(
@@ -412,7 +461,6 @@ export default function AdminOneTime() {
                 <tr><td colSpan="4" style={styles.emptyText}>No users found</td></tr>
               ) : (
                 filteredUsers.map((u) => {
-                  // এখানে সরাসরি ডাটাবেসের সঠিক field `referCode` ব্যবহার করা হয়েছে
                   const userReferralCode = u.referCode || u.referralCode || u.smCode || (u._id ? `SM${u._id.slice(-6)}` : "N/A");
                   const uplineReferrer = u.referredBy || u.referrerEmail || u.invitedBy || "None (Direct)";
 
@@ -479,6 +527,7 @@ export default function AdminOneTime() {
                   <th style={styles.th}>Plan Name</th>
                   <th style={styles.th}>Amount</th>
                   <th style={styles.th}>Duration</th>
+                  <th style={styles.th}>Expiry Date</th>
                   <th style={styles.th}>Daily Return</th>
                   <th style={styles.th}>Status</th>
                   <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
@@ -486,11 +535,12 @@ export default function AdminOneTime() {
               </thead>
               <tbody>
                 {completedInvestmentsList.length === 0 ? (
-                  <tr><td colSpan="7" style={styles.emptyText}>No completed or cancelled investments found.</td></tr>
+                  <tr><td colSpan="8" style={styles.emptyText}>No completed or cancelled investments found.</td></tr>
                 ) : (
                   completedInvestmentsList.map((inv, idx) => {
-                    const rawStatus = inv.status || "Completed";
+                    const rawStatus = isTenureExpired(inv) ? "Completed" : (inv.status || "Completed");
                     const statusLower = rawStatus.toLowerCase();
+                    const expiryDateStr = calculateExpiryDate(inv);
 
                     return (
                       <tr key={inv._id || idx} style={styles.tr}>
@@ -507,14 +557,15 @@ export default function AdminOneTime() {
                           {money(inv.amount)}
                         </td>
                         <td style={styles.td}>{inv.duration || "N/A"}</td>
+                        <td style={{ ...styles.td, color: "#f472b6", fontWeight: "600" }}>{expiryDateStr}</td>
                         <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
                           {money(inv.dailyReturn || inv.dailyEarning || 0)}/day
                         </td>
                         <td style={styles.td}>
                           <span style={{
                             padding: "4px 8px", borderRadius: "6px", fontWeight: "bold", fontSize: "11px",
-                            background: statusLower === "cancelled" ? "rgba(239,68,68,0.2)" : "rgba(234,179,8,0.2)",
-                            color: statusLower === "cancelled" ? "#f87171" : "#eab308"
+                            background: statusLower === "cancelled" ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.2)",
+                            color: statusLower === "cancelled" ? "#f87171" : "#22c55e"
                           }}>
                             {rawStatus}
                           </span>
@@ -540,6 +591,7 @@ export default function AdminOneTime() {
                   <th style={styles.th}>Plan Name</th>
                   <th style={styles.th}>Amount</th>
                   <th style={styles.th}>Duration</th>
+                  <th style={styles.th}>Expiry Date</th>
                   <th style={styles.th}>Daily Return</th>
                   <th style={styles.th}>Status</th>
                   <th style={{ ...styles.th, textAlign: "center" }}>Actions</th>
@@ -547,10 +599,11 @@ export default function AdminOneTime() {
               </thead>
               <tbody>
                 {activeInvestmentsList.length === 0 ? (
-                  <tr><td colSpan="7" style={styles.emptyText}>No active investments found</td></tr>
+                  <tr><td colSpan="8" style={styles.emptyText}>No active investments found</td></tr>
                 ) : (
                   activeInvestmentsList.map((inv, idx) => {
                     const rawStatus = inv.status || "Active";
+                    const expiryDateStr = calculateExpiryDate(inv);
 
                     return (
                       <tr key={inv._id || idx} style={styles.tr}>
@@ -569,6 +622,7 @@ export default function AdminOneTime() {
                         <td style={styles.td}>
                           {inv.duration || "N/A"}
                         </td>
+                        <td style={{ ...styles.td, color: "#f472b6", fontWeight: "600" }}>{expiryDateStr}</td>
                         <td style={{ ...styles.td, color: "#38bdf8", fontWeight: "bold" }}>
                           {money(inv.dailyReturn || inv.dailyEarning || 0)}/day
                         </td>
