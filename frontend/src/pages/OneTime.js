@@ -18,6 +18,11 @@ if (typeof document !== "undefined") {
       0% { transform: scale(0.7); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
   `;
   document.head.appendChild(styleSheet);
 }
@@ -74,7 +79,6 @@ const formatDate = (dateVal) => {
   return d.toLocaleDateString("en-GB", { timeZone: "Asia/Kolkata" });
 };
 
-
 const formatDateTime = (dateVal) => {
   const d = parseSafeDate(dateVal);
   if (isNaN(d.getTime()) || d.getFullYear() < 2020) return "-";
@@ -119,7 +123,6 @@ function calculateDailyReturn(amount, tenureMonths, category) {
   return { dailyRate, dailyReturnAmount };
 }
 
-// BULLETPROOF REJECT REASON EXTRACTION
 const getTransactionReason = (item) => {
   if (!item) return "-";
   
@@ -177,6 +180,7 @@ export default function OneTime() {
   const [refreshing, setRefreshing] = useState(false);
 
   const [showImagePopup, setShowImagePopup] = useState(true);
+  const [showKycAlertModal, setShowKycAlertModal] = useState(false); // 👈 KYC চেক স্ট্যাটাস স্টেট
 
   const [showBonusModal, setShowBonusModal] = useState(false);
   const [bonusInputCode, setBonusInputCode] = useState("");
@@ -229,7 +233,6 @@ export default function OneTime() {
     holderName: ""
   });
 
-  const [withdrawing, setWithdrawing] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "", type: "info" });
 
   const triggerToast = (msg, type = "info") => {
@@ -318,24 +321,31 @@ export default function OneTime() {
 
       const data = await res.json();
       if (res.ok) {
-        setUser(data.user || {});
+        const userData = data.user || {};
+        setUser(userData);
 
-        if (data.bonusList || data.user?.bonusList || data.referrals) {
-          setBonusList(data.bonusList || data.user?.bonusList || data.referrals || []);
+        // 🔍 KYC স্ট্যাটাস চেক লজিক (approved কি না যাচাই করা)
+        const kycSt = (userData.kycStatus || "").toLowerCase();
+        if (kycSt !== "approved") {
+          setShowKycAlertModal(true); // যদি approved না হয়, অ্যানিমেটেড পপআপ দেখাবে
+        }
+
+        if (data.bonusList || userData?.bonusList || data.referrals) {
+          setBonusList(data.bonusList || userData?.bonusList || data.referrals || []);
         }
 
         const rawHistory = Array.isArray(data.history)
           ? data.history
           : Array.isArray(data.onetimeHistory)
           ? data.onetimeHistory
-          : Array.isArray(data.user?.onetimeHistory)
-          ? data.user.onetimeHistory
+          : Array.isArray(userData?.onetimeHistory)
+          ? userData.onetimeHistory
           : [];
 
         const rawEarningsList = Array.isArray(data.earnings)
           ? data.earnings.map((e) => ({ ...e, type: e.type || "Daily Return" }))
-          : Array.isArray(data.user?.earnings)
-          ? data.user.earnings.map((e) => ({ ...e, type: e.type || "Daily Return" }))
+          : Array.isArray(userData?.earnings)
+          ? userData.earnings.map((e) => ({ ...e, type: e.type || "Daily Return" }))
           : [];
 
         const rawDeposits = Array.isArray(data.deposits)
@@ -394,8 +404,8 @@ export default function OneTime() {
 
         const backendEarnings = Number(
           data.stats?.totalEarnings ?? 
-          data.user?.oneTimeTotalEarnings ?? 
-          data.user?.totalEarnings ?? 
+          userData?.oneTimeTotalEarnings ?? 
+          userData?.totalEarnings ?? 
           data.totalEarnings ?? 
           0
         );
@@ -406,7 +416,7 @@ export default function OneTime() {
           totalInvested: calculatedInv,
           totalEarnings: finalTotalEarnings,
           totalWithdrawn: calculatedWd,
-          availableBalance: Number(data.user?.otbalance || data.user?.otBalance || 0)
+          availableBalance: Number(userData?.otbalance || userData?.otBalance || 0)
         });
 
         const active = data.activeInvestment || sortedHistory.find(
@@ -418,8 +428,8 @@ export default function OneTime() {
         );
         setActiveInvestment(active || null);
 
-        if (data.user?.bankDetails) {
-          setBankForm(data.user.bankDetails);
+        if (userData?.bankDetails) {
+          setBankForm(userData.bankDetails);
         }
       } else {
         triggerToast(data.message || "Failed to load dashboard", "error");
@@ -857,7 +867,6 @@ export default function OneTime() {
     }
 
     try {
-      setWithdrawing(true);
       const res = await fetch(`${API}/api/onetime/withdraw`, {
         method: "POST",
         headers: {
@@ -883,8 +892,6 @@ export default function OneTime() {
     } catch (err) {
       console.error("Withdrawal error:", err);
       triggerToast("Network error during withdrawal.", "error");
-    } finally {
-      setWithdrawing(false);
     }
   };
 
@@ -902,7 +909,6 @@ export default function OneTime() {
     }
 
     try {
-      setWithdrawing(true);
       const res = await fetch(`${API}/api/onetime/withdraw`, {
         method: "POST",
         headers: {
@@ -929,8 +935,6 @@ export default function OneTime() {
     } catch (err) {
       console.error("Invest Amount Withdrawal error:", err);
       triggerToast("Network error during withdrawal.", "error");
-    } finally {
-      setWithdrawing(false);
     }
   };
 
@@ -942,7 +946,6 @@ export default function OneTime() {
     const tenure = activeInvestment.tenureMonths || activeTenureMonths || 9;
 
     try {
-      setWithdrawing(true);
       const res = await fetch(`${API}/api/onetime/create-investment`, {
         method: "POST",
         headers: {
@@ -973,8 +976,6 @@ export default function OneTime() {
       }
     } catch (err) {
       triggerToast("Network error during reinvestment", "error");
-    } finally {
-      setWithdrawing(false);
     }
   };
 
@@ -1037,6 +1038,36 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
+      {/* 🛑 KYC সম্পূর্ণ না থাকলে ৩টি ভাষায় অ্যানিমেটেড অ্যালার্ট পপআপ */}
+      {showKycAlertModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.kycAlertPopupCard}>
+            <div style={styles.kycAlertPulseIcon}>⚠️</div>
+            
+            <h2 style={styles.kycAlertTitle}>KYC Required / केवाईसी आवश्यक / কেওয়াইসি প্রয়োজন</h2>
+            
+            <div style={styles.kycAlertTextContainer}>
+              <p style={styles.kycLangText}>
+                <b>English:</b> Your KYC is not complete! You must complete your KYC verification first before you can invest. Redirecting to KYC page...
+              </p>
+              <p style={styles.kycLangText}>
+                <b>हिंदी:</b> आपका केवाईसी पूरा नहीं हुआ है! निवेश करने से पहले आपको अपना केवाईसी पूरा करना होगा। आपको केवाईसी पेज पर रिडायरेक्ट किया जा रहा है...
+              </p>
+              <p style={styles.kycLangText}>
+                <b>বাংলা:</b> আপনার কেওয়াইসি সম্পূর্ণ নয়! ইনভেস্ট করার আগে অবশ্যই আপনার কেওয়াইসি ভেরিফিকেশন সম্পন্ন করতে হবে। আপনাকে কেওয়াইসি পেজে রিডাইরেক্ট করা হচ্ছে...
+              </p>
+            </div>
+
+            <button 
+              style={styles.kycRedirectBtn} 
+              onClick={() => navigate("/kyc")}
+            >
+              Go to KYC Now / अभी केवाईसी करें / কেওয়াইসি পেজে যান ➔
+            </button>
+          </div>
+        </div>
+      )}
+
       {showImagePopup && (
         <div style={styles.modalOverlay} onClick={() => setShowImagePopup(false)}>
           <div style={styles.animatedPopupCard} onClick={(e) => e.stopPropagation()}>
@@ -1312,7 +1343,6 @@ export default function OneTime() {
           </div>
         </header>
 
-        {/* স্লাইডিং আপডেট ব্যানার (স্ক্রিনশটের ডিজাইন অনুযায়ী যুক্ত করা হয়েছে) */}
         <div style={styles.updateMarqueeBanner}>
           <div style={styles.updateBadgeBox}>UPDATE 🔥</div>
           <div style={styles.marqueeTextContainer}>
@@ -1477,7 +1507,6 @@ export default function OneTime() {
                 <button 
                   style={styles.reinvestBtn} 
                   onClick={() => setShowReinvestModal(true)}
-                  disabled={withdrawing}
                 >
                   Reinvest 🚀
                 </button>
@@ -1987,9 +2016,9 @@ export default function OneTime() {
                     background: (currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
                   }}
                   onClick={() => handleWithdrawSubmit(selectedPresetWithdrawAmount)}
-                  disabled={withdrawing || currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday}
+                  disabled={currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday}
                 >
-                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested Today" : `Confirm Withdraw ₹${selectedPresetWithdrawAmount}`}
+                  {hasWithdrawnToday ? "Already Requested Today" : `Confirm Withdraw ₹${selectedPresetWithdrawAmount}`}
                 </button>
               </div>
             ) : (
@@ -2003,9 +2032,9 @@ export default function OneTime() {
                     background: (currentWalletBalance < dailyReturn || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
                   }}
                   onClick={() => handleWithdrawSubmit()}
-                  disabled={withdrawing || currentWalletBalance < dailyReturn || hasWithdrawnToday}
+                  disabled={currentWalletBalance < dailyReturn || hasWithdrawnToday}
                 >
-                  {withdrawing ? "Processing..." : hasWithdrawnToday ? "Already Requested Today" : "Confirm Withdrawal"}
+                  {hasWithdrawnToday ? "Already Requested Today" : "Confirm Withdrawal"}
                 </button>
               </>
             )}
@@ -2302,9 +2331,8 @@ export default function OneTime() {
                 marginTop: "16px"
               }}
               onClick={handleWithdrawInvestAmount}
-              disabled={withdrawing}
             >
-              {withdrawing ? "Processing..." : "Confirm Invest Amount Withdrawal"}
+              Confirm Invest Amount Withdrawal
             </button>
           </div>
         </div>
@@ -2335,9 +2363,8 @@ export default function OneTime() {
                 marginTop: "16px"
               }}
               onClick={handleConfirmReinvest}
-              disabled={withdrawing}
             >
-              {withdrawing ? "Processing..." : "Confirm Reinvest 🚀"}
+              Confirm Reinvest 🚀
             </button>
           </div>
         </div>
@@ -2513,7 +2540,6 @@ const styles = {
     fontSize: "14px",
     color: "#fff"
   },
-  // আপডেট মারকিউ ব্যানার স্টাইল
   updateMarqueeBanner: {
     background: "#111827",
     border: "1.5px solid #f59e0b",
@@ -2606,6 +2632,72 @@ const styles = {
   graphicCoinsContainer: {
     fontSize: "28px",
     marginTop: "4px"
+  },
+  // 🛑 নতুন KYC অ্যালার্ট পপআপ স্টাইল
+  kycAlertPopupCard: {
+    background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
+    border: "2px solid #ef4444",
+    borderRadius: "20px",
+    padding: "20px 16px",
+    width: "100%",
+    maxWidth: "380px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    boxShadow: "0 25px 60px rgba(239, 68, 68, 0.4)",
+    animation: "popupZoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
+  },
+  kycAlertPulseIcon: {
+    width: "56px",
+    height: "56px",
+    borderRadius: "50%",
+    background: "rgba(239, 68, 68, 0.2)",
+    border: "2px solid #ef4444",
+    color: "#ef4444",
+    fontSize: "26px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: "12px",
+    animation: "pulseGlow 2s infinite"
+  },
+  kycAlertTitle: {
+    fontSize: "15px",
+    fontWeight: "900",
+    color: "#f87171",
+    margin: "0 0 12px 0",
+    lineHeight: "1.4"
+  },
+  kycAlertTextContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    background: "rgba(0, 0, 0, 0.35)",
+    padding: "12px",
+    borderRadius: "12px",
+    border: "1px solid rgba(239, 68, 68, 0.2)",
+    marginBottom: "16px",
+    textAlign: "left"
+  },
+  kycLangText: {
+    fontSize: "11px",
+    color: "#e2e8f0",
+    margin: 0,
+    lineHeight: "1.4"
+  },
+  kycRedirectBtn: {
+    width: "100%",
+    padding: "12px",
+    background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+    border: "none",
+    borderRadius: "12px",
+    color: "#ffffff",
+    fontWeight: "900",
+    fontSize: "12px",
+    cursor: "pointer",
+    boxShadow: "0 4px 15px rgba(239, 68, 68, 0.5)",
+    transition: "transform 0.2s"
   },
   animatedPopupCard: {
     background: "#0f172a",
