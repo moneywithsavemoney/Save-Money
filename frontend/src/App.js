@@ -242,6 +242,7 @@ function App() {
         const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
         const data = await res.json();
         
+        // ডিফল্টভাবে ১ ধরা হলো (যাতে যাদের ফোনে পুরনো ভার্সন 1 ইনস্টল করা আছে, অ্যাপ তাদের ভার্সন 1 হিসেবেই চেনে)
         let currentVersionCode = 1; 
         try {
           const info = await CapApp.getInfo();
@@ -254,6 +255,11 @@ function App() {
 
         const requiredVersion = data.minRequiredVersion || data.versionCode;
 
+        // ১. যার ফোনে পুরনো ভার্সন (versionCode: 1) আছে: 
+        // requiredVersion (2) > currentVersionCode (1) সত্য হবে -> আপডেট পপআপ আসবে!
+        
+        // ২. যার ফোনে নতুন ভার্সন (versionCode: 2) চলে এসেছে: 
+        // requiredVersion (2) > currentVersionCode (2) মিথ্যে হবে -> পপআপ আর আসবে না!
         if (data && requiredVersion > currentVersionCode) {
           setUpdateModal({
             show: true,
