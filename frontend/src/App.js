@@ -242,8 +242,7 @@ function App() {
         const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
         const data = await res.json();
         
-        // অ্যাপের বর্তমান ইনস্টল করা versionCode ডাইনামিক্যালি রিড করা
-        let currentVersionCode = 1; // যদি কোনো কারণে রিড না করতে পারে, ডিফল্ট ১ ধরবে
+        let currentVersionCode = 1; 
         try {
           const info = await CapApp.getInfo();
           if (info && info.build) {
@@ -255,20 +254,18 @@ function App() {
 
         const requiredVersion = data.minRequiredVersion || data.versionCode;
 
-        // যদি ইউজারের বর্তমান ভার্সন (যেমন ১.০.৬ এর versionCode 1) সার্ভারের requiredVersion (যেমন 2) এর চেয়ে কম হয়
         if (data && requiredVersion > currentVersionCode) {
           setUpdateModal({
             show: true,
             downloadUrl: data.downloadUrl
           });
         } else {
-          // ইউজার যদি নতুন ভার্সন (2.0.0 বা versionCode 2) ইনস্টল করে ফেলে, তবে পপআপ দেখাবে না
           setUpdateModal({
             show: false,
             downloadUrl: ""
           });
         }
-      } `catch` (err) {
+      } catch (err) {
         console.error("Update check failed:", err);
       }
     };
