@@ -242,11 +242,15 @@ function App() {
         const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
         const data = await res.json();
         
-        // ব্যবহারকারী ইতিমধ্যে নতুন ভার্সনে আপডেট করেছে কিনা তা লোকালস্টোরেজ থেকে চেক করা হচ্ছে
+        // শুধু অ্যান্ড্রয়েড নেটিভ অ্যাপের জন্য চেক করবে, ব্রাউজারে হলে পপআপ আসবে না
+        const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+        if (!isNativeApp) {
+          return;
+        }
+
         const hasUpdatedToV2 = localStorage.getItem("app_updated_to_v2");
         const requiredVersion = data.minRequiredVersion || data.versionCode;
 
-        // যদি সার্ভারে আপডেট থাকে (requiredVersion > 1) এবং ইউজার আগে আপডেট না করে থাকে, তবেই পপআপ দেখাবে
         if (data && requiredVersion > 1 && !hasUpdatedToV2) {
           setUpdateModal({
             show: true,
@@ -328,7 +332,6 @@ function App() {
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <button
                   onClick={() => {
-                    // Update Now এ ক্লিক করলে লোকালস্টোরেজে ট্যাগ সেভ হয়ে যাবে যাতে আর পপআপ না আসে
                     localStorage.setItem("app_updated_to_v2", "true");
                     window.open(updateModal.downloadUrl, "_system");
                   }}
