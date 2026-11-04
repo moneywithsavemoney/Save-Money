@@ -179,7 +179,7 @@ export default function KYC() {
         <div style={styles.heroCard}>
           <div style={{ flex: 1 }}>
             <div style={styles.heroSubHeader}>Your Investment Profile</div>
-            <h1 style={styles.heroTitle}>Welcome, {user.name || "User"}</h1>
+            <h1 style={styles.heroTitle}>Welcome, {user.name || "Rama Basu Biswas"}</h1>
             <p style={styles.heroSubtitle}>
               Grow your wealth with trusted and secure investments.
             </p>
@@ -221,9 +221,9 @@ export default function KYC() {
           </div>
 
           <div style={styles.infoGrid} className="responsive-grid">
-            <InfoBox icon="user" label="Name" value={user.name || "N/A"} />
-            <InfoBox icon="mail" label="Email" value={user.email || email || "N/A"} />
-            <InfoBox icon="phone" label="Mobile No." value={user.mobile || user.phone || "N/A"} />
+            <InfoBox icon="user" label="Name" value={user.name || "Rama Basu Biswas"} />
+            <InfoBox icon="mail" label="Email" value={user.email || email || "romabasu457@gmail.com"} />
+            <InfoBox icon="phone" label="Mobile No." value={user.mobile || user.phone || "9007420560"} />
             <InfoBox icon="calendar" label="Date of Birth" value={user.dob || user.dateOfBirth || "N/A"} />
             <InfoBox icon="gender" label="Gender" value={user.gender || "N/A"} />
             <InfoBox icon="map" label="Address" value={user.address || "N/A"} />
@@ -388,7 +388,7 @@ function DocUploadBox({ icon, title, subtitle, file, setFile, inputValue, onInpu
       {isPhoto ? (
         <label style={styles.uploadPhotoSubLabel}>
           <span>🖼️</span>
-          <span>Upload Photo</span>
+          <span>{file ? file.name : "Upload Photo"}</span>
           <input type="file" hidden accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
         </label>
       ) : (
