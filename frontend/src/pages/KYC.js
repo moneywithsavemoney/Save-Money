@@ -90,11 +90,13 @@ export default function KYC() {
       });
 
       const data = await res.json();
-      toast.success(data.msg || "KYC submitted successfully!");
-
+      
       if (data.success) {
+        toast.success(data.msg || "KYC submitted successfully!");
         setKycStatus("reviewing");
         loadKyc();
+      } else {
+        toast.error(data.msg || "KYC submit failed");
       }
     } catch (err) {
       console.log("KYC SUBMIT ERROR:", err);
@@ -140,7 +142,6 @@ export default function KYC() {
         {/* 1. TOP BRAND HEADER */}
         <div style={styles.brandHeader}>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            {/* SIDEBAR HAMBURGER BUTTON */}
             <button style={styles.menuBtn} onClick={() => setIsDrawerOpen(true)}>
               ☰
             </button>
@@ -178,7 +179,7 @@ export default function KYC() {
         <div style={styles.heroCard}>
           <div style={{ flex: 1 }}>
             <div style={styles.heroSubHeader}>Your Investment Profile</div>
-            <h1 style={styles.heroTitle}>Welcome, {user.name || "Rama Basu Biswas"}</h1>
+            <h1 style={styles.heroTitle}>Welcome, {user.name || "User"}</h1>
             <p style={styles.heroSubtitle}>
               Grow your wealth with trusted and secure investments.
             </p>
@@ -220,14 +221,14 @@ export default function KYC() {
           </div>
 
           <div style={styles.infoGrid} className="responsive-grid">
-            <InfoBox icon="user" label="Name" value={user.name || "Rama Basu Biswas"} />
-            <InfoBox icon="mail" label="Email" value={user.email || email || "romabasu457@gmail.com"} />
-            <InfoBox icon="phone" label="Mobile No." value={user.mobile || user.phone || "9007420560"} />
+            <InfoBox icon="user" label="Name" value={user.name || "N/A"} />
+            <InfoBox icon="mail" label="Email" value={user.email || email || "N/A"} />
+            <InfoBox icon="phone" label="Mobile No." value={user.mobile || user.phone || "N/A"} />
             <InfoBox icon="calendar" label="Date of Birth" value={user.dob || user.dateOfBirth || "N/A"} />
             <InfoBox icon="gender" label="Gender" value={user.gender || "N/A"} />
             <InfoBox icon="map" label="Address" value={user.address || "N/A"} />
-            <InfoBox icon="card" label="Pan Number" value={panNumber || "EJPPB8604B"} />
-            <InfoBox icon="card" label="Aadhaar Number" value={aadhaarNumber || "746180458576"} />
+            <InfoBox icon="card" label="Pan Number" value={panNumber || "Not Provided"} />
+            <InfoBox icon="card" label="Aadhaar Number" value={aadhaarNumber || "Not Provided"} />
 
             {/* STATUS BOX */}
             <div style={styles.statusBoxFull}>
@@ -282,7 +283,7 @@ export default function KYC() {
               setFile={setAadhaarFile}
               inputValue={aadhaarNumber}
               onInputChange={(e) => setAadhaarNumber(e.target.value)}
-              placeholder="746180458576"
+              placeholder="Enter 12 digit Aadhaar"
             />
             <DocUploadBox
               icon="card"
@@ -292,7 +293,7 @@ export default function KYC() {
               setFile={setPanFile}
               inputValue={panNumber}
               onInputChange={(e) => setPanNumber(e.target.value.toUpperCase())}
-              placeholder="EJPPB8604B"
+              placeholder="Enter 10 digit PAN"
             />
             <DocUploadBox
               icon="user"
