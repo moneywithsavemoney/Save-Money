@@ -91,9 +91,12 @@ function BackButtonHandler() {
 }
 
 // 🟢 গ্লোবাল বটম নেভিয়েশন বার কম্পোনেন্ট (সাদা ফাঁকা অংশ দূর করার জন্য ব্যাকগ্রাউন্ড ও স্টাইল ফিক্সড)
-function GlobalBottomNav() {
+function GlobalBottomNav({ updateShow }) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // আপডেট আসলে নেভিগেশন বার সম্পূর্ণ নিষ্ক্রিয় করার জন্য
+  if (updateShow) return null;
 
   const hideNavPaths = ["/login", "/register", "/forgot-password", "/admin"];
   const shouldShowNav = !hideNavPaths.includes(location.pathname) && !location.pathname.startsWith("/admin");
@@ -240,7 +243,6 @@ function App() {
         const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
         const data = await res.json();
         
-        // ইউজারের ফোনে ইনস্টল করা অ্যাপের নেটিভ ভার্সন কোড বের করা
         let currentVersionCode = 1;
         try {
           const info = await CapApp.getInfo();
@@ -251,7 +253,6 @@ function App() {
           console.log("Could not get app info, using fallback version");
         }
 
-        // সার্ভারের ন্যূনতম প্রয়োজনীয় ভার্সন চেক করা
         const requiredVersion = data.minRequiredVersion || data.versionCode;
 
         if (data && requiredVersion > currentVersionCode) {
@@ -299,13 +300,17 @@ function App() {
           <div style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.8)",
+            background: "rgba(0,0,0,0.9)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            zIndex: 99999,
-            padding: "20px"
-          }}>
+            zIndex: 999999,
+            padding: "20px",
+            pointerEvents: "auto",
+            backdropFilter: "blur(5px)"
+          }}
+          onClick={(e) => e.stopPropagation()}
+          >
             <div style={{
               background: "#1e1b4b",
               borderRadius: "24px",
@@ -315,12 +320,13 @@ function App() {
               textAlign: "center",
               color: "#fff",
               border: "1px solid rgba(255,255,255,0.1)",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.5)"
+              boxShadow: "0 20px 50px rgba(0,0,0,0.8)",
+              pointerEvents: "auto"
             }}>
               <div style={{ fontSize: "48px", marginBottom: "10px" }}>🚀</div>
               <h3 style={{ margin: "0 0 8px 0", fontSize: "20px" }}>New Update Available!</h3>
               <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: "20px", marginBottom: "20px" }}>
-                A new version of Save Money app is available with new features and performance improvements.
+                A new version of Save Money app is available with new features and performance improvements. You must update to continue.
               </p>
               
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -361,306 +367,309 @@ function App() {
           </div>
         )}
 
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
+        {/* আপডেট মোডাল আসলে পেছনের পুরো র্যাপার ডিভের ওপর ক্লিক ব্লক করে দেওয়া হলো */}
+        <div style={{ pointerEvents: updateModal.show ? "none" : "auto", userSelect: updateModal.show ? "none" : "auto" }}>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
 
-          <Route
-            path="/leaderboard"
-            element={
-              <ProtectedRoute>
-                <Leaderboard />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/leaderboard"
+              element={
+                <ProtectedRoute>
+                  <Leaderboard />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route 
-            path="/about" 
-            element={
-              <ProtectedRoute>
-                <AboutCompany />
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/about" 
+              element={
+                <ProtectedRoute>
+                  <AboutCompany />
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route
-            path="/home"
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/invest-now"
-            element={
-              <ProtectedRoute>
-                <InvestNow />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/invest-now"
+              element={
+                <ProtectedRoute>
+                  <InvestNow />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route 
-            path="/bank-details" 
-            element={
-              <ProtectedRoute>
-                <BankDetails />
-              </ProtectedRoute>
-            } 
-          />
+            <Route 
+              path="/bank-details" 
+              element={
+                <ProtectedRoute>
+                  <BankDetails />
+                </ProtectedRoute>
+              } 
+            />
 
-          <Route 
-            path="/withdraw"
-            element={   
-              <ProtectedRoute>
-                <Withdraw />   
-              </ProtectedRoute>
-            }
-          />
+            <Route 
+              path="/withdraw"
+              element={   
+                <ProtectedRoute>
+                  <Withdraw />   
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/wallet"
-            element={
-              <ProtectedRoute>
-                <Wallet />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/wallet"
+              element={
+                <ProtectedRoute>
+                  <Wallet />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/refer"
-            element={
-              <ProtectedRoute>
-                <Refer />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/refer"
+              element={
+                <ProtectedRoute>
+                  <Refer />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/save-money"
-            element={
-              <ProtectedRoute>
-                <SaveMoney />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/save-money"
+              element={
+                <ProtectedRoute>
+                  <SaveMoney />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/one-time"
-            element={
-              <ProtectedRoute>
-                <OneTime />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/one-time"
+              element={
+                <ProtectedRoute>
+                  <OneTime />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/my-investment"
-            element={
-              <ProtectedRoute>
-                <MyInvestment />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/my-investment"
+              element={
+                <ProtectedRoute>
+                  <MyInvestment />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/invest-history"
-            element={
-              <ProtectedRoute>
-                <InvestHistory />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/invest-history"
+              element={
+                <ProtectedRoute>
+                  <InvestHistory />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/bonus-history"
-            element={
-              <ProtectedRoute>
-                <BonusHistory />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/bonus-history"
+              element={
+                <ProtectedRoute>
+                  <BonusHistory />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/kyc"
-            element={
-              <ProtectedRoute>
-                <KYC />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/kyc"
+              element={
+                <ProtectedRoute>
+                  <KYC />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <Notifications />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/legal/:type"
-            element={
-              <ProtectedRoute>
-                <LegalPages />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/legal/:type"
+              element={
+                <ProtectedRoute>
+                  <LegalPages />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/performance-bonus"
-            element={
-              <ProtectedRoute>
-                <PerformanceBonus />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/performance-bonus"
+              element={
+                <ProtectedRoute>
+                  <PerformanceBonus />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/team-bonus"
-            element={
-              <ProtectedRoute>
-                <TeamBonus />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/team-bonus"
+              element={
+                <ProtectedRoute>
+                  <TeamBonus />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/royalty-bonus"
-            element={
-              <ProtectedRoute>
-                <RoyaltyBonus />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/royalty-bonus"
+              element={
+                <ProtectedRoute>
+                  <RoyaltyBonus />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/referral-tree"
-            element={
-              <ProtectedRoute>
-                <ReferralTree />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/referral-tree"
+              element={
+                <ProtectedRoute>
+                  <ReferralTree />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute>
-                <UserAnalytics />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <UserAnalytics />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/daily-reward"
-            element={
-              <ProtectedRoute>
-                <DailyReward />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/daily-reward"
+              element={
+                <ProtectedRoute>
+                  <DailyReward />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/investment-assistant"
-            element={
-              <ProtectedRoute>
-                <InvestmentAssistant />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/investment-assistant"
+              element={
+                <ProtectedRoute>
+                  <InvestmentAssistant />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
+            <Route path="/admin-addon" element={<ProtectedRoute><AdminAddon /></ProtectedRoute>} />
 
-          <Route path="/ecommerce-home" element={<EcommerceHome />} />
+            <Route path="/ecommerce-home" element={<EcommerceHome />} />
 
-          <Route
-            path="/support"
-            element={
-              <ProtectedRoute>
-                <Support />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/support"
+              element={
+                <ProtectedRoute>
+                  <Support />
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            }
-          />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
 
-          <Route
-            path="/admin-kyc"
-            element={
-              <AdminRoute>
-                <AdminKYC />
-              </AdminRoute>
-            }
-          />
+            <Route
+              path="/admin-kyc"
+              element={
+                <AdminRoute>
+                  <AdminKYC />
+                </AdminRoute>
+              }
+            />
 
-          <Route
-            path="/admin-analytics"
-            element={
-              <AdminRoute>
-                <AdvancedAdminAnalytics />
-              </AdminRoute>
-            }
-          />
+            <Route
+              path="/admin-analytics"
+              element={
+                <AdminRoute>
+                  <AdvancedAdminAnalytics />
+                </AdminRoute>
+              }
+            />
 
-          <Route
-            path="/admin-user-control"
-            element={
-              <AdminRoute>
-                <AdminUserControl />
-              </AdminRoute>
-            }
-          />
+            <Route
+              path="/admin-user-control"
+              element={
+                <AdminRoute>
+                  <AdminUserControl />
+                </AdminRoute>
+              }
+            />
 
-          <Route
-            path="/admin-one-time"
-            element={
-              <AdminRoute>
-                <AdminOneTime />
-              </AdminRoute>
-            }
-          />
+            <Route
+              path="/admin-one-time"
+              element={
+                <AdminRoute>
+                  <AdminOneTime />
+                </AdminRoute>
+              }
+            />
 
-          <Route
-            path="/admin-support"
-            element={
-              <AdminRoute>
-                <AdminSupport />
-              </AdminRoute>
-            }
-          />
+            <Route
+              path="/admin-support"
+              element={
+                <AdminRoute>
+                  <AdminSupport />
+                </AdminRoute>
+              }
+            />
 
-          <Route
-            path="/admin-notify"
-            element={
-              <AdminRoute>
-                <AdminNotification />
-              </AdminRoute>
-            }
-          />
+            <Route
+              path="/admin-notify"
+              element={
+                <AdminRoute>
+                  <AdminNotification />
+                </AdminRoute>
+              }
+            />
 
-          <Route path="*" element={<Login />} />
+            <Route path="*" element={<Login />} />
 
-        </Routes>
+          </Routes>
+        </div>
 
         <ToastContainer
           position="top-center"
@@ -675,7 +684,8 @@ function App() {
 
       </div>
 
-      <GlobalBottomNav />
+      {/* আপডেট পপআপ আসলে নিচের নেভিগেশন বার সম্পূর্ণ হাইড বা ডিসেবল থাকবে */}
+      <GlobalBottomNav updateShow={updateModal.show} />
     </BrowserRouter>
   );
 }
