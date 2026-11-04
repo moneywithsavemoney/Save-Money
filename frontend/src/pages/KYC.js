@@ -113,6 +113,8 @@ export default function KYC() {
     return "Not Submitted";
   };
 
+  const isAlreadySubmitted = ["reviewing", "approved"].includes(String(kycStatus || "").toLowerCase());
+
   return (
     <div style={styles.page}>
       
@@ -164,7 +166,7 @@ export default function KYC() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
               <span style={{ fontSize: "11px", fontWeight: "700", color: "#fff", display: "flex", alignItems: "center", gap: "3px" }}>
-                KYC Verified <span style={{ color: "#00e676" }}>✓</span>
+                KYC Status <span style={{ color: "#00e676" }}>{kycStatus === "approved" ? "✓" : ""}</span>
               </span>
               <span style={{ fontSize: "8px", color: "#94a3b8" }}>Your account is secure</span>
             </div>
@@ -184,7 +186,7 @@ export default function KYC() {
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00e676" strokeWidth="3">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
               </svg>
-              <span>KYC Verified</span>
+              <span>{getStatusText()}</span>
             </div>
           </div>
           <div style={styles.heroGraphic}>
@@ -236,11 +238,11 @@ export default function KYC() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: "11px", color: "#94a3b8" }}>KYC Status</div>
-                <div style={{ fontSize: "15px", fontWeight: "700", color: "#00e676" }}>
+                <div style={{ fontSize: "15px", fontWeight: "700", color: kycStatus === "approved" ? "#00e676" : "#facc15" }}>
                   {getStatusText()}
                 </div>
               </div>
-              <div style={styles.statusCheckMark}>✓</div>
+              {kycStatus === "approved" && <div style={styles.statusCheckMark}>✓</div>}
               <span style={{ color: "#94a3b8", fontSize: "14px" }}>›</span>
             </div>
           </div>
@@ -305,12 +307,13 @@ export default function KYC() {
           <button
             style={{
               ...styles.submitBtn,
-              opacity: ["reviewing", "approved"].includes(String(kycStatus || "").toLowerCase()) ? 0.8 : 1
+              opacity: isAlreadySubmitted ? 0.6 : 1,
+              pointerEvents: isAlreadySubmitted ? "none" : "auto"
             }}
             onClick={submitKyc}
-            disabled={loading}
+            disabled={loading || isAlreadySubmitted}
           >
-            ✈️ {loading ? "Submitting..." : "Submit KYC"} ➔
+            ✈️ {loading ? "Submitting..." : isAlreadySubmitted ? "Already Submitted" : "Submit KYC"} ➔
           </button>
 
           <p style={styles.securityNote}>
