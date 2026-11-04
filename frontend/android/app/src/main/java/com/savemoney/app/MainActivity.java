@@ -1,9 +1,12 @@
 package com.savemoney.app;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
+import android.webkit.ValueCallback;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -11,6 +14,10 @@ import android.webkit.WebChromeClient;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
+
+    private ValueCallback<Uri[]> mUploadMessage;
+    private static final int FILECHOOSER_RESULTCODE = 1;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,8 +36,35 @@ public class MainActivity extends BridgeActivity {
             // ব্রাউজারের মতো ইউজার এজেন্ট সেট করা যাতে Razorpay সব UPI অপশন দেখায়
             settings.setUserAgentString("Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
 
-            // পেমেন্ট গেটওয়ের পপআপ ও নতুন উইন্ডো হ্যান্ডেল করার জন্য WebChromeClient আপডেট
+            // WebChromeClient কনফিগারেশন (ফাইল আপলোড এবং পপআপ উইন্ডো হ্যান্ডেল করার জন্য)
             webView.setWebChromeClient(new WebChromeClient() {
+                
+                // KYC ফটো আপলোড বা ফাইল সিলেক্ট করার জন্য এটি যুক্ত করা হয়েছে
+                @Override
+                public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                    if (mUploadMessage != null) {
+                        mUploadMessage.onReceiveValue(null);
+                        mUploadMessage = null;
+                    }
+                    mUploadMessage = filePathCallback;
+
+                    Intent contentSelectionIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                    contentSelectionIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                    contentSelectionIntent.setType("*/*"); // চাইলে শুধু ইমেজ দিতে পারেন "image/*"
+
+                    Intent chooserIntent = new Intent(Intent.ACTION_CHOOSER);
+                    chooserIntent.putExtra(Intent.EXTRA_INTENT, contentSelectionIntent);
+                    chooserIntent.putExtra(Intent.EXTRA_TITLE, "Upload File");
+
+                    try {
+                        startActivityForResult(chooserIntent, FILECHOOSER_RESULTCODE);
+                    } catch (ActivityNotFoundException e) {
+                        mUploadMessage = null;
+                        return false;
+                    }
+                    return true;
+                }
+
                 @Override
                 public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
                     WebView newWebView = new WebView(MainActivity.this);
@@ -126,6 +160,32 @@ public class MainActivity extends BridgeActivity {
 
             // লাইভ Vercel সাইট লোড করা
             webView.loadUrl("https://save-moneyy-indol.vercel.app");
+        }
+    }
+
+    // গ্যালারি বা ফাইল সিলেক্ট করার পর তার ফলাফল WebView-এ পাস করার জন্য onActivityResult
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        if (requestCode == FILECHOOSER_RESULTCODE) {
+            if (mUploadMessage == null) return;
+            Uri[] results = null;
+            if (resultCode == Activity.RESULT_OK) {
+                if (intent != null) {
+                    String dataString = intent.getDataString();
+                    if (dataString != null) {
+                        results = new Uri[]{Uri.parse(dataString)};
+                    } else if (intent.getClipData() != null) {
+                        int count = intent.getClipData().getItemCount();
+                        results = new Uri[count];
+                        for (int i = 0; i < count; i++) {
+                            results[i] = intent.getClipData().getItemAt(i).getUri();
+                        }
+                    }
+                }
+            }
+            mUploadMessage.onReceiveValue(results);
+            mUploadMessage = null;
         }
     }
 }
