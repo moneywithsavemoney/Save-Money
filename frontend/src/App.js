@@ -240,8 +240,8 @@ function App() {
         const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
         const data = await res.json();
         
-        // ডায়নামিকভাবে ডিভাইস বা অ্যাপের নেটিভ বিল্ড কোড চেক করা
-        let currentVersionCode = 2;
+        // ইউজারের ফোনে ইনস্টল করা অ্যাপের নেটিভ ভার্সন কোড বের করা
+        let currentVersionCode = 1;
         try {
           const info = await CapApp.getInfo();
           if (info && info.build) {
@@ -251,7 +251,10 @@ function App() {
           console.log("Could not get app info, using fallback version");
         }
 
-        if (data && data.versionCode > currentVersionCode) {
+        // সার্ভারের ন্যূনতম প্রয়োজনীয় ভার্সন চেক করা
+        const requiredVersion = data.minRequiredVersion || data.versionCode;
+
+        if (data && requiredVersion > currentVersionCode) {
           setUpdateModal({
             show: true,
             downloadUrl: data.downloadUrl
