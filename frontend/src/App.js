@@ -90,12 +90,11 @@ function BackButtonHandler() {
   return null;
 }
 
-// 🟢 গ্লোবাল বটম নেভিয়েশন বার কম্পোনেন্ট (সাদা ফাঁকা অংশ দূর করার জন্য ব্যাকগ্রাউন্ড ও স্টাইল ফিক্সড)
+// 🟢 গ্লোবাল বটম নেভিয়েশন বার কম্পোনেন্ট
 function GlobalBottomNav({ updateShow }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // আপডেট আসলে নেভিগেশন বার সম্পূর্ণ নিষ্ক্রিয় করার জন্য
   if (updateShow) return null;
 
   const hideNavPaths = ["/login", "/register", "/forgot-password", "/admin"];
@@ -240,25 +239,32 @@ function App() {
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        const res = await fetch(`https://save-moneyy-indol.vercel.app/app-update.json?t=${Date.now()}`);
+        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
         const data = await res.json();
         
-        let currentVersionCode = 1;
+        // সরাসরি বর্তমান অ্যাপের বিল্ড কোড (2) ফিক্সড করে দেওয়া হলো, যাতে কোনোভাবেই মিসম্যাচ না করে
+        let currentVersionCode = 2; 
         try {
           const info = await CapApp.getInfo();
           if (info && info.build) {
             currentVersionCode = parseInt(info.build, 10);
           }
         } catch (e) {
-          console.log("Could not get app info, using fallback version");
+          console.log("Using default version code");
         }
 
         const requiredVersion = data.minRequiredVersion || data.versionCode;
 
+        // বর্তমান ভার্সন যদি সার্ভারের প্রয়োজনীয় ভার্সনের চেয়ে কম হয়, তবেই পপআপ দেখাবে
         if (data && requiredVersion > currentVersionCode) {
           setUpdateModal({
             show: true,
             downloadUrl: data.downloadUrl
+          });
+        } else {
+          setUpdateModal({
+            show: false,
+            downloadUrl: ""
           });
         }
       } catch (err) {
@@ -293,7 +299,6 @@ function App() {
     <BrowserRouter>
       <BackButtonHandler />
 
-      {/* মূল র্যাপারে ব্যাকগ্রাউন্ড কালার #020817 এবং প্যাডিং ফিট করা হয়েছে যাতে কোনো সাদা ফাঁকা অংশ না থাকে */}
       <div style={{ width: "100%", maxWidth: "100vw", overflowX: "hidden", minHeight: "100vh", background: "#020817", boxSizing: "border-box", paddingBottom: "65px" }}>
 
         {updateModal.show && (
@@ -367,7 +372,6 @@ function App() {
           </div>
         )}
 
-        {/* আপডেট মোডাল আসলে পেছনের পুরো র্যাপার ডিভের ওপর ক্লিক ব্লক করে দেওয়া হলো */}
         <div style={{ pointerEvents: updateModal.show ? "none" : "auto", userSelect: updateModal.show ? "none" : "auto" }}>
           <Routes>
             <Route
@@ -684,7 +688,6 @@ function App() {
 
       </div>
 
-      {/* আপডেট পপআপ আসলে নিচের নেভিগেশন বার সম্পূর্ণ হাইড বা ডিসেবল থাকবে */}
       <GlobalBottomNav updateShow={updateModal.show} />
     </BrowserRouter>
   );
