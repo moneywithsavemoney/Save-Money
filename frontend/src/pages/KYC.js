@@ -81,7 +81,7 @@ export default function KYC() {
       formData.append("panNumber", panNumber);
       formData.append("aadhaarFile", aadhaarFile);
       formData.append("panFile", panFile);
-      formData.append("photo", photoFile);
+      formData.append("photo", photoFile); // ব্যাকএন্ডের ফিল্ড নামের সাথে হুবহু মিল রাখা হয়েছে
 
       const res = await fetch(`${API}/submit-kyc`, {
         method: "POST",
@@ -91,7 +91,7 @@ export default function KYC() {
 
       const data = await res.json();
       
-      if (data.success) {
+      if (res.ok && (data.success !== false)) {
         toast.success(data.msg || "KYC submitted successfully!");
         setKycStatus("reviewing");
         loadKyc();
@@ -179,7 +179,7 @@ export default function KYC() {
         <div style={styles.heroCard}>
           <div style={{ flex: 1 }}>
             <div style={styles.heroSubHeader}>Your Investment Profile</div>
-            <h1 style={styles.heroTitle}>Welcome, {user.name || "Rama Basu Biswas"}</h1>
+            <h1 style={styles.heroTitle}>Welcome, {user.name || "User"}</h1>
             <p style={styles.heroSubtitle}>
               Grow your wealth with trusted and secure investments.
             </p>
@@ -221,9 +221,9 @@ export default function KYC() {
           </div>
 
           <div style={styles.infoGrid} className="responsive-grid">
-            <InfoBox icon="user" label="Name" value={user.name || "Rama Basu Biswas"} />
-            <InfoBox icon="mail" label="Email" value={user.email || email || "romabasu457@gmail.com"} />
-            <InfoBox icon="phone" label="Mobile No." value={user.mobile || user.phone || "9007420560"} />
+            <InfoBox icon="user" label="Name" value={user.name || "N/A"} />
+            <InfoBox icon="mail" label="Email" value={user.email || email || "N/A"} />
+            <InfoBox icon="phone" label="Mobile No." value={user.mobile || user.phone || "N/A"} />
             <InfoBox icon="calendar" label="Date of Birth" value={user.dob || user.dateOfBirth || "N/A"} />
             <InfoBox icon="gender" label="Gender" value={user.gender || "N/A"} />
             <InfoBox icon="map" label="Address" value={user.address || "N/A"} />
@@ -275,34 +275,71 @@ export default function KYC() {
           </div>
 
           <div style={styles.uploadGrid} className="responsive-upload-grid">
-            <DocUploadBox
-              icon="card"
-              title="Aadhaar Card"
-              subtitle="Upload front & back side of your Aadhaar card."
-              file={aadhaarFile}
-              setFile={setAadhaarFile}
-              inputValue={aadhaarNumber}
-              onInputChange={(e) => setAadhaarNumber(e.target.value)}
-              placeholder="Enter 12 digit Aadhaar"
-            />
-            <DocUploadBox
-              icon="card"
-              title="PAN Card"
-              subtitle="Upload front & back side of your PAN card."
-              file={panFile}
-              setFile={setPanFile}
-              inputValue={panNumber}
-              onInputChange={(e) => setPanNumber(e.target.value.toUpperCase())}
-              placeholder="Enter 10 digit PAN"
-            />
-            <DocUploadBox
-              icon="user"
-              title="Your Photo"
-              subtitle="Upload your recent clear photo."
-              file={photoFile}
-              setFile={setPhotoFile}
-              isPhoto={true}
-            />
+            {/* Aadhaar Upload Box */}
+            <div style={styles.uploadCard}>
+              <div style={styles.uploadHeaderIcon}>🪪</div>
+              <h4 style={styles.uploadTitle}>Aadhaar Card</h4>
+              <p style={styles.uploadSubtitle}>Upload front & back side of your Aadhaar card.</p>
+              
+              <label style={styles.uploadButtonLabel}>
+                <span>☁️</span>
+                <span>{aadhaarFile ? aadhaarFile.name : "Upload Image"}</span>
+                <input type="file" hidden accept="image/*" onChange={(e) => setAadhaarFile(e.target.files[0])} />
+              </label>
+
+              <input
+                type="text"
+                value={aadhaarNumber}
+                onChange={(e) => setAadhaarNumber(e.target.value)}
+                placeholder="Enter 12 digit Aadhaar"
+                style={styles.textInputStyle}
+              />
+            </div>
+
+            {/* PAN Upload Box */}
+            <div style={styles.uploadCard}>
+              <div style={styles.uploadHeaderIcon}>🪪</div>
+              <h4 style={styles.uploadTitle}>PAN Card</h4>
+              <p style={styles.uploadSubtitle}>Upload front & back side of your PAN card.</p>
+              
+              <label style={styles.uploadButtonLabel}>
+                <span>☁️</span>
+                <span>{panFile ? panFile.name : "Upload Image"}</span>
+                <input type="file" hidden accept="image/*" onChange={(e) => setPanFile(e.target.files[0])} />
+              </label>
+
+              <input
+                type="text"
+                value={panNumber}
+                onChange={(e) => setPanNumber(e.target.value.toUpperCase())}
+                placeholder="Enter 10 digit PAN"
+                style={styles.textInputStyle}
+              />
+            </div>
+
+            {/* Photo Upload Box (ক্লিক সমস্যা ফিক্সড) */}
+            <div style={styles.uploadCard}>
+              <div style={styles.uploadHeaderIcon}>👤</div>
+              <h4 style={styles.uploadTitle}>Your Photo</h4>
+              <p style={styles.uploadSubtitle}>Upload your recent clear photo.</p>
+              
+              <label style={styles.uploadPhotoSubLabel}>
+                <span>🖼️</span>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "90px" }}>
+                  {photoFile ? photoFile.name : "Upload Photo"}
+                </span>
+                <input 
+                  type="file" 
+                  style={{ display: "none" }} 
+                  accept="image/*" 
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setPhotoFile(e.target.files[0]);
+                    }
+                  }} 
+                />
+              </label>
+            </div>
           </div>
 
           <button
@@ -366,40 +403,6 @@ function InfoBox({ icon, label, value }) {
         <div style={styles.infoLabel}>{label}</div>
         <div style={styles.infoValue}>{value}</div>
       </div>
-    </div>
-  );
-}
-
-function DocUploadBox({ icon, title, subtitle, file, setFile, inputValue, onInputChange, placeholder, isPhoto }) {
-  return (
-    <div style={styles.uploadCard}>
-      <div style={styles.uploadHeaderIcon}>
-        {isPhoto ? "👤" : "🪪"}
-      </div>
-      <h4 style={styles.uploadTitle}>{title}</h4>
-      <p style={styles.uploadSubtitle}>{subtitle}</p>
-      
-      <label style={styles.uploadButtonLabel}>
-        <span>☁️</span>
-        <span>{file ? file.name : "Upload Image"}</span>
-        <input type="file" hidden accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
-      </label>
-
-      {isPhoto ? (
-        <label style={styles.uploadPhotoSubLabel}>
-          <span>🖼️</span>
-          <span>{file ? file.name : "Upload Photo"}</span>
-          <input type="file" hidden accept="image/*" onChange={(e) => setFile(e.target.files[0])} />
-        </label>
-      ) : (
-        <input
-          type="text"
-          value={inputValue}
-          onChange={onInputChange}
-          placeholder={placeholder}
-          style={styles.textInputStyle}
-        />
-      )}
     </div>
   );
 }
@@ -715,14 +718,15 @@ const styles = {
     background: "#1e293b",
     border: "1px solid #334155",
     borderRadius: "6px",
-    padding: "5px 0",
+    padding: "6px 0",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     gap: "4px",
     cursor: "pointer",
     color: "#cbd5e1",
-    fontSize: "9px"
+    fontSize: "9px",
+    marginTop: "auto"
   },
   textInputStyle: {
     width: "100%",
@@ -733,7 +737,8 @@ const styles = {
     color: "#ffffff",
     fontSize: "9px",
     textAlign: "center",
-    outline: "none"
+    outline: "none",
+    marginTop: "4px"
   },
 
   submitBtn: {
