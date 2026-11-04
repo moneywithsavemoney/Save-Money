@@ -327,23 +327,6 @@ function App() {
                 >
                   Update Now
                 </button>
-
-                <button
-                  onClick={() => setUpdateModal((prev) => ({ ...prev, show: false }))}
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    borderRadius: "14px",
-                    border: "1px solid rgba(255,255,255,0.2)",
-                    background: "transparent",
-                    color: "#cbd5e1",
-                    fontWeight: "500",
-                    fontSize: "14px",
-                    cursor: "pointer"
-                  }}
-                >
-                  Skip for Now
-                </button>
               </div>
             </div>
           </div>
