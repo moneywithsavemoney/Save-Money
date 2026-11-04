@@ -240,7 +240,7 @@ function App() {
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
+        const res = await fetch(`https://save-moneyy-indol.vercel.app/app-update.json?t=${Date.now()}`);
         const data = await res.json();
         
         let currentVersionCode = 1;
