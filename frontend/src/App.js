@@ -242,25 +242,12 @@ function App() {
         const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
         const data = await res.json();
         
-        // ডিফল্টভাবে ১ ধরা হলো (যাতে যাদের ফোনে পুরনো ভার্সন 1 ইনস্টল করা আছে, অ্যাপ তাদের ভার্সন 1 হিসেবেই চেনে)
-        let currentVersionCode = 1; 
-        try {
-          const info = await CapApp.getInfo();
-          if (info && info.build) {
-            currentVersionCode = parseInt(info.build, 10);
-          }
-        } catch (e) {
-          console.log("Could not get app version from Capacitor, using default:", e);
-        }
-
+        // ব্যবহারকারী ইতিমধ্যে নতুন ভার্সনে আপডেট করেছে কিনা তা লোকালস্টোরেজ থেকে চেক করা হচ্ছে
+        const hasUpdatedToV2 = localStorage.getItem("app_updated_to_v2");
         const requiredVersion = data.minRequiredVersion || data.versionCode;
 
-        // ১. যার ফোনে পুরনো ভার্সন (versionCode: 1) আছে: 
-        // requiredVersion (2) > currentVersionCode (1) সত্য হবে -> আপডেট পপআপ আসবে!
-        
-        // ২. যার ফোনে নতুন ভার্সন (versionCode: 2) চলে এসেছে: 
-        // requiredVersion (2) > currentVersionCode (2) মিথ্যে হবে -> পপআপ আর আসবে না!
-        if (data && requiredVersion > currentVersionCode) {
+        // যদি সার্ভারে আপডেট থাকে (requiredVersion > 1) এবং ইউজার আগে আপডেট না করে থাকে, তবেই পপআপ দেখাবে
+        if (data && requiredVersion > 1 && !hasUpdatedToV2) {
           setUpdateModal({
             show: true,
             downloadUrl: data.downloadUrl
@@ -340,7 +327,11 @@ function App() {
               
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <button
-                  onClick={() => window.open(updateModal.downloadUrl, "_system")}
+                  onClick={() => {
+                    // Update Now এ ক্লিক করলে লোকালস্টোরেজে ট্যাগ সেভ হয়ে যাবে যাতে আর পপআপ না আসে
+                    localStorage.setItem("app_updated_to_v2", "true");
+                    window.open(updateModal.downloadUrl, "_system");
+                  }}
                   style={{
                     width: "100%",
                     padding: "14px",
