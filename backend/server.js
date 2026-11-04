@@ -7386,30 +7386,29 @@ app.post("/api/onetime/dashboard", async (req, res) => {
     }
 
     const cleanEmail = String(email).trim().toLowerCase();
-    const user = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, "i") } });
+    const user = await User.findOne({ email: new RegExp(`^${cleanEmail}$`, "i") });
 
     if (!user) {
       return res.status(404).json({ success: false, message: "user not found" });
     }
 
-    // 🎁 ইউজারদের অতিরিক্ত bonusCode না থাকলে বোনাস কোড সেভ করা
+    // 🎁 ইভানওয়াইজ অতিরিক্ত bonusCode না থাকলে লোয়ার কোড জেনারেট করা
     if (!user.bonusCode) {
       const randomSuffix = Math.floor(100000 + Math.random() * 900000);
       user.bonusCode = `ot${randomSuffix}`;
       await user.save();
     }
 
-    // 🔹 72 Hours Countdown Timer Database Sync Logic
+    // ⏱️ 72 Hours Countdown Timer Database Sync Logic
     let upgradeStartTime = user.upgradeStartTime;
-    const hasBonusOrReferral = (user?.bonusList || []).length > 0;
+    const hasBonusOrReferral = (user.bonusList || []).length > 0;
 
     if (hasBonusOrReferral && !upgradeStartTime) {
       upgradeStartTime = new Date();
       user.upgradeStartTime = upgradeStartTime;
       await user.save();
     }
-    
-  
+
     const rawHistory = user.onetimeHistory || [];
 
     let totalInvested = 0;
@@ -7417,20 +7416,20 @@ app.post("/api/onetime/dashboard", async (req, res) => {
     let totalWithdraw = 0;
     let activeInvestment = null;
 
-    const formattedHistory = rawHistory.map(rawItem => {
+    const formattedHistory = rawHistory.map((rawItem) => {
       const item = rawItem.toObject ? rawItem.toObject() : { ...rawItem };
 
-      // 🔍 এভাবে status এবং statusLower নিরাপদে ঘোষণা করা হলো
+      // 🔍 অবস্থার states এবং statusLower সিলেকশন অথবা চেক করা
       const status = item.status || "";
       const statusLower = status.toLowerCase();
       const typeLower = (item.type || "").toLowerCase();
 
       const isInvestment = typeLower.includes("onetimeinvestment") || typeLower.includes("investment");
-      
-      // 🟢 isWithdraw এখানে সঠিকভাবে ডিক্লেয়ার করা হলো যাতে ReferenceError না আসে
+
+      // 🟢 isWithdraw এখানে সঠিকভাবে ডিফাইন করা হলো যাতে ReferenceError না ঘটে
       const isWithdraw = typeLower.includes("withdrawal") || typeLower.includes("withdraw");
 
-      // ৩. ইনভেস্টমেন্ট হিসাব
+      // 💰 ইনভেস্টমেন্ট হিসেব
       if (isInvestment) {
         totalInvested += Number(item.amount || 0);
 
@@ -7449,23 +7448,23 @@ app.post("/api/onetime/dashboard", async (req, res) => {
           matDate = `${day}/${month}/${year}`;
         }
 
-        item.maturity = matDate;
         item.maturityDate = matDate;
+        item.maturity = matDate;
 
         if (statusLower === "active") {
           activeInvestment = item;
         }
       }
 
-      // ৪. ডেইলি রিটার্ন / মোট আর্নিং হিসাব (শুধু প্রকৃত প্রফিট যোগ হবে, মূল ইনভেস্টমেন্ট নয়)[span_4](start_span)[span_4](end_span)
-      const isEarning = (typeLower.includes("earning") || typeLower.includes("profit") || typeLower.includes("daily") || typeLower.includes("roi") || typeLower.includes("return") || typeLower.includes("days")) && !isInvestment && !isWithdraw;
+      // 🪙 ডেইলি রিটার্ন / টোটাল আর্নিং হিসাব (শুধু অনুমোদিত এন্ট্রি যোগ হবে)
+      const isEarning = typeLower.includes("earning") || typeLower.includes("profit") || typeLower.includes("daily") || typeLower.includes("roi") || typeLower.includes("bonus") || typeLower.includes("return");
       const isValidEarningStatus = ["approved", "accepted", "success", "active", "completed"].includes(statusLower);
 
       if (isEarning && isValidEarningStatus) {
         totalEarnings += Number(item.amount || 0);
       }
 
-      // ৫. উইথড্রয়াল হিসাব
+      // 💵 উইথড্রয়াল হিসাব
       if (isWithdraw && (statusLower === "approved" || statusLower === "accepted" || statusLower === "success")) {
         totalWithdraw += Number(item.amount || 0);
       }
@@ -7473,7 +7472,33 @@ app.post("/api/onetime/dashboard", async (req, res) => {
       return item;
     });
 
-    // MongoDB ডাটাবেডে টোটাল আর্নিং সিঙ্ক করা
+    // 🔍 রিমেইনিং দিন হিসাব করার লজিক (মেয়াদ শেষ হতে কত দিন বাকি)
+    let remainingDaysToExpiry = null;
+    if (activeInvestment) {
+      const invStartDate = activeInvestment.startDate || activeInvestment.createdAt ? new Date(activeInvestment.startDate || activeInvestment.createdAt) : new Date();
+      
+      let totalDaysCount = 180;
+      if (activeInvestment.durationDays) {
+        totalDaysCount = Number(activeInvestment.durationDays);
+      } else if (activeInvestment.tenureMonths) {
+        totalDaysCount = Number(activeInvestment.tenureMonths) * 30;
+      } else if (typeof activeInvestment.duration === "string") {
+        const matchDuration = activeInvestment.duration.match(/\d+/);
+        if (matchDuration) {
+          const valNum = parseInt(matchDuration[0], 10);
+          totalDaysCount = activeInvestment.duration.toLowerCase().includes("month") ? valNum * 30 : valNum;
+        }
+      }
+
+      const expiryDateObj = new Date(invStartDate.getTime());
+      expiryDateObj.setDate(expiryDateObj.getDate() + totalDaysCount);
+
+      const currentDateObj = new Date();
+      const timeDiffMs = expiryDateObj - currentDateObj;
+      remainingDaysToExpiry = Math.ceil(timeDiffMs / (1000 * 60 * 60 * 24));
+    }
+
+    // MongoDB ডাটাবেজে টোটাল আর্নিং সিঙ্ক করা
     let isDbModified = false;
 
     if (Number(user.totalEarnings || 0) !== totalEarnings) {
@@ -7516,7 +7541,8 @@ app.post("/api/onetime/dashboard", async (req, res) => {
         availableBalance: Number(user.otbalance || 0)
       },
       hasActiveInvestment: !!activeInvestment,
-      activeInvestment: activeInvestment
+      activeInvestment: activeInvestment,
+      remainingDays: remainingDaysToExpiry // 👈 ফ্রন্টএন্ডে রিমেইনিং দিন পাঠানো হলো
     });
 
   } catch (error) {
@@ -7524,6 +7550,7 @@ app.post("/api/onetime/dashboard", async (req, res) => {
     return res.status(500).json({ success: false, message: "Server Error" });
   }
 });
+
 
 
 
