@@ -180,7 +180,11 @@ export default function OneTime() {
   const [refreshing, setRefreshing] = useState(false);
 
   const [showImagePopup, setShowImagePopup] = useState(true);
-  const [showKycAlertModal, setShowKycAlertModal] = useState(false); // 👈 KYC চেক স্ট্যাটাস স্টেট
+  const [showKycAlertModal, setShowKycAlertModal] = useState(false);
+
+  // ⚡ ৭ দিন বাকি থাকলে এক্সপায়ারি ওয়ার্নিং পপআপ স্টেট
+  const [showExpiryWarningModal, setShowExpiryWarningModal] = useState(false);
+  const [expiryRemainingDays, setExpiryRemainingDays] = useState(null);
 
   const [showBonusModal, setShowBonusModal] = useState(false);
   const [bonusInputCode, setBonusInputCode] = useState("");
@@ -324,10 +328,18 @@ export default function OneTime() {
         const userData = data.user || {};
         setUser(userData);
 
-        // 🔍 KYC স্ট্যাটাস চেক লজিক (approved কি না যাচাই করা)
         const kycSt = (userData.kycStatus || "").toLowerCase();
         if (kycSt !== "approved") {
-          setShowKycAlertModal(true); // যদি approved না হয়, অ্যানিমেটেড পপআপ দেখাবে
+          setShowKycAlertModal(true);
+        }
+
+        // ⚡ ওয়ানটাইম পেজে ঢুকলে মেয়াদ শেষ হওয়ার ৭ দিনের কাউন্টডাউন চেক
+        if (data.remainingDays !== undefined && data.remainingDays !== null) {
+          const remDays = Number(data.remainingDays);
+          if (remDays >= 1 && remDays <= 7) {
+            setExpiryRemainingDays(remDays);
+            setShowExpiryWarningModal(true);
+          }
         }
 
         if (data.bonusList || userData?.bonusList || data.referrals) {
@@ -1038,6 +1050,38 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
+      {/* ⚠️ মেয়াদ শেষের ৭ দিন বাকি থাকার অ্যালার্ট পপআপ */}
+      {showExpiryWarningModal && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.kycAlertPopupCard}>
+            <div style={styles.kycAlertPulseIcon}>⏳</div>
+            
+            <h2 style={styles.kycAlertTitle}>
+              Plan Expiring Soon! / प्लान समाप्त हो रहा है! / প্ল্যান শেষের পথে!
+            </h2>
+            
+            <div style={styles.kycAlertTextContainer}>
+              <p style={styles.kycLangText}>
+                <b>English:</b> Your plan expires in {expiryRemainingDays} days. Hurry up and make at least 1 referral, otherwise your daily return bonus will expire[span_0](start_span)[span_0](end_span)!
+              </p>
+              <p style={styles.kycLangText}>
+                <b>हिंदी:</b> आपका प्लान समाप्त होने में {expiryRemainingDays} दिन बाकी हैं। जल्दी से कम से कम 1 रेफरल करें, अन्यथा आपका डेली रिटर्न बोनस समाप्त हो जाएगा[span_1](start_span)[span_1](end_span)!
+              </p>
+              <p style={styles.kycLangText}>
+                <b>বাংলা:</b> আপনার প্ল্যান শেষ হতে আর মাত্র {expiryRemainingDays} দিন বাকি। জলদি মিনিমাম একটা রেফার করে নাও, নাহলে ডেইলি রিটার্ন বোনাস expire হয়ে যাবে[span_2](start_span)[span_2](end_span)!
+              </p>
+            </div>
+
+            <button 
+              style={styles.kycRedirectBtn} 
+              onClick={() => setShowExpiryWarningModal(false)}
+            >
+              Understand & Continue / समझ गया / বুঝেছি ➔
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 🛑 KYC সম্পূর্ণ না থাকলে ৩টি ভাষায় অ্যানিমেটেড অ্যালার্ট পপআপ */}
       {showKycAlertModal && (
         <div style={styles.modalOverlay}>
@@ -1048,13 +1092,13 @@ export default function OneTime() {
             
             <div style={styles.kycAlertTextContainer}>
               <p style={styles.kycLangText}>
-                <b>English:</b> Your KYC is not complete! You must complete your KYC verification first before you can invest. Redirecting to KYC page...
+                <b>English:</b> Your KYC is not complete! You must complete your KYC verification first before you can invest. Redirecting to KYC page...[span_3](start_span)[span_3](end_span)
               </p>
               <p style={styles.kycLangText}>
-                <b>हिंदी:</b> आपका केवाईसी पूरा नहीं हुआ है! निवेश करने से पहले आपको अपना केवाईसी पूरा करना होगा। आपको केवाईसी पेज पर रिडायरेक्ट किया जा रहा है...
+                <b>हिंदी:</b> आपका केवाईसी पूरा नहीं हुआ है! निवेश करने से पहले आपको अपना केवाईसी पूरा करना होगा। आपको केवाईसी पेज पर रिडायरेक्ट किया जा रहा है...[span_4](start_span)[span_4](end_span)
               </p>
               <p style={styles.kycLangText}>
-                <b>বাংলা:</b> আপনার কেওয়াইসি সম্পূর্ণ নয়! ইনভেস্ট করার আগে অবশ্যই আপনার কেওয়াইসি ভেরিফিকেশন সম্পন্ন করতে হবে। আপনাকে কেওয়াইসি পেজে রিডাইরেক্ট করা হচ্ছে...
+                <b>বাংলা:</b> আপনার কেওয়াইসি সম্পূর্ণ নয়! ইনভেস্ট করার আগে অবশ্যই আপনার কেওয়াইসি ভেরিফিকেশন সম্পন্ন করতে হবে। আপনাকে কেওয়াইসি পেজে রিডাইরেক্ট করা হচ্ছে...[span_5](start_span)[span_5](end_span)
               </p>
             </div>
 
@@ -2633,7 +2677,6 @@ const styles = {
     fontSize: "28px",
     marginTop: "4px"
   },
-  // 🛑 নতুন KYC অ্যালার্ট পপআপ স্টাইল
   kycAlertPopupCard: {
     background: "linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)",
     border: "2px solid #ef4444",
