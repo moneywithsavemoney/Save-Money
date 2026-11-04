@@ -3672,65 +3672,59 @@ app.post("/update-mobile", async (req, res) => {
   res.json({ msg: "Mobile updated" });
 });
 
-app.post("/submit-kyc", upload.fields([
-  { name: "aadhaarFile", maxCount: 1 },
-  { name: "panFile", maxCount: 1 },
-  { name: "photo", maxCount: 1 }
+app.post('/submit-kyc', upload.fields([
+  { name: 'aadhaarFile', maxCount: 1 },
+  { name: 'panFile', maxCount: 1 },
+  { name: 'photo', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const email = String(req.body.email || "").toLowerCase();
     const aadhaarNumber = req.body.aadhaarNumber || req.body.aadhaar || "";
     const panNumber = req.body.panNumber || req.body.pan || "";
 
+    // সঠিক উপায়ে ফাইল চেক করা
     if (!req.files || !req.files.aadhaarFile || !req.files.panFile || !req.files.photo) {
       return res.status(400).json({ success: false, msg: "All files are required" });
     }
 
-    // Cloudinary-তে ফাইলগুলো আপলোড করার জন্য ফাংশন
+    // Cloudinary আপলোড ফাংশন
     const uploadToCloudinary = async (fileBufferOrPath) => {
       const result = await cloudinary.uploader.upload(fileBufferOrPath, {
         folder: "kyc_documents"
       });
-      return result.secure_url; // ক্লাউডিনারি থেকে যে সিকিউর লিংক পাওয়া যাবে
+      return result.secure_url;
     };
 
-    // ৩টি ফাইল ক্লাউডিনারিতে আপলোড করা হচ্ছে
     const aadhaarUrl = await uploadToCloudinary(req.files.aadhaarFile[0].path);
     const panUrl = await uploadToCloudinary(req.files.panFile[0].path);
     const photoUrl = await uploadToCloudinary(req.files.photo[0].path);
 
     console.log("KYC API HIT:", email);
 
-    // ডাটাবেজে ক্লাউডিনারি লিংকগুলো এবং সাবমিট করার সময় সেভ করা
-    await User.updateOne(
+    // ডাটাবেজ আপডেট করা
+    await User.findOneAndUpdate(
       { email },
       {
         aadhaarNumber,
-        pan: panNumber,
         panNumber,
-        aadhaarFile: aadhaarUrl, // লোকাল পাথের বদলে Cloudinary URL
-        panFile: panUrl,         // লোকাল পাথের বদলে Cloudinary URL
-        photo: photoUrl,         // লোকাল পাথের বদলে Cloudinary URL
+        aadhaarFile: aadhaarUrl,
+        panFile: panUrl,
+        photo: photoUrl,
         kycStatus: "reviewing",
-        kycSubmittedAt: new Date(), // <--- আজকের KYC কাউন্ট ট্র্যাক করার জন্য এটি যুক্ত করা হলো
-        rejectReason: "",
-        kycRejectReason: ""
-      }
+        kycSubmittedAt: new Date(),
+        rejectReason: ""
+      },
+      { new: true }
     );
 
-    await createNotification(email, "KYC Submitted Successfully");
-    res.json({ success: true, msg: "KYC submitted successfully" });
-
-     // 🔔 Push Notification for KYC Submit
-    await sendPushNotification(email, "KYC Submitted 📝", "Your KYC documents have been submitted successfully and are under review.", "/kyc");
-
-    res.json({ success: true, msg: "KYC submitted successfully" });
+    res.json({ success: true, msg: "KYC submitted successfully!" });
 
   } catch (err) {
     console.log("KYC ERROR:", err);
     res.status(500).json({ success: false, msg: "Server error during KYC upload" });
   }
 });
+
 
 
 
