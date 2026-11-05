@@ -248,8 +248,8 @@ function App() {
           return;
         }
 
-        // ক্যাপিটটর অ্যাপ ইনফো থেকে বর্তমান অ্যাপের ভার্সন কোড বের করা (যদি এভেইলেবল থাকে)
-        let currentVersionCode = 2; // আপনার বর্তমান versionCode
+        // বর্তমান অ্যাপের ভার্সন কোড বের করা (বিল্ড গ্রাডলের versionCode এর সাথে মিলবে)
+        let currentVersionCode = 2; 
         try {
           const appInfo = await CapApp.getInfo();
           currentVersionCode = parseInt(appInfo.build, 10) || 2;
@@ -260,7 +260,7 @@ function App() {
         const serverMinVersion = data.minRequiredVersion || data.versionCode;
         const skippedVersion = localStorage.getItem("skipped_update_version");
 
-        // যদি সার্ভারের ভার্সন বর্তমান ভার্সন থেকে বেশি হয় এবং ইউজার যদি এই ভার্সনটি স্কিপ না করে থাকে
+        // সার্ভার ভার্সন বর্তমান ভার্সন থেকে বেশি হলে এবং ইউজার স্কিপ না করে থাকলে পপআপ দেখাবে
         if (data && serverMinVersion > currentVersionCode && skippedVersion !== String(serverMinVersion)) {
           setUpdateModal({
             show: true,
@@ -366,7 +366,7 @@ function App() {
                   Update Now
                 </button>
 
-                {/* ছোট এবং স্টাইলিশ স্কিপ বোতাম */}
+                {/* আপডেট বোতামের নিচে ছোট করে স্কিপ বোতাম */}
                 <button
                   onClick={async () => {
                     try {
