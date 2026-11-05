@@ -55,7 +55,7 @@ import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
 import EcommerceHome from "./pages/EcommerceHome";
 
-// 🟢 আপনার বর্তমান ইনস্টল করা অ্যাপের ভার্সন কোড (পুরনো অ্যাপের জন্য ১)
+// 🟢 আপনার বর্তমান ইনস্টল করা পুরনো অ্যাপের ভার্সন কোড (যেমন: 1)
 const CURRENT_APP_VERSION_CODE = 1;
 
 // 🟢 ব্যাক বাটন হ্যান্ডলার সাব-কম্পোনেন্ট
@@ -194,8 +194,7 @@ function App() {
 
   const [updateModal, setUpdateModal] = useState({
     show: false,
-    downloadUrl: "",
-    version: ""
+    downloadUrl: ""
   });
 
   useEffect(() => {
@@ -239,11 +238,11 @@ function App() {
     };
   }, []);
 
-  // 🟢 আপডেট চেক করার সঠিক লজিক
+  // 🟢 আপডেট চেক করার ফিক্সড এবং পারফেক্ট লজিক
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        // নেটিভ অ্যাপ চেক (ব্রাউজারে আপডেট পপআপ দেখাবে না)
+        // নেটিভ অ্যাপ চেক (ব্রাউজারে পপআপ দেখাবে না)
         const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
         if (!isNativeApp) {
           return;
@@ -261,22 +260,23 @@ function App() {
         if (!data) return;
 
         const serverVersionCode = Number(data.versionCode || data.minRequiredVersion || 0);
-        const skippedVersion = localStorage.getItem("skipped_update_version");
 
-        // যদি সার্ভারের ভার্সন ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয়
+        // সেশন স্টোরেজ ব্যবহার করা হয়েছে: ইউজার স্কিপ করলে শুধু এই সেশনে/অ্যাপ খোলা অবস্থায় আর দেখাবে না, 
+        // কিন্তু অ্যাপ বন্ধ করে আবার চালু করলে পুরনো ভার্সন হওয়ায় বাধ্যতামূলকভাবে আবার আপডেট পপআপ চলে আসবে।
+        const isSkippedThisSession = sessionStorage.getItem("skip_update_popup");
+
+        // যদি সার্ভারের ভার্সন ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয় এবং সেশনে স্কিপ করা না থাকে
         if (serverVersionCode > CURRENT_APP_VERSION_CODE) {
-          // যদি ইউজার এই নির্দিষ্ট ভার্সনটি স্কিপ করে থাকে, তবে পপআপ দেখাবে না
-          if (skippedVersion === String(serverVersionCode)) {
-            setUpdateModal({ show: false, downloadUrl: "", version: "" });
+          if (isSkippedThisSession === "true") {
+            setUpdateModal({ show: false, downloadUrl: "" });
           } else {
             setUpdateModal({
               show: true,
-              downloadUrl: data.downloadUrl,
-              version: String(serverVersionCode)
+              downloadUrl: data.downloadUrl
             });
           }
         } else {
-          setUpdateModal({ show: false, downloadUrl: "", version: "" });
+          setUpdateModal({ show: false, downloadUrl: "" });
         }
       } catch (err) {
         console.error("Update check failed:", err);
@@ -285,7 +285,7 @@ function App() {
 
     checkAppUpdate();
 
-    // অ্যাপ ব্যাকগ্রাউন্ড থেকে ফোকাসে আসলে পুনরায় চেক করবে
+    // অ্যাপ ব্যাকগ্রাউন্ড থেকে ফোকাসে আসলে আবার চেক করবে
     const appStateListener = CapApp.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
         checkAppUpdate();
@@ -359,7 +359,6 @@ function App() {
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <button
                   onClick={() => {
-                    // সরাসরি ব্রাউজারে বা এক্সটার্নাল লিংকে ওপেন করার জন্য
                     window.open(updateModal.downloadUrl, "_system");
                   }}
                   style={{
@@ -377,13 +376,11 @@ function App() {
                   Update Now
                 </button>
 
-                {/* 🟢 Skip বোতাম */}
+                {/* 🟢 Skip বোতাম (সেশন অনুযায়ী কাজ করবে, অ্যাপ রিওপেন করলে আবার পপআপ আসবে) */}
                 <button
                   onClick={() => {
-                    if (updateModal.version) {
-                      localStorage.setItem("skipped_update_version", updateModal.version);
-                    }
-                    setUpdateModal({ show: false, downloadUrl: "", version: "" });
+                    sessionStorage.setItem("skip_update_popup", "true");
+                    setUpdateModal({ show: false, downloadUrl: "" });
                   }}
                   style={{
                     background: "transparent",
@@ -627,7 +624,7 @@ function App() {
               path="/daily-reward"
               element={
                 <ProtectedRoute>
-                  <DailyReward / >
+                  <DailyReward />
                 </ProtectedRoute>
               }
             />
@@ -664,8 +661,6 @@ function App() {
             />
 
             <Route
-              path="/admin-kyc"
-              email="..."
               path="/admin-kyc"
               element={
                 <AdminRoute>
