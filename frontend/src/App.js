@@ -240,28 +240,34 @@ function App() {
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        const res = andFetchData => fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
-        const response = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
-        const data = await response.json();
-        
         // শুধু অ্যান্ড্রয়েড নেটিভ অ্যাপের জন্য চেক করবে, ব্রাউজারে হলে পপআপ আসবে না
         const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
         if (!isNativeApp) {
           return;
         }
 
-        // সার্ভার থেকে লেটেস্ট ভার্সন বা কোড নেওয়া (যেমন: minRequiredVersion বা versionCode)
-        const serverVersion = String(data.minRequiredVersion || data.versionCode || "1");
+        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
+        const data = await res.json();
         
-        // ইউজারের লোকাল স্টোরেজ থেকে চেক করা সে অলরেডি এই ভার্সনটি স্কিপ করেছে কি না
+        if (!data) return;
+
+        // সার্ভার থেকে সর্বনিম্ন প্রয়োজনীয় ভার্সন বা কোড নেওয়া
+        const serverMinVersion = Number(data.minRequiredVersion || data.versionCode || 1);
+
+        // ইউজারের ডিভাইস থেকে ক্যাপাসিটরের মাধ্যমে তার বর্তমান অ্যাপের বিল্ড কোড বা ভার্সন নম্বর বের করা
+        const appInfo = await CapApp.getInfo();
+        const currentAppBuildCode = Number(appInfo.build || appInfo.version || 1);
+
+        // ইউজারের লোকাল স্টোরেজ থেকে চেক করা সে এই নির্দিষ্ট ভার্সনটি আগে স্কিপ করেছে কি না
         const skippedVersion = localStorage.getItem("skipped_update_version");
 
-        // যদি সার্ভারের ভার্সন এবং ইউজারের স্কিপ করা ভার্সন এক না হয়, তবেই পপআপ দেখাবে (পুরনো ভার্সন বা নতুন আপডেট আসলে শো করবে)
-        if (data && serverVersion && skippedVersion !== serverVersion) {
+        // শর্ত: সার্ভারের ভার্সন যদি ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয় 
+        // এবং ইউজার যদি এই নির্দিষ্ট নতুন ভার্সনটি স্কিপ না করে থাকে তবেই পপআপ দেখাবে
+        if (serverMinVersion > currentAppBuildCode && skippedVersion !== String(serverMinVersion)) {
           setUpdateModal({
             show: true,
             downloadUrl: data.downloadUrl,
-            version: serverVersion
+            version: String(serverMinVersion)
           });
         } else {
           setUpdateModal({
@@ -657,15 +663,6 @@ function App() {
               element={
                 <AdminRoute>
                   <AdvancedAdminAnalytics />
-                </AdminRoute>
-              }
-            />
-
-            <Route
-              path="/admin-user-control-etc"
-              element={
-                <AdminRoute>
-                  <AdminUserControl />
                 </AdminRoute>
               }
             />
