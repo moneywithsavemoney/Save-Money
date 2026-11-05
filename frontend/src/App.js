@@ -55,7 +55,7 @@ import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
 import EcommerceHome from "./pages/EcommerceHome";
 
-// 🟢 বর্তমান অ্যাপের বিল্ড/ভার্সন নম্বর (পুরনো অ্যাপ v1.0.6 এর ভার্সন কোড ১ ছিল)
+// 🟢 আপনার বর্তমান ইনস্টল করা অ্যাপের ভার্সন কোড (পুরনো অ্যাপের জন্য ১)
 const CURRENT_APP_VERSION_CODE = 1;
 
 // 🟢 ব্যাক বাটন হ্যান্ডলার সাব-কম্পোনেন্ট
@@ -239,11 +239,16 @@ function App() {
     };
   }, []);
 
-  // 🟢 গ্যারান্টেড আপডেট চেক লজিক (সবার ডিভাইসের জন্য)
+  // 🟢 আপডেট চেক করার সঠিক লজিক
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        // র্যান্ডম কুয়েরি এবং নো-ক্যাশ হেডার দিয়ে ফেচ
+        // নেটিভ অ্যাপ চেক (ব্রাউজারে আপডেট পপআপ দেখাবে না)
+        const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+        if (!isNativeApp) {
+          return;
+        }
+
         const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?nocache=${Date.now()}`, {
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -255,25 +260,23 @@ function App() {
         
         if (!data) return;
 
-        // update.json থেকে ভার্সন কোড রিড করা (আপনার ফাইলে versionCode 2 দেওয়া আছে)
         const serverVersionCode = Number(data.versionCode || data.minRequiredVersion || 0);
-
-        // লোকাল স্টোরেজে এই ভার্সনটি আগে স্কিপ করা হয়েছে কি না চেক করা
         const skippedVersion = localStorage.getItem("skipped_update_version");
 
-        // যদি সার্ভারের ভার্সন ইউজারের ইনস্টল থাকা ভার্সনের চেয়ে বেশি হয় এবং ইউজার স্কিপ না করে থাকে
-        if (serverVersionCode > CURRENT_APP_VERSION_CODE && skippedVersion !== String(serverVersionCode)) {
-          setUpdateModal({
-            show: true,
-            downloadUrl: data.downloadUrl,
-            version: String(serverVersionCode)
-          });
+        // যদি সার্ভারের ভার্সন ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয়
+        if (serverVersionCode > CURRENT_APP_VERSION_CODE) {
+          // যদি ইউজার এই নির্দিষ্ট ভার্সনটি স্কিপ করে থাকে, তবে পপআপ দেখাবে না
+          if (skippedVersion === String(serverVersionCode)) {
+            setUpdateModal({ show: false, downloadUrl: "", version: "" });
+          } else {
+            setUpdateModal({
+              show: true,
+              downloadUrl: data.downloadUrl,
+              version: String(serverVersionCode)
+            });
+          }
         } else {
-          setUpdateModal({
-            show: false,
-            downloadUrl: "",
-            version: ""
-          });
+          setUpdateModal({ show: false, downloadUrl: "", version: "" });
         }
       } catch (err) {
         console.error("Update check failed:", err);
@@ -281,6 +284,17 @@ function App() {
     };
 
     checkAppUpdate();
+
+    // অ্যাপ ব্যাকগ্রাউন্ড থেকে ফোকাসে আসলে পুনরায় চেক করবে
+    const appStateListener = CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        checkAppUpdate();
+      }
+    });
+
+    return () => {
+      appStateListener.then(listener => listener.remove());
+    };
   }, []);
 
   useEffect(() => {
@@ -345,6 +359,7 @@ function App() {
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <button
                   onClick={() => {
+                    // সরাসরি ব্রাউজারে বা এক্সটার্নাল লিংকে ওপেন করার জন্য
                     window.open(updateModal.downloadUrl, "_system");
                   }}
                   style={{
@@ -362,7 +377,7 @@ function App() {
                   Update Now
                 </button>
 
-                {/* 🟢 স্কিপ বোতাম */}
+                {/* 🟢 Skip বোতাম */}
                 <button
                   onClick={() => {
                     if (updateModal.version) {
@@ -612,7 +627,7 @@ function App() {
               path="/daily-reward"
               element={
                 <ProtectedRoute>
-                  <DailyReward />
+                  <DailyReward / >
                 </ProtectedRoute>
               }
             />
@@ -649,6 +664,8 @@ function App() {
             />
 
             <Route
+              path="/admin-kyc"
+              email="..."
               path="/admin-kyc"
               element={
                 <AdminRoute>
