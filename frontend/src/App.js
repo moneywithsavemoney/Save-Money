@@ -55,6 +55,8 @@ import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
 import EcommerceHome from "./pages/EcommerceHome";
 
+// 🟢 বর্তমান অ্যাপের বিল্ড/ভার্সন নম্বর (পুরনো অ্যাপ v1.0.6 এর ভার্সন কোড ১ ছিল)
+const CURRENT_APP_VERSION_CODE = 1;
 
 // 🟢 ব্যাক বাটন হ্যান্ডলার সাব-কম্পোনেন্ট
 function BackButtonHandler() {
@@ -237,40 +239,34 @@ function App() {
     };
   }, []);
 
-  // 🟢 আপডেট চেক করার কার্যকরী ও সুনির্দিষ্ট লজিক
+  // 🟢 গ্যারান্টেড আপডেট চেক লজিক (সবার ডিভাইসের জন্য)
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        // শুধু অ্যান্ড্রয়েড নেটিভ অ্যাপের জন্য চেক করবে, ব্রাউজার বা ওয়েবসাইট হলে কাজ করবে না
-        const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
-        if (!isNativeApp) {
-          return;
-        }
-
-        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${new Date().getTime()}`, {
-          cache: "no-store"
+        // র্যান্ডম কুয়েরি এবং নো-ক্যাশ হেডার দিয়ে ফেচ
+        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?nocache=${Date.now()}`, {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
         });
         const data = await res.json();
         
         if (!data) return;
 
-        // আপনার বর্তমান অ্যাপের ভার্সন কোড (যেমন স্ক্রিনশট অনুযায়ী আপনার পুরনো অ্যাপে ভার্সন 1.0.6 বা কোড 1 থাকতে পারে)
-        // এখানে সরাসরি আপনার বর্তমান অ্যাপের বিল্ড কোড বা ভার্সন সংখ্যা সেট করা হলো (অথবা ডায়নামিক রিড করবে)
-        const serverVersion = Number(data.minRequiredVersion || data.versionCode || 2);
-        
-        // বর্তমান অ্যাপের ভার্সন সরাসরি ডিফাইন বা ক্যাপাসিটর থেকে নেওয়া
-        const appInfo = await CapApp.getInfo().catch(() => ({ build: "1" }));
-        const currentVersionCode = Number(appInfo.build || 1);
+        // update.json থেকে ভার্সন কোড রিড করা (আপনার ফাইলে versionCode 2 দেওয়া আছে)
+        const serverVersionCode = Number(data.versionCode || data.minRequiredVersion || 0);
 
-        // ইউজারের লোকাল স্টোরেজ থেকে চেক করা সে এই ভার্সনটি স্কিপ করেছে কি না
+        // লোকাল স্টোরেজে এই ভার্সনটি আগে স্কিপ করা হয়েছে কি না চেক করা
         const skippedVersion = localStorage.getItem("skipped_update_version");
 
-        // শর্ত: সার্ভারের ভার্সন যদি ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয় এবং ইউজার স্কিপ না করে থাকে
-        if (serverVersion > currentVersionCode && skippedVersion !== String(serverVersion)) {
+        // যদি সার্ভারের ভার্সন ইউজারের ইনস্টল থাকা ভার্সনের চেয়ে বেশি হয় এবং ইউজার স্কিপ না করে থাকে
+        if (serverVersionCode > CURRENT_APP_VERSION_CODE && skippedVersion !== String(serverVersionCode)) {
           setUpdateModal({
             show: true,
             downloadUrl: data.downloadUrl,
-            version: String(serverVersion)
+            version: String(serverVersionCode)
           });
         } else {
           setUpdateModal({
@@ -284,19 +280,7 @@ function App() {
       }
     };
 
-    // অ্যাপ চালু হওয়ার সাথে সাথে চেক করবে
     checkAppUpdate();
-
-    // অ্যাপ ব্যাকগ্রাউন্ড থেকে ফোকাসে আসলে আবার চেক করবে
-    const appStateListener = CapApp.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) {
-        checkAppUpdate();
-      }
-    });
-
-    return () => {
-      appStateListener.then(listener => listener.remove());
-    };
   }, []);
 
   useEffect(() => {
@@ -355,7 +339,7 @@ function App() {
               <div style={{ fontSize: "48px", marginBottom: "10px" }}>🚀</div>
               <h3 style={{ margin: "0 0 8px 0", fontSize: "20px" }}>New Update Available!</h3>
               <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: "20px", marginBottom: "20px" }}>
-                A new version of Save Money app is available with new features and performance improvements. Please update to continue.
+                A new version of Save Money app is available with new features and performance improvements.
               </p>
               
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -378,7 +362,7 @@ function App() {
                   Update Now
                 </button>
 
-                {/* ছোট করে স্কিপ (Skip) বোতাম */}
+                {/* 🟢 স্কিপ বোতাম */}
                 <button
                   onClick={() => {
                     if (updateModal.version) {
