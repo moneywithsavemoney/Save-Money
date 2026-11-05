@@ -5,7 +5,6 @@ import { PushNotifications } from "@capacitor/push-notifications";
 import axios from "axios";
 import socket from "./socket";
 
-
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Toaster } from "react-hot-toast";
@@ -193,7 +192,8 @@ function App() {
 
   const [updateModal, setUpdateModal] = useState({
     show: false,
-    downloadUrl: ""
+    downloadUrl: "",
+    version: ""
   });
 
   useEffect(() => {
@@ -240,8 +240,9 @@ function App() {
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
-        const data = await res.json();
+        const res = andFetchData => fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
+        const response = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
+        const data = await response.json();
         
         // শুধু অ্যান্ড্রয়েড নেটিভ অ্যাপের জন্য চেক করবে, ব্রাউজারে হলে পপআপ আসবে না
         const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
@@ -249,23 +250,24 @@ function App() {
           return;
         }
 
-        const serverMinVersion = data.minRequiredVersion || data.versionCode;
+        // সার্ভার থেকে লেটেস্ট ভার্সন বা কোড নেওয়া (যেমন: minRequiredVersion বা versionCode)
+        const serverVersion = String(data.minRequiredVersion || data.versionCode || "1");
         
-        // ইউজারের লোকাল স্টোরেজ থেকে তার লাস্ট স্কিপ করা বা আপডেট করা ভার্সন চেক করা
+        // ইউজারের লোকাল স্টোরেজ থেকে চেক করা সে অলরেডি এই ভার্সনটি স্কিপ করেছে কি না
         const skippedVersion = localStorage.getItem("skipped_update_version");
-        const currentAppVersion = serverMinVersion; // অথবা আপনার অ্যাপের কারেন্ট ভার্সন নম্বর
 
-        // যদি সার্ভারের রিকোয়ার্ড ভার্সন স্কিপ করা ভার্সনের থেকে বেশি হয়, তবেই পপআপ দেখাবে
-        if (data && serverMinVersion && skippedVersion !== String(serverMinVersion)) {
+        // যদি সার্ভারের ভার্সন এবং ইউজারের স্কিপ করা ভার্সন এক না হয়, তবেই পপআপ দেখাবে (পুরনো ভার্সন বা নতুন আপডেট আসলে শো করবে)
+        if (data && serverVersion && skippedVersion !== serverVersion) {
           setUpdateModal({
             show: true,
             downloadUrl: data.downloadUrl,
-            version: serverMinVersion
+            version: serverVersion
           });
         } else {
           setUpdateModal({
             show: false,
-            downloadUrl: ""
+            downloadUrl: "",
+            version: ""
           });
         }
       } catch (err) {
@@ -359,9 +361,9 @@ function App() {
                 <button
                   onClick={() => {
                     if (updateModal.version) {
-                      localStorage.setItem("skipped_update_version", String(updateModal.version));
+                      localStorage.setItem("skipped_update_version", updateModal.version);
                     }
-                    setUpdateModal({ show: false, downloadUrl: "" });
+                    setUpdateModal({ show: false, downloadUrl: "", version: "" });
                   }}
                   style={{
                     background: "transparent",
@@ -642,15 +644,6 @@ function App() {
             />
 
             <Route
-              path="/admin-kyc, etc..."
-              element={
-                <AdminRoute>
-                  <AdminKYC />
-                </AdminRoute>
-              }
-            />
-
-            <Route
               path="/admin-kyc"
               element={
                 <AdminRoute>
@@ -664,6 +657,15 @@ function App() {
               element={
                 <AdminRoute>
                   <AdvancedAdminAnalytics />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin-user-control-etc"
+              element={
+                <AdminRoute>
+                  <AdminUserControl />
                 </AdminRoute>
               }
             />
