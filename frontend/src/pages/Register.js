@@ -178,7 +178,7 @@ export default function Register() {
   };
 
   const handleDownloadApk = () => {
-    const driveDirectLink = "https://drive.google.com/uc?id=1IkMCEVF_RDBeiAW8sznXZCrJ4m40jOcU&confirm=t";
+    const driveDirectLink = "https://docs.google.com/uc?export=download&id=1oUWndldL1u86Q5MOLc-_o7qbK69mvpPE";
     window.open(driveDirectLink, "_blank");
   };
 
