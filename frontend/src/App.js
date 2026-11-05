@@ -55,8 +55,6 @@ import BankDetails from "./pages/BankDetails";
 import Withdraw from "./pages/Withdraw";
 import EcommerceHome from "./pages/EcommerceHome";
 
-// 🟢 আপনার বর্তমান ইনস্টল করা পুরনো অ্যাপের ভার্সন কোড (যেমন: 1)
-const CURRENT_APP_VERSION_CODE = 1;
 
 // 🟢 ব্যাক বাটন হ্যান্ডলার সাব-কম্পোনেন্ট
 function BackButtonHandler() {
@@ -238,45 +236,41 @@ function App() {
     };
   }, []);
 
-  // 🟢 আপডেট চেক করার ফিক্সড এবং পারফেক্ট লজিক
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        // নেটিভ অ্যাপ চেক (ব্রাউজারে পপআপ দেখাবে না)
+        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
+        const data = await res.json();
+        
+        // শুধু অ্যান্ড্রয়েড নেটিভ অ্যাপের জন্য চেক করবে, ব্রাউজারে হলে পপআপ আসবে না
         const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
         if (!isNativeApp) {
           return;
         }
 
-        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?nocache=${Date.now()}`, {
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        });
-        const data = await res.json();
-        
-        if (!data) return;
+        // ক্যাপিটটর অ্যাপ ইনফো থেকে বর্তমান অ্যাপের ভার্সন কোড বের করা (যদি এভেইলেবল থাকে)
+        let currentVersionCode = 2; // আপনার বর্তমান versionCode
+        try {
+          const appInfo = await CapApp.getInfo();
+          currentVersionCode = parseInt(appInfo.build, 10) || 2;
+        } catch (e) {
+          console.log("Could not get app info, defaulting version");
+        }
 
-        const serverVersionCode = Number(data.versionCode || data.minRequiredVersion || 0);
+        const serverMinVersion = data.minRequiredVersion || data.versionCode;
+        const skippedVersion = localStorage.getItem("skipped_update_version");
 
-        // সেশন স্টোরেজ ব্যবহার করা হয়েছে: ইউজার স্কিপ করলে শুধু এই সেশনে/অ্যাপ খোলা অবস্থায় আর দেখাবে না, 
-        // কিন্তু অ্যাপ বন্ধ করে আবার চালু করলে পুরনো ভার্সন হওয়ায় বাধ্যতামূলকভাবে আবার আপডেট পপআপ চলে আসবে।
-        const isSkippedThisSession = sessionStorage.getItem("skip_update_popup");
-
-        // যদি সার্ভারের ভার্সন ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয় এবং সেশনে স্কিপ করা না থাকে
-        if (serverVersionCode > CURRENT_APP_VERSION_CODE) {
-          if (isSkippedThisSession === "true") {
-            setUpdateModal({ show: false, downloadUrl: "" });
-          } else {
-            setUpdateModal({
-              show: true,
-              downloadUrl: data.downloadUrl
-            });
-          }
+        // যদি সার্ভারের ভার্সন বর্তমান ভার্সন থেকে বেশি হয় এবং ইউজার যদি এই ভার্সনটি স্কিপ না করে থাকে
+        if (data && serverMinVersion > currentVersionCode && skippedVersion !== String(serverMinVersion)) {
+          setUpdateModal({
+            show: true,
+            downloadUrl: data.downloadUrl
+          });
         } else {
-          setUpdateModal({ show: false, downloadUrl: "" });
+          setUpdateModal({
+            show: false,
+            downloadUrl: ""
+          });
         }
       } catch (err) {
         console.error("Update check failed:", err);
@@ -284,17 +278,6 @@ function App() {
     };
 
     checkAppUpdate();
-
-    // অ্যাপ ব্যাকগ্রাউন্ড থেকে ফোকাসে আসলে আবার চেক করবে
-    const appStateListener = CapApp.addListener('appStateChange', ({ isActive }) => {
-      if (isActive) {
-        checkAppUpdate();
-      }
-    });
-
-    return () => {
-      appStateListener.then(listener => listener.remove());
-    };
   }, []);
 
   useEffect(() => {
@@ -358,7 +341,14 @@ function App() {
               
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
+                      const data = await res.json();
+                      if (data && data.versionCode) {
+                        localStorage.setItem("skipped_update_version", String(data.versionCode));
+                      }
+                    } catch (e) {}
                     window.open(updateModal.downloadUrl, "_system");
                   }}
                   style={{
@@ -376,10 +366,16 @@ function App() {
                   Update Now
                 </button>
 
-                {/* 🟢 Skip বোতাম (সেশন অনুযায়ী কাজ করবে, অ্যাপ রিওপেন করলে আবার পপআপ আসবে) */}
+                {/* ছোট এবং স্টাইলিশ স্কিপ বোতাম */}
                 <button
-                  onClick={() => {
-                    sessionStorage.setItem("skip_update_popup", "true");
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
+                      const data = await res.json();
+                      if (data && data.versionCode) {
+                        localStorage.setItem("skipped_update_version", String(data.versionCode));
+                      }
+                    } catch (e) {}
                     setUpdateModal({ show: false, downloadUrl: "" });
                   }}
                   style={{
@@ -388,8 +384,7 @@ function App() {
                     color: "#94a3b8",
                     fontSize: "13px",
                     cursor: "pointer",
-                    padding: "6px",
-                    marginTop: "2px",
+                    marginTop: "4px",
                     textDecoration: "underline"
                   }}
                 >
