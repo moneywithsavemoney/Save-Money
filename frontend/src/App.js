@@ -248,13 +248,18 @@ function App() {
           return;
         }
 
-        const hasUpdatedToV2 = localStorage.getItem("app_updated_to_v2");
-        const requiredVersion = data.minRequiredVersion || data.versionCode;
+        const serverMinVersion = data.minRequiredVersion || data.versionCode;
+        
+        // ইউজারের লোকাল স্টোরেজ থেকে তার লাস্ট স্কিপ করা বা আপডেট করা ভার্সন চেক করা
+        const skippedVersion = localStorage.getItem("skipped_update_version");
+        const currentAppVersion = serverMinVersion; // অথবা আপনার অ্যাপের কারেন্ট ভার্সন নম্বর
 
-        if (data && requiredVersion > 1 && !hasUpdatedToV2) {
+        // যদি সার্ভারের রিকোয়ার্ড ভার্সন স্কিপ করা ভার্সনের থেকে বেশি হয়, তবেই পপআপ দেখাবে
+        if (data && serverMinVersion && skippedVersion !== String(serverMinVersion)) {
           setUpdateModal({
             show: true,
-            downloadUrl: data.downloadUrl
+            downloadUrl: data.downloadUrl,
+            version: serverMinVersion
           });
         } else {
           setUpdateModal({
@@ -326,13 +331,12 @@ function App() {
               <div style={{ fontSize: "48px", marginBottom: "10px" }}>🚀</div>
               <h3 style={{ margin: "0 0 8px 0", fontSize: "20px" }}>New Update Available!</h3>
               <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: "20px", marginBottom: "20px" }}>
-                A new version of Save Money app is available with new features and performance improvements. You must update to continue.
+                A new version of Save Money app is available with new features and performance improvements. Please update to continue.
               </p>
               
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <button
                   onClick={() => {
-                    localStorage.setItem("app_updated_to_v2", "true");
                     window.open(updateModal.downloadUrl, "_system");
                   }}
                   style={{
@@ -348,6 +352,28 @@ function App() {
                   }}
                 >
                   Update Now
+                </button>
+
+                {/* ছোট করে স্কিপ (Skip) বোতাম */}
+                <button
+                  onClick={() => {
+                    if (updateModal.version) {
+                      localStorage.setItem("skipped_update_version", String(updateModal.version));
+                    }
+                    setUpdateModal({ show: false, downloadUrl: "" });
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#94a3b8",
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    padding: "6px",
+                    marginTop: "2px",
+                    textDecoration: "underline"
+                  }}
+                >
+                  Skip for now
                 </button>
               </div>
             </div>
@@ -610,6 +636,15 @@ function App() {
               element={
                 <AdminRoute>
                   <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+
+            <Route
+              path="/admin-kyc, etc..."
+              element={
+                <AdminRoute>
+                  <AdminKYC />
                 </AdminRoute>
               }
             />
