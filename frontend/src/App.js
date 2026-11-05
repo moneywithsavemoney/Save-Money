@@ -237,6 +237,7 @@ function App() {
     };
   }, []);
 
+  // 🟢 আপডেট চেক করার মেইন ফাংশন
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
@@ -246,23 +247,25 @@ function App() {
           return;
         }
 
-        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${Date.now()}`);
+        // ব্রাউজার বা সিডিএন ক্যাশ এড়াতে একদম ইউনিক টাইমস্ট্যাম্পসহ ফেচ করা
+        const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${new Date().getTime()}`, {
+          cache: "no-store"
+        });
         const data = await res.json();
         
         if (!data) return;
 
-        // সার্ভার থেকে সর্বনিম্ন প্রয়োজনীয় ভার্সন বা কোড নেওয়া
+        // সার্ভার থেকে সর্বনিম্ন প্রয়োজনীয় ভার্সন নেওয়া
         const serverMinVersion = Number(data.minRequiredVersion || data.versionCode || 1);
 
-        // ইউজারের ডিভাইস থেকে ক্যাপাসিটরের মাধ্যমে তার বর্তমান অ্যাপের বিল্ড কোড বা ভার্সন নম্বর বের করা
+        // ক্যাপাসিটর থেকে ইউজারের অ্যাপের বর্তমান ভার্সন বা বিল্ড কোড নেওয়া
         const appInfo = await CapApp.getInfo();
         const currentAppBuildCode = Number(appInfo.build || appInfo.version || 1);
 
-        // ইউজারের লোকাল স্টোরেজ থেকে চেক করা সে এই নির্দিষ্ট ভার্সনটি আগে স্কিপ করেছে কি না
+        // লোকাল স্টোরেজ থেকে স্কিপ করা ভার্সন চেক করা
         const skippedVersion = localStorage.getItem("skipped_update_version");
 
-        // শর্ত: সার্ভারের ভার্সন যদি ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয় 
-        // এবং ইউজার যদি এই নির্দিষ্ট নতুন ভার্সনটি স্কিপ না করে থাকে তবেই পপআপ দেখাবে
+        // যদি সার্ভারের ভার্সন ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয় এবং ইউজার স্কিপ না করে থাকে
         if (serverMinVersion > currentAppBuildCode && skippedVersion !== String(serverMinVersion)) {
           setUpdateModal({
             show: true,
@@ -281,7 +284,19 @@ function App() {
       }
     };
 
+    // অ্যাপ চালু হওয়ার সাথে সাথে একবার চেক করবে
     checkAppUpdate();
+
+    // অ্যাপ ব্যাকগ্রাউন্ড থেকে ফোকাসে আসলে বা অ্যাপ মিনিমাইজ করে আবার ওপেন করলে যেন চেক করে
+    const appStateListener = CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        checkAppUpdate();
+      }
+    });
+
+    return () => {
+      appStateListener.then(listener => listener.remove());
+    };
   }, []);
 
   useEffect(() => {
