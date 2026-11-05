@@ -237,17 +237,17 @@ function App() {
     };
   }, []);
 
-  // 🟢 আপডেট চেক করার মেইন ফাংশন
+  // 🟢 আপডেট চেক করার উন্নত এবং নিখুঁত লজিক
   useEffect(() => {
     const checkAppUpdate = async () => {
       try {
-        // শুধু অ্যান্ড্রয়েড নেটিভ অ্যাপের জন্য চেক করবে, ব্রাউজারে হলে পপআপ আসবে না
+        // শুধু অ্যান্ড্রয়েড নেটিভ অ্যাপের জন্য কাজ করবে, ব্রাউজারে হলে পপআপ আসবে না
         const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
         if (!isNativeApp) {
           return;
         }
 
-        // ব্রাউজার বা সিডিএন ক্যাশ এড়াতে একদম ইউনিক টাইমস্ট্যাম্পসহ ফেচ করা
+        // ক্যাশ এড়ানোর জন্য টাইমস্ট্যাম্পসহ ফেচ করা
         const res = await fetch(`https://save-moneyy-indol.vercel.app/update.json?t=${new Date().getTime()}`, {
           cache: "no-store"
         });
@@ -255,22 +255,23 @@ function App() {
         
         if (!data) return;
 
-        // সার্ভার থেকে সর্বনিম্ন প্রয়োজনীয় ভার্সন নেওয়া
-        const serverMinVersion = Number(data.minRequiredVersion || data.versionCode || 1);
+        // সার্ভারের ফাইল থেকে লেটেস্ট versionCode বা minRequiredVersion নেওয়া[span_1](start_span)[span_1](end_span)
+        const serverVersion = Number(data.minRequiredVersion || data.versionCode || 1);
 
-        // ক্যাপাসিটর থেকে ইউজারের অ্যাপের বর্তমান ভার্সন বা বিল্ড কোড নেওয়া
+        // ক্যাপাসিটরের মাধ্যমে ইউজারের ফোনের অ্যাপ ভার্সন বা বিল্ড কোড ফেচ করা
         const appInfo = await CapApp.getInfo();
-        const currentAppBuildCode = Number(appInfo.build || appInfo.version || 1);
+        const userAppVersion = Number(appInfo.build || appInfo.version || 1);
 
-        // লোকাল স্টোরেজ থেকে স্কিপ করা ভার্সন চেক করা
+        // ইউজারের লোকাল স্টোরেজ থেকে চেক করা সে এই ভার্সনটি স্কিপ করেছে কি না
         const skippedVersion = localStorage.getItem("skipped_update_version");
 
-        // যদি সার্ভারের ভার্সন ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয় এবং ইউজার স্কিপ না করে থাকে
-        if (serverMinVersion > currentAppBuildCode && skippedVersion !== String(serverMinVersion)) {
+        // শর্ত: সার্ভারের ভার্সন যদি ইউজারের বর্তমান ভার্সনের চেয়ে বেশি হয় 
+        // এবং ইউজার যদি এই নির্দিষ্ট ভার্সনটি স্কিপ না করে থাকে তবেই পপআপ দেখাবে
+        if (serverVersion > userAppVersion && skippedVersion !== String(serverVersion)) {
           setUpdateModal({
             show: true,
             downloadUrl: data.downloadUrl,
-            version: String(serverMinVersion)
+            version: String(serverVersion)
           });
         } else {
           setUpdateModal({
@@ -284,10 +285,10 @@ function App() {
       }
     };
 
-    // অ্যাপ চালু হওয়ার সাথে সাথে একবার চেক করবে
+    // অ্যাপ চালু হওয়ার সাথে সাথে চেক করবে
     checkAppUpdate();
 
-    // অ্যাপ ব্যাকগ্রাউন্ড থেকে ফোকাসে আসলে বা অ্যাপ মিনিমাইজ করে আবার ওপেন করলে যেন চেক করে
+    // অ্যাপ ব্যাকগ্রাউন্ড থেকে ফোকাসে আসলে পুনরায় চেক করবে
     const appStateListener = CapApp.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
         checkAppUpdate();
@@ -634,6 +635,7 @@ function App() {
             />
 
             <Route
+              value="/investment-assistant"
               path="/investment-assistant"
               element={
                 <ProtectedRoute>
