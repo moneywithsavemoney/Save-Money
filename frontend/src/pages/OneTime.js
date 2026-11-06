@@ -180,7 +180,6 @@ export default function OneTime() {
   const [refreshing, setRefreshing] = useState(false);
 
   const [showImagePopup, setShowImagePopup] = useState(true);
-  const [showKycAlertModal, setShowKycAlertModal] = useState(false);
 
   // ⚡ ৭ দিন বাকি থাকলে এক্সপায়ারি ওয়ার্নিং পপআপ স্টেট
   const [showExpiryWarningModal, setShowExpiryWarningModal] = useState(false);
@@ -327,11 +326,6 @@ export default function OneTime() {
       if (res.ok) {
         const userData = data.user || {};
         setUser(userData);
-
-        const kycSt = (userData.kycStatus || "").toLowerCase();
-        if (kycSt !== "approved") {
-          setShowKycAlertModal(true);
-        }
 
         // ⚡ ওয়ানটাইম পেজে ঢুকলে মেয়াদ শেষ হওয়ার ৭ দিনের কাউন্টডাউন চেক
         if (data.remainingDays !== undefined && data.remainingDays !== null) {
@@ -1062,13 +1056,13 @@ export default function OneTime() {
             
             <div style={styles.kycAlertTextContainer}>
               <p style={styles.kycLangText}>
-                <b>English:</b> Your plan expires in {expiryRemainingDays} days. Hurry up and make at least 1 referral, otherwise your daily return bonus will expire[span_0](start_span)[span_0](end_span)!
+                <b>English:</b> Your plan expires in {expiryRemainingDays} days. Hurry up and make at least 1 referral, otherwise your daily return bonus will expire!
               </p>
               <p style={styles.kycLangText}>
-                <b>हिंदी:</b> आपका प्लान समाप्त होने में {expiryRemainingDays} दिन बाकी हैं। जल्दी से कम से कम 1 रेफरल करें, अन्यथा आपका डेली रिटर्न बोनस समाप्त हो जाएगा[span_1](start_span)[span_1](end_span)!
+                <b>हिंदी:</b> आपका प्लान समाप्त होने में {expiryRemainingDays} दिन बाकी हैं। जल्दी से कम से कम 1 रेफरल करें, अन्यथा आपका डेली रिटर्न बोनस समाप्त हो जाएगा!
               </p>
               <p style={styles.kycLangText}>
-                <b>বাংলা:</b> আপনার প্ল্যান শেষ হতে আর মাত্র {expiryRemainingDays} দিন বাকি। জলদি মিনিমাম একটা রেফার করে নাও, নাহলে ডেইলি রিটার্ন বোনাস expire হয়ে যাবে[span_2](start_span)[span_2](end_span)!
+                <b>বাংলা:</b> আপনার প্ল্যান শেষ হতে আর মাত্র {expiryRemainingDays} দিন বাকি। জলদি মিনিমাম একটা রেফার করে নাও, নাহলে ডেইলি রিটার্ন বোনাস expire হয়ে যাবে!
               </p>
             </div>
 
@@ -1077,36 +1071,6 @@ export default function OneTime() {
               onClick={() => setShowExpiryWarningModal(false)}
             >
               Understand & Continue / समझ गया / বুঝেছি ➔
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 🛑 KYC সম্পূর্ণ না থাকলে ৩টি ভাষায় অ্যানিমেটেড অ্যালার্ট পপআপ */}
-      {showKycAlertModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.kycAlertPopupCard}>
-            <div style={styles.kycAlertPulseIcon}>⚠️</div>
-            
-            <h2 style={styles.kycAlertTitle}>KYC Required / केवाईसी आवश्यक / কেওয়াইসি প্রয়োজন</h2>
-            
-            <div style={styles.kycAlertTextContainer}>
-              <p style={styles.kycLangText}>
-                <b>English:</b> Your KYC is not complete! You must complete your KYC verification first before you can invest. Redirecting to KYC page...[span_3](start_span)[span_3](end_span)
-              </p>
-              <p style={styles.kycLangText}>
-                <b>हिंदी:</b> आपका केवाईसी पूरा नहीं हुआ है! निवेश करने से पहले आपको अपना केवाईसी पूरा करना होगा। आपको केवाईसी पेज पर रिडायरेक्ट किया जा रहा है...[span_4](start_span)[span_4](end_span)
-              </p>
-              <p style={styles.kycLangText}>
-                <b>বাংলা:</b> আপনার কেওয়াইসি সম্পূর্ণ নয়! ইনভেস্ট করার আগে অবশ্যই আপনার কেওয়াইসি ভেরিফিকেশন সম্পন্ন করতে হবে। আপনাকে কেওয়াইসি পেজে রিডাইরেক্ট করা হচ্ছে...[span_5](start_span)[span_5](end_span)
-              </p>
-            </div>
-
-            <button 
-              style={styles.kycRedirectBtn} 
-              onClick={() => navigate("/kyc")}
-            >
-              Go to KYC Now / अभी केवाईसी करें / কেওয়াইসি পেজে যান ➔
             </button>
           </div>
         </div>
