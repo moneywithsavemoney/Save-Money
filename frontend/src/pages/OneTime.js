@@ -904,8 +904,9 @@ export default function OneTime() {
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
+    // ⚡ এখানে মিনিমাম ১টি রেফারেলের শর্ত যাচাই করা হচ্ছে
     if (!bonusList || bonusList.length === 0) {
-      triggerToast("Withdrawal unavailable. At least 1 referral is required to withdraw principal.", "error");
+      triggerToast("Withdrawal failed! Minimum 1 referral is required to withdraw principal amount.", "error");
       return;
     }
 
@@ -2333,14 +2334,24 @@ export default function OneTime() {
                 ₹ {Number(activeInvestment.amount || 0).toLocaleString("en-IN")}
               </strong>
             </div>
+
+            {/* ⚡ রেফার শর্ত নোট */}
+            <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid #facc15", padding: "10px", borderRadius: "8px", margin: "12px 0", textAlign: "center" }}>
+              <span style={{ fontSize: "11px", color: "#facc15", fontWeight: "bold" }}>
+                📌 T&C: Minimum 1 Active Referral is required to withdraw principal amount. Current Referrals: {bonusList.length}
+              </span>
+            </div>
+
             <button
               style={{
                 ...styles.goldSubmitBtn,
-                marginTop: "16px"
+                marginTop: "10px",
+                background: bonusList.length === 0 ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
+                cursor: bonusList.length === 0 ? "not-allowed" : "pointer"
               }}
               onClick={handleWithdrawInvestAmount}
             >
-              Confirm Invest Amount Withdrawal
+              {bonusList.length === 0 ? "1 Referral Required to Withdraw" : "Confirm Invest Amount Withdrawal"}
             </button>
           </div>
         </div>
