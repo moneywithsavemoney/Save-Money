@@ -327,7 +327,6 @@ export default function OneTime() {
         const userData = data.user || {};
         setUser(userData);
 
-        // ⚡ ওয়ানটাইম পেজে ঢুকলে মেয়াদ শেষ হওয়ার ৭ দিনের কাউন্টডাউন চেক
         if (data.remainingDays !== undefined && data.remainingDays !== null) {
           const remDays = Number(data.remainingDays);
           if (remDays >= 1 && remDays <= 7) {
@@ -904,9 +903,9 @@ export default function OneTime() {
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
-    // ⚡ এখানে মিনিমাম ১টি রেফারেলের শর্ত যাচাই করা হচ্ছে
+    // ⚡ মিনিমাম ১টি রেফারেলের শর্ত চেক (না থাকলে ইংলিশে মেসেজ দেখাবে)
     if (!bonusList || bonusList.length === 0) {
-      triggerToast("Withdrawal failed! Minimum 1 referral is required to withdraw principal amount.", "error");
+      triggerToast("Minimum 1 referral is required to withdraw principal amount.", "error");
       return;
     }
 
@@ -1045,7 +1044,6 @@ export default function OneTime() {
 
   return (
     <div style={styles.page}>
-      {/* ⚠️ মেয়াদ শেষের ৭ দিন বাকি থাকার অ্যালার্ট পপআপ */}
       {showExpiryWarningModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.kycAlertPopupCard}>
@@ -1483,6 +1481,7 @@ export default function OneTime() {
           </section>
         )}
 
+        {/* ⚡ মেয়াদ শেষ হলে এখন সবসময় উইথড্র ও রিইনভেস্ট অপশন শো করবে (রেফার থাকুক বা না থাকুক) */}
         {activeInvestment && isMatured && (
           <section style={styles.maturedWalletCard}>
             <div style={styles.maturedCardHeader}>
@@ -2335,7 +2334,6 @@ export default function OneTime() {
               </strong>
             </div>
 
-            {/* ⚡ রেফার শর্ত নোট */}
             <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid #facc15", padding: "10px", borderRadius: "8px", margin: "12px 0", textAlign: "center" }}>
               <span style={{ fontSize: "11px", color: "#facc15", fontWeight: "bold" }}>
                 📌 T&C: Minimum 1 Active Referral is required to withdraw principal amount. Current Referrals: {bonusList.length}
@@ -2345,13 +2343,11 @@ export default function OneTime() {
             <button
               style={{
                 ...styles.goldSubmitBtn,
-                marginTop: "10px",
-                background: bonusList.length === 0 ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)",
-                cursor: bonusList.length === 0 ? "not-allowed" : "pointer"
+                marginTop: "10px"
               }}
               onClick={handleWithdrawInvestAmount}
             >
-              {bonusList.length === 0 ? "1 Referral Required to Withdraw" : "Confirm Invest Amount Withdrawal"}
+              Confirm Invest Amount Withdrawal
             </button>
           </div>
         </div>
