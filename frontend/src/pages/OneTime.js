@@ -345,9 +345,19 @@ export default function OneTime() {
           }
         }
 
-        if (data.bonusList || userData?.bonusList || data.referrals) {
-          setBonusList(data.bonusList || userData?.bonusList || data.referrals || []);
-        }
+        // ⚡ বোনাস লিস্ট বা রেফারেল লিস্ট সঠিকভাবে ধরার জন্য আপডেট করা হলো
+        const resolvedBonusList = 
+          data.bonusList || 
+          userData?.bonusList || 
+          data.referrals || 
+          userData?.referrals || 
+          data.referredUsers || 
+          userData?.referredUsers || 
+          data.bonusUsers || 
+          userData?.bonusUsers || 
+          [];
+        
+        setBonusList(Array.isArray(resolvedBonusList) ? resolvedBonusList : []);
 
         const rawHistory = Array.isArray(data.history)
           ? data.history
@@ -1985,7 +1995,7 @@ export default function OneTime() {
                   bonusList.map((item, index) => (
                     <div key={item._id || index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "#040d1a", padding: "8px 10px", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.06)" }}>
                       <div>
-                        <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{item.name || item.username || item.investorEmail || "User"}</strong>
+                        <strong style={{ fontSize: "12px", color: "#fff", display: "block" }}>{item.name || item.username || item.investorEmail || item.email || "User"}</strong>
                         <span style={{ fontSize: "10px", color: "#94a3b8" }}>Joined: {formatDate(item.createdAt || item.date)}</span>
                       </div>
                       <div style={{ textAlign: "right" }}>
