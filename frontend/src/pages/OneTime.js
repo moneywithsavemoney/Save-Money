@@ -560,7 +560,7 @@ export default function OneTime() {
       const cat = (activeInvestment.category || "beginner").toLowerCase();
       const tenure = activeInvestment.tenureMonths || (durationDays / 30);
       const calc = calculateDailyReturn(amt, tenure, cat);
-      returnVal = calc.dailyReturnAmount;
+      returnVal = cat === "monthly" ? (amt === 7500 ? 3000 : 6000) : calc.dailyReturnAmount;
     }
 
     const today = new Date();
@@ -641,7 +641,7 @@ export default function OneTime() {
           duration: `${activeTenureMonths} Months`,
           durationDays: totalDays,
           tenureMonths: activeTenureMonths,
-          dailyReturn: calculatedDailyReturn,
+          dailyReturn: category === "monthly" ? (Number(amount) === 7500 ? 3000 : 6000) / 30 : calculatedDailyReturn,
           rate: currentRate,
           status: "Active"
         })
@@ -1472,7 +1472,9 @@ export default function OneTime() {
               <div style={styles.liveInvestDetailItem}>
                 <span style={styles.liveDetailLabel}>Return Payout</span>
                 <strong style={{ ...styles.liveDetailValue, color: "#16a34a" }}>
-                  {activeInvestment.category === "monthly" ? `₹${activeInvestment.amount === 7500 ? 3000 : 6000} / Month` : `₹ ${activeDailyReturnVal.toFixed(2)} / day`}
+                  {activeInvestment.category === "monthly" 
+                    ? `₹${activeInvestment.amount === 7500 ? 3000 : 6000} / Month` 
+                    : `₹ ${activeDailyReturnVal.toFixed(2)} / day`}
                 </strong>
               </div>
 
@@ -1541,9 +1543,17 @@ export default function OneTime() {
                 <span style={{ fontSize: "22px", fontWeight: "900", color: "#facc15" }}>₹</span>
               </div>
               <div>
-                <span style={styles.dailyReturnLabel}>Return Balance</span>
-                <strong style={styles.dailyReturnAmount}>₹ {dailyReturn.toFixed(2)}</strong>
-                <span style={styles.dailyReturnSubtext}>(Approx.)</span>
+                <span style={styles.dailyReturnLabel}>
+                  {activeInvestment?.category === "monthly" ? "Monthly Return Payout" : "Return Balance"}
+                </span>
+                <strong style={styles.dailyReturnAmount}>
+                  ₹ {activeInvestment?.category === "monthly" 
+                    ? (activeInvestment.amount === 7500 ? 3000 : 6000) 
+                    : dailyReturn.toFixed(2)}
+                </strong>
+                <span style={styles.dailyReturnSubtext}>
+                  {activeInvestment?.category === "monthly" ? "(Every 30 Days)" : "(Approx. Per Day)"}
+                </span>
               </div>
             </div>
 
