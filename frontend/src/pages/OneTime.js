@@ -95,6 +95,7 @@ const formatDateTime = (dateVal) => {
 
 function calculateDailyReturn(amount, tenureMonths, category) {
   let dailyRate = 0;
+  let customMonthlyReturn = 0;
 
   if (category === "beginner") {
     if (amount === 7500) {
@@ -110,6 +111,12 @@ function calculateDailyReturn(amount, tenureMonths, category) {
     } else {
       dailyRate = tenureMonths >= 12 ? 1.2 : 1.0;
     }
+  } else if (category === "monthly") {
+    if (amount === 7500) {
+      customMonthlyReturn = 3000;
+    } else if (amount === 15000) {
+      customMonthlyReturn = 6000;
+    }
   } else if (category === "pro") {
     if (amount === 99999) dailyRate = 2.0;
     else if (amount === 139999) dailyRate = 3.0;
@@ -119,8 +126,8 @@ function calculateDailyReturn(amount, tenureMonths, category) {
     else dailyRate = 2.0;
   }
 
-  const dailyReturnAmount = (amount * dailyRate) / 100;
-  return { dailyRate, dailyReturnAmount };
+  const dailyReturnAmount = category === "monthly" ? customMonthlyReturn / 30 : (amount * dailyRate) / 100;
+  return { dailyRate, dailyReturnAmount, customMonthlyReturn };
 }
 
 const getTransactionReason = (item) => {
@@ -259,17 +266,20 @@ export default function OneTime() {
   const beginnerAmounts = [7500, 15000, 22500, 30000, 37500];
   const beginnerTenureOptions = [6, 9, 12, 18, 24];
 
+  const monthlyAmounts = [7500, 15000];
+  const monthlyTenureOptions = [6, 9, 12];
+
   const proAmounts = [99999, 139999, 189999, 249999, 500000];
 
   const parsedProTenure = Math.max(12, Number(customProTenure) || 12);
-  const activeTenureMonths = category === "beginner" ? tenureMonths : parsedProTenure;
+  const activeTenureMonths = category === "beginner" ? tenureMonths : (category === "monthly" ? tenureMonths : parsedProTenure);
 
-  const { dailyRate: currentRate, dailyReturnAmount: calculatedDailyReturn } = useMemo(() => {
+  const { dailyRate: currentRate, dailyReturnAmount: calculatedDailyReturn, customMonthlyReturn } = useMemo(() => {
     return calculateDailyReturn(amount, activeTenureMonths, category);
   }, [amount, activeTenureMonths, category]);
 
   const totalDays = activeTenureMonths * 30;
-  const totalProfit = calculatedDailyReturn * totalDays;
+  const totalProfit = category === "monthly" ? customMonthlyReturn * activeTenureMonths : calculatedDailyReturn * totalDays;
   const totalPayout = amount + totalProfit;
   
   const expiryDate = useMemo(() => {
@@ -595,6 +605,9 @@ export default function OneTime() {
     if (cat === "beginner") {
       setAmount(15000);
       setTenureMonths(9);
+    } else if (cat === "monthly") {
+      setAmount(7500);
+      setTenureMonths(6);
     } else {
       setAmount(99999);
       setCustomProTenure("12");
@@ -903,7 +916,6 @@ export default function OneTime() {
   const handleWithdrawInvestAmount = async () => {
     if (!activeInvestment) return;
 
-    // ⚡ মিনিমাম ১টি রেফারেলের শর্ত চেক (না থাকলে ইংলিশে মেসেজ দেখাবে)
     if (!bonusList || bonusList.length === 0) {
       triggerToast("Minimum 1 referral is required to withdraw principal amount.", "error");
       return;
@@ -965,7 +977,7 @@ export default function OneTime() {
           duration: `${tenure} Months`,
           durationDays: tenure * 30,
           tenureMonths: tenure,
-          dailyReturn: (reinvestAmount * currentRate) / 100,
+          dailyReturn: cat === "monthly" ? (reinvestAmount === 7500 ? 3000 : 6000) / 30 : (reinvestAmount * currentRate) / 100,
           rate: currentRate,
           status: "Active",
           isReinvest: true 
@@ -1458,9 +1470,9 @@ export default function OneTime() {
               </div>
 
               <div style={styles.liveInvestDetailItem}>
-                <span style={styles.liveDetailLabel}>Daily Return</span>
+                <span style={styles.liveDetailLabel}>Return Payout</span>
                 <strong style={{ ...styles.liveDetailValue, color: "#16a34a" }}>
-                  ₹ {activeDailyReturnVal.toFixed(2)} / day
+                  {activeInvestment.category === "monthly" ? `₹${activeInvestment.amount === 7500 ? 3000 : 6000} / Month` : `₹ ${activeDailyReturnVal.toFixed(2)} / day`}
                 </strong>
               </div>
 
@@ -1481,7 +1493,6 @@ export default function OneTime() {
           </section>
         )}
 
-        {/* ⚡ মেয়াদ শেষ হলে এখন সবসময় উইথড্র ও রিইনভেস্ট অপশন শো করবে (রেফার থাকুক বা না থাকুক) */}
         {activeInvestment && isMatured && (
           <section style={styles.maturedWalletCard}>
             <div style={styles.maturedCardHeader}>
@@ -1530,9 +1541,9 @@ export default function OneTime() {
                 <span style={{ fontSize: "22px", fontWeight: "900", color: "#facc15" }}>₹</span>
               </div>
               <div>
-                <span style={styles.dailyReturnLabel}>Daily Return</span>
+                <span style={styles.dailyReturnLabel}>Return Balance</span>
                 <strong style={styles.dailyReturnAmount}>₹ {dailyReturn.toFixed(2)}</strong>
-                <span style={styles.dailyReturnSubtext}>(Approx. Per Day)</span>
+                <span style={styles.dailyReturnSubtext}>(Approx.)</span>
               </div>
             </div>
 
@@ -1575,27 +1586,42 @@ export default function OneTime() {
             <span style={styles.smallStepsTag}>⚡ Select Plan</span>
           </div>
 
-          <div style={styles.planButtonGrid}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px" }}>
             <button 
               style={styles.beginnerPlanMainBtn} 
               onClick={() => openInvestmentModal("beginner")}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                <span style={{ fontSize: "18px" }}>🌱</span>
-                <span style={{ fontSize: "13px", fontWeight: "800" }}>Beginner Investment</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "center" }}>
+                <span style={{ fontSize: "14px" }}>🌱</span>
+                <span style={{ fontSize: "11px", fontWeight: "800" }}>Beginner</span>
               </div>
-              <span style={{ fontSize: "9px", opacity: 0.9, marginTop: "2px" }}>Safe • Daily Returns • Click to Choose ➔</span>
+              <span style={{ fontSize: "8px", opacity: 0.9, marginTop: "2px" }}>Daily Returns ➔</span>
+            </button>
+
+            <button 
+              style={{
+                ...styles.beginnerPlanMainBtn,
+                background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
+                border: "1px solid #38bdf8"
+              }} 
+              onClick={() => openInvestmentModal("monthly")}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "center" }}>
+                <span style={{ fontSize: "14px" }}>📅</span>
+                <span style={{ fontSize: "11px", fontWeight: "800" }}>Monthly</span>
+              </div>
+              <span style={{ fontSize: "8px", opacity: 0.9, marginTop: "2px" }}>30-Day Pay ➔</span>
             </button>
 
             <button 
               style={styles.proPlanMainBtn} 
               onClick={() => openInvestmentModal("pro")}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-                <span style={{ fontSize: "18px" }}>👑</span>
-                <span style={{ fontSize: "13px", fontWeight: "800" }}>Pro Investment</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px", justifyContent: "center" }}>
+                <span style={{ fontSize: "14px" }}>👑</span>
+                <span style={{ fontSize: "11px", fontWeight: "800" }}>Pro</span>
               </div>
-              <span style={{ fontSize: "9px", opacity: 0.9, marginTop: "2px" }}>High Return • Premium Plan • Click to Choose ➔</span>
+              <span style={{ fontSize: "8px", opacity: 0.9, marginTop: "2px" }}>High Return ➔</span>
             </button>
           </div>
         </section>
@@ -1641,7 +1667,7 @@ export default function OneTime() {
                       displayType = item.isInvestAmountWithdrawal ? "Invest Principal Wd" : "Withdrawal";
                       typeIcon = "💸";
                     } else if (isEarning || itemTypeRaw.includes("daily return") || itemTypeRaw.includes("profit")) {
-                      displayType = "Daily Return";
+                      displayType = "Return";
                       typeIcon = "🪙";
                     } else if (item.duration) {
                       displayType = `${item.duration}`;
@@ -1712,9 +1738,9 @@ export default function OneTime() {
           <div style={styles.investmentModalCardDark} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "20px" }}>{category === "beginner" ? "🌱" : "👑"}</span>
+                <span style={{ fontSize: "20px" }}>{category === "beginner" ? "🌱" : category === "monthly" ? "📅" : "👑"}</span>
                 <h3 style={{ margin: 0, fontSize: "16px", color: "#fff", fontWeight: "800" }}>
-                  {category === "beginner" ? "Beginner Investment Plan" : "Pro Investment Plan"}
+                  {category === "beginner" ? "Beginner Investment Plan" : category === "monthly" ? "Monthly Return Plan" : "Pro Investment Plan"}
                 </h3>
               </div>
               <button style={styles.closeBtnDark} onClick={() => setShowInvestmentModal(false)}>✕</button>
@@ -1739,6 +1765,21 @@ export default function OneTime() {
               <button
                 style={{
                   ...styles.categoryTabBtn,
+                  background: category === "monthly" ? "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)" : "rgba(255,255,255,0.05)",
+                  color: category === "monthly" ? "#fff" : "#9ca3af",
+                  border: category === "monthly" ? "1px solid #38bdf8" : "1px solid rgba(255,255,255,0.1)"
+                }}
+                onClick={() => {
+                  setCategory("monthly");
+                  setAmount(7500);
+                  setTenureMonths(6);
+                }}
+              >
+                Monthly 🔥
+              </button>
+              <button
+                style={{
+                  ...styles.categoryTabBtn,
                   background: category === "pro" ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "rgba(255,255,255,0.05)",
                   color: category === "pro" ? "#000" : "#9ca3af",
                   border: category === "pro" ? "1px solid #facc15" : "1px solid rgba(255,255,255,0.1)"
@@ -1756,13 +1797,13 @@ export default function OneTime() {
             <div style={{ marginTop: "12px" }}>
               <label style={styles.inputSectionLabel}>Select Amount (Preset)</label>
               <div style={styles.presetChipGrid}>
-                {(category === "beginner" ? beginnerAmounts : proAmounts).map((amtVal) => (
+                {(category === "beginner" ? beginnerAmounts : category === "monthly" ? monthlyAmounts : proAmounts).map((amtVal) => (
                   <button
                     key={amtVal}
                     style={{
                       ...styles.presetChip,
-                      background: amount === amtVal ? (category === "beginner" ? "#059669" : "#f59e0b") : "rgba(255,255,255,0.05)",
-                      color: amount === amtVal ? (category === "beginner" ? "#fff" : "#000") : "#cbd5e1",
+                      background: amount === amtVal ? (category === "monthly" ? "#0284c7" : category === "beginner" ? "#059669" : "#f59e0b") : "rgba(255,255,255,0.05)",
+                      color: amount === amtVal ? "#fff" : "#cbd5e1",
                       border: amount === amtVal ? "1.5px solid #facc15" : "1px solid rgba(255,255,255,0.1)"
                     }}
                     onClick={() => setAmount(amtVal)}
@@ -1778,9 +1819,9 @@ export default function OneTime() {
                 Select Tenure {category === "pro" && "(Min. 12 Months)"}
               </label>
 
-              {category === "beginner" ? (
+              {category === "beginner" || category === "monthly" ? (
                 <div style={styles.presetChipGrid}>
-                  {beginnerTenureOptions.map((m) => (
+                  {(category === "monthly" ? monthlyTenureOptions : beginnerTenureOptions).map((m) => (
                     <button
                       key={m}
                       style={{
@@ -1829,16 +1870,9 @@ export default function OneTime() {
                 </div>
 
                 <div style={styles.summaryRow}>
-                  <span style={styles.summaryLabel}>Daily Return Rate:</span>
-                  <strong style={{ ...styles.summaryValue, color: "#facc15" }}>
-                    {category === "pro" ? "Up to " : ""}{currentRate}% Daily
-                  </strong>
-                </div>
-
-                <div style={styles.summaryRow}>
-                  <span style={styles.summaryLabel}>Daily Return Amount:</span>
+                  <span style={styles.summaryLabel}>Return Payout:</span>
                   <strong style={{ ...styles.summaryValue, color: "#4ade80" }}>
-                    {category === "pro" ? "Up to " : ""}₹{calculatedDailyReturn.toFixed(2)} / day
+                    {category === "monthly" ? `₹${amount === 7500 ? 3000 : 6000} every 30 days` : `₹${calculatedDailyReturn.toFixed(2)} / day`}
                   </strong>
                 </div>
 
@@ -1850,14 +1884,14 @@ export default function OneTime() {
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Total Profit Return:</span>
                   <strong style={{ ...styles.summaryValue, color: "#4ade80" }}>
-                    {category === "pro" ? "Up to " : ""}₹{totalProfit.toLocaleString("en-IN")}
+                    ₹{totalProfit.toLocaleString("en-IN")}
                   </strong>
                 </div>
 
                 <div style={{ ...styles.summaryRow, borderTop: "1px dashed rgba(255,255,255,0.2)", paddingTop: "6px", marginTop: "4px" }}>
                   <span style={{ ...styles.summaryLabel, color: "#facc15", fontWeight: "bold", fontSize: "12px" }}>Total Payout:</span>
                   <strong style={{ color: "#facc15", fontSize: "15px", fontWeight: "900" }}>
-                    {category === "pro" ? "Up to " : ""}₹{totalPayout.toLocaleString("en-IN")}
+                    ₹{totalPayout.toLocaleString("en-IN")}
                   </strong>
                 </div>
               </div>
@@ -2032,7 +2066,7 @@ export default function OneTime() {
             ) : (
               <>
                 <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
-                  Withdraw Daily Return: <strong style={{ color: "#facc15" }}>₹{dailyReturn.toFixed(2)}</strong>
+                  Withdraw Return: <strong style={{ color: "#facc15" }}>₹{dailyReturn.toFixed(2)}</strong>
                 </p>
                 <button
                   style={{
@@ -2366,9 +2400,9 @@ export default function OneTime() {
             </div>
 
             <div style={{ marginTop: "12px", background: "#040d1a", padding: "10px", borderRadius: "8px" }}>
-              <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Daily Earnings</span>
+              <span style={{ fontSize: "11px", color: "#94a3b8", display: "block" }}>Return Earnings</span>
               <strong style={{ fontSize: "14px", color: "#38bdf8" }}>
-                ₹{((Number(activeInvestment.amount || 0) * currentRate) / 100).toFixed(2)} / day
+                ₹{activeInvestment.category === "monthly" ? (Number(activeInvestment.amount || 0) === 7500 ? 3000 : 6000) : ((Number(activeInvestment.amount || 0) * currentRate) / 100).toFixed(2)}
               </strong>
             </div>
 
@@ -3020,11 +3054,6 @@ const styles = {
     fontSize: "10px",
     color: "#facc15",
     fontStyle: "italic"
-  },
-  planButtonGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "10px"
   },
   beginnerPlanMainBtn: {
     background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
