@@ -878,10 +878,6 @@ function calculateDailyReturnBackend(amount, tenureMonths = 9, category = "begin
   return { dailyRate, dailyReturnAmount, customMonthlyReturn };
 }
 
-  const dailyReturnAmount = (amt * dailyRate) / 100;
-  return { dailyRate, dailyReturnAmount };
-}
-
 // বোনাস অ্যামাউন্ট ও মাসের মেয়াদ হিসেব করার ফাংশন
 function calculateBonusConfig(amount, category) {
   let monthlyBonus = 0;
