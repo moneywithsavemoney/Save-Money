@@ -7975,8 +7975,7 @@ app.get("/admin/onetime-investments", async (req, res) => {
 
 // 🚀 CREATE ONETIME INVESTMENT API (Bonus credited here upon starting investment)
 
-    // NEW ONE TIME / REINVEST INVESTMENT ROUTE (পেম, ট্রিগ, ফেইল)
-   app.post("/api/onetime/create-investment", async (req, res) => {
+  app.post("/api/onetime/create-investment", async (req, res) => {
   try {
     const { email, amount, tenureMonths, category } = req.body;
 
@@ -7993,14 +7992,15 @@ app.get("/admin/onetime-investments", async (req, res) => {
 
     const investAmt = Number(amount);
     const tenure = Number(tenureMonths) || 9;
+    const planCategory = category.trim().toLowerCase();
 
     // Pro investment-এর জন্য minimum 12-month tenure চেক
-    if (category === "pro" && tenure < 12) {
+    if (planCategory === "pro" && tenure < 12) {
       return res.status(400).json({ success: false, message: "Pro investment requires a minimum 12-month tenure." });
     }
 
     // ⚡ মাসিক (Monthly) ইনভেস্টমেন্টের জন্য পরিমাণ ও টেনিউর ভ্যালিডেশন
-    if (category === "monthly") {
+    if (planCategory === "monthly") {
       if (investAmt !== 7500 && investAmt !== 15000) {
         return res.status(400).json({ success: false, message: "Monthly investment requires ₹7,500 or ₹15,000 amount." });
       }
@@ -8008,44 +8008,36 @@ app.get("/admin/onetime-investments", async (req, res) => {
 
     // ওয়ালেট ব্যালেন্স চেক এবং কাটাকাটি লজিক
     const userBalance = Number(user.otbalance || user.otBalance || 0);
-    if (userBalance < investAmt) {
+    if (userBalance < investAmt && !req.body.isReinvest) {
       return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
     }
 
     // ক্যাটাগরি অনুযায়ী বিভিন্ন রিটার্ন হিসাব করা
-    let dailyRate, dailyReturnAmount;
+    let dailyRate = 0;
+    let dailyReturnAmount = 0;
 
-    if (category === "monthly") {
-      // Monthly প্ল্যানের জন্য প্রতি মাসের নির্দিষ্ট রিটার্ন অনুযায়ী ৩০ দিনের ডেইলি রেট বা প্রফিট হিসাব
+    if (planCategory === "monthly") {
       const monthlyReturn = investAmt === 7500 ? 3000 : 6000;
-      dailyRate = 0; // মাসিক প্ল্যানে ফিক্সড প্রফিট হওয়ায় ডেইলি পার্সেন্টেজ প্রয়োজন নেই
-      dailyReturnAmount = monthlyReturn / 30; // ৩০ দিন পর পর যোগ হওয়ার জন্য দৈনিক হিসেব
+      dailyRate = 0; 
+      dailyReturnAmount = monthlyReturn / 30; // ব্যাকএন্ড ট্র্যাকিংয়ের জন্য (অথবা মান্থলি অ্যামাউন্ট সেভ রাখতে পারেন)
     } else {
-      const calc = calculateDailyReturnBackend(investAmt, tenure, category);
+      const calc = calculateDailyReturnBackend(investAmt, tenure, planCategory);
       dailyRate = calc.dailyRate;
       dailyReturnAmount = calc.dailyReturnAmount;
     }
 
-    if (!dailyReturnAmount && category !== "monthly") {
+    if (!dailyReturnAmount && planCategory !== "monthly") {
       return res.status(400).json({ success: false, message: "Invalid investment plan or amount" });
     }
 
-    // যদি রিইনভেস্ট হয় (যদি রিইনভেস্টের ফ্ল্যাগ থাকে)
-    if (req.body.isReinvest) {
-      const userReinvestBalance = Number(user.otbalance || user.otBalance || 0);
-      if (userReinvestBalance < investAmt) {
-        return res.status(400).json({ success: false, message: "Insufficient wallet balance" });
-      }
-      user.otbalance = userBalance - investAmt;
-    } else {
-      user.otbalance = userBalance - investAmt;
-    }
+    // ওয়ালেট থেকে টাকা কাটা
+    user.otbalance = userBalance - investAmt;
 
     const startDate = new Date();
     const maturityDate = new Date();
     maturityDate.setDate(startDate.getDate() + (tenure * 30));
 
-    // ১. OneTimeInvestment মডেলে সেভ করা
+    // ১. OneTimeInvestment মডেলে সঠিকভাবে category সহ সেভ করা
     const newInvestment = new OneTimeInvestment({
       email: cleanEmail,
       amount: investAmt,
@@ -8054,7 +8046,7 @@ app.get("/admin/onetime-investments", async (req, res) => {
       tenureMonths: tenure,
       rate: dailyRate,
       dailyReturn: dailyReturnAmount,
-      category: category,
+      category: planCategory, // 👈 ক্যাটাগরি নিশ্চিত করা হলো
       user: user._id,
       totalRate: dailyRate,
       status: "Active"
@@ -8062,7 +8054,7 @@ app.get("/admin/onetime-investments", async (req, res) => {
 
     await newInvestment.save();
 
-    // ২. ইউজারের ইতিহাস বা onetimeHistory তে যুক্ত করা
+    // ২. ইউজারের ইতিহাস বা onetimeHistory তে category সহ যুক্ত করা
     if (!user.onetimeHistory) user.onetimeHistory = [];
     user.onetimeHistory.unshift({
       _id: newInvestment._id,
@@ -8071,14 +8063,8 @@ app.get("/admin/onetime-investments", async (req, res) => {
       duration: `${tenure} Months`,
       status: "Active",
       createdAt: startDate,
-      category: category
+      category: planCategory // 👈 হিস্ট্রিতেও ক্যাটাগরি বাধ্যতামূলক করা হলো
     });
-
-    // ৩. রেফারেল বোনাস বা মান্থলি বোনাস সিস্টেম চেক (যদি থাকে)
-    if (user.referredBy && user.referredBy.trim() !== "") {
-      const referrer = await User.findOne({ referralCode: user.referredBy });
-      // আপনার পুরোনো রেফারেল বা বোনাস কোড লজিক এখানে হুবহু অক্ষত থাকবে
-    }
 
     user.markModified("otbalance");
     user.markModified("onetimeHistory");
@@ -8095,6 +8081,7 @@ app.get("/admin/onetime-investments", async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error limiting investment" });
   }
 });
+
 
 
 // ==========================================
