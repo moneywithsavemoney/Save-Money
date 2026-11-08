@@ -8,6 +8,11 @@ const oneTimeInvestmentSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    category: {
+      type: String,
+      enum: ["beginner", "monthly", "pro"],
+      default: "beginner",
+    },
     amount: {
       type: Number,
       required: true,
@@ -15,11 +20,15 @@ const oneTimeInvestmentSchema = new mongoose.Schema(
     },
     duration: {
       type: String,
-      required: true, // উদাহরণ: "15 Days"
+      required: true, 
     },
     durationDays: {
       type: Number,
-      default: 15
+      default: 180
+    },
+    tenureMonths: {
+      type: Number,
+      default: 6
     },
     rate: {
       type: Number,
