@@ -8199,23 +8199,23 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
     const cleanEmail = String(email).trim().toLowerCase();
     const cleanBonusCode = String(bonusCode).trim();
 
-    // ১. ইউজারকে খোঁজা
+    // ১. বর্তমান ইউজারকে খোঁজা
     const currentUser = await User.findOne({ email: cleanEmail });
     if (!currentUser) {
       return res.status(404).json({ success: false, message: "User not found." });
     }
 
-    // চেক করা ইউজার ইতোমধ্যে কোনো বোনাস কোড ব্যবহার করেছেন কি না
+    // চেক করা ইউজারের ইতিমধ্যে কোনো কোড ব্যবহার করা আছে কিনা
     if (currentUser.hasAppliedBonus) {
       return res.status(400).json({ success: false, message: "You have already applied a bonus code." });
     }
 
-    // ইউজার নিজের বোনাস কোড নিজে ব্যবহার করতে পারবেন না
+    // ইউজার নিজের বোনাস কোড নিজে ব্যবহার করতে পারবে না
     if (currentUser.bonusCode === cleanBonusCode || currentUser.referralCode === cleanBonusCode || currentUser.referCode === cleanBonusCode) {
       return res.status(400).json({ success: false, message: "You cannot use your own bonus code." });
     }
 
-    // ২. বোনাস কোডের মালিক অস্তিত্ব চেক করা
+    // ২. যে ইউজারের বোনাস কোড ব্যবহার করা হচ্ছে (`codeOwner`) তাকে খুঁজে বের করা
     const codeOwner = await User.findOne({
       $or: [
         { bonusCode: cleanBonusCode },
@@ -8228,10 +8228,33 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid bonus code." });
     }
 
-    // ৩. শুধুমাত্র বোনাস কোড সেভ করা হবে (এখানে কোনো টাকা যোগ হবে না)
+    // ৩. বর্তমান ইউজারে বোনাস স্ট্যাটাস আপডেট করা
     currentUser.hasAppliedBonus = true;
     currentUser.usedBonusCode = cleanBonusCode;
     await currentUser.save();
+
+    // ৪. ⚡ কোডের মালিকের (`codeOwner`) bonusList-এ এই ইউজারের তথ্য যুক্ত করা
+    if (!codeOwner.bonusList) {
+      codeOwner.bonusList = [];
+    }
+
+    // ডুপ্লিকেট এন্ট্রি রোধ করতে চেক করা
+    const alreadyExists = codeOwner.bonusList.some(
+      (item) => item.email && item.email.toLowerCase() === cleanEmail
+    );
+
+    if (!alreadyExists) {
+      codeOwner.bonusList.unshift({
+        user: currentUser._id,
+        name: currentUser.name || "User",
+        email: cleanEmail,
+        amount: 300, // মাসিক বোনাস বা রেফারেল পরিমাণ
+        status: "Success",
+        createdAt: new Date()
+      });
+      codeOwner.markModified("bonusList");
+      await codeOwner.save();
+    }
 
     return res.status(200).json({
       success: true,
@@ -8244,6 +8267,7 @@ app.post("/api/onetime/apply-bonus", async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error applying bonus code." });
   }
 });
+
 
 
 
