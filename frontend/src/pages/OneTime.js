@@ -98,7 +98,7 @@ function calculateDailyReturn(amount, tenureMonths, category) {
   let customMonthlyReturn = 0;
 
   if (category === "beginner") {
-    if (amount === 7500) {
+    if (amount === 10000) {
       dailyRate = 0.8;
     } else if (amount === 15000) {
       dailyRate = tenureMonths >= 12 ? 1.2 : 1.0;
@@ -263,7 +263,7 @@ export default function OneTime() {
   const platformFee = 0;
   const totalAddMoney = mainAmount + gstAmount + tdsAmount + platformFee;
 
-  const beginnerAmounts = [7500, 15000, 22500, 30000, 37500];
+  const beginnerAmounts = [10000, 15000, 22500, 30000, 37500];
   const beginnerTenureOptions = [6, 9, 12, 18, 24];
 
   const monthlyAmounts = [7500, 15000];
