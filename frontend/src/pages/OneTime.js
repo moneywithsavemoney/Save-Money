@@ -562,7 +562,6 @@ export default function OneTime() {
     let maturityObj = new Date(startDateObj.getTime());
     maturityObj.setDate(maturityObj.getDate() + durationDays);
 
-    // ⚡ Next Return Date ক্যালকুলেশন (স্টার্ট ডেট বা শেষ উইথড্র/রিটার্নের পর সাধারণত ১ দিন বা ৩০ দিন পর পরবর্তী রিটার্ন তারিখ হয়)
     let nextRetObj = new Date();
     const cat = (activeInvestment.category || "beginner").toLowerCase();
     if (cat === "monthly") {
@@ -896,17 +895,21 @@ export default function OneTime() {
     }
 
     const isNewSystem = bonusList && bonusList.length > 0 && upgradeTimeLeft.isFinished;
-    const amountToWithdraw = customAmt || (isNewSystem ? selectedPresetWithdrawAmount : (withdrawAmountInput ? Number(withdrawAmountInput) : Number(dailyReturn)));
+    const requestedGrossAmount = customAmt || (isNewSystem ? selectedPresetWithdrawAmount : (withdrawAmountInput ? Number(withdrawAmountInput) : Number(dailyReturn)));
 
-    if (!amountToWithdraw || amountToWithdraw <= 0) {
+    if (!requestedGrossAmount || requestedGrossAmount <= 0) {
       triggerToast("Please enter a valid amount to withdraw", "error");
       return;
     }
 
-    if (currentWalletBalance < amountToWithdraw) {
+    if (currentWalletBalance < requestedGrossAmount) {
       triggerToast(`Insufficient Wallet Balance! Your balance is ₹${currentWalletBalance}`, "error");
       return;
     }
+
+    // ⚡ 5% TDS ট্যাক্স ক্যালকুলেশন (যেমন: ১০০ উইথড্র করলে ৫ টাকা TDS কেটে ফাইনাল ৯৫ টাকা পাঠানো হবে)
+    const tdsDeduction = requestedGrossAmount * 0.05;
+    const netWithdrawAmount = requestedGrossAmount - tdsDeduction;
 
     try {
       const res = await fetch(`${API}/api/onetime/withdraw`, {
@@ -917,14 +920,16 @@ export default function OneTime() {
         },
         body: JSON.stringify({ 
           email: email.trim().toLowerCase(), 
-          amount: Number(amountToWithdraw),
+          amount: Number(netWithdrawAmount),
+          grossAmount: Number(requestedGrossAmount),
+          tdsAmount: Number(tdsDeduction),
           bankDetails: user.bankDetails || bankForm
         })
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        triggerToast(data.message || "Withdrawal Request Submitted!", "success");
+        triggerToast(data.message || "Withdrawal Request Submitted with 5% TDS deduction!", "success");
         setShowWithdrawModal(false);
         setWithdrawAmountInput("");
         await loadDashboardData();
@@ -1509,7 +1514,6 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              {/* ⚡ লাল মার্ক করা জায়গায় নেক্সট রিটার্ন ডেট যোগ করা হলো */}
               <div style={styles.liveInvestDetailItem}>
                 <span style={styles.liveDetailLabel}>Next Return Date</span>
                 <strong style={{ ...styles.liveDetailValue, color: "#b45309" }}>
@@ -2050,6 +2054,13 @@ export default function OneTime() {
               </strong>
             </div>
 
+            {/* ⚡ TDS Info Box */}
+            <div style={{ background: "rgba(245, 158, 11, 0.1)", border: "1px solid rgba(245, 158, 11, 0.4)", padding: "8px 10px", borderRadius: "8px", marginBottom: "12px", textAlign: "center" }}>
+              <span style={{ fontSize: "11px", color: "#facc15", fontWeight: "bold" }}>
+                ℹ️ Note: 5% TDS Tax will be deducted on withdrawal (e.g. ₹100 withdrawal will give ₹95 after ₹5 TDS deduction).
+              </span>
+            </div>
+
             {bonusList && bonusList.length > 0 && !upgradeTimeLeft.isFinished ? (
               <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", padding: "14px", borderRadius: "10px", textAlign: "center", margin: "10px 0" }}>
                 <span style={{ fontSize: "22px", display: "block", marginBottom: "4px" }}>⏳</span>
@@ -2075,41 +2086,76 @@ export default function OneTime() {
                 </p>
                 <label style={styles.inputSectionLabel}>Select Withdrawal Amount</label>
                 <div style={styles.presetChipGrid}>
-                  {[100, 300, 500, 1000].map((amt) => (
-                    <button
-                      key={amt}
-                      style={{
-                        ...styles.presetChip,
-                        flex: "1 1 40%",
-                        padding: "10px",
-                        textAlign: "center",
-                        background: selectedPresetWithdrawAmount === amt ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "#0f2138",
-                        color: selectedPresetWithdrawAmount === amt ? "#000" : "#fff",
-                        border: selectedPresetWithdrawAmount === amt ? "1.5px solid #facc15" : "1px solid #334155"
-                      }}
-                      onClick={() => setSelectedPresetWithdrawAmount(amt)}
-                    >
-                      ₹{amt}
-                    </button>
-                  ))}
+                  {[100, 300, 500, 1000].map((amt) => {
+                    const tdsDeduction = amt * 0.05;
+                    const finalNet = amt - tdsDeduction;
+                    return (
+                      <button
+                        key={amt}
+                        style={{
+                          ...styles.presetChip,
+                          flex: "1 1 40%",
+                          padding: "10px",
+                          textAlign: "center",
+                          background: selectedPresetWithdrawAmount === amt ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)" : "#0f2138",
+                          color: selectedPresetWithdrawAmount === amt ? "#000" : "#fff",
+                          border: selectedPresetWithdrawAmount === amt ? "1.5px solid #facc15" : "1px solid #334155"
+                        }}
+                        onClick={() => setSelectedPresetWithdrawAmount(amt)}
+                      >
+                        ₹{amt} <span style={{ fontSize: "9px", display: "block", opacity: 0.8 }}>(Net: ₹{finalNet})</span>
+                      </button>
+                    );
+                  })}
                 </div>
+
+                <div style={{ background: "#040d1a", padding: "8px", borderRadius: "8px", margin: "10px 0", border: "1px solid #1e293b", fontSize: "11px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                    <span>Requested:</span>
+                    <span style={{ color: "#fff" }}>₹{selectedPresetWithdrawAmount}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", color: "#f87171" }}>
+                    <span>5% TDS Tax:</span>
+                    <span>- ₹{(selectedPresetWithdrawAmount * 0.05).toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", color: "#4ade80", fontWeight: "bold", marginTop: "4px", borderTop: "1px dashed #334155", paddingTop: "4px" }}>
+                    <span>You Will Get:</span>
+                    <span>₹{(selectedPresetWithdrawAmount * 0.95).toFixed(2)}</span>
+                  </div>
+                </div>
+
                 <button
                   style={{
                     ...styles.goldSubmitBtn,
-                    marginTop: "14px",
+                    marginTop: "10px",
                     background: (currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
                   }}
                   onClick={() => handleWithdrawSubmit(selectedPresetWithdrawAmount)}
                   disabled={currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday}
                 >
-                  {hasWithdrawnToday ? "Already Requested Today" : `Confirm Withdraw ₹${selectedPresetWithdrawAmount}`}
+                  {hasWithdrawnToday ? "Already Requested Today" : `Confirm Withdraw ₹{selectedPresetWithdrawAmount}`}
                 </button>
               </div>
             ) : (
               <>
-                <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "10px" }}>
+                <p style={{ fontSize: "12px", color: "#cbd5e1", textAlign: "center", marginBottom: "6px" }}>
                   Withdraw Return: <strong style={{ color: "#facc15" }}>₹{dailyReturn.toFixed(2)}</strong>
                 </p>
+                <div style={{ background: "#040d1a", padding: "8px", borderRadius: "8px", margin: "8px 0", border: "1px solid #1e293b", fontSize: "11px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                    <span>Gross Amount:</span>
+                    <span style={{ color: "#fff" }}>₹{dailyReturn.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", color: "#f87171" }}>
+                    <span>5% TDS Tax:</span>
+                    <span>- ₹{(dailyReturn * 0.05).toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", color: "#4ade80", fontWeight: "bold", marginTop: "4px", borderTop: "1px dashed #334155", paddingTop: "4px" }}>
+                    <span>Net Transfer Amount:</span>
+                    <span>₹{(dailyReturn * 0.95).toFixed(2)}</span>
+                  </div>
+                </div>
+
                 <button
                   style={{
                     ...styles.goldSubmitBtn,
