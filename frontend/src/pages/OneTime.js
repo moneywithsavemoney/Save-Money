@@ -345,7 +345,6 @@ export default function OneTime() {
           }
         }
 
-        // ⚡ বোনাস লিস্ট বা রেফারেল লিস্ট সঠিকভাবে ধরার জন্য আপডেট করা হলো
         const resolvedBonusList = 
           data.bonusList || 
           userData?.bonusList || 
@@ -535,10 +534,11 @@ export default function OneTime() {
     }
   };
 
-  const { calculatedMaturityDate, isMatured, investmentDurationDays, activeDailyReturnVal } = useMemo(() => {
+  const { calculatedMaturityDate, nextReturnDate, isMatured, investmentDurationDays, activeDailyReturnVal } = useMemo(() => {
     if (!activeInvestment) {
       return { 
         calculatedMaturityDate: "In Progress", 
+        nextReturnDate: "-",
         isMatured: false, 
         investmentDurationDays: "180 Days",
         activeDailyReturnVal: 0
@@ -562,12 +562,25 @@ export default function OneTime() {
     let maturityObj = new Date(startDateObj.getTime());
     maturityObj.setDate(maturityObj.getDate() + durationDays);
 
+    // ⚡ Next Return Date ক্যালকুলেশন (স্টার্ট ডেট বা শেষ উইথড্র/রিটার্নের পর সাধারণত ১ দিন বা ৩০ দিন পর পরবর্তী রিটার্ন তারিখ হয়)
+    let nextRetObj = new Date();
+    const cat = (activeInvestment.category || "beginner").toLowerCase();
+    if (cat === "monthly") {
+      nextRetObj = new Date(startDateObj.getTime());
+      nextRetObj.setDate(nextRetObj.getDate() + 30);
+    } else {
+      nextRetObj = new Date();
+      nextRetObj.setDate(nextRetObj.getDate() + 1);
+    }
+    if (nextRetObj > maturityObj) {
+      nextRetObj = new Date(maturityObj.getTime());
+    }
+
     let returnVal = 0;
     if (activeInvestment.dailyReturn && Number(activeInvestment.dailyReturn) > 0) {
       returnVal = Number(activeInvestment.dailyReturn);
     } else {
       const amt = Number(activeInvestment.amount || 0);
-      const cat = (activeInvestment.category || "beginner").toLowerCase();
       const tenure = activeInvestment.tenureMonths || (durationDays / 30);
       const calc = calculateDailyReturn(amt, tenure, cat);
       returnVal = cat === "monthly" ? (amt === 7500 ? 3000 : 6000) : calc.dailyReturnAmount;
@@ -578,6 +591,7 @@ export default function OneTime() {
 
     return {
       calculatedMaturityDate: formatDate(maturityObj),
+      nextReturnDate: formatDate(nextRetObj),
       isMatured: matured,
       investmentDurationDays: `${durationDays} Days`,
       activeDailyReturnVal: returnVal
@@ -1495,7 +1509,15 @@ export default function OneTime() {
                 </strong>
               </div>
 
-              <div style={{ ...styles.liveInvestDetailItem, gridColumn: "span 2" }}>
+              {/* ⚡ লাল মার্ক করা জায়গায় নেক্সট রিটার্ন ডেট যোগ করা হলো */}
+              <div style={styles.liveInvestDetailItem}>
+                <span style={styles.liveDetailLabel}>Next Return Date</span>
+                <strong style={{ ...styles.liveDetailValue, color: "#b45309" }}>
+                  📅 {nextReturnDate}
+                </strong>
+              </div>
+
+              <div style={styles.liveInvestDetailItem}>
                 <span style={styles.liveDetailLabel}>Maturity Date</span>
                 <strong style={{ ...styles.liveDetailValue, color: "#1e3a8a" }}>
                   {calculatedMaturityDate}
@@ -3477,150 +3499,16 @@ const styles = {
   drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.15)", border: "1px solid rgba(249, 115, 22, 0.3)" },
   drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.15)", border: "1px solid rgba(244, 63, 94, 0.3)" },
   drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.15)", border: "1px solid rgba(2, 132, 199, 0.3)" },
-  drawerNavSupport: { background: "rgba(99, 102, 241, 0.15)", border: "1px solid rgba(99, 102, 241, 0.3)" },
-  drawerNavProfile: { background: "rgba(236, 72, 153, 0.15)", border: "1px solid rgba(236, 72, 153, 0.3)" },
-  drawerNavLogout: { background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)" },
+  drawerNavSupport: { background: "gray", border: "1px solid gray" },
   treePlantOnlyWrapper: {
-    width: "100%",
-    paddingTop: "6px",
-    paddingBottom: "10px",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    flexShrink: 0
+    marginTop: "10px"
   },
   treePlantOnlyImg: {
-    width: "100%",
-    maxHeight: "110px",
-    objectFit: "cover",
-    borderRadius: "12px"
-  },
-  slipCardDark: {
-    background: "#0b192c",
-    borderRadius: "20px",
-    padding: "20px 16px",
-    width: "100%",
-    maxWidth: "350px",
-    border: "1px solid rgba(255, 255, 255, 0.12)",
-    boxShadow: "0 20px 40px rgba(0,0,0,0.8)",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center"
-  },
-  slipHeaderCheckGroup: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "6px"
-  },
-  slipCheckCircle: {
-    width: "48px",
-    height: "48px",
-    borderRadius: "50%",
-    background: "#3b2d08",
-    border: "2px solid #facc15",
-    color: "#facc15",
-    fontSize: "24px",
-    fontWeight: "bold",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  slipCrossCircle: {
-    width: "48px",
-    height: "48px",
-    borderRadius: "50%",
-    background: "#3f1717",
-    border: "2px solid #ef4444",
-    color: "#ef4444",
-    fontSize: "24px",
-    fontWeight: "bold",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  },
-  slipHeaderTitle: {
-    margin: "4px 0 0 0",
-    fontSize: "11px",
-    letterSpacing: "1px",
-    color: "#94a3b8",
-    fontWeight: "700"
-  },
-  slipAmountText: {
-    fontSize: "28px",
-    color: "#facc15",
-    fontWeight: "900"
-  },
-  slipBadgeRow: {
-    marginTop: "2px"
-  },
-  slipStatusTag: {
-    fontSize: "10px",
-    padding: "3px 10px",
-    borderRadius: "12px",
-    fontWeight: "bold",
-    letterSpacing: "0.5px"
-  },
-  slipDottedDivider: {
-    width: "100%",
-    borderTop: "2px dashed #1e293b",
-    margin: "16px 0"
-  },
-  slipDetailsTable: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px"
-  },
-  slipRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "10px"
-  },
-  slipLabel: {
-    fontSize: "11px",
-    color: "#94a3b8",
-    fontWeight: "500"
-  },
-  slipValue: {
-    fontSize: "12px",
-    color: "#ffffff",
-    fontWeight: "700",
-    textAlign: "right"
-  },
-  slipFooterBranding: {
-    marginTop: "16px",
-    fontSize: "10px",
-    color: "#facc15",
-    fontWeight: "700",
-    textAlign: "center"
-  },
-  slipActionGrid: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    gap: "8px",
-    marginTop: "16px"
-  },
-  slipShareBtn: {
-    height: "38px",
-    background: "linear-gradient(90deg, #25D366 0%, #128C7E 100%)",
-    border: "none",
-    borderRadius: "10px",
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: "12px",
-    cursor: "pointer"
-  },
-  slipCloseBtn: {
-    height: "36px",
-    background: "rgba(255,255,255,0.08)",
-    border: "none",
-    borderRadius: "10px",
-    color: "#cbd5e1",
-    fontWeight: "700",
-    fontSize: "12px",
-    cursor: "pointer"
+    width: "80px",
+    height: "auto",
+    opacity: 0.8
   }
 };
