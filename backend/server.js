@@ -852,7 +852,7 @@ function calculateDailyReturnBackend(amount, tenureMonths = 9, category = "begin
   const cat = (category || "beginner").toLowerCase();
 
   if (cat === "beginner") {
-    if (amt === 7500) dailyRate = 0.8;
+    if (amt === 10000) dailyRate = 0.8;
     else if (amt === 15000) dailyRate = tenure >= 12 ? 1.2 : 1.0;
     else if (amt === 22500) dailyRate = tenure >= 12 ? 1.5 : 1.2;
     else if (amt === 30000) dailyRate = tenure >= 12 ? 1.7 : 1.5;
@@ -884,7 +884,7 @@ function calculateBonusConfig(amount, category) {
   let totalMonths = 1;
 
   if (category === "beginner") {
-    if (amount === 7500) {
+    if (amount === 10000) {
       monthlyBonus = 500; // Upto 500 once
       totalMonths = 1;
     } else if (amount === 15000) {
