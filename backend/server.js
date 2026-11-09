@@ -10950,78 +10950,111 @@ cron.schedule('0 12,17 * * *', async () => {
 
 // ONE TIME DAILY & MONTHLY RETURN AUTOMATION (প্রতিদিন রাত ১২টায় রান হবে)
 cron.schedule("0 0 * * *", async () => {
-  console.log("Running OneTime Daily & Monthly Return Cron Job...");
+    console.log("Running OneTime Daily & Monthly Return Cron Job...");
+    
+    try {
+        const users = await User.find({});
+        let processedUsersCount = 0;
 
-  try {
-    const users = await User.find({});
-    let processedUsersCount = 0;
+        for (let user of users) {
+            if (!user.onetimeHistory || !Array.isArray(user.onetimeHistory) || user.onetimeHistory.length === 0) {
+                continue;
+            }
 
-    for (let user of users) {
-      if (!user.onetimeHistory || !Array.isArray(user.onetimeHistory) || user.onetimeHistory.length === 0) {
-        continue;
-      }
+            let totalReturnForUser = 0;
+            let newDailyEntries = [];
+            let isHistoryUpdated = false; // track if we need to save changes to history items
 
-      let totalReturnForUser = 0;
-      let newDailyEntries = [];
+            // আজকের ডেট (রাত ১২টার সময় হিসেবে Normalize করা)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-      for (let item of user.onetimeHistory) {
-        const itemStatus = (item.status || "").toString().trim().toLowerCase();
-        
-        // শুধু active ইনভেস্টমেন্টগুলোর জন্য রিটার্ন কাউন্ট হবে
-        if (itemStatus !== "active") continue;
+            for (let item of user.onetimeHistory) {
+                const itemStatus = (item.status || "").toString().trim().toLowerCase();
 
-        let returnAmt = Number(item.dailyReturn || 0);
-        const amt = Number(item.amount || 0);
-        const tenure = Number(item.tenureMonths || item.durationDays / 30 || 9);
-        const cat = (item.category || "beginner").toString().toLowerCase();
+                // শুধু active ইনভেস্টমেন্টগুলোর জন্য
+                if (itemStatus !== "active") continue;
 
-        // যদি dailyReturn সেট করা না থাকে, তবে ব্যাকএন্ড ক্যালকুলেটর দিয়ে বের করে নেওয়া
-        if (!returnAmt || returnAmt <= 0) {
-          const calc = calculateDailyReturnBackend(amt, tenure, cat);
-          returnAmt = calc.dailyReturnAmount;
+                // Next Return Date চেক করা
+                if (item.nextReturnDate) {
+                    const nextDate = new Date(item.nextReturnDate);
+                    nextDate.setHours(0, 0, 0, 0);
+
+                    // আজকের তারিখ যদি Next Return Date এর আগে হয়, তবে রিটার্ন দেবে না (skip)
+                    if (today < nextDate) {
+                        continue;
+                    }
+                }
+
+                const cat = (item.category || "beginner").toString().toLowerCase();
+                let returnAmt = Number(item.dailyReturn || 0);
+                const amt = Number(item.amount || 0);
+                const tenure = Number(item.tenureMonths || item.durationDays / 30 || 9);
+
+                // যদি রিটার্ন অ্যামাউন্ট সেট করা না থাকে, তবে ব্যাকএন্ড ক্যালকুলেটর দিয়ে বের করা
+                if (!returnAmt || returnAmt <= 0) {
+                    const calc = calculateDailyReturnBackend(amt, tenure, cat);
+                    returnAmt = calc.dailyReturnAmount; 
+                    // বিঃদ্রঃ আপনার calculateDailyReturnBackend যেন Monthly হলে মাসিক রিটার্ন (যেমন ৩০০০) এবং Daily হলে ডেইলি রিটার্ন (যেমন ৭৫) রিটার্ন করে, সেটা নিশ্চিত করবেন।
+                }
+
+                if (returnAmt > 0) {
+                    totalReturnForUser += returnAmt;
+
+                    // নতুন হিস্ট্রি এন্ট্রি তৈরি
+                    newDailyEntries.push({
+                        _id: new mongoose.Types.ObjectId(),
+                        type: cat === "monthly" ? "Monthly Return" : "Daily Return",
+                        amount: returnAmt,
+                        status: "Success",
+                        createdAt: new Date()
+                    });
+
+                    // পরবর্তী Return Date সেট করা
+                    let nextReturn = new Date(); // current date
+                    if (cat === "monthly") {
+                        nextReturn.setDate(nextReturn.getDate() + 30); // Monthly হলে ৩০ দিন পর (বা ১ মাস)
+                    } else {
+                        nextReturn.setDate(nextReturn.getDate() + 1); // Daily হলে ১ দিন পর
+                    }
+                    
+                    item.nextReturnDate = nextReturn; // Database item এ next date আপডেট করে দিলাম
+                    isHistoryUpdated = true;
+                }
+            }
+
+            // যদি ইউজারের যোগ করার মতো রিটার্ন থাকে
+            if (totalReturnForUser > 0) {
+                user.otbalance = Number(user.otbalance || user.otBalance || 0) + totalReturnForUser;
+                user.totalEarnings = Number(user.totalEarnings || 0) + totalReturnForUser;
+                user.oneTimeTotalEarnings = Number(user.oneTimeTotalEarnings || 0) + totalReturnForUser;
+
+                // নতুন হিস্ট্রি সামনে যুক্ত করা (unshift)
+                user.onetimeHistory.unshift(...newDailyEntries);
+
+                user.markModified("otbalance");
+                user.markModified("totalEarnings");
+                user.markModified("oneTimeTotalEarnings");
+                user.markModified("onetimeHistory"); // nextReturnDate আপডেট হওয়ার কারণে এটি কল করা জরুরি
+
+                await user.save();
+                processedUsersCount++;
+            } else if (isHistoryUpdated) {
+                // যদি শুধু nextReturnDate আপডেট হয় (অ্যামাউন্ট 0 হওয়ার কারণে ব্যালেন্স না বাড়ে)
+                user.markModified("onetimeHistory");
+                await user.save();
+            }
         }
 
-        if (returnAmt > 0) {
-          totalReturnForUser += returnAmt;
-
-          // নতুন হিস্ট্রি এন্ট্রি তৈরি
-          newDailyEntries.push({
-            _id: new mongoose.Types.ObjectId(),
-            type: cat === "monthly" ? "Monthly Return" : "Daily Return",
-            amount: returnAmt,
-            status: "Success",
-            createdAt: new Date()
-          });
-        }
-      }
-
-      // যদি ইউজারের যোগ করার মতো রিটার্ন থাকে
-      if (totalReturnForUser > 0) {
-        user.otbalance = Number(user.otbalance || user.otBalance || 0) + totalReturnForUser;
-        user.totalEarnings = Number(user.totalEarnings || 0) + totalReturnForUser;
-        user.oneTimeTotalEarnings = Number(user.oneTimeTotalEarnings || 0) + totalReturnForUser;
-
-        // নতুন হিস্ট্রি সামনে যুক্ত করা (unshift)
-        user.onetimeHistory.unshift(...newDailyEntries);
-
-        user.markModified("otbalance");
-        user.markModified("totalEarnings");
-        user.markModified("oneTimeTotalEarnings");
-        user.markModified("onetimeHistory");
-
-        await user.save();
-        processedUsersCount++;
-      }
+        console.log(`Returns processed successfully for ${processedUsersCount} user(s).`);
+    } catch (error) {
+        console.error("❌ OneTime Return Cron Error:", error);
     }
-
-    console.log(`Returns processed successfully for ${processedUsersCount} user(s).`);
-  } catch (error) {
-    console.error("❌ OneTime Return Cron Error:", error);
-  }
 }, {
-  scheduled: true,
-  timezone: "Asia/Kolkata"
+    scheduled: true,
+    timezone: "Asia/Kolkata"
 });
+
 
 
 
