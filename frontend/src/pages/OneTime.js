@@ -895,10 +895,15 @@ export default function OneTime() {
     }
 
     const isNewSystem = bonusList && bonusList.length > 0 && upgradeTimeLeft.isFinished;
-    const requestedGrossAmount = customAmt || (isNewSystem ? selectedPresetWithdrawAmount : (withdrawAmountInput ? Number(withdrawAmountInput) : Number(dailyReturn)));
+    const requestedGrossAmount = customAmt !== null ? customAmt : (isNewSystem ? selectedPresetWithdrawAmount : (withdrawAmountInput ? Number(withdrawAmountInput) : Number(dailyReturn)));
 
     if (!requestedGrossAmount || requestedGrossAmount <= 0) {
       triggerToast("Please enter a valid amount to withdraw", "error");
+      return;
+    }
+
+    if (isNewSystem && (requestedGrossAmount < 100 || requestedGrossAmount > 1000)) {
+      triggerToast("Withdrawal amount must be between ₹100 and ₹1000!", "error");
       return;
     }
 
@@ -907,7 +912,7 @@ export default function OneTime() {
       return;
     }
 
-    // ⚡ 5% TDS ট্যাক্স ক্যালকুলেশন (যেমন: ১০০ উইথড্র করলে ৫ টাকা TDS কেটে ফাইনাল ৯৫ টাকা পাঠানো হবে)
+    // ⚡ 5% TDS ট্যাক্স ক্যালকুলেশন
     const tdsDeduction = requestedGrossAmount * 0.05;
     const netWithdrawAmount = requestedGrossAmount - tdsDeduction;
 
@@ -2084,7 +2089,7 @@ export default function OneTime() {
                 <p style={{ fontSize: "11px", color: "#facc15", textAlign: "center", marginBottom: "10px", fontWeight: "bold" }}>
                   ⚡ New Upgraded Withdrawal System Active
                 </p>
-                <label style={styles.inputSectionLabel}>Select Withdrawal Amount</label>
+                <label style={styles.inputSectionLabel}>Select Withdrawal Amount (Preset)</label>
                 <div style={styles.presetChipGrid}>
                   {[100, 300, 500, 1000].map((amt) => {
                     const tdsDeduction = amt * 0.05;
@@ -2101,7 +2106,10 @@ export default function OneTime() {
                           color: selectedPresetWithdrawAmount === amt ? "#000" : "#fff",
                           border: selectedPresetWithdrawAmount === amt ? "1.5px solid #facc15" : "1px solid #334155"
                         }}
-                        onClick={() => setSelectedPresetWithdrawAmount(amt)}
+                        onClick={() => {
+                          setSelectedPresetWithdrawAmount(amt);
+                          setWithdrawAmountInput(amt.toString());
+                        }}
                       >
                         ₹{amt} <span style={{ fontSize: "9px", display: "block", opacity: 0.8 }}>(Net: ₹{finalNet})</span>
                       </button>
@@ -2109,32 +2117,68 @@ export default function OneTime() {
                   })}
                 </div>
 
-                <div style={{ background: "#040d1a", padding: "8px", borderRadius: "8px", margin: "10px 0", border: "1px solid #1e293b", fontSize: "11px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
-                    <span>Requested:</span>
-                    <span style={{ color: "#fff" }}>₹{selectedPresetWithdrawAmount}</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", color: "#f87171" }}>
-                    <span>5% TDS Tax:</span>
-                    <span>- ₹{(selectedPresetWithdrawAmount * 0.05).toFixed(2)}</span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", color: "#4ade80", fontWeight: "bold", marginTop: "4px", borderTop: "1px dashed #334155", paddingTop: "4px" }}>
-                    <span>You Will Get:</span>
-                    <span>₹{(selectedPresetWithdrawAmount * 0.95).toFixed(2)}</span>
-                  </div>
+                <div style={{ marginTop: "12px" }}>
+                  <label style={styles.inputSectionLabel}>Or Edit Withdrawal Amount (Min ₹100 upto ₹1000)</label>
+                  <input
+                    type="number"
+                    min="100"
+                    max="1000"
+                    style={styles.inputModalDark}
+                    placeholder="Enter amount (100 - 1000)"
+                    value={withdrawAmountInput}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setWithdrawAmountInput(val);
+                      if (val && !isNaN(val)) {
+                        setSelectedPresetWithdrawAmount(Number(val));
+                      }
+                    }}
+                  />
                 </div>
 
-                <button
-                  style={{
-                    ...styles.goldSubmitBtn,
-                    marginTop: "10px",
-                    background: (currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
-                  }}
-                  onClick={() => handleWithdrawSubmit(selectedPresetWithdrawAmount)}
-                  disabled={currentWalletBalance < selectedPresetWithdrawAmount || hasWithdrawnToday}
-                >
-                  {hasWithdrawnToday ? "Already Requested Today" : `Confirm Withdraw ₹{selectedPresetWithdrawAmount}`}
-                </button>
+                {(() => {
+                  const currentAmt = Number(withdrawAmountInput || selectedPresetWithdrawAmount) || 0;
+                  const tdsDeduction = currentAmt * 0.05;
+                  const finalNet = currentAmt - tdsDeduction;
+                  const isInvalid = currentAmt < 100 || currentAmt > 1000;
+
+                  return (
+                    <>
+                      <div style={{ background: "#040d1a", padding: "8px", borderRadius: "8px", margin: "10px 0", border: "1px solid #1e293b", fontSize: "11px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
+                          <span>Requested:</span>
+                          <span style={{ color: "#fff" }}>₹{currentAmt}</span>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", color: "#f87171" }}>
+                          <span>5% TDS Tax:</span>
+                          <span>- ₹{tdsDeduction.toFixed(2)}</span>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", color: "#4ade80", fontWeight: "bold", marginTop: "4px", borderTop: "1px dashed #334155", paddingTop: "4px" }}>
+                          <span>You Will Get:</span>
+                          <span>₹{finalNet.toFixed(2)}</span>
+                        </div>
+                      </div>
+
+                      {isInvalid && (
+                        <p style={{ fontSize: "10px", color: "#f87171", textAlign: "center", margin: "4px 0" }}>
+                          ⚠️ Amount must be between ₹100 and ₹1000!
+                        </p>
+                      )}
+
+                      <button
+                        style={{
+                          ...styles.goldSubmitBtn,
+                          marginTop: "10px",
+                          background: (currentWalletBalance < currentAmt || hasWithdrawnToday || isInvalid) ? "#334155" : "linear-gradient(135deg, #fef08a 0%, #f59e0b 100%)"
+                        }}
+                        onClick={() => handleWithdrawSubmit(currentAmt)}
+                        disabled={currentWalletBalance < currentAmt || hasWithdrawnToday || isInvalid}
+                      >
+                        {hasWithdrawnToday ? "Already Requested Today" : `Confirm Withdraw ₹{currentAmt}`}
+                      </button>
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               <>
@@ -3543,7 +3587,7 @@ const styles = {
   drawerNavAddFund: { background: "rgba(20, 184, 166, 0.15)", border: "1px solid rgba(20, 184, 166, 0.3)" },
   drawerNavRefer: { background: "rgba(236, 72, 153, 0.15)", border: "1px solid rgba(236, 72, 153, 0.3)" },
   drawerNavWithdraw: { background: "rgba(249, 115, 22, 0.15)", border: "1px solid rgba(249, 115, 22, 0.3)" },
-  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.15)", border: "1px solid rgba(244, 63, 94, 0.3)" },
+  drawerNavDailyReward: { background: "rgba(244, 63, 94, 0.15)", border: "1px solid rgba(244, 63, 94, 0.15)" },
   drawerNavInvestmentAssistant: { background: "rgba(2, 132, 199, 0.15)", border: "1px solid rgba(2, 132, 199, 0.3)" },
   drawerNavSupport: { background: "gray", border: "1px solid gray" },
   treePlantOnlyWrapper: {
