@@ -99,23 +99,23 @@ function calculateDailyReturn(amount, tenureMonths, category) {
 
   if (category === "beginner") {
     if (amount === 10000) {
-      dailyRate = 0.8;
+      dailyRate = 0.6;
     } else if (amount === 15000) {
-      dailyRate = tenureMonths >= 12 ? 1.2 : 1.0;
+      dailyRate = tenureMonths >= 12 ? 0.9 : 0.8;
     } else if (amount === 22500) {
-      dailyRate = tenureMonths >= 12 ? 1.5 : 1.2;
+      dailyRate = tenureMonths >= 12 ? 1.0 : 0.9;
     } else if (amount === 30000) {
-      dailyRate = tenureMonths >= 12 ? 1.7 : 1.5;
+      dailyRate = tenureMonths >= 12 ? 1.1 : 1.0;
     } else if (amount === 37500) {
-      dailyRate = tenureMonths >= 12 ? 2.0 : 1.7;
+      dailyRate = tenureMonths >= 12 ? 1.2 : 1.1;
     } else {
-      dailyRate = tenureMonths >= 12 ? 1.2 : 1.0;
+      dailyRate = tenureMonths >= 12 ? 0.9 : 0.8;
     }
   } else if (category === "monthly") {
     if (amount === 7500) {
-      customMonthlyReturn = 3000;
+      customMonthlyReturn = 1500;
     } else if (amount === 15000) {
-      customMonthlyReturn = 6000;
+      customMonthlyReturn = 3000;
     }
   } else if (category === "pro") {
     if (amount === 99999) dailyRate = 2.0;
@@ -664,7 +664,7 @@ export default function OneTime() {
           duration: `${activeTenureMonths} Months`,
           durationDays: totalDays,
           tenureMonths: activeTenureMonths,
-          dailyReturn: category === "monthly" ? (Number(amount) === 7500 ? 3000 : 6000) / 30 : calculatedDailyReturn,
+          dailyReturn: category === "monthly" ? (Number(amount) === 7500 ? 1500 : 3000) / 30 : calculatedDailyReturn,
           rate: currentRate,
           status: "Active"
         })
@@ -1600,7 +1600,7 @@ export default function OneTime() {
                 </span>
                 <strong style={styles.dailyReturnAmount}>
                   ₹ {activeInvestment?.category === "monthly" 
-                    ? (activeInvestment.amount === 7500 ? 3000 : 6000) 
+                    ? (activeInvestment.amount === 7500 ? 1500 : 3000) 
                     : dailyReturn.toFixed(2)}
                 </strong>
                 <span style={styles.dailyReturnSubtext}>
@@ -1934,7 +1934,7 @@ export default function OneTime() {
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Return Payout:</span>
                   <strong style={{ ...styles.summaryValue, color: "#4ade80" }}>
-                    {category === "monthly" ? `₹${amount === 7500 ? 3000 : 6000} every 30 days` : `₹${calculatedDailyReturn.toFixed(2)} / day`}
+                    {category === "monthly" ? `₹${amount === 7500 ? 1500 : 3000} every 30 days` : `₹${calculatedDailyReturn.toFixed(2)} / day`}
                   </strong>
                 </div>
 
