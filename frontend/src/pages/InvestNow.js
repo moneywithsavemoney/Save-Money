@@ -25,12 +25,20 @@ export default function InvestNow() {
     returnRate: 0
   });
 
-  // Fetch logged-in user's dynamic/original data
+  // 1. Page Load Ad (পেজে ঢুকলেই অ্যাড আসবে)
+  useEffect(() => {
+    toast.info("📺 Loading Welcome Ad...", { autoClose: 1500 });
+    setTimeout(() => {
+      console.log("Page Load Interstitial Ad Shown: ", AD_IDS.interstitial);
+    }, 1500);
+  }, []);
+
+  // Fetch logged-in user's dynamic data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token"); // Auth Token
+        const token = localStorage.getItem("token");
 
         const headers = {
           "Content-Type": "application/json"
@@ -66,40 +74,26 @@ export default function InvestNow() {
     fetchUserData();
   }, []);
 
-  // --- ADMOB & REWARD SIMULATION HANDLERS ---
-  
-  // 1. Interstitial Ad Handler (Page Change / Navigation with Ad)
-  const handlePageChangeWithAd = (path) => {
-    toast.info("📺 Loading Interstitial Ad...", { autoClose: 1000 });
+  // 2. Navigation / Button Click Ad (যেকোনো বাটনে ক্লিক করলে অ্যাড আসবে তারপর পেজ চেঞ্জ হবে)
+  const handlePageChangeWithAd = (e, path) => {
+    e.stopPropagation(); // Prevent trigger of background click
+    toast.info("📺 Loading Ad before continuing...", { autoClose: 1000 });
     
-    // Simulate AdMob Interstitial Trigger (`ca-app-pub-5325370327902904/9065266875`)
     setTimeout(() => {
-      console.log("Interstitial Ad Shown: ", AD_IDS.interstitial);
-      toast.success("Ad completed! Redirecting...");
+      console.log("Action Interstitial Ad Shown: ", AD_IDS.interstitial);
       navigate(path);
     }, 1200);
   };
 
-  // 2. Rewarded Ad Handler (For Withdraw or Special Action -> User gets Reward)
-  const handleRewardedAction = (actionType) => {
-    toast.info("🪙 Watching Rewarded Ad for bonus...", { autoClose: 1500 });
-
-    // Simulate AdMob Rewarded Ad Trigger (`ca-app-pub-5325370327902904/6710566274`)
-    setTimeout(() => {
-      const earned = 50; // Reward bonus amount
-      setRewardPoints((prev) => prev + earned);
-      toast.success(`🎉 Success! You watched the Ad and earned ₹${earned} reward bonus!`);
-      
-      if (actionType === "withdraw") {
-        console.log("Processing Withdraw after Rewarded Ad...");
-      }
-    }, 2000);
-  };
-
-  // 3. Screen Tap/Click Ad Trigger (Triggers general ad experience on screen touch)
+  // 3. Screen Anywhere Click Ad (স্ক্রিনের ফাঁকা জায়গায় ক্লিক করলেও অ্যাড আসবে)
   const handleScreenClickAd = () => {
-    console.log("Screen interaction detected. Checking Ad frequency...");
-    // Optional interactive feedback or subtle banner refresh
+    toast.info("🪙 Rewarded Ad Loading...", { autoClose: 1000, toastId: "screen-ad" });
+    
+    setTimeout(() => {
+      console.log("Screen Click Rewarded Ad Shown: ", AD_IDS.rewarded);
+      // Optional: Give a small reward for clicking the screen ad
+      setRewardPoints(prev => prev + 10);
+    }, 1500);
   };
 
   const formatMoney = (val) => {
@@ -113,24 +107,16 @@ export default function InvestNow() {
     <div style={styles.pageBackground} onClick={handleScreenClickAd}>
       <div style={styles.appContainer}>
         
-        {/* TOP BANNER AD UNIT */}
-        <div style={styles.adBannerBox}>
+        {/* TOP BANNER AD UNIT (পেজের উপরের ব্যানার অ্যাড) */}
+        <div style={styles.adBannerBox} onClick={(e) => e.stopPropagation()}>
           <span style={styles.adBadgeText}>Sponsored Ad ({AD_IDS.banner.substring(0, 25)}...)</span>
           <div style={styles.adBannerContent}>
             📢 Banner Advertisement Space Active
           </div>
         </div>
 
-        {/* REWARD EARNED COUNTER */}
-        <div style={styles.rewardIndicatorBox}>
-          <span>🎁 Ad Rewards Earned: <strong>₹{rewardPoints}</strong></span>
-          <button style={styles.watchRewardBtn} onClick={() => handleRewardedAction("bonus")}>
-            Watch Ad for +₹50
-          </button>
-        </div>
-
         {/* 1. TOP HERO CARD */}
-        <div style={styles.heroCard}>
+        <div style={styles.heroCard} onClick={(e) => e.stopPropagation()}>
           <div style={styles.heroLeft}>
             <div style={styles.heroTitleRow}>
               <span style={styles.heroTitle}>Total Investment Value</span>
@@ -147,7 +133,11 @@ export default function InvestNow() {
               </h1>
               <span 
                 style={styles.arrowToggle} 
-                onClick={(e) => { e.stopPropagation(); setShowValue(!showValue); }}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  setShowValue(!showValue); 
+                  handleScreenClickAd(); // Show ad on amount toggle as well
+                }}
               >
                 ›
               </span>
@@ -167,9 +157,9 @@ export default function InvestNow() {
           </div>
         </div>
 
-        {/* 2. QUICK ACTIONS (Triggers Interstitial Ad on Page Change) */}
+        {/* 2. QUICK ACTIONS */}
         <div style={styles.quickActionBox}>
-          <div style={styles.actionItem} onClick={() => handlePageChangeWithAd("/wallet")}>
+          <div style={styles.actionItem} onClick={(e) => handlePageChangeWithAd(e, "/wallet")}>
             <div style={styles.iconBoxPurple}>👛</div>
             <div style={styles.actionTextGroup}>
               <span style={styles.actionTitle}>Add Money</span>
@@ -180,27 +170,13 @@ export default function InvestNow() {
 
           <div style={styles.verticalDivider}></div>
 
-          <div style={styles.actionItem} onClick={() => handlePageChangeWithAd("/my-investments")}>
+          <div style={styles.actionItem} onClick={(e) => handlePageChangeWithAd(e, "/my-investments")}>
             <div style={styles.iconBoxGreen}>📋</div>
             <div style={styles.actionTextGroup}>
               <span style={styles.actionTitle}>My Investments</span>
               <span style={styles.actionSub}>View all plans</span>
             </div>
             <span style={styles.navArrow}>›</span>
-          </div>
-        </div>
-
-        {/* WITHDRAW BUTTON SECTION WITH 2 REWARDED ADS */}
-        <div style={styles.withdrawCardBox}>
-          <h3 style={styles.withdrawTitle}>💰 Withdraw Funds</h3>
-          <p style={styles.withdrawSub}>Watch ads to verify and instantly unlock your withdrawal amount with rewards.</p>
-          <div style={styles.withdrawBtnRow}>
-            <button style={styles.btnWithdrawAd1} onClick={() => handleRewardedAction("withdraw")}>
-              Watch Ad 1 (Unlock)
-            </button>
-            <button style={styles.btnWithdrawAd2} onClick={() => handleRewardedAction("withdraw")}>
-              Watch Ad 2 (Bonus)
-            </button>
           </div>
         </div>
 
@@ -217,7 +193,7 @@ export default function InvestNow() {
         {/* 4. ACTIVE INVESTMENT GRID */}
         <div style={styles.activeGrid}>
           {/* SAVE MONEY */}
-          <div style={styles.saveMoneyCard}>
+          <div style={styles.saveMoneyCard} onClick={(e) => handlePageChangeWithAd(e, "/save-money")}>
             <div style={styles.cardTopContent}>
               <div style={styles.cardCircleIconGreen}>🌱</div>
               <h3 style={styles.cardHeaderTitle}>SAVE MONEY</h3>
@@ -227,14 +203,14 @@ export default function InvestNow() {
                 Build your wealth step by step with our smart SIP saving plan.
               </p>
             </div>
-            <button style={styles.btnInvestNow} onClick={() => handlePageChangeWithAd("/save-money")}>
+            <button style={styles.btnInvestNow}>
               <span>Invest Now</span>
               <span style={styles.circleArrowGreen}>›</span>
             </button>
           </div>
 
           {/* ONE TIME */}
-          <div style={styles.oneTimeCard}>
+          <div style={styles.oneTimeCard} onClick={(e) => handlePageChangeWithAd(e, "/one-time")}>
             <div style={styles.cardTopContent}>
               <div style={styles.cardCircleIconBlue}>🚀</div>
               <h3 style={styles.cardHeaderTitle}>ONE TIME</h3>
@@ -244,7 +220,7 @@ export default function InvestNow() {
                 Make a smart move and unlock upgraded growth opportunities.
               </p>
             </div>
-            <button style={styles.btnUpgradeNow} onClick={() => handlePageChangeWithAd("/one-time")}>
+            <button style={styles.btnUpgradeNow}>
               <span>Upgrade Now</span>
               <span style={styles.circleArrowBlue}>›</span>
             </button>
@@ -262,7 +238,7 @@ export default function InvestNow() {
         </div>
 
         {/* 6. COMING SOON GRID */}
-        <div style={styles.comingSoonGrid}>
+        <div style={styles.comingSoonGrid} onClick={(e) => { e.stopPropagation(); handleScreenClickAd(); }}>
           <div style={styles.goldCard}>
             <div style={styles.topPinkTag}>Coming Soon</div>
             <div style={styles.goldIconCircle}>🪙</div>
@@ -288,53 +264,6 @@ export default function InvestNow() {
           </div>
         </div>
 
-        {/* 7. DISCIPLINE BANNER */}
-        <div style={styles.bannerContainer}>
-          <div style={{ fontSize: "28px" }}>🏆</div>
-          <div style={{ flex: 1 }}>
-            <h4 style={styles.bannerTitle}>Discipline Today, Wealth Tomorrow.</h4>
-            <p style={styles.bannerSub}>Small steps now, big freedom later.</p>
-          </div>
-          <span style={{ color: "#fff", opacity: 0.7, fontSize: "18px" }}>›</span>
-        </div>
-
-        {/* 8. BOTTOM STATS PANEL */}
-        <div style={styles.bottomStatsCard}>
-          <div style={styles.statGroup}>
-            <div style={{ ...styles.statIcon, background: "#10b981" }}>📈</div>
-            <div>
-              <p style={styles.statLabel}>Total Invested</p>
-              <h4 style={styles.statValue}>
-                {loading ? "..." : formatMoney(summary.totalInvestment)}
-              </h4>
-            </div>
-          </div>
-
-          <div style={styles.statDividerVertical}></div>
-
-          <div style={styles.statGroup}>
-            <div style={{ ...styles.statIcon, background: "#3b82f6" }}>₹</div>
-            <div>
-              <p style={styles.statLabel}>Total Return</p>
-              <h4 style={styles.statValue}>
-                {loading ? "..." : formatMoney(summary.totalReturn)}
-              </h4>
-            </div>
-          </div>
-
-          <div style={styles.statDividerVertical}></div>
-
-          <div style={styles.statGroup}>
-            <div style={{ ...styles.statIcon, background: "#8b5cf6" }}>%</div>
-            <div>
-              <p style={styles.statLabel}>Return Rate</p>
-              <h4 style={styles.statValue}>
-                {loading ? "..." : `${summary.returnRate}%`}
-              </h4>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   );
@@ -347,7 +276,8 @@ const styles = {
     minHeight: "100vh",
     padding: "12px",
     fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    cursor: "pointer"
+    cursor: "pointer",
+    paddingBottom: "80px"
   },
   appContainer: {
     maxWidth: "420px",
@@ -361,64 +291,11 @@ const styles = {
     borderRadius: "12px",
     padding: "8px",
     textAlign: "center",
-    border: "1px dashed #cbd5e1"
+    border: "1px dashed #cbd5e1",
+    cursor: "default"
   },
   adBadgeText: { fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" },
   adBannerContent: { fontSize: "11px", fontWeight: "700", color: "#2563eb" },
-  rewardIndicatorBox: {
-    background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
-    borderRadius: "12px",
-    padding: "10px 14px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    color: "#78350f",
-    fontSize: "12px",
-    fontWeight: "700",
-    border: "1px solid #fcd34d"
-  },
-  watchRewardBtn: {
-    background: "#d97706",
-    color: "#fff",
-    border: "none",
-    padding: "6px 10px",
-    borderRadius: "8px",
-    fontSize: "11px",
-    fontWeight: "bold",
-    cursor: "pointer"
-  },
-  withdrawCardBox: {
-    background: "linear-gradient(135deg, #0f172a 1e%, #1e293b 100%)",
-    borderRadius: "16px",
-    padding: "14px",
-    color: "#fff",
-    border: "1px solid #38bdf8"
-  },
-  withdrawTitle: { fontSize: "14px", fontWeight: "800", margin: "0 0 4px 0", color: "#38bdf8" },
-  withdrawSub: { fontSize: "10px", color: "#94a3b8", margin: "0 0 10px 0" },
-  withdrawBtnRow: { display: "flex", gap: "8px" },
-  btnWithdrawAd1: {
-    flex: 1,
-    background: "#2563eb",
-    color: "#fff",
-    border: "none",
-    padding: "8px",
-    borderRadius: "8px",
-    fontSize: "11px",
-    fontWeight: "bold",
-    cursor: "pointer"
-  },
-  btnWithdrawAd2: {
-    flex: 1,
-    background: "#10b981",
-    color: "#fff",
-    border: "none",
-    padding: "8px",
-    borderRadius: "8px",
-    fontSize: "11px",
-    fontWeight: "bold",
-    cursor: "pointer"
-  },
   heroCard: {
     background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #e11d48 100%)",
     borderRadius: "22px",
@@ -427,7 +304,8 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    boxShadow: "0 8px 20px rgba(37, 99, 235, 0.2)"
+    boxShadow: "0 8px 20px rgba(37, 99, 235, 0.2)",
+    cursor: "default"
   },
   heroLeft: { flex: 1 },
   heroTitleRow: { display: "flex", alignItems: "center", gap: "6px" },
@@ -529,7 +407,8 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    minHeight: "230px"
+    minHeight: "230px",
+    cursor: "pointer"
   },
   oneTimeCard: {
     background: "linear-gradient(160deg, #2563eb 0%, #1d4ed8 100%)",
@@ -539,7 +418,8 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
-    minHeight: "230px"
+    minHeight: "230px",
+    cursor: "pointer"
   },
   cardTopContent: { display: "flex", flexDirection: "column", alignItems: "flex-start" },
   cardCircleIconGreen: {
@@ -585,7 +465,8 @@ const styles = {
     justifyContent: "space-between",
     fontSize: "12px",
     fontWeight: "800",
-    cursor: "pointer"
+    cursor: "pointer",
+    pointerEvents: "none" // Click handled by parent card
   },
   btnUpgradeNow: {
     background: "#172554",
@@ -598,7 +479,8 @@ const styles = {
     justifyContent: "space-between",
     fontSize: "12px",
     fontWeight: "800",
-    cursor: "pointer"
+    cursor: "pointer",
+    pointerEvents: "none" // Click handled by parent card
   },
   circleArrowGreen: {
     background: "#34d399",
@@ -729,40 +611,5 @@ const styles = {
     fontWeight: "800",
     padding: "4px 0",
     borderRadius: "10px"
-  },
-  bannerContainer: {
-    background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)",
-    borderRadius: "16px",
-    padding: "10px 14px",
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px"
-  },
-  bannerTitle: { fontSize: "12px", fontWeight: "800", margin: 0 },
-  bannerSub: { fontSize: "10px", opacity: 0.8, margin: 0 },
-  bottomStatsCard: {
-    background: "#ffffff",
-    borderRadius: "16px",
-    padding: "10px 12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.03)"
-  },
-  statGroup: { display: "flex", alignItems: "center", gap: "6px" },
-  statIcon: {
-    width: "26px",
-    height: "26px",
-    borderRadius: "6px",
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "11px",
-    fontWeight: "bold"
-  },
-  statLabel: { fontSize: "9px", color: "#64748b", margin: 0 },
-  statValue: { fontSize: "11px", fontWeight: "800", color: "#0f172a", margin: 0 },
-  statDividerVertical: { width: "1px", height: "20px", background: "#f1f5f9" }
+  }
 };
