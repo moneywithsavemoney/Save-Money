@@ -1043,20 +1043,31 @@ export default function OneTime() {
     const dateTimeVal = formatDateTime(selectedTxn.createdAt || selectedTxn.startDate || selectedTxn.date);
     const rejectReasonVal = getTransactionReason(selectedTxn);
 
-    let message = `*💎 SAVE MONEY - TRANSACTION SLIP*\n\n`;
-    message += `📌 *Type:* ${txnType}\n`;
-    message += `💰 *Amount:* ₹${amountVal}\n`;
-    message += `🟢 *Status:* ${statusVal}\n`;
-    message += `👤 *User Name:* ${userName}\n`;
-    message += `📧 *Email:* ${userEmail}\n`;
-    message += `🆔 *Transaction ID / UTR:* ${txnIdVal}\n`;
-    message += `📅 *Date & Time:* ${dateTimeVal}\n`;
+    let message = `*💎 SAVE MONEY - TRANSACTION SLIP*
+
+`;
+    message += `📌 *Type:* ${txnType}
+`;
+    message += `💰 *Amount:* ₹${amountVal}
+`;
+    message += `🟢 *Status:* ${statusVal}
+`;
+    message += `👤 *User Name:* ${userName}
+`;
+    message += `📧 *Email:* ${userEmail}
+`;
+    message += `🆔 *Transaction ID / UTR:* ${txnIdVal}
+`;
+    message += `📅 *Date & Time:* ${dateTimeVal}
+`;
 
     if (rejectReasonVal && rejectReasonVal !== "-") {
-      message += `⚠️ *Reject Reason:* ${rejectReasonVal}\n`;
+      message += `⚠️ *Reject Reason:* ${rejectReasonVal}
+`;
     }
 
-    message += `\n✨ *Premium SaveMoney Asset Management*`;
+    message += `
+✨ *Premium SaveMoney Asset Management*`;
 
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
@@ -2066,6 +2077,20 @@ export default function OneTime() {
               </span>
             </div>
 
+            {/* ⚡ Withdrawal Time Info Box */}
+            <div style={{ background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.4)", padding: "8px 10px", borderRadius: "8px", marginBottom: "12px", textAlign: "center" }}>
+              <span style={{ fontSize: "11px", color: "#38bdf8", fontWeight: "bold" }}>
+                🕒 Note: Withdrawal is only successful within 2 hours between 10 AM to 6 PM.
+              </span>
+            </div>
+
+            {/* ⚡ Withdrawal Time Info Box */}
+            <div style={{ background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.4)", padding: "8px 10px", borderRadius: "8px", marginBottom: "12px", textAlign: "center" }}>
+              <span style={{ fontSize: "11px", color: "#38bdf8", fontWeight: "bold" }}>
+                🕒 Note: Withdrawal is only successful within 2 hours between 10 AM to 6 PM.
+              </span>
+            </div>
+
             {bonusList && bonusList.length > 0 && !upgradeTimeLeft.isFinished ? (
               <div style={{ background: "rgba(56, 189, 248, 0.15)", border: "1px solid #38bdf8", padding: "14px", borderRadius: "10px", textAlign: "center", margin: "10px 0" }}>
                 <span style={{ fontSize: "22px", display: "block", marginBottom: "4px" }}>⏳</span>
@@ -2174,7 +2199,7 @@ export default function OneTime() {
                         onClick={() => handleWithdrawSubmit(currentAmt)}
                         disabled={currentWalletBalance < currentAmt || hasWithdrawnToday || isInvalid}
                       >
-                        {hasWithdrawnToday ? "Already Requested Today" : `Confirm Withdraw ₹{currentAmt}`}
+                        {hasWithdrawnToday ? "Already Requested Today" : `Confirm Withdraw ₹${currentAmt}`}
                       </button>
                     </>
                   );
