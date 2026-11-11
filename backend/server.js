@@ -189,7 +189,7 @@ app.post("/api/onetime/verify-razorpay-payment", async (req, res) => {
 
     // ব্যাকএন্ডে এভাবে সংশোধন করুন:
 const user = await User.findOne({ email: email.toLowerCase() });
-if (!user) { // এখানে 'if (user)' এর পরিবর্তে 'if (!user)' হবে[span_9](start_span)[span_9](end_span)
+if (!user) { 
     return res.status(404).json({ success: false, message: "User not found" });
 }
 
@@ -852,17 +852,17 @@ function calculateDailyReturnBackend(amount, tenureMonths = 9, category = "begin
   const cat = (category || "beginner").toLowerCase();
 
   if (cat === "beginner") {
-    if (amt === 10000) dailyRate = 0.8;
-    else if (amt === 15000) dailyRate = tenure >= 12 ? 1.2 : 1.0;
-    else if (amt === 22500) dailyRate = tenure >= 12 ? 1.5 : 1.2;
-    else if (amt === 30000) dailyRate = tenure >= 12 ? 1.7 : 1.5;
-    else if (amt === 37500) dailyRate = tenure >= 12 ? 2.0 : 1.7;
-    else dailyRate = tenure >= 12 ? 1.2 : 1.0;
+    if (amt === 10000) dailyRate = 0.6;
+    else if (amt === 15000) dailyRate = tenure >= 12 ? 0.9 : 0.8;
+    else if (amt === 22500) dailyRate = tenure >= 12 ? 1.0 : 0.9;
+    else if (amt === 30000) dailyRate = tenure >= 12 ? 1.1 : 1.0;
+    else if (amt === 37500) dailyRate = tenure >= 12 ? 1.2 : 1.1;
+    else dailyRate = tenure >= 12 ? 0.9 : 0.8;
   } else if (cat === "monthly") {
     if (amt === 7500) {
-      customMonthlyReturn = 3000;
+      customMonthlyReturn = 1500;
     } else if (amt === 15000) {
-      customMonthlyReturn = 6000;
+      customMonthlyReturn = 3000;
     }
   } else if (cat === "pro") {
     if (amt === 99999) dailyRate = 2.0;
@@ -8017,7 +8017,7 @@ app.get("/admin/onetime-investments", async (req, res) => {
     let dailyReturnAmount = 0;
 
     if (planCategory === "monthly") {
-      const monthlyReturn = investAmt === 7500 ? 3000 : 6000;
+      const monthlyReturn = investAmt === 7500 ? 1500 : 3000;
       dailyRate = 0; 
       dailyReturnAmount = monthlyReturn / 30; // ব্যাকএন্ড ট্র্যাকিংয়ের জন্য (অথবা মান্থলি অ্যামাউন্ট সেভ রাখতে পারেন)
     } else {
