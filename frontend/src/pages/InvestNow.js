@@ -283,7 +283,7 @@ export default function InvestNow() {
             <div style={styles.topPinkTag}>Coming Soon</div>
             <div style={styles.rdIconCircle}>🔄</div>
             <h4 style={styles.comingCardTitle}>RECURRING</h4>
-            <p style.comingCardSub}>Save regularly with discipline.</p>
+            <p style={styles.comingCardSub}>Save regularly with discipline.</p>
             <div style={styles.rdBtnPill}>🕒 Coming Soon</div>
           </div>
         </div>
