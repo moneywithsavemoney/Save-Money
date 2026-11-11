@@ -5,10 +5,18 @@ import { toast } from "react-toastify";
 // Backend API Base URL
 const API_BASE_URL = "https://save-moneyy-indol.vercel.app";
 
+// AdMob Unit IDs Provided by User
+const AD_IDS = {
+  banner: "ca-app-pub-5325370327902904~5982828026",
+  interstitial: "ca-app-pub-5325370327902904/9065266875",
+  rewarded: "ca-app-pub-5325370327902904/6710566274"
+};
+
 export default function InvestNow() {
   const navigate = useNavigate();
   const [showValue, setShowValue] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [rewardPoints, setRewardPoints] = useState(0);
 
   // Dynamic user investment summary state
   const [summary, setSummary] = useState({
@@ -24,7 +32,6 @@ export default function InvestNow() {
         setLoading(true);
         const token = localStorage.getItem("token"); // Auth Token
 
-        // Prepare safe headers
         const headers = {
           "Content-Type": "application/json"
         };
@@ -33,7 +40,6 @@ export default function InvestNow() {
           headers["Authorization"] = `Bearer ${token}`;
         }
 
-        // Full URL Call with CORS safety
         const response = await fetch(`${API_BASE_URL}/api/user/investment-summary`, {
           method: "GET",
           headers: headers
@@ -47,13 +53,10 @@ export default function InvestNow() {
             returnRate: data.returnRate || 0
           });
         } else {
-          console.warn("Investment data fetch returned non-200 status");
-          // Fallback to empty state instead of breaking UI
           setSummary({ totalInvestment: 0, totalReturn: 0, returnRate: 0 });
         }
       } catch (error) {
         console.error("Error fetching investment data:", error);
-        // Silent handling to avoid aggressive toasts on minor disconnects
         setSummary({ totalInvestment: 0, totalReturn: 0, returnRate: 0 });
       } finally {
         setLoading(false);
@@ -63,6 +66,42 @@ export default function InvestNow() {
     fetchUserData();
   }, []);
 
+  // --- ADMOB & REWARD SIMULATION HANDLERS ---
+  
+  // 1. Interstitial Ad Handler (Page Change / Navigation with Ad)
+  const handlePageChangeWithAd = (path) => {
+    toast.info("📺 Loading Interstitial Ad...", { autoClose: 1000 });
+    
+    // Simulate AdMob Interstitial Trigger (`ca-app-pub-5325370327902904/9065266875`)
+    setTimeout(() => {
+      console.log("Interstitial Ad Shown: ", AD_IDS.interstitial);
+      toast.success("Ad completed! Redirecting...");
+      navigate(path);
+    }, 1200);
+  };
+
+  // 2. Rewarded Ad Handler (For Withdraw or Special Action -> User gets Reward)
+  const handleRewardedAction = (actionType) => {
+    toast.info("🪙 Watching Rewarded Ad for bonus...", { autoClose: 1500 });
+
+    // Simulate AdMob Rewarded Ad Trigger (`ca-app-pub-5325370327902904/6710566274`)
+    setTimeout(() => {
+      const earned = 50; // Reward bonus amount
+      setRewardPoints((prev) => prev + earned);
+      toast.success(`🎉 Success! You watched the Ad and earned ₹${earned} reward bonus!`);
+      
+      if (actionType === "withdraw") {
+        console.log("Processing Withdraw after Rewarded Ad...");
+      }
+    }, 2000);
+  };
+
+  // 3. Screen Tap/Click Ad Trigger (Triggers general ad experience on screen touch)
+  const handleScreenClickAd = () => {
+    console.log("Screen interaction detected. Checking Ad frequency...");
+    // Optional interactive feedback or subtle banner refresh
+  };
+
   const formatMoney = (val) => {
     return `₹ ${(val || 0).toLocaleString("en-IN", {
       minimumFractionDigits: 2,
@@ -71,9 +110,25 @@ export default function InvestNow() {
   };
 
   return (
-    <div style={styles.pageBackground}>
+    <div style={styles.pageBackground} onClick={handleScreenClickAd}>
       <div style={styles.appContainer}>
         
+        {/* TOP BANNER AD UNIT */}
+        <div style={styles.adBannerBox}>
+          <span style={styles.adBadgeText}>Sponsored Ad ({AD_IDS.banner.substring(0, 25)}...)</span>
+          <div style={styles.adBannerContent}>
+            📢 Banner Advertisement Space Active
+          </div>
+        </div>
+
+        {/* REWARD EARNED COUNTER */}
+        <div style={styles.rewardIndicatorBox}>
+          <span>🎁 Ad Rewards Earned: <strong>₹{rewardPoints}</strong></span>
+          <button style={styles.watchRewardBtn} onClick={() => handleRewardedAction("bonus")}>
+            Watch Ad for +₹50
+          </button>
+        </div>
+
         {/* 1. TOP HERO CARD */}
         <div style={styles.heroCard}>
           <div style={styles.heroLeft}>
@@ -92,7 +147,7 @@ export default function InvestNow() {
               </h1>
               <span 
                 style={styles.arrowToggle} 
-                onClick={() => setShowValue(!showValue)}
+                onClick={(e) => { e.stopPropagation(); setShowValue(!showValue); }}
               >
                 ›
               </span>
@@ -112,9 +167,9 @@ export default function InvestNow() {
           </div>
         </div>
 
-        {/* 2. QUICK ACTIONS */}
+        {/* 2. QUICK ACTIONS (Triggers Interstitial Ad on Page Change) */}
         <div style={styles.quickActionBox}>
-          <div style={styles.actionItem} onClick={() => navigate("/wallet")}>
+          <div style={styles.actionItem} onClick={() => handlePageChangeWithAd("/wallet")}>
             <div style={styles.iconBoxPurple}>👛</div>
             <div style={styles.actionTextGroup}>
               <span style={styles.actionTitle}>Add Money</span>
@@ -125,13 +180,27 @@ export default function InvestNow() {
 
           <div style={styles.verticalDivider}></div>
 
-          <div style={styles.actionItem} onClick={() => navigate("/my-investments")}>
+          <div style={styles.actionItem} onClick={() => handlePageChangeWithAd("/my-investments")}>
             <div style={styles.iconBoxGreen}>📋</div>
             <div style={styles.actionTextGroup}>
               <span style={styles.actionTitle}>My Investments</span>
               <span style={styles.actionSub}>View all plans</span>
             </div>
             <span style={styles.navArrow}>›</span>
+          </div>
+        </div>
+
+        {/* WITHDRAW BUTTON SECTION WITH 2 REWARDED ADS */}
+        <div style={styles.withdrawCardBox}>
+          <h3 style={styles.withdrawTitle}>💰 Withdraw Funds</h3>
+          <p style={styles.withdrawSub}>Watch ads to verify and instantly unlock your withdrawal amount with rewards.</p>
+          <div style={styles.withdrawBtnRow}>
+            <button style={styles.btnWithdrawAd1} onClick={() => handleRewardedAction("withdraw")}>
+              Watch Ad 1 (Unlock)
+            </button>
+            <button style={styles.btnWithdrawAd2} onClick={() => handleRewardedAction("withdraw")}>
+              Watch Ad 2 (Bonus)
+            </button>
           </div>
         </div>
 
@@ -158,7 +227,7 @@ export default function InvestNow() {
                 Build your wealth step by step with our smart SIP saving plan.
               </p>
             </div>
-            <button style={styles.btnInvestNow} onClick={() => navigate("/save-money")}>
+            <button style={styles.btnInvestNow} onClick={() => handlePageChangeWithAd("/save-money")}>
               <span>Invest Now</span>
               <span style={styles.circleArrowGreen}>›</span>
             </button>
@@ -175,7 +244,7 @@ export default function InvestNow() {
                 Make a smart move and unlock upgraded growth opportunities.
               </p>
             </div>
-            <button style={styles.btnUpgradeNow} onClick={() => navigate("/one-time")}>
+            <button style={styles.btnUpgradeNow} onClick={() => handlePageChangeWithAd("/one-time")}>
               <span>Upgrade Now</span>
               <span style={styles.circleArrowBlue}>›</span>
             </button>
@@ -194,30 +263,27 @@ export default function InvestNow() {
 
         {/* 6. COMING SOON GRID */}
         <div style={styles.comingSoonGrid}>
-          {/* GOLD */}
           <div style={styles.goldCard}>
             <div style={styles.topPinkTag}>Coming Soon</div>
             <div style={styles.goldIconCircle}>🪙</div>
             <h4 style={styles.comingCardTitle}>Invest GOLD</h4>
-            <p style={styles.comingCardSub}>Secure your future with the power of gold value.</p>
+            <p style={styles.comingCardSub}>Secure your future with gold value.</p>
             <div style={styles.goldBtnPill}>🕒 Coming Soon</div>
           </div>
 
-          {/* SILVER */}
           <div style={styles.silverCard}>
             <div style={styles.topPinkTag}>Coming Soon</div>
             <div style={styles.silverIconCircle}>🧱</div>
             <h4 style={styles.comingCardTitle}>Invest SILVER</h4>
-            <p style={styles.comingCardSub}>Invest in silver and build a stable tomorrow.</p>
+            <p style={styles.comingCardSub}>Invest in silver & build tomorrow.</p>
             <div style={styles.silverBtnPill}>🕒 Coming Soon</div>
           </div>
 
-          {/* RECURRING DEPOSIT */}
           <div style={styles.rdCard}>
             <div style={styles.topPinkTag}>Coming Soon</div>
             <div style={styles.rdIconCircle}>🔄</div>
-            <h4 style={styles.comingCardTitle}>RECURRING DEPOSIT</h4>
-            <p style={styles.comingCardSub}>Save regularly and grow with disciplined returns.</p>
+            <h4 style={styles.comingCardTitle}>RECURRING</h4>
+            <p style.comingCardSub}>Save regularly with discipline.</p>
             <div style={styles.rdBtnPill}>🕒 Coming Soon</div>
           </div>
         </div>
@@ -280,7 +346,8 @@ const styles = {
     backgroundColor: "#ebf3fe",
     minHeight: "100vh",
     padding: "12px",
-    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    cursor: "pointer"
   },
   appContainer: {
     maxWidth: "420px",
@@ -288,6 +355,69 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     gap: "12px"
+  },
+  adBannerBox: {
+    background: "#ffffff",
+    borderRadius: "12px",
+    padding: "8px",
+    textAlign: "center",
+    border: "1px dashed #cbd5e1"
+  },
+  adBadgeText: { fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" },
+  adBannerContent: { fontSize: "11px", fontWeight: "700", color: "#2563eb" },
+  rewardIndicatorBox: {
+    background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+    borderRadius: "12px",
+    padding: "10px 14px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    color: "#78350f",
+    fontSize: "12px",
+    fontWeight: "700",
+    border: "1px solid #fcd34d"
+  },
+  watchRewardBtn: {
+    background: "#d97706",
+    color: "#fff",
+    border: "none",
+    padding: "6px 10px",
+    borderRadius: "8px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  withdrawCardBox: {
+    background: "linear-gradient(135deg, #0f172a 1e%, #1e293b 100%)",
+    borderRadius: "16px",
+    padding: "14px",
+    color: "#fff",
+    border: "1px solid #38bdf8"
+  },
+  withdrawTitle: { fontSize: "14px", fontWeight: "800", margin: "0 0 4px 0", color: "#38bdf8" },
+  withdrawSub: { fontSize: "10px", color: "#94a3b8", margin: "0 0 10px 0" },
+  withdrawBtnRow: { display: "flex", gap: "8px" },
+  btnWithdrawAd1: {
+    flex: 1,
+    background: "#2563eb",
+    color: "#fff",
+    border: "none",
+    padding: "8px",
+    borderRadius: "8px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
+  },
+  btnWithdrawAd2: {
+    flex: 1,
+    background: "#10b981",
+    color: "#fff",
+    border: "none",
+    padding: "8px",
+    borderRadius: "8px",
+    fontSize: "11px",
+    fontWeight: "bold",
+    cursor: "pointer"
   },
   heroCard: {
     background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #e11d48 100%)",
