@@ -16,7 +16,7 @@ export default function Support() {
       return alert("Please fill in your name, mobile number, subject, and problem fields.");
     }
 
-    const telegramUsername = "savemoneysupport";
+    const telegramUsername = "";
     
     // Formatted message structure
     const formattedMessage = `📌 New Support Request\n\n👤 Name: ${name}\n📞 Mobile: ${mobile}\nReferral Code: ${referCode || "N/A"}\n🔹 Subject: ${subject}\n❌ Problem: ${problem}`;
