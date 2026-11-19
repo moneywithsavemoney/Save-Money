@@ -187,6 +187,7 @@ export default function OneTime() {
   const [refreshing, setRefreshing] = useState(false);
 
   const [showImagePopup, setShowImagePopup] = useState(true);
+  const [showTodayOfferPopup, setShowTodayOfferPopup] = useState(true);
 
   // ⚡ ৭ দিন বাকি থাকলে এক্সপায়ারি ওয়ার্নিং পপআপ স্টেট
   const [showExpiryWarningModal, setShowExpiryWarningModal] = useState(false);
@@ -1127,6 +1128,69 @@ export default function OneTime() {
               onClick={() => setShowExpiryWarningModal(false)}
             >
               Understand & Continue / समझ गया / বুঝেছি ➔
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showTodayOfferPopup && (
+        <div style={{ ...styles.modalOverlay, zIndex: 100001 }} onClick={() => setShowTodayOfferPopup(false)}>
+          <div style={styles.animatedPopupCard} onClick={(e) => e.stopPropagation()}>
+            <button style={styles.closeImagePopupBtn} onClick={() => setShowTodayOfferPopup(false)}>✕</button>
+            <div style={{
+              width: "100%",
+              background: "linear-gradient(135deg, #1e1b4b 0%, #090d16 100%)",
+              borderRadius: "14px",
+              padding: "22px 16px",
+              textAlign: "center",
+              border: "1px solid rgba(250, 204, 21, 0.4)"
+            }}>
+              <div style={{
+                display: "inline-block",
+                background: "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
+                color: "#ffffff",
+                fontSize: "11px",
+                fontWeight: "900",
+                padding: "4px 12px",
+                borderRadius: "20px",
+                letterSpacing: "0.8px",
+                marginBottom: "10px",
+                textTransform: "uppercase",
+                boxShadow: "0 4px 12px rgba(239, 68, 68, 0.4)"
+              }}>
+                🔥 Offer Only For Today 🔥
+              </div>
+
+              <h2 style={{
+                margin: "0 0 12px 0",
+                fontSize: "20px",
+                fontWeight: "900",
+                color: "#facc15",
+                lineHeight: "1.3"
+              }}>
+                Invest ₹5,000 & Get ₹1,500 Monthly Return!
+              </h2>
+
+              <div style={{
+                background: "rgba(250, 204, 21, 0.1)",
+                border: "1px dashed #facc15",
+                borderRadius: "10px",
+                padding: "12px",
+                marginBottom: "6px"
+              }}>
+                <p style={{
+                  margin: 0,
+                  fontSize: "13px",
+                  color: "#f8fafc",
+                  fontWeight: "700",
+                  lineHeight: "1.5"
+                }}>
+                  You must add funds to your wallet and contact your upline to activate this offer.
+                </p>
+              </div>
+            </div>
+            <button style={styles.gotItBtn} onClick={() => setShowTodayOfferPopup(false)}>
+              Understand & Continue ➔
             </button>
           </div>
         </div>
@@ -2438,7 +2502,7 @@ export default function OneTime() {
                   onClick={handleRazorpayPayment}
                   disabled={razorpayLoading}
                 >
-                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹{totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
+                  <span>⚡</span> {razorpayLoading ? "Processing Payment..." : `Pay ₹${totalAddMoney.toLocaleString("en-IN")} with Razorpay`}
                 </button>
 
                 <div style={{ marginTop: "14px", padding: "10px", background: "#040d1a", borderRadius: "8px", border: "1px solid rgba(250, 204, 21, 0.2)", textAlign: "center" }}>
